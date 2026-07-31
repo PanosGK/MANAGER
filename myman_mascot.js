@@ -212,15 +212,15 @@ function debugSetMascotCharacter(characterType, STORAGE_KEYS) {
     tamagotchiCharacterType = characterType;
     tamagotchiIsDead = false;
 
-    if (tamagotchiStage === 'egg' || tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby) {
-        tamagotchiLifeMinutes = Math.max(Number(tamagotchiLifeMinutes) || 0, TAMA_STAGE_MINUTES.baby);
-        tamagotchiStage = 'baby';
+    if (tamagotchiStage === 'egg' || tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.evo1) {
+        tamagotchiLifeMinutes = Math.max(Number(tamagotchiLifeMinutes) || 0, TAMA_STAGE_MINUTES.evo1);
+        tamagotchiStage = 'evo1';
         tamagotchiEggHatchCinematicDone = true;
     } else {
         tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
     }
 
-    syncTamagotchiAgeFromLife();
+    syncTamagotchiLifeMinutes();
     noteMascotEvolutionReached(tamagotchiStage, tamagotchiCharacterType);
     const keys = getTamagotchiStorageKeys(
         STORAGE_KEYS || (typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null),
@@ -237,24 +237,38 @@ function debugSetMascotCharacter(characterType, STORAGE_KEYS) {
 }
 
 /** Life stages in evolution order (egg → … → old). */
-const TAMA_LIFE_STAGE_ORDER = ['egg', 'baby', 'kid', 'teen', 'adult', 'middleage', 'old'];
+const TAMA_LIFE_STAGE_ORDER = ['egg', 'evo1', 'evo2', 'evo3'];
 
 /** Maps life stage → SVG sprite group key (`tm-mascot-{key}-{character}`). */
 const TAMA_STAGE_TO_SPRITE_KEY = {
     egg: 'base',
-    baby: 'baby',
-    kid: 'evo1',
-    teen: 'evo2',
-    adult: 'evo3',
-    middleage: 'evo4',
-    old: 'evo5',
+    evo1: 'evo1',
+    evo2: 'evo2',
+    evo3: 'evo3',
 };
+
+/** Migrate legacy age-stage names → 3-evolution line. */
+function migrateLifeStageName(stage) {
+    const map = {
+        egg: 'egg',
+        baby: 'evo1',
+        kid: 'evo1',
+        teen: 'evo2',
+        adult: 'evo2',
+        middleage: 'evo3',
+        old: 'evo3',
+        evo1: 'evo1',
+        evo2: 'evo2',
+        evo3: 'evo3',
+    };
+    return map[stage] || 'egg';
+}
 
 /** Highest stage reached in the current egg cycle. */
 let tamagotchiMaxReachedStage = 'egg';
 /**
  * Lifetime discovery map: characterType → highest stage ever reached with that character.
- * Survives egg resets so Age Preview can unlock previously seen forms.
+ * Survives egg resets so Evolution Preview can unlock previously seen forms.
  */
 let tamagotchiEvolutionDiscovery = {};
 
@@ -272,8 +286,8 @@ function normalizeEvolutionDiscovery(raw) {
     if (!raw || typeof raw !== 'object') return out;
     Object.keys(raw).forEach((char) => {
         if (!TAMA_CHARACTER_TYPES.includes(char)) return;
-        const stage = raw[char];
-        if (typeof stage === 'string' && TAMA_LIFE_STAGE_ORDER.includes(stage)) {
+        const stage = migrateLifeStageName(raw[char]);
+        if (TAMA_LIFE_STAGE_ORDER.includes(stage)) {
             out[char] = stage;
         }
     });
@@ -290,7 +304,7 @@ function mergeEvolutionDiscoveryMaps(a, b) {
 }
 
 /**
- * Highest evolution the user has unlocked for Age Preview.
+ * Highest evolution the user has unlocked for Evolution Preview.
  * Prefer lifetime discovery for the character; also count the current life if same type.
  */
 function getMaxReachedEvolution(characterType = tamagotchiCharacterType) {
@@ -313,7 +327,7 @@ function isMascotStageUnlockedForPreview(stage, characterType = tamagotchiCharac
 
 function getMascotSpriteIdForStage(stage, characterType) {
     if (stage === 'egg') return 'tm-mascot-base';
-    const key = TAMA_STAGE_TO_SPRITE_KEY[stage] || 'baby';
+    const key = TAMA_STAGE_TO_SPRITE_KEY[stage] || 'evo1';
     if (!characterType || characterType === 'none') return `tm-mascot-${key}`;
     return `tm-mascot-${key}-${characterType}`;
 }
@@ -368,8 +382,6 @@ function debugAdvanceMascotEvolution(STORAGE_KEYS) {
             tamagotchiEggHatchCinematicDone = false;
         }
     }
-    syncTamagotchiAgeFromLife();
-
     const keys = getTamagotchiStorageKeys(
         STORAGE_KEYS || (typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null),
     );
@@ -387,7 +399,7 @@ function debugAdvanceMascotEvolution(STORAGE_KEYS) {
 }
 
 /**
- * Debug: natural / care death (hunger, health, old age) — NOT the AK-47 execution cinematic.
+ * Debug: natural / care death (hunger, health, lifespan) — NOT the AK-47 execution cinematic.
  * @param {object|null} STORAGE_KEYS
  * @param {'hunger'|'health'|'oldAge'} [cause='hunger']
  * @returns {boolean}
@@ -398,8 +410,8 @@ function debugKillTamagotchiNatural(STORAGE_KEYS, cause = 'hunger') {
         showMascotBubble('Ήδη νεκρό…', 2500);
         return false;
     }
-    if (tamagotchiStage === 'egg' || tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby) {
-        showMascotBubble('Το αυγό δεν πεθαίνει από πείνα/ηλικία.', 3000);
+    if (tamagotchiStage === 'egg' || tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.evo1) {
+        showMascotBubble('Το αυγό δεν πεθαίνει από πείνα/χρόνο ζωής.', 3000);
         return false;
     }
 
@@ -412,8 +424,7 @@ function debugKillTamagotchiNatural(STORAGE_KEYS, cause = 'hunger') {
 
     if (reason === 'oldAge') {
         tamagotchiLifeMinutes = Math.max(Number(tamagotchiLifeMinutes) || 0, TAMA_STAGE_MINUTES.death);
-        syncTamagotchiAgeFromLife();
-        tamagotchiStage = 'old';
+        tamagotchiStage = 'evo3';
         tamagotchiHealth = 0;
     } else if (reason === 'health') {
         tamagotchiHealth = 0;
@@ -857,8 +868,7 @@ function initMascotAccessoryLayers() {
 
 let petStats = { happiness: 100, hunger: 100, lastUpdate: Date.now() };
 // Tamagotchi state variables
-let tamagotchiAge = 0;
-let tamagotchiStage = 'egg'; // egg, baby, kid, teen, adult, middleage, old
+let tamagotchiStage = 'egg'; // egg, evo1, evo2, evo3
 let tamagotchiCharacterType = 'none'; // none (egg), dragon, robot, slime, plant, ghost, cat, phoenix, crystal, aether, leviathan
 let tamagotchiHealth = 100;
 
@@ -1335,12 +1345,12 @@ function setMascotParked(locked, x = null, y = null, STORAGE_KEYS = window.STORA
     if (typeof syncAetherSigilLock === 'function') syncAetherSigilLock();
     // Footprint only on park edge — never from aura rolls / sync spam
     if (!wasLocked && locked && tamagotchiCharacterType === 'aether'
-        && (tamagotchiStage === 'old' || (AETHER_STAGE_TIER[tamagotchiStage] || 0) >= 6)
+        && (tamagotchiStage === 'evo3' || (AETHER_STAGE_TIER[tamagotchiStage] || 0) >= 3)
         && typeof playAetherMythicFootprint === 'function') {
         playAetherMythicFootprint(document.getElementById('tm-mascot-container'));
     }
     if (!wasLocked && locked && tamagotchiCharacterType === 'phoenix'
-        && (tamagotchiStage === 'old' || (PHOENIX_STAGE_TIER[tamagotchiStage] || 0) >= 4)
+        && (tamagotchiStage === 'evo3' || (PHOENIX_STAGE_TIER[tamagotchiStage] || 0) >= 2)
         && typeof playPhoenixMythicFootprint === 'function') {
         playPhoenixMythicFootprint(document.getElementById('tm-mascot-container'));
     }
@@ -3269,7 +3279,7 @@ function runTamagotchiHatchSequence(characterType, container) {
     }
 
     showEggHatchAnimation(() => {
-        if (hatchGen !== tamaCinematicGeneration || tamagotchiIsDead || tamagotchiStage !== 'baby') {
+        if (hatchGen !== tamaCinematicGeneration || tamagotchiIsDead || tamagotchiStage !== 'evo1') {
             tamaCinematicLock = false;
             return;
         }
@@ -3280,14 +3290,14 @@ function runTamagotchiHatchSequence(characterType, container) {
                 return;
             }
             tamagotchiCharacterType = lockedType;
-            updateMascotAppearanceByStage('baby');
+            updateMascotAppearanceByStage('evo1');
             tamaCinematicLock = false;
             showMascotBubble(mascotHatchMsg(lockedType), 3000);
             if (lockedType === 'aether') {
-                setTimeout(() => playAetherStageCinematic('baby', { hatch: true }), 400);
+                setTimeout(() => playAetherStageCinematic('evo1', { hatch: true }), 400);
             }
             if (lockedType === 'phoenix') {
-                setTimeout(() => playPhoenixStageCinematic('baby', { hatch: true }), 400);
+                setTimeout(() => playPhoenixStageCinematic('evo1', { hatch: true }), 400);
             }
             if (typeof window.STORAGE_KEYS !== 'undefined') {
                 saveTamagotchiData(window.STORAGE_KEYS);
@@ -3576,44 +3586,38 @@ const TAMA_OFFICE_HOUR_START = 9;  // inclusive
 const TAMA_OFFICE_HOUR_END = 21;   // exclusive (stops at 21:00)
 const TAMA_OFFICE_HOURS_RELOAD_DELAY_MS = 5000;
 
-// Stage thresholds in office-minutes. Baseline ≈15 office-days (12h/day) to reach old.
+// Stage thresholds in office-minutes. Baseline ≈7.5 office-days (12h/day) to final evo.
 const TAMA_STAGE_MINUTES_BASE = {
     egg: 0,
-    baby: 1,          // 1 office-min — hatch
-    kid: 488,         // ~0.7 office-days
-    teen: 1350,       // ~1.9 office-days
-    adult: 2700,      // ~3.8 office-days
-    middleage: 5400,  // ~7.5 office-days
-    old: 10800,       // ~15 office-days
-    death: 36000,     // ~50 office-days (~80 display-years)
+    evo1: 1,          // 1 office-min — hatch
+    evo2: 2700,       // ~3.8 office-days
+    evo3: 5400,       // ~7.5 office-days — final evolution
+    death: 36000,     // ~50 office-days
 };
-const TAMA_DEFAULT_DAYS_TO_OLD = 15;
+const TAMA_DEFAULT_DAYS_TO_FINAL = 7.5;
 const TAMA_OFFICE_MINUTES_PER_DAY = (TAMA_OFFICE_HOUR_END - TAMA_OFFICE_HOUR_START) * 60; // 720
 const TAMA_LIFESPAN_DAYS_KEY = 'tm_mascot_lifespan_days';
-// Display age pacing (baseline): old ≈ 24 years, death ≈ 80 years
-const TAMA_MINUTES_PER_YEAR_BASE = 450;
 
 /** Live thresholds — mutated by debug lifespan scale (keep same object ref). */
 const TAMA_STAGE_MINUTES = { ...TAMA_STAGE_MINUTES_BASE };
-let TAMA_MINUTES_PER_YEAR = TAMA_MINUTES_PER_YEAR_BASE;
 
 function getMascotLifespanDays() {
     try {
         if (typeof GM_getValue === 'function') {
-            const raw = Number(GM_getValue(TAMA_LIFESPAN_DAYS_KEY, TAMA_DEFAULT_DAYS_TO_OLD));
+            const raw = Number(GM_getValue(TAMA_LIFESPAN_DAYS_KEY, TAMA_DEFAULT_DAYS_TO_FINAL));
             if (Number.isFinite(raw) && raw > 0) {
                 return Math.min(365, Math.max(0.05, raw));
             }
         }
     } catch (_) { /* ignore */ }
-    return TAMA_DEFAULT_DAYS_TO_OLD;
+    return TAMA_DEFAULT_DAYS_TO_FINAL;
 }
 
 function setMascotLifespanDays(days) {
     const next = Number(days);
     const clamped = Number.isFinite(next) && next > 0
         ? Math.min(365, Math.max(0.05, next))
-        : TAMA_DEFAULT_DAYS_TO_OLD;
+        : TAMA_DEFAULT_DAYS_TO_FINAL;
     try {
         if (typeof GM_setValue === 'function') {
             GM_setValue(TAMA_LIFESPAN_DAYS_KEY, clamped);
@@ -3625,25 +3629,23 @@ function setMascotLifespanDays(days) {
 
 function refreshTamaLifespanScale() {
     const days = getMascotLifespanDays();
-    const targetOldMinutes = days * TAMA_OFFICE_MINUTES_PER_DAY;
-    const scale = targetOldMinutes / TAMA_STAGE_MINUTES_BASE.old;
-    const order = ['baby', 'kid', 'teen', 'adult', 'middleage', 'old', 'death'];
+    const targetFinalMinutes = days * TAMA_OFFICE_MINUTES_PER_DAY;
+    const scale = targetFinalMinutes / TAMA_STAGE_MINUTES_BASE.evo3;
+    const order = ['evo1', 'evo2', 'evo3', 'death'];
     TAMA_STAGE_MINUTES.egg = 0;
     let prev = 0;
     order.forEach((key) => {
         const base = TAMA_STAGE_MINUTES_BASE[key];
-        let value = key === 'baby'
+        let value = key === 'evo1'
             ? Math.max(1, Math.round(base * Math.max(scale, 0.0001)))
             : Math.max(prev + 1, Math.round(base * scale));
         TAMA_STAGE_MINUTES[key] = value;
         prev = value;
     });
-    TAMA_MINUTES_PER_YEAR = Math.max(1, Math.round(TAMA_MINUTES_PER_YEAR_BASE * scale));
     return {
         days,
         scale,
         stages: { ...TAMA_STAGE_MINUTES },
-        minutesPerYear: TAMA_MINUTES_PER_YEAR,
     };
 }
 
@@ -3774,9 +3776,9 @@ function resolveMascotCharacterType(container, characterType = tamagotchiCharact
 
 /** Stage growth for mythics — applied on flipper so idle/eat animations don't wipe it. */
 const TAMA_STAGE_VISUAL_SCALE = {
-    phoenix: { baby: 1, kid: 1, teen: 1.08, adult: 1.22, middleage: 1.32, old: 1.42 },
-    leviathan: { baby: 1, kid: 1, teen: 1.1, adult: 1.24, middleage: 1.34, old: 1.46 },
-    aether: { baby: 1, kid: 1, teen: 1.03, adult: 1.07, middleage: 1.14, old: 1.24 },
+    phoenix: { evo1: 1, evo2: 1.22, evo3: 1.32 },
+    leviathan: { evo1: 1, evo2: 1.24, evo3: 1.34 },
+    aether: { evo1: 1, evo2: 1.07, evo3: 1.14 },
 };
 
 function getMascotStageVisualScale(stage = tamagotchiStage, characterType = tamagotchiCharacterType) {
@@ -3822,17 +3824,14 @@ function syncEliteMascotContainerSize(
 }
 
 const PHOENIX_STAGE_TIER = {
-    baby: 1, kid: 2, teen: 3, adult: 4, middleage: 5, old: 6,
+    evo1: 1, evo2: 2, evo3: 3,
 };
 const PHOENIX_STAGE_TITLES = {
-    baby: 'Ember Chick',
-    kid: 'Flame Fledgling',
-    teen: 'Blaze Raptor',
-    adult: 'Ashborn Phoenix',
-    middleage: 'Cinder Warlord',
-    old: 'Solar Seraph',
+    evo1: 'Ember Chick',
+    evo2: 'Ashborn Phoenix',
+    evo3: 'Cinder Warlord',
 };
-const PHOENIX_STAGE_ORDER = ['baby', 'kid', 'teen', 'adult', 'middleage', 'old'];
+const PHOENIX_STAGE_ORDER = ['evo1', 'evo2', 'evo3'];
 
 /** Hatch weights — Mythical Phoenix / Aether / Leviathan are rare. */
 const TAMA_CHARACTER_HATCH_WEIGHTS = {
@@ -4229,8 +4228,7 @@ const MASCOT_PERSONALITY_GR = {
 };
 
 const MASCOT_STAGE_GR = {
-    egg: 'Αυγό', baby: 'Μωρό', kid: 'Παιδί', teen: 'Έφηβος',
-    adult: 'Ενήλικας', middleage: 'Μέσης ηλικίας', old: 'Γέρος'
+    egg: 'Αυγό', evo1: 'Εξέλιξη 1', evo2: 'Εξέλιξη 2', evo3: 'Εξέλιξη 3',
 };
 
 function mascotMsg(key) {
@@ -4552,7 +4550,7 @@ function schedulePhoenixAuraRoll(container, stage) {
     }, 9000 + Math.random() * 14000);
 }
 
-function syncPhoenixMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : 'baby') {
+function syncPhoenixMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : 'evo1') {
     stopPhoenixMythicFx();
     if (tamagotchiIsDead || stage === 'egg') return;
     if (tamagotchiCharacterType !== 'phoenix') return;
@@ -5721,7 +5719,7 @@ function initMascotRepairPriceComments(config) {
 }
 
 function formatTamagotchiStatsBubble() {
-    const daysOld = Math.floor((Date.now() - tamagotchiBirthday) / (1000 * 60 * 60 * 24));
+    const daysAlive = Math.floor((Date.now() - tamagotchiBirthday) / (1000 * 60 * 60 * 24));
     const sickNames = { cold: 'Κρύωμα', fever: 'Πυρετός', upset_stomach: 'Αναστάτωση στομάχου' };
     const stageGr = MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage;
     const personalityGr = MASCOT_PERSONALITY_GR[tamagotchiPersonality] || tamagotchiPersonality;
@@ -5730,13 +5728,12 @@ function formatTamagotchiStatsBubble() {
         : '✅ Υγιής';
     const toiletLine = tamagotchiToiletTrained ? '🚽 Έμαθε τουαλέτα' : '❌ Χωρίς εκπαίδευση';
     return `📊 Στατιστικά:
-Ηλικία: ${Math.floor(tamagotchiAge)} χρ. (${daysOld} μέρες)
+Εξέλιξη: ${stageGr} (${daysAlive} μέρες)
 Βάρος: ${Math.round(tamagotchiWeight)} kg
 Πείνα: ${Math.round(petStats.hunger)}%
 Χαρά: ${Math.round(petStats.happiness)}%
 Υγεία: ${Math.round(tamagotchiHealth)}%
 Πειθαρχία: ${Math.round(tamagotchiDiscipline)}%
-Στάδιο: ${stageGr}
 Χαρακτήρας: ${personalityGr}
 Λάθη φροντίδας: ${tamagotchiCareMistakes}
 Θάνατοι (φυσικοί): ${tamagotchiNaturalDeathCount}
@@ -5755,19 +5752,15 @@ function mascotHatchMsg(characterType) {
 
 function getTamagotchiStageFromLifeMinutes(minutes) {
     const m = Number(minutes);
-    if (!Number.isFinite(m) || m < TAMA_STAGE_MINUTES.baby) return 'egg';
-    if (m < TAMA_STAGE_MINUTES.kid) return 'baby';
-    if (m < TAMA_STAGE_MINUTES.teen) return 'kid';
-    if (m < TAMA_STAGE_MINUTES.adult) return 'teen';
-    if (m < TAMA_STAGE_MINUTES.middleage) return 'adult';
-    if (m < TAMA_STAGE_MINUTES.old) return 'middleage';
-    return 'old';
+    if (!Number.isFinite(m) || m < TAMA_STAGE_MINUTES.evo1) return 'egg';
+    if (m < TAMA_STAGE_MINUTES.evo2) return 'evo1';
+    if (m < TAMA_STAGE_MINUTES.evo3) return 'evo2';
+    return 'evo3';
 }
 
-function syncTamagotchiAgeFromLife() {
+function syncTamagotchiLifeMinutes() {
     const m = Number(tamagotchiLifeMinutes);
     tamagotchiLifeMinutes = Number.isFinite(m) ? Math.max(0, m) : 0;
-    tamagotchiAge = Math.floor(tamagotchiLifeMinutes / TAMA_MINUTES_PER_YEAR);
 }
 
 /**
@@ -5834,7 +5827,7 @@ function hydrateTamagotchiFromStorage(STORAGE_KEYS, container = null, options = 
         updateTamagotchiStats(el);
         if (evolve && !tamaCinematicLock) checkTamagotchiEvolution(el);
     }
-    syncTamagotchiAgeFromLife();
+    syncTamagotchiLifeMinutes();
     if (saveAfter) saveTamagotchiData(keys);
     return true;
 }
@@ -5868,12 +5861,12 @@ function resolveLifeMinutesFromSave(savedData) {
 
     if (!Number.isFinite(life)) {
         const stageFloor = TAMA_STAGE_MINUTES[stage] ?? 0;
-        return stageFloor + Math.max(0, (savedData.age || 0) * TAMA_MINUTES_PER_YEAR);
+        return stageFloor;
     }
 
     if (life <= 0 && hatchedHint) {
-        const floor = TAMA_STAGE_MINUTES[stage !== 'egg' ? stage : 'baby'] ?? TAMA_STAGE_MINUTES.baby;
-        const recovered = Math.max(floor, Math.max(0, (savedData.age || 0) * TAMA_MINUTES_PER_YEAR));
+        const floor = TAMA_STAGE_MINUTES[stage !== 'egg' ? stage : 'evo1'] ?? TAMA_STAGE_MINUTES.evo1;
+        const recovered = floor;
         console.warn(`[Mascot] Recovered lifeMinutes=${recovered} from stage/character (was ${savedData.lifeMinutes})`);
         return recovered;
     }
@@ -5882,11 +5875,11 @@ function resolveLifeMinutesFromSave(savedData) {
 }
 
 function getEggHatchProgress() {
-    return Math.min(100, (tamagotchiLifeMinutes / TAMA_STAGE_MINUTES.baby) * 100);
+    return Math.min(100, (tamagotchiLifeMinutes / TAMA_STAGE_MINUTES.evo1) * 100);
 }
 
 function getMinutesUntilHatch() {
-    return Math.max(0, Math.ceil(TAMA_STAGE_MINUTES.baby - tamagotchiLifeMinutes));
+    return Math.max(0, Math.ceil(TAMA_STAGE_MINUTES.evo1 - tamagotchiLifeMinutes));
 }
 
 /** Clicking «Ζέστανε» advances egg life toward hatch (needs lights on). */
@@ -5898,7 +5891,7 @@ function warmTamagotchiEgg(config, STORAGE_KEYS) {
     if (tamagotchiStage !== 'egg') return { ok: false, reason: 'hatched' };
     if (!tamagotchiLightsOn) return { ok: false, reason: 'lights' };
 
-    const need = TAMA_STAGE_MINUTES.baby;
+    const need = TAMA_STAGE_MINUTES.evo1;
     // ~3 warm clicks to hatch from a fresh egg
     const boost = Math.max(need * 0.34, 0.34);
     const before = Number(tamagotchiLifeMinutes) || 0;
@@ -5906,7 +5899,7 @@ function warmTamagotchiEgg(config, STORAGE_KEYS) {
     const crossedHatch = before < need && nextLife >= need;
     tamagotchiLifeMinutes = nextLife;
     tamagotchiLastUpdate = Date.now();
-    syncTamagotchiAgeFromLife();
+    syncTamagotchiLifeMinutes();
 
     const container = document.getElementById('tm-mascot-container');
     // IMPORTANT: do not saveTamagotchiData before evolution — save mutates stage to baby
@@ -5918,7 +5911,7 @@ function warmTamagotchiEgg(config, STORAGE_KEYS) {
     // Spam / race safety: if we crossed the hatch threshold, always play the cinematic
     if (crossedHatch && container && !tamagotchiEggHatchCinematicDone && !tamaCinematicLock) {
         if (tamagotchiStage === 'egg') {
-            tamagotchiStage = 'baby';
+            tamagotchiStage = 'evo1';
         }
         if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none'
             || !TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
@@ -6077,8 +6070,8 @@ function installMascotDomDeduper() {
 function ensureTamagotchiCharacterType(options = {}) {
     const { allowRandom = false, clearForEgg = false } = options;
 
-    if (tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby || tamagotchiStage === 'egg') {
-        if (clearForEgg || tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby) {
+    if (tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.evo1 || tamagotchiStage === 'egg') {
+        if (clearForEgg || tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.evo1) {
             tamagotchiCharacterType = 'none';
         }
         return;
@@ -6100,7 +6093,7 @@ function ensureTamagotchiCharacterType(options = {}) {
 }
 
 function validateTamagotchiState() {
-    syncTamagotchiAgeFromLife();
+    syncTamagotchiLifeMinutes();
     tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
     // Never randomly re-roll character here — that caused a new mascot on every refresh
     ensureTamagotchiCharacterType({ clearForEgg: tamagotchiStage === 'egg' });
@@ -7234,10 +7227,8 @@ function loadTamagotchiData(STORAGE_KEYS) {
             tamagotchiTaughtTricks = { unlocked: [], practice: {} };
         }
         tamagotchiEvolutionDiscovery = normalizeEvolutionDiscovery(savedData.evolutionDiscovery);
-        const savedMax = savedData.maxReachedStage;
-        tamagotchiMaxReachedStage = (typeof savedMax === 'string' && TAMA_LIFE_STAGE_ORDER.includes(savedMax))
-            ? savedMax
-            : 'egg';
+        const savedMax = migrateLifeStageName(savedData.maxReachedStage);
+        tamagotchiMaxReachedStage = TAMA_LIFE_STAGE_ORDER.includes(savedMax) ? savedMax : 'egg';
         validateTamagotchiState();
         // Recover sticky character after validate if storage had one and we're hatched
         if (tamagotchiStage !== 'egg' && loadedChar && loadedChar !== 'none'
@@ -7255,7 +7246,7 @@ function saveTamagotchiData(STORAGE_KEYS) {
     const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
     if (!keys?.TAMAGOTCHI_DATA) return;
 
-    syncTamagotchiAgeFromLife();
+    syncTamagotchiLifeMinutes();
     tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
 
     // Multi-tab guard: never let a stale tab wipe a more progressed pet / character
@@ -7282,7 +7273,7 @@ function saveTamagotchiData(STORAGE_KEYS) {
             tamagotchiLifeMinutes = merged.lifeMinutes;
             tamagotchiLastUpdate = merged.lastUpdate;
             tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
-            syncTamagotchiAgeFromLife();
+            syncTamagotchiLifeMinutes();
 
             // Lifetime death tallies: keep the higher count across tabs
             tamagotchiKilledByUserCount = Math.max(
@@ -7313,7 +7304,7 @@ function saveTamagotchiData(STORAGE_KEYS) {
 
             // Sticky character: never replace a real character while hatched.
             // Prefer in-memory if already rolled this session (hatch); else adopt storage.
-            if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.baby) {
+            if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.evo1) {
                 if (memoryCharOk) {
                     // Keep the rolled character — don't let stale storage overwrite it
                 } else if (storedCharOk) {
@@ -7324,7 +7315,7 @@ function saveTamagotchiData(STORAGE_KEYS) {
         // ourGen > storedGen → intentional reset in this tab; write egg state through
     }
 
-    if (tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby) {
+    if (tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.evo1) {
         tamagotchiStage = 'egg';
         tamagotchiCharacterType = 'none';
     } else {
@@ -7341,7 +7332,6 @@ function saveTamagotchiData(STORAGE_KEYS) {
     }
 
     const data = {
-        age: tamagotchiAge,
         lifeMinutes: tamagotchiLifeMinutes,
         eggGeneration: tamagotchiEggGeneration,
         stage: tamagotchiStage,
@@ -7529,10 +7519,10 @@ function updateTamagotchiStats(container) {
         
         // Age/life increases only during office hours
         tamagotchiLifeMinutes += timeDiff;
-        syncTamagotchiAgeFromLife();
+        syncTamagotchiLifeMinutes();
         
         // Generate poops periodically (not for egg or baby stage)
-        if (!tamagotchiIsSleeping && tamagotchiStage !== 'egg' && tamagotchiStage !== 'baby') {
+        if (!tamagotchiIsSleeping && tamagotchiStage !== 'egg' && tamagotchiStage !== 'evo1') {
             generateTamagotchiPoop();
         }
         
@@ -7558,17 +7548,14 @@ function updateTamagotchiStats(container) {
     
     if (healthFill) healthFill.style.width = `${tamagotchiHealth}%`;
     if (disciplineFill) disciplineFill.style.width = `${Math.min(100, tamagotchiDiscipline)}%`;
-    if (ageDisplay) ageDisplay.textContent = `ΗΛΙΚΙΑ: ${Math.floor(tamagotchiAge)}`;
+    if (ageDisplay) ageDisplay.textContent = `ΕΞΕΛΙΞΗ: ${MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage}`;
     
     // Update stage display
     const stageNames = {
         'egg': 'ΑΥΓΟ',
-        'baby': 'ΜΩΡΟ',
-        'kid': 'ΠΑΙΔΙ',
-        'teen': 'ΕΦΗΒΟΣ',
-        'adult': 'ΕΝΗΛΙΚΑΣ',
-        'middleage': 'ΜΕΣΗ ΗΛΙΚΙΑ',
-        'old': 'ΓΕΡΟΣ'
+        'evo1': 'ΕΞΕΛΙΞΗ 1',
+        'evo2': 'ΕΞΕΛΙΞΗ 2',
+        'evo3': 'ΕΞΕΛΙΞΗ 3'
     };
     if (stageDisplay) stageDisplay.textContent = stageNames[tamagotchiStage] || 'ΑΥΓΟ';
     
@@ -7617,7 +7604,7 @@ function checkTamagotchiEvolution(container) {
         const oldAgeMessages = MASCOT_MESSAGES.oldAgeDeath;
         showMascotBubble(oldAgeMessages[Math.floor(Math.random() * oldAgeMessages.length)], 5000);
         setMascotState(null, 'dead', 10000);
-        console.log('[Mascot] 💀 Died from old age at', tamagotchiAge, 'years');
+        console.log('[Mascot] 💀 Died from lifespan end at stage', tamagotchiStage);
         
         // Show death screen after a delay
         setTimeout(() => {
@@ -7631,9 +7618,9 @@ function checkTamagotchiEvolution(container) {
     
     // Determine stage based on life minutes (classic Tamagotchi pacing)
     tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
-    syncTamagotchiAgeFromLife();
+    syncTamagotchiLifeMinutes();
 
-    if (tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby) {
+    if (tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.evo1) {
         tamagotchiCharacterType = 'none';
     } else if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none'
         || !TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
@@ -7662,7 +7649,7 @@ function checkTamagotchiEvolution(container) {
     const stageChanged = oldStage !== tamagotchiStage;
     const characterChanged = oldCharacterType !== tamagotchiCharacterType;
 
-    // Track unlocked Age Preview stages (current life + lifetime discovery)
+    // Track unlocked Evolution Preview stages (current life + lifetime discovery)
     if (stageChanged || characterChanged) {
         noteMascotEvolutionReached(tamagotchiStage, tamagotchiCharacterType);
     }
@@ -7684,21 +7671,15 @@ function checkTamagotchiEvolution(container) {
         const evolutionMessages = MASCOT_MESSAGES.evolution;
         if (oldStage === 'egg' && tamagotchiStage !== 'egg') {
             tamagotchiLastPoopTime = Date.now();
-            if (tamagotchiStage === 'baby' && !tamagotchiEggHatchCinematicDone && !tamaCinematicLock) {
+            if (tamagotchiStage === 'evo1' && !tamagotchiEggHatchCinematicDone && !tamaCinematicLock) {
                 runTamagotchiHatchSequence(tamagotchiCharacterType, container);
             } else if (!tamaCinematicLock) {
                 updateMascotAppearanceByStage(tamagotchiStage);
             }
-        } else if (tamagotchiStage === 'baby' && !tamagotchiEggHatchCinematicDone && !tamaCinematicLock
+        } else if (tamagotchiStage === 'evo1' && !tamagotchiEggHatchCinematicDone && !tamaCinematicLock
             && (oldCharacterType === 'none' || !oldCharacterType)) {
             // Recover hatch cinematic when stage was already baby (e.g. save raced ahead)
             runTamagotchiHatchSequence(tamagotchiCharacterType, container);
-        } else if (tamagotchiStage === 'old' && oldStage !== 'old') {
-            const oldMessages = MASCOT_MESSAGES.becameOld;
-            showMascotBubble(oldMessages[Math.floor(Math.random() * oldMessages.length)], 3000);
-            if (tamagotchiCharacterType === 'aether') playAetherStageCinematic('old');
-            else if (tamagotchiCharacterType === 'phoenix') playPhoenixStageCinematic('old');
-            else playGenericStageCinematic('old');
         } else if (stageChanged) {
             showMascotBubble(evolutionMessages[Math.floor(Math.random() * evolutionMessages.length)], 3000);
             if (tamagotchiCharacterType === 'aether' && tamagotchiStage !== 'egg') {
@@ -7728,7 +7709,7 @@ function checkTamagotchiEvolution(container) {
     }
     
     // Show warning messages when approaching death from old age
-    if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.old && tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.death && Math.random() < 0.1) {
+    if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.evo3 && tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.death && Math.random() < 0.1) {
         const oldAgeWarnings = MASCOT_MESSAGES.oldAgeWarning;
         showMascotBubble(oldAgeWarnings[Math.floor(Math.random() * oldAgeWarnings.length)], 3000);
     }
@@ -7749,7 +7730,7 @@ function generateTamagotchiPoop() {
     let poopInterval = 15; // Default: every 15 minutes
     if (tamagotchiToiletTrained && tamagotchiDiscipline > 70) {
         poopInterval = 60; // Well-trained pets poop less often (use toilet more)
-    } else if (tamagotchiStage === 'baby') {
+    } else if (tamagotchiStage === 'evo1') {
         poopInterval = 10; // Babies poop more often
     }
     
@@ -7810,7 +7791,7 @@ function updatePoopIndicator() {
 
 // Check if mascot needs to use toilet (based on time since last poop)
 function checkNeedsToilet() {
-    if (tamagotchiIsDead || tamagotchiIsSleeping || tamagotchiStage === 'egg' || tamagotchiStage === 'baby') return false;
+    if (tamagotchiIsDead || tamagotchiIsSleeping || tamagotchiStage === 'egg' || tamagotchiStage === 'evo1') return false;
     if (tamagotchiPoopCount > 0) return false;
     if (!tamagotchiLastPoopTime) return false;
     
@@ -7974,27 +7955,21 @@ const AETHER_FX_BY_STAGE = {
 };
 
 const AETHER_STAGE_TIER = {
-    baby: 1, kid: 2, teen: 3, adult: 4, middleage: 5, old: 6,
+    evo1: 1, evo2: 2, evo3: 3,
 };
 
 const AETHER_STAGE_TITLES = {
-    baby: 'Voidseed',
-    kid: 'Veilspawn',
-    teen: 'Astral Warden',
-    adult: 'Starveil Sovereign',
-    middleage: 'Eclipse Sovereign',
-    old: 'Primordial Absolute',
+    evo1: 'Voidseed',
+    evo2: 'Starveil Sovereign',
+    evo3: 'Eclipse Sovereign',
 };
 
-const AETHER_STAGE_ORDER = ['baby', 'kid', 'teen', 'adult', 'middleage', 'old'];
+const AETHER_STAGE_ORDER = ['evo1', 'evo2', 'evo3'];
 
 const AETHER_PARTICLE_COLORS = {
-    baby: ['#7ec8c3', '#c9a0dc', '#ffe082'],
-    kid: ['#4db6ac', '#9575cd', '#ffb74d'],
-    teen: ['#00acc1', '#5c6bc0', '#c0a060'],
-    adult: ['#26c6da', '#ffd54f', '#7c4dff'],
-    middleage: ['#c62828', '#b8963a', '#4a148c'],
-    old: ['#7a0000', '#c9b896', '#3e2723'],
+    evo1: ['#7ec8c3', '#c9a0dc', '#ffe082'],
+    evo2: ['#26c6da', '#ffd54f', '#7c4dff'],
+    evo3: ['#c62828', '#b8963a', '#4a148c'],
 };
 
 const AETHER_SOLEMN_LINES = [
@@ -8084,7 +8059,7 @@ function maybeStartAetherPerfProbe() {
             const container = document.getElementById('tm-mascot-container');
             applyAetherPerfClass(container);
             if (tamagotchiCharacterType === 'aether' && aetherMythFxActive) {
-                syncAetherMythicFx(tamagotchiStage || 'baby');
+                syncAetherMythicFx(tamagotchiStage || 'evo1');
             }
             console.log('[MMS Mascot] Aether FX switched to lite mode (slow frames).');
         }
@@ -8385,7 +8360,7 @@ function playAetherGazeBeam(container, stage) {
     container.querySelectorAll('.tm-aether-gaze-beam').forEach((el) => el.remove());
     container.classList.add('tm-aether-gaze-on', 'tm-aether-stare');
     const colors = AETHER_PARTICLE_COLORS[stage] || AETHER_PARTICLE_COLORS.adult;
-    const eyeY = stage === 'baby' ? 42 : stage === 'old' ? 28 : 32;
+    const eyeY = stage === 'evo1' ? 42 : stage === 'evo3' ? 28 : 32;
     const leftX = 42;
     const rightX = 58;
     const angles = [-18 - Math.random() * 10, 18 + Math.random() * 10];
@@ -8436,7 +8411,7 @@ function playAetherBlinkOfJudgment(container, stage) {
     syncAetherScreenAura(container, stage, peak);
     setTimeout(() => {
         container.classList.remove('tm-aether-judgment-blink');
-        if (aetherMythFxActive) rollAetherAuraLayers(container, stage || tamagotchiStage || 'adult');
+        if (aetherMythFxActive) rollAetherAuraLayers(container, stage || tamagotchiStage || 'evo2');
     }, 700);
 }
 
@@ -8553,7 +8528,7 @@ function updateAetherWorldDim(container, stage, { strengthOverride = null } = {}
         return;
     }
 
-    const liveStage = stage || tamagotchiStage || 'adult';
+    const liveStage = stage || tamagotchiStage || 'evo2';
     const tier = AETHER_STAGE_TIER[liveStage] || 1;
     const awakened = isAetherAwakened();
     const lite = isAetherLiteMode();
@@ -8592,7 +8567,7 @@ function playAetherScreenAuraBurst(container, stage, {
     if (isAetherUltraMode()) return false;
     if (document.hidden && !force) return false;
 
-    const liveStage = stage || tamagotchiStage || 'adult';
+    const liveStage = stage || tamagotchiStage || 'evo2';
     const tier = AETHER_STAGE_TIER[liveStage] || 1;
     const lite = isAetherLiteMode();
     const awakened = isAetherAwakened();
@@ -8807,7 +8782,7 @@ function scheduleAetherTrueFormPeek(container, stage) {
     if (!aetherMythFxActive) return;
     aetherTrueFormTimer = setTimeout(() => {
         if (!aetherMythFxActive) return;
-        if ((stage === 'old' || stage === 'middleage') && Math.random() < 0.005) {
+        if ((stage === 'evo3') && Math.random() < 0.005) {
             playAetherTrueFormPeek(container);
         }
         scheduleAetherTrueFormPeek(container, stage);
@@ -8828,7 +8803,7 @@ function syncAetherSigilLock(container = document.getElementById('tm-mascot-cont
     if (locked) {
         const sigil = container.querySelector('.tm-aether-fx[data-fx="sigil"]');
         sigil?.classList.add('tm-fx-on');
-        ensureAetherDomainCircle(container, tamagotchiStage || 'adult');
+        ensureAetherDomainCircle(container, tamagotchiStage || 'evo2');
     } else {
         container.classList.remove('tm-aether-domain-on');
         container.querySelectorAll('.tm-aether-domain-circle').forEach((el) => el.remove());
@@ -8902,7 +8877,7 @@ function playAetherApotheosisSky() {
 }
 
 function playAetherThroneSilhouette(container) {
-    if (!container || tamagotchiStage !== 'old') return;
+    if (!container || tamagotchiStage !== 'evo3') return;
     container.querySelectorAll('.tm-aether-throne').forEach((el) => el.remove());
     const throne = document.createElement('div');
     throne.className = 'tm-aether-throne';
@@ -8914,7 +8889,7 @@ function scheduleAetherThrone(container, stage) {
     if (!aetherMythFxActive) return;
     aetherThroneTimer = setTimeout(() => {
         if (!aetherMythFxActive) return;
-        if (stage === 'old' && !isMascotFocusQuiet() && Math.random() < 0.22) {
+        if (stage === 'evo3' && !isMascotFocusQuiet() && Math.random() < 0.22) {
             playAetherThroneSilhouette(container);
         }
         scheduleAetherThrone(container, stage);
@@ -9202,7 +9177,7 @@ function scheduleAetherSpectacleBeat(container, stage) {
             else if (roll < 0.4) maybePlayAetherProphecy();
             else if (roll < 0.46 && liveTier >= 4) playAetherLegacyCalendar();
             else if (roll < 0.54 && liveTier >= 3) playAetherConstellationMap(container);
-            else if (roll < 0.6 && liveStage === 'old') playAetherThroneSilhouette(container);
+            else if (roll < 0.6 && liveStage === 'evo3') playAetherThroneSilhouette(container);
             else if (roll < 0.68) playAetherPhaseStance(container);
             else if (roll < 0.76) playAetherCoreHeartbeat(container);
             else if (roll < 0.84) maybePlayAetherDailyOmen(container);
@@ -9225,7 +9200,7 @@ function playAetherPetTheVoid(clientX, clientY) {
     el.style.top = `${((clientY - rect.top) / (rect.height || 1)) * 100}%`;
     container.appendChild(el);
     setTimeout(() => el.remove(), 1500);
-    if (Math.random() < 0.35) emitAetherMythParticles(container, tamagotchiStage || 'adult', 6);
+    if (Math.random() < 0.35) emitAetherMythParticles(container, tamagotchiStage || 'evo2', 6);
 }
 
 function playAetherPraiseCoronation() {
@@ -9246,7 +9221,7 @@ function playAetherScoldBacklash() {
     const container = document.getElementById('tm-mascot-container');
     if (!container) return;
     container.classList.add('tm-aether-scold-backlash');
-    emitAetherWingCrackSparks(container, tamagotchiStage || 'adult', 3);
+    emitAetherWingCrackSparks(container, tamagotchiStage || 'evo2', 3);
     playAetherFinisherSlash(container);
     setTimeout(() => container.classList.remove('tm-aether-scold-backlash'), 2000);
 }
@@ -9363,8 +9338,8 @@ function updateAetherAmbientTint(container, stage) {
         clearAetherAmbientTint();
         return;
     }
-    const liveStage = stage || tamagotchiStage || 'adult';
-    const stages = ['baby', 'kid', 'teen', 'adult', 'middleage', 'old'];
+    const liveStage = stage || tamagotchiStage || 'evo2';
+    const stages = ['evo1', 'evo2', 'evo3'];
     document.body.classList.remove(
         'tm-aether-ambient-baby', 'tm-aether-ambient-kid', 'tm-aether-ambient-teen',
         'tm-aether-ambient-adult', 'tm-aether-ambient-middleage', 'tm-aether-ambient-old'
@@ -9480,7 +9455,7 @@ function scheduleAetherMythicShimmer(container, stage) {
     }, 22000 + Math.random() * 35000);
 }
 
-function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : 'baby') {
+function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : 'evo1') {
     stopAetherMythicFx();
     if (tamagotchiIsDead || stage === 'egg') return;
     if (tamagotchiCharacterType !== 'aether') return;
@@ -9540,7 +9515,7 @@ function playAetherReactionFx(kind = 'constellation') {
     if (tamagotchiCharacterType !== 'aether' || tamagotchiIsDead) return;
     const container = document.getElementById('tm-mascot-container');
     if (!container) return;
-    const stage = tamagotchiStage || 'baby';
+    const stage = tamagotchiStage || 'evo1';
     const lite = isAetherLiteMode();
     container.classList.add('tm-aether-react');
     if (!lite && (kind === 'blade' || kind === 'energized')) {
@@ -9566,7 +9541,7 @@ function awakenAetherMythicFx(durationMs = 6000) {
     }
     const container = document.getElementById('tm-mascot-container');
     if (!container) return false;
-    const stage = tamagotchiStage === 'egg' ? 'adult' : (tamagotchiStage || 'adult');
+    const stage = tamagotchiStage === 'egg' ? 'evo2' : (tamagotchiStage || 'evo2');
     const lite = isAetherLiteMode();
     aetherAwakenUntil = Date.now() + (lite ? Math.min(durationMs, 3200) : durationMs);
     try {
@@ -9658,13 +9633,13 @@ function playAetherStageCinematic(stage, { hatch = false } = {}) {
         emitAetherMythParticles(container, stage, 8);
         playAetherNameplate(container, stage);
         playAetherEchoOfForms(container, stage);
-        if (stage === 'old' && !hatch) playAetherRealityTear(container);
+        if (stage === 'evo3' && !hatch) playAetherRealityTear(container);
         container.classList.add('tm-aether-react');
         setTimeout(() => container.classList.remove('tm-aether-react'), 1800);
     }
     playAetherKillfeed(stage, { hatch });
     markAetherWitness();
-    if (stage === 'old' && !hatch) playAetherApotheosisSky();
+    if (stage === 'evo3' && !hatch) playAetherApotheosisSky();
     if (!hatch && Math.random() < 0.45) playAetherMythicWeather(3200);
     setTimeout(() => overlay.remove(), 3200);
 }
@@ -9963,7 +9938,7 @@ function feedMascotCareAction(config, STORAGE_KEYS, foodType = 'meal') {
 // Death system
 function applyTamagotchiEggResetState() {
     tamagotchiEggGeneration = (Number(tamagotchiEggGeneration) || 0) + 1;
-    tamagotchiAge = 0;
+    
     tamagotchiLifeMinutes = 0;
     tamagotchiStage = 'egg';
     tamagotchiCharacterType = 'none';
@@ -9996,7 +9971,7 @@ function applyTamagotchiEggResetState() {
     tamagotchiNeedsPraise = false;
     tamagotchiNeedsScold = false;
     tamagotchiEggHatchCinematicDone = false;
-    // Current-life peak resets; lifetime discovery map is kept for Age Preview unlocks
+    // Current-life peak resets; lifetime discovery map is kept for Evolution Preview unlocks
     tamagotchiMaxReachedStage = 'egg';
 
     petStats.hunger = 100;
@@ -10262,7 +10237,7 @@ function showTamagotchiDeathScreen(STORAGE_KEYS, skipCinematic = false) {
                 <div class="tm-tama-lcd-title" style="color:#888">● Μνημόσυνο ●</div>
                 <h2 class="tm-tama-cinematic-title" style="color:#e8a0a0;text-shadow:none">Σε ανάμνηση του ${charName}</h2>
                 <div class="tm-tama-death-options visible">
-                    <p class="tm-tama-death-stat">Ηλικία: ${Math.floor(tamagotchiAge)} χρόνια</p>
+                    <p class="tm-tama-death-stat">Εξέλιξη: ${MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage}</p>
                     <p class="tm-tama-death-stat">Χαρακτήρας: ${MASCOT_PERSONALITY_GR[tamagotchiPersonality] || tamagotchiPersonality}</p>
                     <p class="tm-tama-death-stat">Λάθη φροντίδας: ${tamagotchiCareMistakes}</p>
                     <p class="tm-tama-death-stat">${formatMascotDeathCountersLine()}</p>
@@ -10288,7 +10263,7 @@ function showTamagotchiDeathScreen(STORAGE_KEYS, skipCinematic = false) {
         petStats.hunger = 50;
         petStats.happiness = 50;
         tamagotchiReviveCount++;
-        tamagotchiLifeMinutes = Math.max(TAMA_STAGE_MINUTES.baby, tamagotchiLifeMinutes - TAMA_MINUTES_PER_YEAR);
+        tamagotchiLifeMinutes = Math.max(TAMA_STAGE_MINUTES.evo1, tamagotchiLifeMinutes - Math.max(60, Math.round((TAMA_STAGE_MINUTES.evo2 - TAMA_STAGE_MINUTES.evo1) * 0.15)));
         validateTamagotchiState();
 
         // Save both tamagotchi data and pet stats
@@ -10450,7 +10425,7 @@ function resyncMascotAppearanceFromStorage(STORAGE_KEYS = window.STORAGE_KEYS) {
         }
         syncMascotInteractionClasses(container);
         console.log(
-            `[MMS Mascot] Resynced from storage → stage=${tamagotchiStage} character=${tamagotchiCharacterType} life=${Math.round(tamagotchiLifeMinutes)} age=${Math.floor(tamagotchiAge)}`
+            `[MMS Mascot] Resynced from storage → stage=${tamagotchiStage} character=${tamagotchiCharacterType} life=${Math.round(tamagotchiLifeMinutes)} stage=${tamagotchiStage}`
         );
         return true;
     } catch (err) {
@@ -10460,7 +10435,7 @@ function resyncMascotAppearanceFromStorage(STORAGE_KEYS = window.STORAGE_KEYS) {
 }
 
 /**
- * Clone the live mascot SVG for UI previews (care panel, Age Preview, etc.).
+ * Clone the live mascot SVG for UI previews (care panel, Evolution Preview, etc.).
  * Remaps ids so gradient/filter url(#…) refs stay valid and don't collide with the live sprite.
  * @param {string} idPrefix
  * @param {{
@@ -10571,7 +10546,7 @@ function isolateMascotStageOnPreviewClone(clone, idPrefix, stage, characterType,
     const strip = (id) => (id && id.startsWith(idPrefix) ? id.slice(idPrefix.length) : id);
     const targetRaw = getMascotSpriteIdForStage(stage, characterType);
     const fallbackRaw = (stage !== 'egg' && characterType && characterType !== 'none')
-        ? `tm-mascot-${TAMA_STAGE_TO_SPRITE_KEY[stage] || 'baby'}`
+        ? `tm-mascot-${TAMA_STAGE_TO_SPRITE_KEY[stage] || 'evo1'}`
         : null;
 
     const stageNodes = [];
@@ -10614,8 +10589,7 @@ function isolateMascotStageOnPreviewClone(clone, idPrefix, stage, characterType,
 
     const stageClass = stage === 'egg' ? 'egg' : stage;
     clone.classList.remove(
-        'mascot-egg', 'mascot-baby', 'mascot-kid', 'mascot-teen',
-        'mascot-adult', 'mascot-middleage', 'mascot-old', 'mascot-child',
+        'mascot-egg', 'mascot-evo1', 'mascot-evo2', 'mascot-evo3',
     );
     TAMA_CHARACTER_TYPES.forEach((t) => clone.classList.remove(`mascot-char-${t}`));
     clone.classList.add(`mascot-${stageClass}`);
@@ -10825,10 +10799,10 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
         <div class="tm-age-prev-card" role="dialog" aria-modal="true" aria-labelledby="tm-age-prev-title">
             <div class="tm-age-prev-header">
                 <div>
-                    <h2 id="tm-age-prev-title">Age Preview</h2>
+                    <h2 id="tm-age-prev-title">Evolution Preview</h2>
                     <p>${characterType
                         ? `${displayName} · ξεκλείδωτο έως <strong>${MASCOT_STAGE_GR[maxReached] || maxReached}</strong>`
-                        : 'Αυγό — οι εξελίξεις ξεκλειδώνουν καθώς μεγαλώνει.'}</p>
+                        : 'Αυγό — οι εξελίξεις ξεκλειδώνουν καθώς προχωρά.'}</p>
                 </div>
                 <button type="button" class="tm-age-prev-close" data-age-prev-close aria-label="Κλείσιμο">✕</button>
             </div>
@@ -10853,7 +10827,7 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
     const stopBtn = overlay.querySelector('#tm-age-prev-stop');
 
     let selectedStage = characterType
-        ? (TAMA_LIFE_STAGE_ORDER.includes(tamagotchiStage) ? tamagotchiStage : 'baby')
+        ? (TAMA_LIFE_STAGE_ORDER.includes(tamagotchiStage) ? tamagotchiStage : 'evo1')
         : 'egg';
     let playTimer = null;
     let playIndex = 0;
@@ -11390,7 +11364,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 <!-- ═══════════════════════════════════════ -->
 
                 <!-- DRAGON BABY -->
-                <g id="tm-mascot-baby-dragon" style="display: none;">
+                <g id="tm-mascot-evo1-dragon" style="display: none;">
                     <defs>
                         <linearGradient id="baby-dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#d4ff9a;stop-opacity:1" />
@@ -11522,287 +11496,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path d="M 54 86 L 52 89 M 60 87 L 60 90 M 64 86 L 66 89" stroke="#33691e" stroke-width="1.3" stroke-linecap="round"/>
                     </g>
                 </g>
-
-                <!-- DRAGON KID -->
-                <g id="tm-mascot-evo1-dragon" style="display: none;">
-                    <defs>
-                        <linearGradient id="dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#b2fff0;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#64ffda;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1de9b6;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="dragon-scales-shade" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#1de9b6;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#00897b;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="dragon-belly" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#f1fbff;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#b3e5fc;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="dragon-wing-kid" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:0.9" />
-                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0.65" />
-                        </linearGradient>
-                        <linearGradient id="dragon-horn-kid" x1="0%" y1="100%" x2="40%" y2="0%">
-                            <stop offset="0%" style="stop-color:#e91e63;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff80ab;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="dragon-iris-kid" cx="38%" cy="32%" r="62%">
-                            <stop offset="0%" style="stop-color:#00695c;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="dragon-cheek-kid" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a80;stop-opacity:0.5" />
-                            <stop offset="100%" style="stop-color:#ff8a80;stop-opacity:0" />
-                        </radialGradient>
-                    </defs>
-                    <ellipse cx="50" cy="92" rx="30" ry="6" fill="#1a1a1a" opacity="0.2"/>
-                    <!-- Tail -->
-                    <g class="tm-animate-tail">
-                        <path d="M 70 70 Q 86 76 90 68 Q 93 60 86 56 Q 80 54 78 58"
-                              fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2"/>
-                        <path d="M 78 62 Q 84 58 88 62" fill="none" stroke="#26a69a" stroke-width="1" opacity="0.55"/>
-                        <path d="M 82 66 Q 87 64 89 68" fill="none" stroke="#26a69a" stroke-width="0.8" opacity="0.45"/>
-                        <circle cx="87" cy="57" r="4.2" fill="url(#dragon-horn-kid)" stroke="#c2185b" stroke-width="1.1"/>
-                        <circle cx="86" cy="55.5" r="1.4" fill="#fff" opacity="0.4"/>
-                        <path d="M 87 53 L 89 49 L 85 51 Z" fill="#ff6090"/>
-                    </g>
-                    <!-- Budding wings with membrane -->
-                    <g class="tm-animate-wing-left">
-                        <path d="M 30 56 Q 18 48 16 40 Q 15 34 20 36 Q 26 48 32 54 Z"
-                              fill="url(#dragon-wing-kid)" stroke="#00bfa5" stroke-width="1.4"/>
-                        <path d="M 22 40 Q 24 46 28 52" stroke="#00897b" stroke-width="0.8" opacity="0.55" fill="none"/>
-                        <path d="M 26 42 Q 28 48 31 53" stroke="#00897b" stroke-width="0.7" opacity="0.45" fill="none"/>
-                    </g>
-                    <g class="tm-animate-wing-right">
-                        <path d="M 70 56 Q 82 48 84 40 Q 85 34 80 36 Q 74 48 68 54 Z"
-                              fill="url(#dragon-wing-kid)" stroke="#00bfa5" stroke-width="1.4"/>
-                        <path d="M 78 40 Q 76 46 72 52" stroke="#00897b" stroke-width="0.8" opacity="0.55" fill="none"/>
-                        <path d="M 74 42 Q 72 48 69 53" stroke="#00897b" stroke-width="0.7" opacity="0.45" fill="none"/>
-                    </g>
-                    <!-- Body -->
-                    <g class="tm-animate-body">
-                        <ellipse cx="50" cy="66" rx="28" ry="24" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2.4"/>
-                        <ellipse cx="40" cy="56" rx="9" ry="5" fill="#fff" opacity="0.18"/>
-                        <!-- Scale arcs -->
-                        <path d="M 32 58 Q 36 56 40 58" stroke="#00897b" stroke-width="0.9" fill="none" opacity="0.4"/>
-                        <path d="M 34 64 Q 38 62 42 64" stroke="#00897b" stroke-width="0.9" fill="none" opacity="0.35"/>
-                        <path d="M 60 58 Q 64 56 68 58" stroke="#00897b" stroke-width="0.9" fill="none" opacity="0.4"/>
-                        <path d="M 58 64 Q 62 62 66 64" stroke="#00897b" stroke-width="0.9" fill="none" opacity="0.35"/>
-                        <circle cx="36" cy="70" r="1.3" fill="#00897b" opacity="0.3"/>
-                        <circle cx="64" cy="70" r="1.3" fill="#00897b" opacity="0.3"/>
-                        <!-- Belly plates -->
-                        <ellipse cx="50" cy="69" rx="17" ry="15" fill="url(#dragon-belly)"/>
-                        <path d="M 38 62 Q 50 64.5 62 62" stroke="#81d4fa" stroke-width="1.1" fill="none" opacity="0.75"/>
-                        <path d="M 36 68 Q 50 71 64 68" stroke="#81d4fa" stroke-width="1.1" fill="none" opacity="0.7"/>
-                        <path d="M 38 74 Q 50 77 62 74" stroke="#81d4fa" stroke-width="1.1" fill="none" opacity="0.65"/>
-                        <!-- Spines -->
-                        <path d="M 48 48 L 46 55 L 50 55 Z" fill="#ff6090" stroke="#c2185b" stroke-width="0.8"/>
-                        <path d="M 52 48 L 50 55 L 54 55 Z" fill="#ff6090" stroke="#c2185b" stroke-width="0.8"/>
-                        <path d="M 44 56 L 42 62 L 46 62 Z" fill="#ff80ab" stroke="#e91e63" stroke-width="0.7"/>
-                        <path d="M 56 56 L 54 62 L 58 62 Z" fill="#ff80ab" stroke="#e91e63" stroke-width="0.7"/>
-                    <g class="tm-mascot-eye-open">
-                        <ellipse cx="41" cy="31" rx="7.2" ry="8.2" fill="#fff" stroke="#00bfa5" stroke-width="1.4"/>
-                        <ellipse cx="59" cy="31" rx="7.2" ry="8.2" fill="#fff" stroke="#00bfa5" stroke-width="1.4"/>
-                        <ellipse cx="42" cy="32.2" rx="4" ry="5" fill="url(#dragon-iris-kid)"/>
-                        <ellipse cx="60" cy="32.2" rx="4" ry="5" fill="url(#dragon-iris-kid)"/>
-                        <ellipse cx="42" cy="32.5" rx="2" ry="2.8" fill="#001a16"/>
-                        <ellipse cx="60" cy="32.5" rx="2" ry="2.8" fill="#001a16"/>
-                        <circle cx="43.6" cy="29.5" r="2.1" fill="#fff"/>
-                        <circle cx="61.6" cy="29.5" r="2.1" fill="#fff"/>
-                        <circle cx="39.8" cy="34.5" r="0.9" fill="#4dd0e1" opacity="0.7"/>
-                        <circle cx="57.8" cy="34.5" r="0.9" fill="#4dd0e1" opacity="0.7"/>
-                    </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 34 32 Q 41 28 48 32" stroke="#00897b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        <path d="M 52 32 Q 59 28 66 32" stroke="#00897b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                    </g>
-<path class="tm-mascot-mouth-happy" d="M 42 49 Q 50 54 58 49" stroke="#00897b" stroke-width="2" fill="none" stroke-linecap="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 51 Q 50 46 58 51" stroke="#00897b" stroke-width="2" fill="none" stroke-linecap="round"/>
-
-                    <!-- Head -->
-                    <ellipse cx="50" cy="34" rx="22" ry="20" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2.4"/>
-                    <ellipse cx="42" cy="26" rx="8" ry="4.5" fill="#fff" opacity="0.18"/>
-                    <!-- Horns -->
-                    <path d="M 34 26 Q 30 18 26 15 Q 24 13 28 16 L 34 24 Z" fill="url(#dragon-horn-kid)" stroke="#c2185b" stroke-width="1.3"/>
-                    <path d="M 66 26 Q 70 18 74 15 Q 76 13 72 16 L 66 24 Z" fill="url(#dragon-horn-kid)" stroke="#c2185b" stroke-width="1.3"/>
-                    <path d="M 29 17 L 31 20" stroke="#fff" stroke-width="1" opacity="0.45" stroke-linecap="round"/>
-                    <path d="M 71 17 L 69 20" stroke="#fff" stroke-width="1" opacity="0.45" stroke-linecap="round"/>
-                    <!-- Snout -->
-                    <ellipse cx="50" cy="42" rx="12" ry="8" fill="url(#dragon-belly)" stroke="#4fc3f7" stroke-width="0.7"/>
-                    <path d="M 42 40 Q 50 42 58 40" stroke="#81d4fa" stroke-width="0.8" fill="none" opacity="0.6"/>
-                    <ellipse cx="46" cy="44" rx="2.2" ry="1.6" fill="#00897b"/>
-                    <ellipse cx="54" cy="44" rx="2.2" ry="1.6" fill="#00897b"/>
-                    <circle cx="45.5" cy="43.4" r="0.55" fill="#fff" opacity="0.45"/>
-                    <circle cx="53.5" cy="43.4" r="0.55" fill="#fff" opacity="0.45"/>
-                    <circle cx="33" cy="40" r="4.5" fill="url(#dragon-cheek-kid)"/>
-                    <circle cx="67" cy="40" r="4.5" fill="url(#dragon-cheek-kid)"/>
-</g>
-                    <!-- Arms -->
-                    <g class="tm-animate-arm-left">
-                        <ellipse cx="25" cy="62" rx="7.5" ry="10" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.7"/>
-                        <ellipse cx="23" cy="57" rx="2.8" ry="2" fill="#fff" opacity="0.22"/>
-                        <path d="M 21 70 L 18 74 M 24 71 L 23 75 M 28 70 L 28 74" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
-                    </g>
-                    <g class="tm-animate-arm-right">
-                        <ellipse cx="75" cy="62" rx="7.5" ry="10" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.7"/>
-                        <ellipse cx="77" cy="57" rx="2.8" ry="2" fill="#fff" opacity="0.22"/>
-                        <path d="M 72 70 L 72 74 M 75 71 L 76 75 M 79 70 L 82 74" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
-                    </g>
-
-
-
-
-                    <!-- Feet -->
-                    <g class="tm-animate-leg-left">
-                        <ellipse cx="39" cy="87" rx="7.5" ry="5" fill="url(#dragon-scales-shade)" stroke="#00bfa5" stroke-width="1.6"/>
-                        <path d="M 34 88 L 32 92 M 39 89 L 39 93 M 44 88 L 46 92" stroke="#00695c" stroke-width="1.5" stroke-linecap="round"/>
-                    </g>
-                    <g class="tm-animate-leg-right">
-                        <ellipse cx="61" cy="87" rx="7.5" ry="5" fill="url(#dragon-scales-shade)" stroke="#00bfa5" stroke-width="1.6"/>
-                        <path d="M 54 88 L 52 92 M 61 89 L 61 93 M 66 88 L 68 92" stroke="#00695c" stroke-width="1.5" stroke-linecap="round"/>
-                    </g>
-                </g>
-
-                <!-- DRAGON TEEN -->
-                <g id="tm-mascot-evo2-dragon" style="display: none;">
-                    <defs>
-                        <linearGradient id="teen-dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#26c6da;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#0097a7;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="teen-dragon-shade" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#00acc1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#006064;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="teen-dragon-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:0.92" />
-                            <stop offset="55%" style="stop-color:#4dd0e1;stop-opacity:0.75" />
-                            <stop offset="100%" style="stop-color:#26c6da;stop-opacity:0.55" />
-                        </linearGradient>
-                        <linearGradient id="teen-dragon-belly" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#f5fdff;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#b2ebf2;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="teen-dragon-horn" x1="0%" y1="100%" x2="30%" y2="0%">
-                            <stop offset="0%" style="stop-color:#c2185b;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff80ab;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="teen-dragon-iris" cx="38%" cy="30%" r="65%">
-                            <stop offset="0%" style="stop-color:#00838f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#00363a;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="teen-ember" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ffab40;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#ff6d00;stop-opacity:0" />
-                        </radialGradient>
-                    </defs>
-                    <ellipse cx="50" cy="93" rx="34" ry="6" fill="#1a1a1a" opacity="0.22"/>
-                    <!-- Tail -->
-                    <g class="tm-animate-tail">
-                        <path d="M 72 74 Q 90 80 95 70 Q 98 62 92 56 Q 88 52 84 56"
-                              fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="2.1"/>
-                        <path d="M 84 64 Q 90 58 94 64" fill="none" stroke="#00acc1" stroke-width="1" opacity="0.5"/>
-                        <path d="M 86 70 Q 92 66 94 72" fill="none" stroke="#00acc1" stroke-width="0.85" opacity="0.4"/>
-                        <path d="M 90 56 L 96 52 L 93 58 Z" fill="#ff6090" stroke="#c2185b" stroke-width="0.8"/>
-                        <path d="M 86 62 L 91 59 L 88 65 Z" fill="#ff80ab" stroke="#e91e63" stroke-width="0.7"/>
-                        <path d="M 82 68 L 87 66 L 84 71 Z" fill="#f48fb1" stroke="#e91e63" stroke-width="0.6"/>
-                    </g>
-                    <!-- Wings -->
-                    <g class="tm-animate-wing-left">
-                        <path d="M 28 54 Q 12 44 8 30 Q 6 20 14 22 Q 20 36 26 48 Q 28 52 30 56 Z"
-                              fill="url(#teen-dragon-wing)" stroke="#00838f" stroke-width="1.7"/>
-                        <path d="M 14 28 Q 18 36 24 46" stroke="#006064" stroke-width="1" opacity="0.55" fill="none"/>
-                        <path d="M 18 30 Q 22 40 27 50" stroke="#006064" stroke-width="0.9" opacity="0.45" fill="none"/>
-                        <path d="M 22 34 Q 25 42 29 52" stroke="#006064" stroke-width="0.75" opacity="0.35" fill="none"/>
-                        <path d="M 12 26 L 10 24" stroke="#00838f" stroke-width="1.2" stroke-linecap="round"/>
-                    </g>
-                    <g class="tm-animate-wing-right">
-                        <path d="M 72 54 Q 88 44 92 30 Q 94 20 86 22 Q 80 36 74 48 Q 72 52 70 56 Z"
-                              fill="url(#teen-dragon-wing)" stroke="#00838f" stroke-width="1.7"/>
-                        <path d="M 86 28 Q 82 36 76 46" stroke="#006064" stroke-width="1" opacity="0.55" fill="none"/>
-                        <path d="M 82 30 Q 78 40 73 50" stroke="#006064" stroke-width="0.9" opacity="0.45" fill="none"/>
-                        <path d="M 78 34 Q 75 42 71 52" stroke="#006064" stroke-width="0.75" opacity="0.35" fill="none"/>
-                        <path d="M 88 26 L 90 24" stroke="#00838f" stroke-width="1.2" stroke-linecap="round"/>
-                    </g>
-                    <!-- Body -->
-                    <g class="tm-animate-body">
-                        <ellipse cx="50" cy="68" rx="27" ry="23" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="2.4"/>
-                        <ellipse cx="40" cy="58" rx="8" ry="4.5" fill="#fff" opacity="0.16"/>
-                        <path d="M 30 58 Q 34 55 38 58" stroke="#006064" stroke-width="1" fill="none" opacity="0.4"/>
-                        <path d="M 32 64 Q 36 61 40 64" stroke="#006064" stroke-width="1" fill="none" opacity="0.35"/>
-                        <path d="M 62 58 Q 66 55 70 58" stroke="#006064" stroke-width="1" fill="none" opacity="0.4"/>
-                        <path d="M 60 64 Q 64 61 68 64" stroke="#006064" stroke-width="1" fill="none" opacity="0.35"/>
-                        <circle cx="34" cy="72" r="1.4" fill="#006064" opacity="0.3"/>
-                        <circle cx="66" cy="72" r="1.4" fill="#006064" opacity="0.3"/>
-                        <ellipse cx="50" cy="71" rx="16" ry="14" fill="url(#teen-dragon-belly)"/>
-                        <path d="M 38 64 Q 50 66.5 62 64" stroke="#4dd0e1" stroke-width="1.15" fill="none" opacity="0.7"/>
-                        <path d="M 36 70 Q 50 73 64 70" stroke="#4dd0e1" stroke-width="1.15" fill="none" opacity="0.65"/>
-                        <path d="M 38 76 Q 50 79 62 76" stroke="#4dd0e1" stroke-width="1.1" fill="none" opacity="0.6"/>
-                        <!-- Ridge spines -->
-                        <path d="M 46 50 L 44 58 L 48 58 Z" fill="#ff6090" stroke="#ad1457" stroke-width="0.9"/>
-                        <path d="M 50 48 L 48 56 L 52 56 Z" fill="#e91e63" stroke="#ad1457" stroke-width="0.9"/>
-                        <path d="M 54 50 L 52 58 L 56 58 Z" fill="#ff6090" stroke="#ad1457" stroke-width="0.9"/>
-                        <path d="M 42 60 L 40 66 L 44 66 Z" fill="#ff80ab" stroke="#c2185b" stroke-width="0.7"/>
-                        <path d="M 58 60 L 56 66 L 60 66 Z" fill="#ff80ab" stroke="#c2185b" stroke-width="0.7"/>
-                    <g class="tm-mascot-eye-open">
-                        <ellipse cx="41" cy="29" rx="6.5" ry="7.5" fill="#fff" stroke="#00838f" stroke-width="1.4"/>
-                        <ellipse cx="59" cy="29" rx="6.5" ry="7.5" fill="#fff" stroke="#00838f" stroke-width="1.4"/>
-                        <ellipse cx="41.8" cy="30" rx="3.6" ry="4.6" fill="url(#teen-dragon-iris)"/>
-                        <ellipse cx="59.8" cy="30" rx="3.6" ry="4.6" fill="url(#teen-dragon-iris)"/>
-                        <ellipse cx="42" cy="30.3" rx="1.8" ry="2.6" fill="#001416"/>
-                        <ellipse cx="60" cy="30.3" rx="1.8" ry="2.6" fill="#001416"/>
-                        <circle cx="43.4" cy="27.5" r="1.9" fill="#fff"/>
-                        <circle cx="61.4" cy="27.5" r="1.9" fill="#fff"/>
-                        <circle cx="39.6" cy="32.5" r="0.85" fill="#4dd0e1" opacity="0.75"/>
-                        <circle cx="57.6" cy="32.5" r="0.85" fill="#4dd0e1" opacity="0.75"/>
-                    </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 35 29 Q 41 25 47 29" stroke="#006064" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        <path d="M 53 29 Q 59 25 65 29" stroke="#006064" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                    </g>
-<path class="tm-mascot-mouth-happy" d="M 41 46 Q 50 51 59 46" stroke="#006064" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 48 Q 50 43 59 48" stroke="#006064" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-
-                    <!-- Head -->
-                    <ellipse cx="50" cy="31" rx="21" ry="18.5" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="2.4"/>
-                    <ellipse cx="42" cy="24" rx="7" ry="4" fill="#fff" opacity="0.16"/>
-                    <!-- Jaw / snout -->
-                    <ellipse cx="50" cy="40" rx="12" ry="7.5" fill="url(#teen-dragon-belly)" stroke="#26c6da" stroke-width="0.8"/>
-                    <path d="M 40 37 Q 50 39.5 60 37" stroke="#4dd0e1" stroke-width="0.85" fill="none" opacity="0.55"/>
-                    <ellipse cx="46" cy="42" rx="2.3" ry="1.7" fill="#006064"/>
-                    <ellipse cx="54" cy="42" rx="2.3" ry="1.7" fill="#006064"/>
-                    <circle cx="50" cy="43" r="5" fill="url(#teen-ember)" opacity="0.7"/>
-                    <!-- Horns -->
-                    <path d="M 35 22 Q 28 14 22 10 Q 20 8 24 11 L 34 20 Z" fill="url(#teen-dragon-horn)" stroke="#ad1457" stroke-width="1.4"/>
-                    <path d="M 65 22 Q 72 14 78 10 Q 80 8 76 11 L 66 20 Z" fill="url(#teen-dragon-horn)" stroke="#ad1457" stroke-width="1.4"/>
-                    <path d="M 26 12 L 29 16" stroke="#fff" stroke-width="1.1" opacity="0.4" stroke-linecap="round"/>
-                    <path d="M 74 12 L 71 16" stroke="#fff" stroke-width="1.1" opacity="0.4" stroke-linecap="round"/>
-<path d="M 46 47 L 45 50" stroke="#e0f7fa" stroke-width="1.6" stroke-linecap="round"/>
-                    <path d="M 54 47 L 55 50" stroke="#e0f7fa" stroke-width="1.6" stroke-linecap="round"/></g>
-                    <!-- Arms -->
-                    <g class="tm-animate-arm-left">
-                        <ellipse cx="26" cy="64" rx="7.5" ry="11" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="1.7"/>
-                        <path d="M 22 72 L 19 77 M 25 73 L 24 78 M 29 72 L 29 77" stroke="#006064" stroke-width="1.6" stroke-linecap="round"/>
-                    </g>
-                    <g class="tm-animate-arm-right">
-                        <ellipse cx="74" cy="64" rx="7.5" ry="11" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="1.7"/>
-                        <path d="M 71 72 L 71 77 M 75 73 L 76 78 M 78 72 L 81 77" stroke="#006064" stroke-width="1.6" stroke-linecap="round"/>
-                    </g>
-                    <!-- Feet -->
-                    <g class="tm-animate-leg-left">
-                        <ellipse cx="39" cy="88" rx="7.5" ry="5.2" fill="url(#teen-dragon-shade)" stroke="#00838f" stroke-width="1.6"/>
-                        <path d="M 34 89 L 31 93 M 39 90 L 39 94 M 44 89 L 47 93" stroke="#004d40" stroke-width="1.6" stroke-linecap="round"/>
-                    </g>
-                    <g class="tm-animate-leg-right">
-                        <ellipse cx="61" cy="88" rx="7.5" ry="5.2" fill="url(#teen-dragon-shade)" stroke="#00838f" stroke-width="1.6"/>
-                        <path d="M 54 89 L 51 93 M 61 90 L 61 94 M 66 89 L 69 93" stroke="#004d40" stroke-width="1.6" stroke-linecap="round"/>
-                    </g>
-                </g>
-
-                <!-- DRAGON ADULT -->
-                <g id="tm-mascot-evo3-dragon" style="display: none;">
+<g id="tm-mascot-evo2-dragon" style="display: none;">
                     <defs>
                         <linearGradient id="adult-dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#4db6ac;stop-opacity:1" />
@@ -11946,9 +11640,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path d="M 54 90 L 51 95 M 60 91 L 60 96 M 65 91 L 65 96 M 70 90 L 73 95" stroke="#001a14" stroke-width="1.8" stroke-linecap="round"/>
                     </g>
                 </g>
-
-                <!-- DRAGON MIDDLE AGE — wizard dragon -->
-                <g id="tm-mascot-evo4-dragon" style="display: none;">
+<g id="tm-mascot-evo3-dragon" style="display: none;">
                     <defs>
                         <linearGradient id="wizard-robe" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#9575cd;stop-opacity:1" />
@@ -12094,166 +11786,23 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                 </g>
 
+                <!-- DRAGON KID -->
+                
+                <!-- DRAGON TEEN -->
+                
+                <!-- DRAGON ADULT -->
+                
+                <!-- DRAGON MIDDLE AGE — wizard dragon -->
+                
                 <!-- DRAGON OLD — sage dragon -->
-                <g id="tm-mascot-evo5-dragon" style="display: none;">
-                    <defs>
-                        <linearGradient id="sage-robe" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#f5f7fa;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#cfd8dc;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#90a4ae;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="wisdom-aura">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.55" />
-                            <stop offset="50%" style="stop-color:#80deea;stop-opacity:0.22" />
-                            <stop offset="100%" style="stop-color:#26c6da;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="old-dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#b2dfdb;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#80cbc4;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4db6ac;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="old-dragon-belly" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#e0f2f1;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="old-dragon-horn" x1="0%" y1="100%" x2="20%" y2="0%">
-                            <stop offset="0%" style="stop-color:#546e7a;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#90a4ae;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#eceff1;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="old-dragon-iris" cx="40%" cy="35%" r="60%">
-                            <stop offset="0%" style="stop-color:#4dd0e1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#01579b;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="old-dragon-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#eceff1;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#90a4ae;stop-opacity:0.5" />
-                        </linearGradient>
-                    </defs>
-                    <ellipse cx="50" cy="55" rx="46" ry="52" fill="url(#wisdom-aura)" class="tm-wisdom-aura"/>
-                    <ellipse cx="50" cy="99" rx="28" ry="3.8" fill="#1a1a1a" opacity="0.22"/>
-                    <!-- Wings -->
-                    <g class="tm-animate-wing-left">
-                        <path d="M 30 60 Q 16 52 12 42 Q 10 36 16 38 Q 22 48 32 58 Z"
-                              fill="url(#old-dragon-wing)" stroke="#78909c" stroke-width="1.2"/>
-                        <path d="M 18 42 Q 22 48 28 54" stroke="#607d8b" stroke-width="0.7" opacity="0.45" fill="none"/>
-                    </g>
-                    <g class="tm-animate-wing-right">
-                        <path d="M 70 60 Q 84 52 88 42 Q 90 36 84 38 Q 78 48 68 58 Z"
-                              fill="url(#old-dragon-wing)" stroke="#78909c" stroke-width="1.2"/>
-                        <path d="M 82 42 Q 78 48 72 54" stroke="#607d8b" stroke-width="0.7" opacity="0.45" fill="none"/>
-                    </g>
-                    <!-- Tail -->
-                    <g class="tm-animate-tail">
-                        <path d="M 66 80 Q 80 86 84 78 Q 86 72 80 70"
-                              fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1.5"/>
-                        <circle cx="82" cy="72" r="2.8" fill="#ffd54f" stroke="#f9a825" stroke-width="0.7"/>
-                    </g>
-                    <!-- Staff -->
-                    <line x1="74" y1="70" x2="78" y2="96" stroke="#5d4037" stroke-width="3" stroke-linecap="round"/>
-                    <line x1="74" y1="70" x2="78" y2="96" stroke="#a1887f" stroke-width="1.1" stroke-linecap="round" opacity="0.45"/>
-                    <circle cx="73" cy="68" r="4.2" fill="#90a4ae" stroke="#546e7a" stroke-width="1"/>
-                    <path d="M 71 66 Q 69 63 72 61 L 75 64 Z" fill="#cfd8dc"/>
-                    <circle cx="73.5" cy="67" r="1.2" fill="#ffd54f" opacity="0.8"/>
-                    <!-- Robe -->
-                    <g class="tm-animate-body">
-                        <path d="M 32 56 L 27 94 Q 29 98 36 96 L 40 64 Z" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.4"/>
-                        <path d="M 68 56 L 73 94 Q 71 98 64 96 L 60 64 Z" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.4"/>
-                        <ellipse cx="50" cy="72" rx="24" ry="27" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.8"/>
-                        <path d="M 38 58 Q 42 80 40 92" stroke="#78909c" stroke-width="1.8" fill="none" opacity="0.35"/>
-                        <path d="M 62 58 Q 58 80 60 92" stroke="#78909c" stroke-width="1.8" fill="none" opacity="0.35"/>
-                        <path d="M 30 56 Q 50 59 70 56" stroke="#ffd54f" stroke-width="2" fill="none"/>
-                        <path d="M 32 70 Q 50 73 68 70" stroke="#ffd54f" stroke-width="1.4" fill="none" opacity="0.7"/>
-                        <circle cx="44" cy="66" r="1.6" fill="#90a4ae" opacity="0.55"/>
-                        <circle cx="56" cy="78" r="1.4" fill="#90a4ae" opacity="0.45"/>
-                        <path d="M 48 82 L 50 86 L 52 82" fill="none" stroke="#90a4ae" stroke-width="0.9" opacity="0.5"/>
-                    <g class="tm-mascot-eye-open">
-                        <ellipse cx="43" cy="31" rx="4.4" ry="4.6" fill="#fff" stroke="#607d8b" stroke-width="1"/>
-                        <ellipse cx="57" cy="31" rx="4.4" ry="4.6" fill="#fff" stroke="#607d8b" stroke-width="1"/>
-                        <ellipse cx="43.3" cy="31.6" rx="2.2" ry="2.4" fill="url(#old-dragon-iris)"/>
-                        <ellipse cx="57.3" cy="31.6" rx="2.2" ry="2.4" fill="url(#old-dragon-iris)"/>
-                        <ellipse cx="43.3" cy="31.8" rx="1" ry="1.3" fill="#012a4a"/>
-                        <ellipse cx="57.3" cy="31.8" rx="1" ry="1.3" fill="#012a4a"/>
-                        <circle cx="44.2" cy="30.2" r="0.95" fill="#fff" opacity="0.9"/>
-                        <circle cx="58.2" cy="30.2" r="0.95" fill="#fff" opacity="0.9"/>
-                    </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 39 31 Q 43 28 47 31" stroke="#546e7a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-                        <path d="M 53 31 Q 57 28 61 31" stroke="#546e7a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-                    </g>
-<path class="tm-mascot-mouth-happy" d="M 44 40 Q 50 42.5 56 40" stroke="#546e7a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 42 Q 50 38.5 56 42" stroke="#546e7a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-</g>
-                    <!-- Arms + scroll -->
-                    <g class="tm-animate-arm-left">
-                        <ellipse cx="30" cy="64" rx="6.2" ry="10" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.3"/>
-                        <ellipse cx="28" cy="72" rx="4" ry="4.8" fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1"/>
-                        <rect x="20" y="70" width="15" height="8.5" rx="1.5" fill="#f3e5d0" stroke="#bcaaa4" stroke-width="0.9"/>
-                        <line x1="22.5" y1="72.5" x2="32.5" y2="72.5" stroke="#8d6e63" stroke-width="0.55"/>
-                        <line x1="22.5" y1="74.5" x2="32.5" y2="74.5" stroke="#8d6e63" stroke-width="0.55"/>
-                        <line x1="22.5" y1="76.5" x2="30.5" y2="76.5" stroke="#8d6e63" stroke-width="0.55"/>
-                    </g>
-                    <g class="tm-animate-arm-right">
-                        <ellipse cx="70" cy="64" rx="6.2" ry="10" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.3"/>
-                        <ellipse cx="72" cy="72" rx="4" ry="4.8" fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1"/>
-                    </g>
-                    <!-- Weathered dragon head -->
-                    <ellipse cx="50" cy="32" rx="17.5" ry="15.5" fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1.7"/>
-                    <ellipse cx="43" cy="26" rx="6" ry="3.2" fill="#fff" opacity="0.16"/>
-                    <!-- Wrinkles -->
-                    <path d="M 38 34 Q 44 32 48 34" stroke="#607d8b" stroke-width="0.75" fill="none" opacity="0.55"/>
-                    <path d="M 52 34 Q 56 32 62 34" stroke="#607d8b" stroke-width="0.75" fill="none" opacity="0.55"/>
-                    <path d="M 37 38 Q 42 36 47 38" stroke="#607d8b" stroke-width="0.65" fill="none" opacity="0.4"/>
-                    <path d="M 53 38 Q 58 36 63 38" stroke="#607d8b" stroke-width="0.65" fill="none" opacity="0.4"/>
-                    <!-- Weathered scale marks -->
-                    <path d="M 36 30 Q 38 28 40 30" stroke="#546e7a" stroke-width="0.7" fill="none" opacity="0.35"/>
-                    <path d="M 60 30 Q 62 28 64 30" stroke="#546e7a" stroke-width="0.7" fill="none" opacity="0.35"/>
-                    <ellipse cx="50" cy="40" rx="10" ry="5.5" fill="url(#old-dragon-belly)" stroke="#80cbc4" stroke-width="0.6"/>
-                    <ellipse cx="47" cy="41" rx="1.6" ry="1.2" fill="#455a64"/>
-                    <ellipse cx="53" cy="41" rx="1.6" ry="1.2" fill="#455a64"/>
-                    <!-- Ornate horns -->
-                    <path d="M 36 24 Q 28 14 22 8 Q 20 6 24 9 L 35 22 Z" fill="url(#old-dragon-horn)" stroke="#455a64" stroke-width="1.3"/>
-                    <path d="M 64 24 Q 72 14 78 8 Q 80 6 76 9 L 65 22 Z" fill="url(#old-dragon-horn)" stroke="#455a64" stroke-width="1.3"/>
-                    <path d="M 26 11 L 30 16" stroke="#fff" stroke-width="1" opacity="0.45" stroke-linecap="round"/>
-                    <path d="M 74 11 L 70 16" stroke="#fff" stroke-width="1" opacity="0.45" stroke-linecap="round"/>
-                    <circle cx="28" cy="12" r="1.3" fill="#ffd54f" opacity="0.75"/>
-                    <circle cx="72" cy="12" r="1.3" fill="#ffd54f" opacity="0.75"/>
-                    <!-- Sage hat -->
-                    <path d="M 35 24 L 50 1 L 65 24 Z" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.7"/>
-                    <path d="M 42 14 Q 50 6 58 14" stroke="#ffd54f" stroke-width="1.1" fill="none" opacity="0.55"/>
-                    <ellipse cx="50" cy="24" rx="17" ry="4" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.7"/>
-                    <path d="M 35 24 Q 50 20 65 24" stroke="#ffd54f" stroke-width="1.4" fill="none"/>
-                    <!-- Third-eye gem -->
-                    <circle cx="50" cy="22" r="2.2" fill="#80deea" opacity="0.55"/>
-                    <circle cx="50" cy="22" r="1.1" fill="#4dd0e1" opacity="0.75"/>
-                    <!-- Long beard / whiskers -->
-                    <path d="M 42 42 Q 34 52 38 60 L 42 56 Q 40 48 42 44 Z" fill="#eceff1" stroke="#b0bec5" stroke-width="0.9"/>
-                    <path d="M 50 44 Q 46 56 48 64 L 52 62 Q 50 52 50 46 Z" fill="#f5f5f5" stroke="#b0bec5" stroke-width="0.9"/>
-                    <path d="M 58 42 Q 66 52 62 60 L 58 56 Q 60 48 58 44 Z" fill="#eceff1" stroke="#b0bec5" stroke-width="0.9"/>
-                    <line x1="40" y1="48" x2="38" y2="56" stroke="#cfd8dc" stroke-width="0.55" opacity="0.7"/>
-                    <line x1="50" y1="50" x2="49" y2="60" stroke="#cfd8dc" stroke-width="0.55" opacity="0.7"/>
-                    <line x1="60" y1="48" x2="62" y2="56" stroke="#cfd8dc" stroke-width="0.55" opacity="0.7"/>
-                    <!-- Eyes -->
-
-
-
-
-                    <!-- Feet -->
-                    <g class="tm-animate-leg-left">
-                        <ellipse cx="40" cy="96" rx="5.5" ry="2.8" fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1"/>
-                    </g>
-                    <g class="tm-animate-leg-right">
-                        <ellipse cx="60" cy="96" rx="5.5" ry="2.8" fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1"/>
-                    </g>
-                </g>
-
+                
                 <!-- ═══════════════════════════════════════ -->
                 <!-- ROBOT CHARACTER - All Life Stages (dense cute epic v3) -->
                 <!-- Plasma & Code • Epic Rarity • Neon Colossus -->
                 <!-- ═══════════════════════════════════════ -->
 
                 <!-- ROBOT BABY — chubby cube spawn -->
-                <g id="tm-mascot-baby-robot" style="display: none;">
+                <g id="tm-mascot-evo1-robot" style="display: none;">
                     <defs>
                         <linearGradient id="robot-baby-chassis" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#cfd8dc;stop-opacity:1" />
@@ -12379,253 +11928,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <rect x="56" y="87" width="8" height="2" rx="1" fill="#00e5ff" opacity="0.4"/>
                         </g>
                 </g>
-                <!-- ROBOT KID — tread scout -->
-                <g id="tm-mascot-evo1-robot" style="display: none;">
-                    <defs>
-                        <linearGradient id="robot-kid-chassis" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#b0bec5;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#607d8b;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#263238;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="robot-kid-panel" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e1f5fe;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#29b6f6;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="robot-kid-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff9c4;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#ffee58;stop-opacity:0.9" />
-                            <stop offset="100%" style="stop-color:#00e5ff;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="robot-kid-iris" cx="38%" cy="32%" r="62%">
-                            <stop offset="0%" style="stop-color:#4fc3f7;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#0288d1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#01579b;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="robot-kid-blush" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a9b;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#ff8a9b;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="robot-kid-dish" cx="50%" cy="30%" r="70%">
-                            <stop offset="0%" style="stop-color:#eceff1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#78909c;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="robot-kid-star" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffc107;stop-opacity:1" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="94" rx="28" ry="5" fill="#1a1a1a" opacity="0.22"/>
-                        <g class="tm-animate-tail">
-                            <path d="M 66 70 Q 80 76 84 66 Q 86 58 78 60" fill="none" stroke="#607d8b" stroke-width="2.5" stroke-linecap="round"/>
-                            <path d="M 78 62 Q 82 60 80 66" fill="none" stroke="#90a4ae" stroke-width="1" opacity="0.5"/>
-                            <rect x="80" y="56" width="5" height="6" rx="1" fill="#455a64" stroke="#29b6f6" stroke-width="1"/>
-                            <circle cx="82" cy="58" r="1" fill="#ffee58"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <ellipse cx="24" cy="54" rx="4" ry="6" fill="#455a64" stroke="#29b6f6" stroke-width="1" opacity="0.85"/>
-                            <circle cx="22" cy="58" r="1.5" fill="#00e5ff" opacity="0.6"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <ellipse cx="76" cy="54" rx="4" ry="6" fill="#455a64" stroke="#29b6f6" stroke-width="1" opacity="0.85"/>
-                            <circle cx="78" cy="58" r="1.5" fill="#00e5ff" opacity="0.6"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Backpack antenna dish -->
-                            <ellipse cx="50" cy="42" rx="14" ry="10" fill="url(#robot-kid-dish)" stroke="#607d8b" stroke-width="1.2" opacity="0.9"/>
-                            <ellipse cx="50" cy="40" rx="8" ry="5" fill="#37474f" stroke="#29b6f6" stroke-width="0.8"/>
-                            <line x1="50" y1="35" x2="50" y2="28" stroke="#78909c" stroke-width="1.5"/>
-                            <circle cx="50" cy="26" r="2.5" fill="#ffee58" stroke="#ffc107" stroke-width="0.8"/>
-                            <!-- Taller chassis -->
-                            <rect x="30" y="48" width="40" height="28" rx="5" fill="url(#robot-kid-chassis)" stroke="#607d8b" stroke-width="2"/>
-                            <rect x="34" y="52" width="32" height="14" rx="2.5" fill="url(#robot-kid-panel)" stroke="#29b6f6" stroke-width="0.8"/>
-                            <ellipse cx="40" cy="54" rx="7" ry="3" fill="#fff" opacity="0.15"/>
-                            <circle cx="50" cy="62" r="7" fill="url(#robot-kid-core)"/>
-                            <circle cx="50" cy="62" r="3" fill="#fff9c4" opacity="0.75"/>
-                            <!-- Sticker stars -->
-                            <path d="M 36 56 L 37 58 L 39 58 L 37.5 59.5 L 38 62 L 36 60.5 L 34 62 L 34.5 59.5 L 33 58 L 35 58 Z" fill="url(#robot-kid-star)" stroke="#ffc107" stroke-width="0.5"/>
-                            <path d="M 62 70 L 63 72 L 65 72 L 63.5 73.5 L 64 76 L 62 74.5 L 60 76 L 60.5 73.5 L 59 72 L 61 72 Z" fill="url(#robot-kid-star)" stroke="#ffc107" stroke-width="0.5"/>
-                            <path d="M 64 54 L 64.8 56 L 67 56 L 65.2 57.2 L 65.8 59 L 64 58 L 62.2 59 L 62.8 57.2 L 61 56 L 63.2 56 Z" fill="url(#robot-kid-star)" opacity="0.8"/>
-                            <circle cx="38" cy="72" r="3" fill="url(#robot-kid-blush)"/>
-                            <circle cx="62" cy="72" r="3" fill="url(#robot-kid-blush)"/>
-                            <!-- Head -->
-                            <rect x="34" y="22" width="32" height="22" rx="4" fill="url(#robot-kid-chassis)" stroke="#607d8b" stroke-width="1.8"/>
-                            <rect x="38" y="26" width="24" height="12" rx="2" fill="#1a237e" opacity="0.85"/>
-                            <rect x="42" y="42" width="16" height="4" rx="1" fill="#263238" stroke="#29b6f6" stroke-width="0.6"/>
-                            <path d="M 44 44 L 48 44 L 46 46 Z" fill="#ffee58" opacity="0.8"/>
-                            <path d="M 52 44 L 56 44 L 54 46 Z" fill="#ffee58" opacity="0.8"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="32" rx="6" ry="7" fill="#fff" stroke="#607d8b" stroke-width="1.6"/>
-                            <ellipse cx="59" cy="32" rx="6" ry="7" fill="#fff" stroke="#607d8b" stroke-width="1.6"/>
-                            <ellipse cx="42" cy="33" rx="3.4" ry="4.1" fill="url(#robot-kid-iris)"/>
-                            <ellipse cx="60" cy="33" rx="3.4" ry="4.1" fill="url(#robot-kid-iris)"/>
-                            <ellipse cx="42" cy="33.5" rx="1.7" ry="2.3" fill="#0a1628"/>
-                            <ellipse cx="60" cy="33.5" rx="1.7" ry="2.3" fill="#0a1628"/>
-                            <circle cx="43.5" cy="29.6" r="1.9" fill="#fff" opacity="0.95"/>
-                            <circle cx="61.5" cy="29.6" r="1.9" fill="#fff" opacity="0.95"/>
-                            <circle cx="40.2" cy="34.1" r="0.8" fill="#fff" opacity="0.5"/>
-                            <circle cx="58.2" cy="34.1" r="0.8" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 35 32 Q 41 29 47 32" stroke="#607d8b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 53 32 Q 59 29 65 32" stroke="#607d8b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 44 Q 50 49 57 44" stroke="#29b6f6" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 46 Q 50 40 57 46" stroke="#29b6f6" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-arm-left">
-                            <rect x="18" y="52" width="10" height="18" rx="2.5" fill="url(#robot-kid-chassis)" stroke="#607d8b" stroke-width="1.3" transform="rotate(-14 23 61)"/>
-                            <rect x="16" y="68" width="12" height="7" rx="2" fill="#37474f" stroke="#29b6f6" stroke-width="1"/>
-                            <circle cx="20" cy="71" r="1.3" fill="#ffee58"/>
-                            <circle cx="24" cy="71" r="1.3" fill="#00e5ff"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <rect x="72" y="52" width="10" height="18" rx="2.5" fill="url(#robot-kid-chassis)" stroke="#607d8b" stroke-width="1.3" transform="rotate(14 77 61)"/>
-                            <rect x="72" y="68" width="12" height="7" rx="2" fill="#37474f" stroke="#29b6f6" stroke-width="1"/>
-                            <circle cx="76" cy="71" r="1.3" fill="#ffee58"/>
-                            <circle cx="80" cy="71" r="1.3" fill="#00e5ff"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <rect x="34" y="76" width="12" height="8" rx="2" fill="url(#robot-kid-chassis)" stroke="#607d8b" stroke-width="1.2"/>
-                            <rect x="30" y="84" width="20" height="8" rx="3" fill="#263238" stroke="#455a64" stroke-width="1.5"/>
-                            <circle cx="34" cy="88" r="2.5" fill="#37474f" stroke="#78909c" stroke-width="0.8"/>
-                            <circle cx="40" cy="88" r="2.5" fill="#37474f" stroke="#78909c" stroke-width="0.8"/>
-                            <circle cx="46" cy="88" r="2.5" fill="#37474f" stroke="#78909c" stroke-width="0.8"/>
-                            <rect x="32" y="86" width="16" height="2" rx="1" fill="#455a64"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <rect x="54" y="76" width="12" height="8" rx="2" fill="url(#robot-kid-chassis)" stroke="#607d8b" stroke-width="1.2"/>
-                            <rect x="50" y="84" width="20" height="8" rx="3" fill="#263238" stroke="#455a64" stroke-width="1.5"/>
-                            <circle cx="54" cy="88" r="2.5" fill="#37474f" stroke="#78909c" stroke-width="0.8"/>
-                            <circle cx="60" cy="88" r="2.5" fill="#37474f" stroke="#78909c" stroke-width="0.8"/>
-                            <circle cx="66" cy="88" r="2.5" fill="#37474f" stroke="#78909c" stroke-width="0.8"/>
-                            <rect x="52" y="86" width="16" height="2" rx="1" fill="#455a64"/>
-                        </g>
-                </g>
-                <!-- ROBOT TEEN — sleek visor mecha -->
-                <g id="tm-mascot-evo2-robot" style="display: none;">
-                    <defs>
-                        <linearGradient id="robot-teen-chassis" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#90a4ae;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#455a64;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1a237e;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="robot-teen-panel" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#00bcd4;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#006064;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="robot-teen-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#f8bbd0;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#e040fb;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#00e5ff;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="robot-teen-iris" cx="38%" cy="32%" r="62%">
-                            <stop offset="0%" style="stop-color:#ea80fc;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#7b1fa2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1a237e;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="robot-teen-visor" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:0.7" />
-                            <stop offset="50%" style="stop-color:#00bcd4;stop-opacity:0.5" />
-                            <stop offset="100%" style="stop-color:#006064;stop-opacity:0.3" />
-                        </linearGradient>
-                        <linearGradient id="robot-teen-fin" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#b2ebf2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#00838f;stop-opacity:0.6" />
-                        </linearGradient>
-                        <radialGradient id="robot-teen-hover" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:0.5" />
-                            <stop offset="100%" style="stop-color:#00e5ff;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="robot-teen-gloss" cx="30%" cy="20%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.3" />
-                            <stop offset="100%" style="stop-color:#fff;stop-opacity:0" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="96" rx="30" ry="5" fill="#1a1a1a" opacity="0.25"/>
-                        <g class="tm-animate-tail">
-                            <path d="M 68 68 Q 84 74 88 62 Q 90 52 82 54" fill="none" stroke="#455a64" stroke-width="2.8" stroke-linecap="round"/>
-                            <ellipse cx="86" cy="58" rx="3" ry="4" fill="#00e5ff" opacity="0.5"/>
-                            <circle cx="86" cy="58" r="1.5" fill="#e040fb" opacity="0.7"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 28 50 Q 14 42 12 52 Q 14 62 26 58 Z" fill="url(#robot-teen-fin)" stroke="#00acc1" stroke-width="1.4"/>
-                            <path d="M 18 48 Q 14 52 16 56" stroke="#00838f" stroke-width="0.8" fill="none" opacity="0.55"/>
-                            <circle cx="14" cy="50" r="1.5" fill="#e040fb" opacity="0.6"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 72 50 Q 86 42 88 52 Q 86 62 74 58 Z" fill="url(#robot-teen-fin)" stroke="#00acc1" stroke-width="1.4"/>
-                            <path d="M 82 48 Q 86 52 84 56" stroke="#00838f" stroke-width="0.8" fill="none" opacity="0.55"/>
-                            <circle cx="86" cy="50" r="1.5" fill="#e040fb" opacity="0.6"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <rect x="28" y="46" width="44" height="30" rx="4" fill="url(#robot-teen-chassis)" stroke="#455a64" stroke-width="2.2"/>
-                            <rect x="32" y="50" width="36" height="16" rx="2" fill="url(#robot-teen-panel)" stroke="#00bcd4" stroke-width="0.9"/>
-                            <ellipse cx="38" cy="52" rx="8" ry="4" fill="url(#robot-teen-gloss)"/>
-                            <circle cx="50" cy="60" r="8" fill="url(#robot-teen-core)"/>
-                            <circle cx="50" cy="60" r="3.5" fill="#f8bbd0" opacity="0.7"/>
-                            <!-- Magenta accent stripes -->
-                            <path d="M 30 54 L 34 54" stroke="#e040fb" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M 66 54 L 70 54" stroke="#e040fb" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M 30 70 L 34 70" stroke="#00e5ff" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M 66 70 L 70 70" stroke="#00e5ff" stroke-width="2" stroke-linecap="round"/>
-                            <!-- Shoulder fins -->
-                            <path d="M 28 48 L 22 40 L 30 52 Z" fill="url(#robot-teen-fin)" stroke="#00acc1" stroke-width="1"/>
-                            <path d="M 72 48 L 78 40 L 70 52 Z" fill="url(#robot-teen-fin)" stroke="#00acc1" stroke-width="1"/>
-                            <!-- Sleek helmet head -->
-                            <ellipse cx="50" cy="30" rx="18" ry="14" fill="url(#robot-teen-chassis)" stroke="#455a64" stroke-width="2"/>
-                            <ellipse cx="50" cy="30" rx="14" ry="8" fill="url(#robot-teen-visor)" stroke="#00bcd4" stroke-width="1"/>
-                            <ellipse cx="42" cy="28" rx="5" ry="2.5" fill="#fff" opacity="0.2"/>
-                            <line x1="50" y1="16" x2="50" y2="10" stroke="#78909c" stroke-width="1.5"/>
-                            <circle cx="50" cy="9" r="2" fill="#e040fb" stroke="#00e5ff" stroke-width="0.8"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="42" cy="30" rx="5.5" ry="6.5" fill="#fff" stroke="#455a64" stroke-width="1.6"/>
-                            <ellipse cx="58" cy="30" rx="5.5" ry="6.5" fill="#fff" stroke="#455a64" stroke-width="1.6"/>
-                            <ellipse cx="43" cy="31" rx="3.1" ry="3.8" fill="url(#robot-teen-iris)"/>
-                            <ellipse cx="59" cy="31" rx="3.1" ry="3.8" fill="url(#robot-teen-iris)"/>
-                            <ellipse cx="43" cy="31.5" rx="1.6" ry="2.1" fill="#0a1628"/>
-                            <ellipse cx="59" cy="31.5" rx="1.6" ry="2.1" fill="#0a1628"/>
-                            <circle cx="44.5" cy="27.7" r="1.8" fill="#fff" opacity="0.95"/>
-                            <circle cx="60.5" cy="27.7" r="1.8" fill="#fff" opacity="0.95"/>
-                            <circle cx="41.2" cy="31.9" r="0.7" fill="#fff" opacity="0.5"/>
-                            <circle cx="57.2" cy="31.9" r="0.7" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 36.5 30 Q 42 27 47.5 30" stroke="#455a64" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.5 30 Q 58 27 63.5 30" stroke="#455a64" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44 38 Q 50 43 56 38" stroke="#00bcd4" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 40 Q 50 34 56 40" stroke="#00bcd4" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-arm-left">
-                            <rect x="16" y="48" width="11" height="22" rx="2" fill="url(#robot-teen-chassis)" stroke="#455a64" stroke-width="1.4" transform="rotate(-18 21.5 59)"/>
-                            <ellipse cx="14" cy="52" rx="2.5" ry="2" fill="#fff" opacity="0.15"/>
-                            <rect x="12" y="68" width="14" height="8" rx="2" fill="#263238" stroke="#00e5ff" stroke-width="1.1"/>
-                            <rect x="14" y="70" width="3" height="4" fill="#e040fb" opacity="0.7"/>
-                            <rect x="19" y="70" width="3" height="4" fill="#00e5ff" opacity="0.7"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <rect x="73" y="48" width="11" height="22" rx="2" fill="url(#robot-teen-chassis)" stroke="#455a64" stroke-width="1.4" transform="rotate(18 78.5 59)"/>
-                            <ellipse cx="86" cy="52" rx="2.5" ry="2" fill="#fff" opacity="0.15"/>
-                            <rect x="74" y="68" width="14" height="8" rx="2" fill="#263238" stroke="#00e5ff" stroke-width="1.1"/>
-                            <rect x="76" y="70" width="3" height="4" fill="#e040fb" opacity="0.7"/>
-                            <rect x="81" y="70" width="3" height="4" fill="#00e5ff" opacity="0.7"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <rect x="34" y="76" width="10" height="14" rx="2" fill="url(#robot-teen-chassis)" stroke="#455a64" stroke-width="1.3"/>
-                            <ellipse cx="39" cy="94" rx="10" ry="3" fill="url(#robot-teen-hover)"/>
-                            <ellipse cx="39" cy="92" rx="8" ry="2.5" fill="#263238" stroke="#00bcd4" stroke-width="1.2"/>
-                            <circle cx="39" cy="94" r="2" fill="#00e5ff" opacity="0.6"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <rect x="56" y="76" width="10" height="14" rx="2" fill="url(#robot-teen-chassis)" stroke="#455a64" stroke-width="1.3"/>
-                            <ellipse cx="61" cy="94" rx="10" ry="3" fill="url(#robot-teen-hover)"/>
-                            <ellipse cx="61" cy="92" rx="8" ry="2.5" fill="#263238" stroke="#00bcd4" stroke-width="1.2"/>
-                            <circle cx="61" cy="94" r="2" fill="#00e5ff" opacity="0.6"/>
-                        </g>
-                </g>
-                <!-- ROBOT ADULT — Neon Colossus -->
-                <g id="tm-mascot-evo3-robot" style="display: none;">
+<g id="tm-mascot-evo2-robot" style="display: none;">
                     <defs>
                         <linearGradient id="robot-adult-armor" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#78909c;stop-opacity:1" />
@@ -12759,8 +12062,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <rect x="56" y="90" width="10" height="3" rx="1" fill="#00e5ff" opacity="0.4"/>
                         </g>
                 </g>
-                <!-- ROBOT MIDDLE AGE — battle-scarred engineer -->
-                <g id="tm-mascot-evo4-robot" style="display: none;">
+<g id="tm-mascot-evo3-robot" style="display: none;">
                     <defs>
                         <linearGradient id="robot-mid-steel" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#9e9e9e;stop-opacity:1" />
@@ -12885,138 +12187,18 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 56 92 Q 60 90 64 92" stroke="#757575" stroke-width="0.8" fill="none"/>
                         </g>
                 </g>
-                <!-- ROBOT OLD — ancient sage unit -->
-                <g id="tm-mascot-evo5-robot" style="display: none;">
-                    <defs>
-                        <linearGradient id="robot-old-bronze" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#bcaaa4;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#8d6e63;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#4db6ac;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#00695c;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="robot-old-oxide" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#80cbc4;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#4db6ac;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#263238;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="robot-old-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#ce93d8;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#7b1fa2;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="robot-old-iris" cx="40%" cy="35%" r="60%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#7e57c2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4527a0;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="robot-old-monocle" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:0.6" />
-                            <stop offset="100%" style="stop-color:#7b1fa2;stop-opacity:0.2" />
-                        </radialGradient>
-                        <linearGradient id="robot-old-cable" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#78909c;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="robot-old-aura" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ce93d8;stop-opacity:0.25" />
-                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="robot-old-cane" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#a1887f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#5d4037;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                        <ellipse cx="50" cy="54" rx="40" ry="38" fill="url(#robot-old-aura)" opacity="0.6"/>
-                        <ellipse cx="50" cy="98" rx="26" ry="4" fill="#1a1a1a" opacity="0.22"/>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 28 58 Q 16 50 14 42 Q 12 38 18 40 Q 24 48 30 56 Z" fill="url(#robot-old-oxide)" stroke="#4db6ac" stroke-width="1" opacity="0.75"/>
-                            <path d="M 20 44 Q 24 50 28 54" stroke="#80cbc4" stroke-width="0.6" fill="none" opacity="0.4"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 72 58 Q 84 50 86 42 Q 88 38 82 40 Q 76 48 70 56 Z" fill="url(#robot-old-oxide)" stroke="#4db6ac" stroke-width="1" opacity="0.75"/>
-                            <path d="M 80 44 Q 76 50 72 54" stroke="#80cbc4" stroke-width="0.6" fill="none" opacity="0.4"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 62 78 Q 74 86 78 76 Q 80 70 74 70" fill="none" stroke="url(#robot-old-cable)" stroke-width="2.5" stroke-linecap="round"/>
-                            <circle cx="76" cy="72" r="2" fill="#4db6ac" stroke="#00695c" stroke-width="0.7"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Weathered sage chassis -->
-                            <ellipse cx="50" cy="68" rx="22" ry="20" fill="url(#robot-old-bronze)" stroke="#5d4037" stroke-width="1.8"/>
-                            <ellipse cx="44" cy="62" rx="7" ry="4" fill="#fff" opacity="0.08"/>
-                            <circle cx="50" cy="68" r="9" fill="url(#robot-old-core)"/>
-                            <circle cx="50" cy="68" r="4" fill="#f3e5f5" opacity="0.65"/>
-                            <!-- Wisdom glyphs -->
-                            <path d="M 42 64 L 44 66 L 42 68 L 40 66 Z" fill="#ce93d8" opacity="0.5"/>
-                            <path d="M 58 64 L 60 66 L 58 68 L 56 66 Z" fill="#ce93d8" opacity="0.5"/>
-                            <circle cx="50" cy="76" r="1.5" fill="#4db6ac" opacity="0.45"/>
-                            <path d="M 48 78 L 50 80 L 52 78" stroke="#80cbc4" stroke-width="0.7" fill="none" opacity="0.5"/>
-                            <!-- Aged head -->
-                            <ellipse cx="50" cy="36" rx="16" ry="14" fill="url(#robot-old-bronze)" stroke="#5d4037" stroke-width="1.6"/>
-                            <ellipse cx="44" cy="32" rx="5" ry="2.5" fill="#fff" opacity="0.1"/>
-                            <!-- Bent antenna -->
-                            <path d="M 50 22 Q 44 14 48 8 Q 52 12 50 22" fill="none" stroke="#8d6e63" stroke-width="1.8" stroke-linecap="round"/>
-                            <circle cx="47" cy="9" r="2" fill="#ce93d8" stroke="#7b1fa2" stroke-width="0.8" opacity="0.8"/>
-                            <!-- Patina marks -->
-                            <path d="M 38 38 Q 40 36 42 38" stroke="#4db6ac" stroke-width="0.6" fill="none" opacity="0.4"/>
-                            <path d="M 58 38 Q 60 36 62 38" stroke="#4db6ac" stroke-width="0.6" fill="none" opacity="0.4"/>
-                            <!-- Cable beard -->
-                            <path d="M 40 44 Q 32 54 36 62 L 40 58 Q 38 50 40 46 Z" fill="#90a4ae" stroke="#607d8b" stroke-width="0.8" opacity="0.85"/>
-                            <path d="M 50 46 Q 46 58 48 66 L 52 64 Q 50 54 50 48 Z" fill="#b0bec5" stroke="#78909c" stroke-width="0.8" opacity="0.8"/>
-                            <path d="M 60 44 Q 68 54 64 62 L 60 58 Q 62 50 60 46 Z" fill="#90a4ae" stroke="#607d8b" stroke-width="0.8" opacity="0.85"/>
-                            <line x1="38" y1="50" x2="34" y2="58" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
-                            <line x1="50" y1="52" x2="49" y2="62" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
-                            <line x1="62" y1="50" x2="66" y2="58" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="43" cy="34" rx="4.5" ry="5" fill="#fff" stroke="#5d4037" stroke-width="1.2"/>
-                            <ellipse cx="57" cy="34" rx="4.5" ry="5" fill="#fff" stroke="#5d4037" stroke-width="1.2"/>
-                            <ellipse cx="43.5" cy="34.5" rx="2.5" ry="2.8" fill="url(#robot-old-iris)"/>
-                            <ellipse cx="57.5" cy="34.5" rx="2.5" ry="2.8" fill="url(#robot-old-iris)"/>
-                            <ellipse cx="43.5" cy="35" rx="1.2" ry="1.5" fill="#1a0a2e"/>
-                            <ellipse cx="57.5" cy="35" rx="1.2" ry="1.5" fill="#1a0a2e"/>
-                            <circle cx="44.5" cy="32.5" r="1" fill="#fff" opacity="0.9"/>
-                            <circle cx="58.5" cy="32.5" r="1" fill="#fff" opacity="0.9"/>
-                            <!-- Monocle LED on right eye -->
-                            <circle cx="57" cy="34" r="6" fill="none" stroke="url(#robot-old-monocle)" stroke-width="1.2"/>
-                            <line x1="63" cy="34" x2="68" cy="32" stroke="#8d6e63" stroke-width="1" stroke-linecap="round"/>
-                            <circle cx="68" cy="32" r="1" fill="#ce93d8"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 39 34 Q 43 31 47 34" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                            <path d="M 53 34 Q 57 31 61 34" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44 42 Q 50 47 56 42" stroke="#7b1fa2" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 44 Q 50 38 56 44" stroke="#7b1fa2" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-arm-left">
-                            <ellipse cx="30" cy="66" rx="5" ry="9" fill="url(#robot-old-bronze)" stroke="#5d4037" stroke-width="1.2"/>
-                            <ellipse cx="28" cy="74" rx="4" ry="4.5" fill="url(#robot-old-oxide)" stroke="#4db6ac" stroke-width="0.8"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <ellipse cx="70" cy="66" rx="5" ry="9" fill="url(#robot-old-bronze)" stroke="#5d4037" stroke-width="1.2"/>
-                            <ellipse cx="72" cy="74" rx="4" ry="4.5" fill="url(#robot-old-oxide)" stroke="#4db6ac" stroke-width="0.8"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="42" cy="90" rx="6" ry="4" fill="url(#robot-old-bronze)" stroke="#5d4037" stroke-width="1"/>
-                            <ellipse cx="42" cy="94" rx="5" ry="2.5" fill="#4db6ac" opacity="0.5"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="58" cy="90" rx="6" ry="4" fill="url(#robot-old-bronze)" stroke="#5d4037" stroke-width="1"/>
-                            <!-- Cane -->
-                            <line x1="64" y1="72" x2="70" y2="96" stroke="url(#robot-old-cane)" stroke-width="3" stroke-linecap="round"/>
-                            <line x1="64" y1="72" x2="70" y2="96" stroke="#bcaaa4" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
-                            <circle cx="63" cy="70" r="3.5" fill="#4db6ac" stroke="#00695c" stroke-width="1"/>
-                            <circle cx="63.5" cy="69.5" r="1.2" fill="#ce93d8" opacity="0.75"/>
-                            <ellipse cx="58" cy="94" rx="5" ry="2.5" fill="#4db6ac" opacity="0.5"/>
-                        </g>
-                </g>
-
+                <!-- ROBOT KID — tread scout -->
+                                <!-- ROBOT TEEN — sleek visor mecha -->
+                                <!-- ROBOT ADULT — Neon Colossus -->
+                                <!-- ROBOT MIDDLE AGE — battle-scarred engineer -->
+                                <!-- ROBOT OLD — ancient sage unit -->
+                
                 <!-- SLIME CHARACTER - All Life Stages (dense cute epic goo v4) -->
                 <!-- Liquid & Bounce • Rare Rarity • Abyssal Ooze -->
                 <!-- ═══════════════════════════════════════ -->
 
                 <!-- SLIME BABY — wet toxic droplet -->
-                <g id="tm-mascot-baby-slime" style="display: none;">
+                <g id="tm-mascot-evo1-slime" style="display: none;">
                     <defs>
                         <radialGradient id="slime-baby-body" cx="38%" cy="28%" r="72%">
                             <stop offset="0%" style="stop-color:#a5d6a7;stop-opacity:0.65" />
@@ -13112,207 +12294,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <g class="tm-animate-wing-left" opacity="0"><circle cx="18" cy="48" r="1"/></g>
                         <g class="tm-animate-wing-right" opacity="0"><circle cx="82" cy="48" r="1"/></g>
                 </g>
-
-                <!-- SLIME KID — stretchy jelly lump -->
-                <g id="tm-mascot-evo1-slime" style="display: none;">
-                    <defs>
-                        <radialGradient id="slime-kid-body" cx="38%" cy="28%" r="72%">
-                            <stop offset="0%" style="stop-color:#c5e1a5;stop-opacity:0.55" />
-                            <stop offset="28%" style="stop-color:#66bb6a;stop-opacity:0.88" />
-                            <stop offset="62%" style="stop-color:#2e7d32;stop-opacity:0.96" />
-                            <stop offset="100%" style="stop-color:#03140c;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="slime-kid-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ffff00;stop-opacity:0.9" />
-                            <stop offset="42%" style="stop-color:#76ff03;stop-opacity:0.58" />
-                            <stop offset="100%" style="stop-color:#004d40;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="slime-kid-iris" cx="35%" cy="30%" r="65%">
-                            <stop offset="0%" style="stop-color:#eeff41;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1b5e20;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="slime-kid-gloss" cx="30%" cy="20%" r="50%">
-                            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.52" />
-                            <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="slime-kid-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#aeea00;stop-opacity:0.48" />
-                            <stop offset="100%" style="stop-color:#aeea00;stop-opacity:0" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="92" rx="26" ry="4.5" fill="#1a1a1a" opacity="0.24"/>
-                        <g class="tm-animate-tail">
-                            <path d="M 58 78 Q 74 86 78 72 Q 80 64 72 66 Q 64 72 58 78 Z" fill="#0d3b1e" stroke="#76ff03" stroke-width="1.1"/>
-                            <ellipse cx="74" cy="70" rx="3" ry="4" fill="#76ff03" opacity="0.35"/>
-                        </g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 32 58 Q 18 58 12 48 Q 8 40 16 42 Q 22 50 28 56 Z" fill="#143d22" stroke="#76ff03" stroke-width="1.2"/>
-                            <ellipse cx="14" cy="44" rx="4.5" ry="5.5" fill="#1b5e20" opacity="0.85"/>
-                            <circle cx="12" cy="42" r="1.4" fill="#76ff03" opacity="0.45"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 68 58 Q 82 58 88 48 Q 92 40 84 42 Q 78 50 72 56 Z" fill="#143d22" stroke="#76ff03" stroke-width="1.2"/>
-                            <ellipse cx="86" cy="44" rx="4.5" ry="5.5" fill="#1b5e20" opacity="0.85"/>
-                            <circle cx="88" cy="42" r="1.4" fill="#76ff03" opacity="0.45"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Stretchier playful blob -->
-                            <path d="M 26 70 Q 22 48 34 32 Q 42 20 50 18 Q 60 20 68 34 Q 78 50 74 72 Q 70 88 56 92 Q 50 94 44 92 Q 28 88 26 70 Z"
-                                  fill="url(#slime-kid-body)" stroke="#2e7d32" stroke-width="2.1"/>
-                            <ellipse cx="38" cy="38" rx="12" ry="8" fill="url(#slime-kid-gloss)"/>
-                            <ellipse cx="42" cy="34" rx="4.2" ry="2.2" fill="#fff" opacity="0.35"/>
-                            <ellipse cx="50" cy="56" rx="13" ry="15" fill="url(#slime-kid-core)" opacity="0.78"/>
-                            <circle cx="50" cy="58" r="5" fill="#eeff41" opacity="0.5"/>
-                            <circle cx="36" cy="68" r="2.6" fill="#b2ff59" opacity="0.32"/>
-                            <circle cx="64" cy="72" r="2" fill="#69f0ae" opacity="0.28"/>
-                            <!-- More drips -->
-                            <path d="M 44 88 Q 42 96 44 98" stroke="#1b5e20" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.72"/>
-                            <path d="M 54 90 Q 56 98 54 100" stroke="#143d22" stroke-width="2.8" fill="none" stroke-linecap="round" opacity="0.68"/>
-                            <ellipse cx="44" cy="98" rx="2.2" ry="1.8" fill="#0d3b1e" opacity="0.7"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="44" rx="7.2" ry="8.2" fill="#fff" stroke="#2e7d32" stroke-width="1.5"/>
-                            <ellipse cx="60" cy="44" rx="7.2" ry="8.2" fill="#fff" stroke="#2e7d32" stroke-width="1.5"/>
-                            <ellipse cx="40.5" cy="44.5" rx="4.032000000000001" ry="4.755999999999999" fill="url(#slime-kid-iris)"/>
-                            <ellipse cx="60.5" cy="44.5" rx="4.032000000000001" ry="4.755999999999999" fill="url(#slime-kid-iris)"/>
-                            <ellipse cx="40.6" cy="44.8" rx="2.088" ry="2.706" fill="#0a1208"/>
-                            <ellipse cx="60.6" cy="44.8" rx="2.088" ry="2.706" fill="#0a1208"/>
-                            <circle cx="41.5" cy="40.884" r="2.3040000000000003" fill="#fff" opacity="0.96"/>
-                            <circle cx="61.5" cy="40.884" r="2.3040000000000003" fill="#fff" opacity="0.96"/>
-                            <circle cx="38.8" cy="46.87" r="1.0080000000000002" fill="#fff" opacity="0.45"/>
-                            <circle cx="58.8" cy="46.87" r="1.0080000000000002" fill="#fff" opacity="0.45"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 32.8 44 Q 40 40.5 47.2 44" stroke="#2e7d32" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.8 44 Q 60 40.5 67.2 44" stroke="#2e7d32" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 41 62 Q 50 69 59 62" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 64 Q 50 57 59 64" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-</g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="40" cy="86" rx="7" ry="3.8" fill="#0a2416" stroke="#2e7d32" stroke-width="1.2"/>
-                            <path d="M 38 88 Q 36 94 38 96" stroke="#143d22" stroke-width="2.8" fill="none" stroke-linecap="round" opacity="0.72"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="60" cy="87" rx="6.5" ry="3.5" fill="#0a2416" stroke="#2e7d32" stroke-width="1.2"/>
-                            <path d="M 62 89 Q 64 95 62 97" stroke="#143d22" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.68"/>
-                        </g>
-                        <!-- Cheeks -->
-                        <circle cx="33" cy="51" r="4.2" fill="url(#slime-kid-cheek)"/>
-                        <circle cx="67" cy="51" r="4.2" fill="url(#slime-kid-cheek)"/>
-
-
-
-
-                        <g class="tm-animate-wing-left" opacity="0"><circle cx="18" cy="46" r="1"/></g>
-                        <g class="tm-animate-wing-right" opacity="0"><circle cx="82" cy="46" r="1"/></g>
-                </g>
-
-                <!-- SLIME TEEN — predatory goo blob -->
-                <g id="tm-mascot-evo2-slime" style="display: none;">
-                    <defs>
-                        <radialGradient id="slime-teen-body" cx="38%" cy="28%" r="72%">
-                            <stop offset="0%" style="stop-color:#b2dfdb;stop-opacity:0.42" />
-                            <stop offset="22%" style="stop-color:#4caf50;stop-opacity:0.82" />
-                            <stop offset="58%" style="stop-color:#1b5e20;stop-opacity:0.96" />
-                            <stop offset="100%" style="stop-color:#010a06;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="slime-teen-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ffff8d;stop-opacity:0.98" />
-                            <stop offset="38%" style="stop-color:#76ff03;stop-opacity:0.65" />
-                            <stop offset="100%" style="stop-color:#004d40;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="slime-teen-iris" cx="35%" cy="30%" r="65%">
-                            <stop offset="0%" style="stop-color:#eeff41;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#558b2f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#0a1f0a;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="slime-teen-gloss" cx="28%" cy="18%" r="52%">
-                            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.5" />
-                            <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="slime-teen-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#c6ff00;stop-opacity:0.42" />
-                            <stop offset="100%" style="stop-color:#c6ff00;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="slime-teen-acid" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#eeff41;stop-opacity:0.7" />
-                            <stop offset="100%" style="stop-color:#76ff03;stop-opacity:0" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="94" rx="30" ry="4.5" fill="#1a1a1a" opacity="0.28"/>
-                        <g class="tm-animate-tail">
-                            <path d="M 64 76 Q 84 84 90 68 Q 92 58 82 60 Q 70 68 64 76 Z" fill="#0a2416" stroke="#aeea00" stroke-width="1.2"/>
-                            <ellipse cx="86" cy="64" rx="4" ry="5" fill="#76ff03" opacity="0.38"/>
-                            <circle cx="88" cy="62" r="1.5" fill="#eeff41" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 28 54 Q 10 50 6 38 Q 2 28 12 30 Q 18 40 24 50 Z" fill="#0d3b1e" stroke="#aeea00" stroke-width="1.3"/>
-                            <ellipse cx="8" cy="32" rx="5.5" ry="6.5" fill="#1b5e20" opacity="0.88"/>
-                            <path d="M 6 28 Q 2 24 4 22" stroke="#76ff03" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.6"/>
-                            <path d="M 4 26 Q 0 22 2 20" stroke="#76ff03" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.45"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 72 54 Q 90 50 94 38 Q 98 28 88 30 Q 82 40 76 50 Z" fill="#0d3b1e" stroke="#aeea00" stroke-width="1.3"/>
-                            <ellipse cx="92" cy="32" rx="5.5" ry="6.5" fill="#1b5e20" opacity="0.88"/>
-                            <path d="M 94 28 Q 98 24 96 22" stroke="#76ff03" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.6"/>
-                            <path d="M 96 26 Q 100 22 98 20" stroke="#76ff03" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.45"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Taller predatory goo -->
-                            <path d="M 22 68 Q 18 42 30 26 Q 40 12 50 10 Q 62 12 72 28 Q 82 44 78 68 Q 76 88 62 94 Q 50 98 38 94 Q 24 88 22 68 Z"
-                                  fill="url(#slime-teen-body)" stroke="#1b5e20" stroke-width="2.3"/>
-                            <ellipse cx="36" cy="34" rx="14" ry="10" fill="url(#slime-teen-gloss)"/>
-                            <ellipse cx="40" cy="30" rx="5" ry="2.5" fill="#fff" opacity="0.3"/>
-                            <ellipse cx="50" cy="54" rx="16" ry="18" fill="url(#slime-teen-core)" opacity="0.85"/>
-                            <ellipse cx="50" cy="56" rx="10" ry="12" fill="url(#slime-teen-acid)" opacity="0.55"/>
-                            <circle cx="50" cy="58" r="6" fill="#eeff41" opacity="0.58"/>
-                            <circle cx="47" cy="54" r="1.8" fill="#fffde7" opacity="0.48"/>
-                            <circle cx="38" cy="68" r="2.8" fill="#b2ff59" opacity="0.3"/>
-                            <circle cx="62" cy="72" r="2.2" fill="#69f0ae" opacity="0.26"/>
-                            <path d="M 42 90 Q 40 100 42 102" stroke="#1b5e20" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.76"/>
-                            <path d="M 52 92 Q 54 102 52 104" stroke="#0d3b1e" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.72"/>
-                            <ellipse cx="42" cy="102" rx="2.5" ry="2" fill="#143d22" opacity="0.72"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="39" cy="40" rx="6.8" ry="7.8" fill="#fff" stroke="#1b5e20" stroke-width="1.5"/>
-                            <ellipse cx="61" cy="40" rx="6.8" ry="7.8" fill="#fff" stroke="#1b5e20" stroke-width="1.5"/>
-                            <ellipse cx="39.5" cy="40.5" rx="3.8080000000000003" ry="4.524" fill="url(#slime-teen-iris)"/>
-                            <ellipse cx="61.5" cy="40.5" rx="3.8080000000000003" ry="4.524" fill="url(#slime-teen-iris)"/>
-                            <ellipse cx="39.6" cy="40.8" rx="1.9719999999999998" ry="2.574" fill="#0a1208"/>
-                            <ellipse cx="61.6" cy="40.8" rx="1.9719999999999998" ry="2.574" fill="#0a1208"/>
-                            <circle cx="40.5" cy="37.036" r="2.176" fill="#fff" opacity="0.96"/>
-                            <circle cx="62.5" cy="37.036" r="2.176" fill="#fff" opacity="0.96"/>
-                            <circle cx="37.8" cy="42.73" r="0.9520000000000001" fill="#fff" opacity="0.45"/>
-                            <circle cx="59.8" cy="42.73" r="0.9520000000000001" fill="#fff" opacity="0.45"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 32.2 40 Q 39 36.5 45.8 40" stroke="#1b5e20" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 54.2 40 Q 61 36.5 67.8 40" stroke="#1b5e20" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 40 58 Q 50 66 60 58" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 40 60 Q 50 53 60 60" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-</g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="36" cy="88" rx="9" ry="5" fill="#0a2416" stroke="#1b5e20" stroke-width="1.3"/>
-                            <path d="M 34 90 Q 32 98 34 100" stroke="#143d22" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.74"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="64" cy="88" rx="9" ry="5" fill="#0a2416" stroke="#1b5e20" stroke-width="1.3"/>
-                            <path d="M 66 90 Q 68 98 66 100" stroke="#143d22" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.7"/>
-                        </g>
-                        <!-- Cheeks -->
-                        <circle cx="32" cy="47" r="4.2" fill="url(#slime-teen-cheek)"/>
-                        <circle cx="68" cy="47" r="4.2" fill="url(#slime-teen-cheek)"/>
-
-
-
-
-                        <path d="M 44 57 L 43 61 M 56 57 L 57 61" stroke="#eeff41" stroke-width="1.8" stroke-linecap="round" opacity="0.65"/>
-                        <g class="tm-animate-wing-left" opacity="0"><circle cx="18" cy="42" r="1"/></g>
-                        <g class="tm-animate-wing-right" opacity="0"><circle cx="82" cy="42" r="1"/></g>
-                </g>
-
-                <!-- SLIME ADULT — majestic jelly mass -->
-                <g id="tm-mascot-evo3-slime" style="display: none;">
+<g id="tm-mascot-evo2-slime" style="display: none;">
                     <defs>
                         <radialGradient id="slime-adult-body" cx="38%" cy="28%" r="72%">
                             <stop offset="0%" style="stop-color:#c8e6c9;stop-opacity:0.45" />
@@ -13418,9 +12400,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <g class="tm-animate-wing-left" opacity="0"><circle cx="18" cy="44" r="1"/></g>
                         <g class="tm-animate-wing-right" opacity="0"><circle cx="82" cy="44" r="1"/></g>
                 </g>
-
-                <!-- SLIME MIDDLE AGE — heavy molten ooze -->
-                <g id="tm-mascot-evo4-slime" style="display: none;">
+<g id="tm-mascot-evo3-slime" style="display: none;">
                     <defs>
                         <radialGradient id="slime-middle-body" cx="38%" cy="28%" r="72%">
                             <stop offset="0%" style="stop-color:#aed581;stop-opacity:0.44" />
@@ -13519,129 +12499,23 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <g class="tm-animate-wing-right" opacity="0"><circle cx="82" cy="48" r="1"/></g>
                 </g>
 
+                <!-- SLIME KID — stretchy jelly lump -->
+                
+                <!-- SLIME TEEN — predatory goo blob -->
+                
+                <!-- SLIME ADULT — majestic jelly mass -->
+                
+                <!-- SLIME MIDDLE AGE — heavy molten ooze -->
+                
                 <!-- SLIME OLD — sprawling primordial puddle -->
-                <g id="tm-mascot-evo5-slime" style="display: none;">
-                    <defs>
-                        <radialGradient id="slime-old-body" cx="38%" cy="28%" r="72%">
-                            <stop offset="0%" style="stop-color:#4caf50;stop-opacity:0.48" />
-                            <stop offset="28%" style="stop-color:#1b5e20;stop-opacity:0.9" />
-                            <stop offset="68%" style="stop-color:#0d2818;stop-opacity:0.97" />
-                            <stop offset="100%" style="stop-color:#010805;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="slime-old-aura" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#76ff03;stop-opacity:0.24" />
-                            <stop offset="100%" style="stop-color:#76ff03;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="slime-old-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#e040fb;stop-opacity:0.88" />
-                            <stop offset="42%" style="stop-color:#76ff03;stop-opacity:0.48" />
-                            <stop offset="100%" style="stop-color:#004d40;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="slime-old-iris" cx="40%" cy="35%" r="60%">
-                            <stop offset="0%" style="stop-color:#ea80fc;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1a237e;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="slime-old-gloss" cx="34%" cy="28%" r="48%">
-                            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.4" />
-                            <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="slime-old-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ce93d8;stop-opacity:0.42" />
-                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="slime-old-void" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#7c4dff;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="58" rx="48" ry="44" fill="url(#slime-old-aura)"/>
-                        <ellipse cx="50" cy="96" rx="40" ry="5" fill="#1a1a1a" opacity="0.38"/>
-                        <ellipse cx="50" cy="90" rx="38" ry="12" fill="#010805" opacity="0.78"/>
-                        <ellipse cx="26" cy="88" rx="10" ry="5" fill="#0a2416" opacity="0.58"/>
-                        <ellipse cx="76" cy="89" rx="9" ry="4.5" fill="#0a2416" opacity="0.52"/>
-                        <g class="tm-animate-tail">
-                            <path d="M 60 82 Q 82 92 90 74 Q 92 64 80 66 Q 68 74 60 82 Z" fill="#02140c" stroke="#ea80fc" stroke-width="1.3"/>
-                            <ellipse cx="86" cy="70" rx="4" ry="5" fill="#e040fb" opacity="0.38"/>
-                        </g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 26 70 Q 8 74 2 58 Q -2 46 8 48 Q 14 58 22 68 Z" fill="#0d2818" stroke="#ea80fc" stroke-width="1.3"/>
-                            <ellipse cx="4" cy="52" rx="6.5" ry="7.5" fill="#1b5e20" opacity="0.78"/>
-                            <circle cx="4" cy="50" r="2" fill="#e040fb" opacity="0.48"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 74 70 Q 92 74 98 58 Q 102 46 92 48 Q 86 58 78 68 Z" fill="#0d2818" stroke="#ea80fc" stroke-width="1.3"/>
-                            <ellipse cx="96" cy="52" rx="6.5" ry="7.5" fill="#1b5e20" opacity="0.78"/>
-                            <circle cx="96" cy="50" r="2" fill="#e040fb" opacity="0.48"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Sprawling primordial puddle -->
-                            <path d="M 14 76 Q 12 50 26 36 Q 38 24 50 22 Q 64 24 76 40 Q 88 56 86 76 Q 84 90 68 96 Q 50 100 32 96 Q 16 90 14 76 Z"
-                                  fill="url(#slime-old-body)" stroke="#0d2818" stroke-width="2.5"/>
-                            <ellipse cx="38" cy="42" rx="14" ry="10" fill="url(#slime-old-gloss)"/>
-                            <ellipse cx="42" cy="38" rx="5" ry="2.5" fill="#fff" opacity="0.22"/>
-                            <ellipse cx="50" cy="64" rx="18" ry="15" fill="url(#slime-old-core)" opacity="0.86"/>
-                            <ellipse cx="50" cy="66" rx="10" ry="8" fill="url(#slime-old-void)" opacity="0.45"/>
-                            <circle cx="50" cy="66" r="6.5" fill="#ea80fc" opacity="0.58"/>
-                            <circle cx="47" cy="62" r="1.8" fill="#f3e5f5" opacity="0.52"/>
-                            <circle cx="34" cy="60" r="3" fill="#76ff03" opacity="0.26"/>
-                            <circle cx="66" cy="66" r="2.5" fill="#ea80fc" opacity="0.3"/>
-                            <!-- Third eye floating in goo -->
-                            <ellipse cx="50" cy="38" rx="5" ry="4" fill="#010a06" stroke="#ea80fc" stroke-width="1.2" opacity="0.92"/>
-                            <ellipse cx="50" cy="38" rx="2.6" ry="2.2" fill="url(#slime-old-iris)"/>
-                            <ellipse cx="50.2" cy="38.2" rx="1.1" ry="1.4" fill="#0a0618"/>
-                            <circle cx="50.8" cy="37" r="0.85" fill="#f3e5f5"/>
-                            <!-- Drip fringe -->
-                            <path d="M 28 90 Q 26 100 28 102" stroke="#0d2818" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.72"/>
-                            <path d="M 42 94 Q 40 106 42 108" stroke="#1b5e20" stroke-width="4.2" fill="none" stroke-linecap="round" opacity="0.8"/>
-                            <path d="M 54 94 Q 56 106 54 108" stroke="#1b5e20" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.76"/>
-                            <path d="M 68 90 Q 70 100 68 102" stroke="#0d2818" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.68"/>
-                            <path d="M 36 88 Q 34 94 36 96" stroke="#33691e" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.6"/>
-                            <path d="M 62 88 Q 64 94 62 96" stroke="#33691e" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.58"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="39" cy="52" rx="5.8" ry="6.5" fill="#fff" stroke="#0d2818" stroke-width="1.5"/>
-                            <ellipse cx="61" cy="52" rx="5.8" ry="6.5" fill="#fff" stroke="#0d2818" stroke-width="1.5"/>
-                            <ellipse cx="39.5" cy="52.5" rx="3.248" ry="3.7699999999999996" fill="url(#slime-old-iris)"/>
-                            <ellipse cx="61.5" cy="52.5" rx="3.248" ry="3.7699999999999996" fill="url(#slime-old-iris)"/>
-                            <ellipse cx="39.6" cy="52.8" rx="1.682" ry="2.145" fill="#0a1208"/>
-                            <ellipse cx="61.6" cy="52.8" rx="1.682" ry="2.145" fill="#0a1208"/>
-                            <circle cx="40.5" cy="49.53" r="1.8559999999999999" fill="#fff" opacity="0.96"/>
-                            <circle cx="62.5" cy="49.53" r="1.8559999999999999" fill="#fff" opacity="0.96"/>
-                            <circle cx="37.8" cy="54.275" r="0.812" fill="#fff" opacity="0.45"/>
-                            <circle cx="59.8" cy="54.275" r="0.812" fill="#fff" opacity="0.45"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.2 52 Q 39 48.5 44.8 52" stroke="#0d2818" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 55.2 52 Q 61 48.5 66.8 52" stroke="#0d2818" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 41 64 Q 50 69.5 59 64" stroke="#69f0ae" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 66 Q 50 59 59 66" stroke="#69f0ae" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-</g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="38" cy="92" rx="11" ry="5" fill="#02140c" stroke="#0d2818" stroke-width="1.4"/>
-                            <path d="M 34 94 Q 30 102 32 104" stroke="#0d2818" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.72"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="62" cy="92" rx="11" ry="5" fill="#02140c" stroke="#0d2818" stroke-width="1.4"/>
-                            <path d="M 66 94 Q 70 102 68 104" stroke="#0d2818" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.68"/>
-                        </g>
-                        <!-- Cheeks -->
-                        <circle cx="32" cy="59" r="4.2" fill="url(#slime-old-cheek)"/>
-                        <circle cx="68" cy="59" r="4.2" fill="url(#slime-old-cheek)"/>
-
-
-
-
-                        <g class="tm-animate-wing-left" opacity="0"><circle cx="18" cy="54" r="1"/></g>
-                        <g class="tm-animate-wing-right" opacity="0"><circle cx="82" cy="54" r="1"/></g>
-                </g>
-
+                
                 <!-- ═══════════════════════════════════════ -->
                 <!-- PLANT CHARACTER - All Life Stages (dense cute epic v3) -->
                 <!-- Wildwood & Life • Rare Rarity • Worldroot Warden -->
                 <!-- ═══════════════════════════════════════ -->
 
                 <!-- PLANT BABY — sprout ward -->
-                <g id="tm-mascot-baby-plant" style="display: none;">
+                <g id="tm-mascot-evo1-plant" style="display: none;">
                     <defs>
                         <linearGradient id="plant-baby-leaf" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#d4ff9a;stop-opacity:1" />
@@ -13791,306 +12665,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
 
                 </g>
-
-                <!-- PLANT KID — sapling scout -->
-                <g id="tm-mascot-evo1-plant" style="display: none;">
-                    <defs>
-                        <linearGradient id="plant-kid-leaf" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#d4ff9a;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#8bc34a;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#558b2f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#33691e;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="plant-kid-leaf-dark" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#689f38;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#33691e;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="plant-kid-bark" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#bcaaa4;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#795548;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4e342e;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="plant-kid-bark-shade" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#5d4037;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#3e2723;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="plant-kid-bulb" cx="45%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#c5e1a5;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#7cb342;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="plant-kid-iris" cx="40%" cy="35%" r="60%">
-                            <stop offset="0%" style="stop-color:#aed581;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#558b2f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1b2e12;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="plant-kid-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a9b;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#ff8a9b;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="plant-kid-bloom" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#aed581;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#e91e63;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="plant-kid-amber" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff8e1;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#ffb300;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#ff6f00;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="plant-kid-aura" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#76ff03;stop-opacity:0.22" />
-                            <stop offset="55%" style="stop-color:#aed581;stop-opacity:0.12" />
-                            <stop offset="100%" style="stop-color:#76ff03;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="plant-kid-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e8f5e9;stop-opacity:0.9" />
-                            <stop offset="100%" style="stop-color:#66bb6a;stop-opacity:0.55" />
-                        </linearGradient>
-                        <linearGradient id="plant-kid-sap" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#ffd54f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff8f00;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                        <ellipse cx="50" cy="92" rx="28" ry="5" fill="#1a1a1a" opacity="0.18"/>
-                        <g class="tm-animate-tail">
-                            <path d="M 66 68 Q 82 74 86 64 Q 88 56 80 54 Q 74 52 72 58"
-                                  fill="none" stroke="#558b2f" stroke-width="3" stroke-linecap="round"/>
-                            <path d="M 72 60 Q 78 58 82 62" fill="none" stroke="#aed581" stroke-width="0.8" opacity="0.55"/>
-                            <ellipse cx="84" cy="58" rx="3" ry="4.5" fill="url(#plant-kid-leaf)" stroke="#33691e" stroke-width="0.9" transform="rotate(15 84 58)"/>
-                            <ellipse cx="80" cy="64" rx="2.5" ry="3.5" fill="url(#plant-kid-leaf)" stroke="#33691e" stroke-width="0.7" transform="rotate(-10 80 64)"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 30 50 Q 16 42 14 32 Q 13 26 18 28 Q 24 38 30 48 Z"
-                                  fill="url(#plant-kid-wing)" stroke="#558b2f" stroke-width="1.3"/>
-                            <path d="M 20 32 Q 22 38 26 44" stroke="#33691e" stroke-width="0.75" fill="none" opacity="0.5"/>
-                            <path d="M 24 34 Q 26 40 29 46" stroke="#33691e" stroke-width="0.65" fill="none" opacity="0.4"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 70 50 Q 84 42 86 32 Q 87 26 82 28 Q 76 38 70 48 Z"
-                                  fill="url(#plant-kid-wing)" stroke="#558b2f" stroke-width="1.3"/>
-                            <path d="M 80 32 Q 78 38 74 44" stroke="#33691e" stroke-width="0.75" fill="none" opacity="0.5"/>
-                            <path d="M 76 34 Q 74 40 71 46" stroke="#33691e" stroke-width="0.65" fill="none" opacity="0.4"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Taller sapling trunk -->
-                            <path d="M 44 88 L 42 52 Q 50 46 58 52 L 56 88 Z" fill="url(#plant-kid-bark)" stroke="#4e342e" stroke-width="1.6"/>
-                            <path d="M 46 60 Q 50 62 54 60" stroke="#3e2723" stroke-width="0.8" fill="none" opacity="0.45"/>
-                            <path d="M 45 72 Q 50 74 55 72" stroke="#3e2723" stroke-width="0.75" fill="none" opacity="0.4"/>
-                            <path d="M 46 82 Q 50 84 54 82" stroke="#3e2723" stroke-width="0.7" fill="none" opacity="0.35"/>
-                            <!-- Canopy puff -->
-                            <ellipse cx="50" cy="38" rx="18" ry="16" fill="url(#plant-kid-leaf)" stroke="#558b2f" stroke-width="1.8"/>
-                            <ellipse cx="42" cy="32" rx="7" ry="4" fill="#fff" opacity="0.18"/>
-                            <ellipse cx="36" cy="36" rx="7" ry="10" fill="url(#plant-kid-leaf)" stroke="#33691e" stroke-width="0.9" transform="rotate(-28 36 36)"/>
-                            <ellipse cx="64" cy="36" rx="7" ry="10" fill="url(#plant-kid-leaf)" stroke="#33691e" stroke-width="0.9" transform="rotate(28 64 36)"/>
-                            <ellipse cx="50" cy="26" rx="6" ry="9" fill="url(#plant-kid-leaf)" stroke="#33691e" stroke-width="0.9"/>
-                            <!-- Freckle dots -->
-                            <circle cx="40" cy="40" r="1.1" fill="#33691e" opacity="0.35"/>
-                            <circle cx="48" cy="36" r="0.9" fill="#33691e" opacity="0.3"/>
-                            <circle cx="56" cy="39" r="1" fill="#33691e" opacity="0.32"/>
-                            <circle cx="44" cy="44" r="0.8" fill="#33691e" opacity="0.28"/>
-                            <circle cx="58" cy="43" r="0.85" fill="#33691e" opacity="0.28"/>
-                            <circle cx="52" cy="48" r="0.9" fill="#33691e" opacity="0.25"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="36" rx="7" ry="8.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
-                            <ellipse cx="59" cy="36" rx="7" ry="8.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
-                            <ellipse cx="42" cy="37.5" rx="3.9200000000000004" ry="4.837999999999999" fill="url(#plant-kid-iris)"/>
-                            <ellipse cx="60" cy="37.5" rx="3.9200000000000004" ry="4.837999999999999" fill="url(#plant-kid-iris)"/>
-                            <ellipse cx="42" cy="37.8" rx="2.03" ry="2.706" fill="#0d1a08"/>
-                            <ellipse cx="60" cy="37.8" rx="2.03" ry="2.706" fill="#0d1a08"/>
-                            <circle cx="43.5" cy="34.196" r="2.24" fill="#fff" opacity="0.95"/>
-                            <circle cx="61.5" cy="34.196" r="2.24" fill="#fff" opacity="0.95"/>
-                            <circle cx="40.2" cy="38.706" r="0.91" fill="#fff" opacity="0.5"/>
-                            <circle cx="58.2" cy="38.706" r="0.91" fill="#fff" opacity="0.5"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 34 37 Q 41 33.13 48 37" stroke="#558b2f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52 37 Q 59 33.13 66 37" stroke="#558b2f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 43 48 Q 50 53.5 57 48" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 50 Q 50 44 57 50" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
-</g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 42 54 Q 28 52 20 46 Q 16 42 22 40" fill="none" stroke="url(#plant-kid-bark)" stroke-width="3.5" stroke-linecap="round"/>
-                            <path d="M 24 44 Q 18 42 16 46" fill="none" stroke="url(#plant-kid-bark)" stroke-width="2.5" stroke-linecap="round"/>
-                            <ellipse cx="14" cy="44" rx="5" ry="6.5" fill="url(#plant-kid-leaf)" stroke="#33691e" stroke-width="1.1" transform="rotate(-20 14 44)"/>
-                            <path d="M 13 41 Q 14 45 13 48" stroke="#2e7d32" stroke-width="0.65" fill="none" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 58 54 Q 72 52 80 46 Q 84 42 78 40" fill="none" stroke="url(#plant-kid-bark)" stroke-width="3.5" stroke-linecap="round"/>
-                            <path d="M 76 44 Q 82 42 84 46" fill="none" stroke="url(#plant-kid-bark)" stroke-width="2.5" stroke-linecap="round"/>
-                            <ellipse cx="86" cy="44" rx="5" ry="6.5" fill="url(#plant-kid-leaf)" stroke="#33691e" stroke-width="1.1" transform="rotate(20 86 44)"/>
-                            <path d="M 87 41 Q 86 45 87 48" stroke="#2e7d32" stroke-width="0.65" fill="none" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 44 88 Q 38 94 36 98" stroke="url(#plant-kid-bark-shade)" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-                            <path d="M 46 89 Q 42 95 44 99" stroke="url(#plant-kid-bark-shade)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <ellipse cx="37" cy="99" rx="4.5" ry="2.2" fill="#3e2723"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 56 88 Q 62 94 64 98" stroke="url(#plant-kid-bark-shade)" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-                            <path d="M 54 89 Q 58 95 56 99" stroke="url(#plant-kid-bark-shade)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <ellipse cx="63" cy="99" rx="4.5" ry="2.2" fill="#3e2723"/>
-                        </g>
-
-
-
-
-                </g>
-
-                <!-- PLANT TEEN — blooming youth -->
-                <g id="tm-mascot-evo2-plant" style="display: none;">
-                    <defs>
-                        <linearGradient id="plant-teen-leaf" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#c5e1a5;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#81c784;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#43a047;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#2e7d32;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="plant-teen-leaf-dark" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#689f38;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#33691e;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="plant-teen-bark" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#bcaaa4;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#795548;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4e342e;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="plant-teen-bark-shade" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#5d4037;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#3e2723;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="plant-teen-bulb" cx="45%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#c5e1a5;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#7cb342;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="plant-teen-iris" cx="40%" cy="35%" r="60%">
-                            <stop offset="0%" style="stop-color:#aed581;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#558b2f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1b2e12;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="plant-teen-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a9b;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#ff8a9b;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="plant-teen-bloom" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#f48fb1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#e91e63;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="plant-teen-amber" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff8e1;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#ffb300;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#ff6f00;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="plant-teen-aura" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#76ff03;stop-opacity:0.22" />
-                            <stop offset="55%" style="stop-color:#aed581;stop-opacity:0.12" />
-                            <stop offset="100%" style="stop-color:#76ff03;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="plant-teen-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e8f5e9;stop-opacity:0.9" />
-                            <stop offset="100%" style="stop-color:#66bb6a;stop-opacity:0.55" />
-                        </linearGradient>
-                        <linearGradient id="plant-teen-sap" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#ffd54f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff8f00;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                        <ellipse cx="50" cy="93" rx="30" ry="5" fill="#1a1a1a" opacity="0.18"/>
-                        <g class="tm-animate-tail">
-                            <path d="M 68 70 Q 84 78 88 66 Q 90 58 82 56 Q 76 54 74 60"
-                                  fill="url(#plant-teen-leaf)" stroke="#2e7d32" stroke-width="1.6"/>
-                            <path d="M 78 62 Q 84 58 86 64" fill="none" stroke="#81c784" stroke-width="0.85" opacity="0.55"/>
-                            <circle cx="86" cy="58" r="3.5" fill="url(#plant-teen-bloom)" stroke="#e91e63" stroke-width="0.8"/>
-                            <circle cx="85" cy="57" r="1.2" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 28 52 Q 12 42 10 30 Q 9 22 16 24 Q 22 36 28 48 Q 30 52 32 56 Z"
-                                  fill="url(#plant-teen-wing)" stroke="#43a047" stroke-width="1.5"/>
-                            <path d="M 16 28 Q 20 36 26 46" stroke="#2e7d32" stroke-width="0.85" fill="none" opacity="0.5"/>
-                            <circle cx="14" cy="32" r="2.2" fill="url(#plant-teen-bloom)" opacity="0.75"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 72 52 Q 88 42 90 30 Q 91 22 84 24 Q 78 36 72 48 Q 70 52 68 56 Z"
-                                  fill="url(#plant-teen-wing)" stroke="#43a047" stroke-width="1.5"/>
-                            <path d="M 84 28 Q 80 36 74 46" stroke="#2e7d32" stroke-width="0.85" fill="none" opacity="0.5"/>
-                            <circle cx="86" cy="32" r="2.2" fill="url(#plant-teen-bloom)" opacity="0.75"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <path d="M 42 88 L 40 48 Q 50 40 60 48 L 58 88 Z" fill="url(#plant-teen-bark)" stroke="#4e342e" stroke-width="1.7"/>
-                            <path d="M 44 58 Q 50 60 56 58" stroke="#3e2723" stroke-width="0.85" fill="none" opacity="0.4"/>
-                            <path d="M 43 70 Q 50 72 57 70" stroke="#3e2723" stroke-width="0.8" fill="none" opacity="0.38"/>
-                            <!-- Canopy -->
-                            <ellipse cx="50" cy="34" rx="20" ry="17" fill="url(#plant-teen-leaf)" stroke="#43a047" stroke-width="2"/>
-                            <ellipse cx="42" cy="28" rx="7" ry="4" fill="#fff" opacity="0.16"/>
-                            <!-- Petal hair crown -->
-                            <ellipse cx="36" cy="22" rx="5" ry="7" fill="#f48fb1" stroke="#e91e63" stroke-width="0.9" transform="rotate(-35 36 22)"/>
-                            <ellipse cx="64" cy="22" rx="5" ry="7" fill="#f48fb1" stroke="#e91e63" stroke-width="0.9" transform="rotate(35 64 22)"/>
-                            <ellipse cx="50" cy="16" rx="4.5" ry="6.5" fill="#fff59d" stroke="#fbc02d" stroke-width="0.8"/>
-                            <ellipse cx="44" cy="18" rx="3.5" ry="5" fill="#f8bbd0" stroke="#ec407a" stroke-width="0.7" transform="rotate(-15 44 18)"/>
-                            <ellipse cx="56" cy="18" rx="3.5" ry="5" fill="#f8bbd0" stroke="#ec407a" stroke-width="0.7" transform="rotate(15 56 18)"/>
-                            <!-- Blossom clusters -->
-                            <circle cx="34" cy="32" r="3.2" fill="url(#plant-teen-bloom)" stroke="#e91e63" stroke-width="0.7"/>
-                            <circle cx="66" cy="33" r="3.2" fill="url(#plant-teen-bloom)" stroke="#e91e63" stroke-width="0.7"/>
-                            <circle cx="50" cy="26" r="2.8" fill="#fff59d" stroke="#fbc02d" stroke-width="0.6"/>
-                            <circle cx="38" cy="38" r="2.2" fill="#f48fb1" opacity="0.85"/>
-                            <circle cx="62" cy="39" r="2.2" fill="#f48fb1" opacity="0.85"/>
-                            <circle cx="33.5" cy="31.5" r="1" fill="#fff" opacity="0.55"/>
-                            <circle cx="65.5" cy="32.5" r="1" fill="#fff" opacity="0.55"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="32" rx="6.8" ry="7.8" fill="#fff" stroke="#2e7d32" stroke-width="1.4"/>
-                            <ellipse cx="59" cy="32" rx="6.8" ry="7.8" fill="#fff" stroke="#2e7d32" stroke-width="1.4"/>
-                            <ellipse cx="42" cy="33.5" rx="3.8080000000000003" ry="4.601999999999999" fill="url(#plant-teen-iris)"/>
-                            <ellipse cx="60" cy="33.5" rx="3.8080000000000003" ry="4.601999999999999" fill="url(#plant-teen-iris)"/>
-                            <ellipse cx="42" cy="33.8" rx="1.9719999999999998" ry="2.574" fill="#0d1a08"/>
-                            <ellipse cx="60" cy="33.8" rx="1.9719999999999998" ry="2.574" fill="#0d1a08"/>
-                            <circle cx="43.5" cy="30.284" r="2.176" fill="#fff" opacity="0.95"/>
-                            <circle cx="61.5" cy="30.284" r="2.176" fill="#fff" opacity="0.95"/>
-                            <circle cx="40.2" cy="34.574" r="0.884" fill="#fff" opacity="0.5"/>
-                            <circle cx="58.2" cy="34.574" r="0.884" fill="#fff" opacity="0.5"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 34.2 33 Q 41 29.27 47.8 33" stroke="#2e7d32" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.2 33 Q 59 29.27 65.8 33" stroke="#2e7d32" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 42 44 Q 50 49.5 58 44" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 46 Q 50 40 58 46" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
-</g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 40 52 Q 24 50 16 44 Q 12 40 18 38" fill="none" stroke="url(#plant-teen-bark)" stroke-width="3.8" stroke-linecap="round"/>
-                            <!-- Thorn-soft gauntlet -->
-                            <path d="M 12 40 L 8 36 M 14 42 L 6 42 M 16 44 L 10 48" stroke="#558b2f" stroke-width="1.3" stroke-linecap="round"/>
-                            <ellipse cx="14" cy="40" rx="6" ry="7" fill="url(#plant-teen-leaf)" stroke="#33691e" stroke-width="1.2"/>
-                            <path d="M 10 36 L 12 38 L 10 40 Z M 16 36 L 14 38 L 16 40 Z" fill="#aed581" stroke="#558b2f" stroke-width="0.5"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 60 52 Q 76 50 84 44 Q 88 40 82 38" fill="none" stroke="url(#plant-teen-bark)" stroke-width="3.8" stroke-linecap="round"/>
-                            <path d="M 88 40 L 92 36 M 86 42 L 94 42 M 84 44 L 90 48" stroke="#558b2f" stroke-width="1.3" stroke-linecap="round"/>
-                            <ellipse cx="86" cy="40" rx="6" ry="7" fill="url(#plant-teen-leaf)" stroke="#33691e" stroke-width="1.2"/>
-                            <path d="M 90 36 L 88 38 L 90 40 Z M 84 36 L 86 38 L 84 40 Z" fill="#aed581" stroke="#558b2f" stroke-width="0.5"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 44 88 Q 38 94 36 98" stroke="url(#plant-teen-bark-shade)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 46 89 Q 42 95 44 99" stroke="url(#plant-teen-bark-shade)" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-                            <ellipse cx="37" cy="99" rx="5" ry="2.5" fill="#3e2723"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 56 88 Q 62 94 64 98" stroke="url(#plant-teen-bark-shade)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 54 89 Q 58 95 56 99" stroke="url(#plant-teen-bark-shade)" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-                            <ellipse cx="63" cy="99" rx="5" ry="2.5" fill="#3e2723"/>
-                        </g>
-
-
-
-
-                </g>
-
-                <!-- PLANT ADULT — Worldroot Warden -->
-                <g id="tm-mascot-evo3-plant" style="display: none;">
+<g id="tm-mascot-evo2-plant" style="display: none;">
                     <defs>
                         <linearGradient id="plant-adult-leaf" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#d4ff9a;stop-opacity:1" />
@@ -14242,9 +12817,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
 
                 </g>
-
-                <!-- PLANT MIDDLE AGE — ancient oak -->
-                <g id="tm-mascot-evo4-plant" style="display: none;">
+<g id="tm-mascot-evo3-plant" style="display: none;">
                     <defs>
                         <linearGradient id="plant-mid-leaf" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#d4ff9a;stop-opacity:1" />
@@ -14395,176 +12968,21 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
                 </g>
 
+                <!-- PLANT KID — sapling scout -->
+                
+                <!-- PLANT TEEN — blooming youth -->
+                
+                <!-- PLANT ADULT — Worldroot Warden -->
+                
+                <!-- PLANT MIDDLE AGE — ancient oak -->
+                
                 <!-- PLANT OLD — World Tree -->
-                <g id="tm-mascot-evo5-plant" style="display: none;">
-                    <defs>
-                        <linearGradient id="plant-old-leaf" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#dce775;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#7cb342;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#558b2f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1b5e20;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="plant-old-leaf-dark" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#689f38;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#33691e;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="plant-old-bark" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#a1887f;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#6d4c41;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#3e2723;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="plant-old-bark-shade" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#5d4037;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#3e2723;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="plant-old-bulb" cx="45%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#c5e1a5;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#7cb342;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="plant-old-iris" cx="40%" cy="35%" r="60%">
-                            <stop offset="0%" style="stop-color:#aed581;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#558b2f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1b2e12;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="plant-old-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a9b;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#ff8a9b;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="plant-old-bloom" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#ffd54f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#e91e63;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="plant-old-amber" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff8e1;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#ffb300;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#ff6f00;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="plant-old-aura" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#76ff03;stop-opacity:0.22" />
-                            <stop offset="55%" style="stop-color:#aed581;stop-opacity:0.12" />
-                            <stop offset="100%" style="stop-color:#76ff03;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="plant-old-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e8f5e9;stop-opacity:0.9" />
-                            <stop offset="100%" style="stop-color:#66bb6a;stop-opacity:0.55" />
-                        </linearGradient>
-                        <linearGradient id="plant-old-sap" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#ffd54f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff8f00;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                        <ellipse cx="50" cy="99" rx="36" ry="5" fill="#1a1a1a" opacity="0.26"/>
-                        <ellipse cx="50" cy="50" rx="46" ry="48" fill="url(#plant-old-aura)" class="tm-wisdom-aura"/>
-                        <!-- Floating spirit orbs -->
-                        <circle cx="18" cy="36" r="3.5" fill="url(#plant-old-bloom)" opacity="0.75" class="tm-sparkle"/>
-                        <circle cx="17" cy="35" r="1.4" fill="#fff" opacity="0.7"/>
-                        <circle cx="82" cy="42" r="3" fill="url(#plant-old-bloom)" opacity="0.7" class="tm-sparkle"/>
-                        <circle cx="81" cy="41" r="1.2" fill="#fff" opacity="0.65"/>
-                        <circle cx="14" cy="58" r="2.5" fill="#aed581" opacity="0.6" class="tm-sparkle"/>
-                        <circle cx="86" cy="64" r="2.8" fill="#ffd54f" opacity="0.65" class="tm-sparkle"/>
-                        <circle cx="50" cy="8" r="2.5" fill="#fff" opacity="0.5" class="tm-sparkle"/>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 22 56 Q 4 44 2 28 Q 1 16 12 18 Q 18 32 22 44 Q 24 52 28 60 Z"
-                                  fill="url(#plant-old-wing)" stroke="#33691e" stroke-width="1.6" opacity="0.9"/>
-                            <path d="M 10 26 Q 14 36 20 48" stroke="#558b2f" stroke-width="0.9" fill="none" opacity="0.45"/>
-                            <circle cx="8" cy="30" r="2" fill="#ffd54f" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 78 56 Q 96 44 98 28 Q 99 16 88 18 Q 82 32 78 44 Q 76 52 72 60 Z"
-                                  fill="url(#plant-old-wing)" stroke="#33691e" stroke-width="1.6" opacity="0.9"/>
-                            <path d="M 90 26 Q 86 36 80 48" stroke="#558b2f" stroke-width="0.9" fill="none" opacity="0.45"/>
-                            <circle cx="92" cy="30" r="2" fill="#ffd54f" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 64 80 Q 78 88 82 78 Q 84 72 78 70"
-                                  fill="url(#plant-old-bark-shade)" stroke="#3e2723" stroke-width="1.6"/>
-                            <circle cx="80" cy="74" r="2.5" fill="url(#plant-old-sap)" opacity="0.8"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Massive trunk -->
-                            <path d="M 32 96 Q 28 60 36 38 Q 50 26 64 38 Q 72 60 68 96 Q 62 98 50 99 Q 38 98 32 96 Z"
-                                  fill="url(#plant-old-bark)" stroke="#3e2723" stroke-width="2.2"/>
-                            <!-- Rune bark -->
-                            <path d="M 42 48 L 44 52 L 42 56 L 40 52 Z" fill="none" stroke="#ffd54f" stroke-width="0.9" opacity="0.55"/>
-                            <path d="M 58 52 L 60 56 L 58 60 L 56 56 Z" fill="none" stroke="#ffd54f" stroke-width="0.9" opacity="0.55"/>
-                            <path d="M 48 68 L 50 72 L 52 68" fill="none" stroke="#ffd54f" stroke-width="0.85" opacity="0.5"/>
-                            <path d="M 44 78 Q 50 80 56 78" stroke="#ffd54f" stroke-width="0.8" fill="none" opacity="0.45"/>
-                            <circle cx="46" cy="58" r="1.5" fill="#ffd54f" opacity="0.4"/>
-                            <circle cx="54" cy="74" r="1.3" fill="#ffd54f" opacity="0.38"/>
-                            <!-- Golden sap drips -->
-                            <path d="M 46 82 Q 46 88 45 92" stroke="url(#plant-old-sap)" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.85"/>
-                            <path d="M 54 78 Q 55 84 54 90" stroke="url(#plant-old-sap)" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.8"/>
-                            <circle cx="45" cy="93" r="2" fill="#ffd54f" opacity="0.75"/>
-                            <circle cx="54" cy="91" r="1.8" fill="#ffb300" opacity="0.7"/>
-                            <!-- Huge canopy -->
-                            <ellipse cx="50" cy="22" rx="28" ry="22" fill="url(#plant-old-leaf)" stroke="#33691e" stroke-width="2.2"/>
-                            <ellipse cx="40" cy="16" rx="10" ry="5" fill="#fff" opacity="0.12"/>
-                            <ellipse cx="28" cy="22" rx="11" ry="14" fill="url(#plant-old-leaf-dark)" stroke="#33691e" stroke-width="1.1" transform="rotate(-20 28 22)"/>
-                            <ellipse cx="72" cy="22" rx="11" ry="14" fill="url(#plant-old-leaf-dark)" stroke="#33691e" stroke-width="1.1" transform="rotate(20 72 22)"/>
-                            <ellipse cx="50" cy="8" rx="9" ry="12" fill="url(#plant-old-leaf-dark)" stroke="#33691e" stroke-width="1"/>
-                            <circle cx="34" cy="18" r="2.5" fill="#ffd54f" opacity="0.65"/>
-                            <circle cx="66" cy="20" r="2.5" fill="#ffd54f" opacity="0.6"/>
-                            <circle cx="50" cy="6" r="2" fill="#fff" opacity="0.45"/>
-                            <!-- Wise wood face -->
-                            <ellipse cx="50" cy="30" rx="13" ry="11" fill="url(#plant-old-bark-shade)" stroke="#3e2723" stroke-width="1.3"/>
-                            <path d="M 42 28 Q 50 26 58 28" stroke="#5d4037" stroke-width="0.85" fill="none" opacity="0.45"/>
-                            <path d="M 40 34 Q 44 32 48 34" stroke="#5d4037" stroke-width="0.7" fill="none" opacity="0.35"/>
-                            <path d="M 52 34 Q 56 32 60 34" stroke="#5d4037" stroke-width="0.7" fill="none" opacity="0.35"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="42" cy="30" rx="5.2" ry="6" fill="#fff" stroke="#33691e" stroke-width="1.2"/>
-                            <ellipse cx="58" cy="30" rx="5.2" ry="6" fill="#fff" stroke="#33691e" stroke-width="1.2"/>
-                            <ellipse cx="43" cy="31.5" rx="2.9120000000000004" ry="3.54" fill="url(#plant-old-iris)"/>
-                            <ellipse cx="59" cy="31.5" rx="2.9120000000000004" ry="3.54" fill="url(#plant-old-iris)"/>
-                            <ellipse cx="43" cy="31.8" rx="1.508" ry="1.98" fill="#1a2e0f"/>
-                            <ellipse cx="59" cy="31.8" rx="1.508" ry="1.98" fill="#1a2e0f"/>
-                            <circle cx="44.5" cy="28.68" r="1.6640000000000001" fill="#fff" opacity="0.95"/>
-                            <circle cx="60.5" cy="28.68" r="1.6640000000000001" fill="#fff" opacity="0.95"/>
-                            <circle cx="41.2" cy="31.98" r="0.676" fill="#fff" opacity="0.5"/>
-                            <circle cx="57.2" cy="31.98" r="0.676" fill="#fff" opacity="0.5"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 36.8 31 Q 42 27.9 47.2 31" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.8 31 Q 58 27.9 63.2 31" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 43 38 Q 50 43.5 57 38" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 40 Q 50 34 57 40" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
-</g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 34 54 Q 18 50 10 42 Q 6 38 12 36" fill="none" stroke="url(#plant-old-bark)" stroke-width="4.5" stroke-linecap="round"/>
-                            <ellipse cx="8" cy="38" rx="6" ry="7.5" fill="url(#plant-old-leaf)" stroke="#33691e" stroke-width="1.2"/>
-                            <circle cx="6" cy="34" r="2" fill="#ffd54f" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 66 54 Q 82 50 90 42 Q 94 38 88 36" fill="none" stroke="url(#plant-old-bark)" stroke-width="4.5" stroke-linecap="round"/>
-                            <ellipse cx="92" cy="38" rx="6" ry="7.5" fill="url(#plant-old-leaf)" stroke="#33691e" stroke-width="1.2"/>
-                            <circle cx="94" cy="34" r="2" fill="#ffd54f" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 38 96 Q 28 102 24 106 Q 22 108 26 107" stroke="url(#plant-old-bark-shade)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 42 97 Q 36 104 38 108" stroke="url(#plant-old-bark-shade)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 46 98 Q 48 105 46 110" stroke="url(#plant-old-bark-shade)" stroke-width="3" fill="none" stroke-linecap="round"/>
-                            <ellipse cx="25" cy="107" rx="6" ry="3" fill="#3e2723"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 62 96 Q 72 102 76 106 Q 78 108 74 107" stroke="url(#plant-old-bark-shade)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 58 97 Q 64 104 62 108" stroke="url(#plant-old-bark-shade)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 54 98 Q 52 105 54 110" stroke="url(#plant-old-bark-shade)" stroke-width="3" fill="none" stroke-linecap="round"/>
-                            <ellipse cx="75" cy="107" rx="6" ry="3" fill="#3e2723"/>
-                        </g>
-
-
-
-
-                </g>
-                <!-- GHOST CHARACTER - All Life Stages (dense cute epic v3) -->
+                                <!-- GHOST CHARACTER - All Life Stages (dense cute epic v3) -->
                 <!-- Spirit & Void • Epic Rarity • Veil Wraith -->
                 <!-- ═══════════════════════════════════════ -->
 
                 <!-- GHOST BABY — spectral droplet -->
-                <g id="tm-mascot-baby-ghost" style="display: none;">
+                <g id="tm-mascot-evo1-ghost" style="display: none;">
                     <defs>
                         <radialGradient id="ghost-baby-body" cx="45%" cy="25%" r="78%">
                             <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
@@ -14677,227 +13095,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
 
                 </g>
-                <!-- GHOST KID — sheet wraith -->
-                <g id="tm-mascot-evo1-ghost" style="display: none;">
-                    <defs>
-                        <radialGradient id="ghost-kid-body" cx="42%" cy="22%" r="80%">
-                            <stop offset="0%" style="stop-color:#ede7f6;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#d1c4e9;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#9575cd;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#512da8;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="ghost-kid-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#ce93d8;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="ghost-kid-iris" cx="36%" cy="30%" r="65%">
-                            <stop offset="0%" style="stop-color:#e040fb;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#7e57c2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1a237e;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="ghost-kid-wisp" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#4527a0;stop-opacity:0.2" />
-                        </linearGradient>
-                        <radialGradient id="ghost-kid-aura" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.32" />
-                            <stop offset="100%" style="stop-color:#b39ddb;stop-opacity:0" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="94" rx="28" ry="5" fill="#1a1a1a" opacity="0.22"/>
-                        <ellipse cx="50" cy="52" rx="42" ry="40" fill="url(#ghost-kid-aura)"/>
-                        <g class="tm-animate-tail">
-                            <path d="M 56 80 Q 70 96 82 78 Q 88 64 78 58 Q 66 62 56 80 Z" fill="url(#ghost-kid-wisp)" stroke="#b39ddb" stroke-width="1" opacity="0.8"/>
-                            <path d="M 68 74 Q 78 82 80 70" stroke="#e1bee7" stroke-width="0.8" fill="none" opacity="0.5"/>
-                            <path d="M 72 68 Q 82 72 84 62" stroke="#ce93d8" stroke-width="0.7" fill="none" opacity="0.45"/>
-                            <circle cx="80" cy="60" r="2.2" fill="#b39ddb" opacity="0.55"/>
-                            <circle cx="76" cy="66" r="1.5" fill="#fff" opacity="0.35"/>
-                            <circle cx="84" cy="72" r="1.3" fill="#e1bee7" opacity="0.4"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 26 52 Q 12 44 10 58 Q 12 70 22 62 Z" fill="url(#ghost-kid-wisp)" stroke="#b39ddb" stroke-width="0.95" opacity="0.82"/>
-                            <path d="M 16 50 Q 12 54 14 60" stroke="#fff" stroke-width="0.65" fill="none" opacity="0.4"/>
-                            <circle cx="14" cy="56" r="1.2" fill="#b39ddb" opacity="0.35"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 74 52 Q 88 44 90 58 Q 88 70 78 62 Z" fill="url(#ghost-kid-wisp)" stroke="#b39ddb" stroke-width="0.95" opacity="0.82"/>
-                            <path d="M 84 50 Q 88 54 86 60" stroke="#fff" stroke-width="0.65" fill="none" opacity="0.4"/>
-                            <circle cx="86" cy="56" r="1.2" fill="#b39ddb" opacity="0.35"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <path d="M 26 56 Q 22 32 38 20 Q 50 12 62 20 Q 78 32 74 56 Q 72 76 62 88 Q 50 96 38 88 Q 28 76 26 56 Z"
-                                  fill="url(#ghost-kid-body)" stroke="#6a1b9a" stroke-width="2.2" opacity="0.93"/>
-                            <ellipse cx="42" cy="34" rx="10" ry="6" fill="#fff" opacity="0.15"/>
-                            <circle cx="50" cy="56" r="10" fill="url(#ghost-kid-core)" opacity="0.8"/>
-                            <circle cx="50" cy="56" r="4.5" fill="#fff" opacity="0.42"/>
-                            <circle cx="36" cy="62" r="2" fill="#b39ddb" opacity="0.38"/>
-                            <circle cx="64" cy="64" r="1.7" fill="#e1bee7" opacity="0.32"/>
-                            <circle cx="42" cy="74" r="1.4" fill="#b39ddb" opacity="0.28"/>
-                            <circle cx="58" cy="76" r="1.2" fill="#b39ddb" opacity="0.25"/>
-                            <path d="M 34 88 Q 32 96 38 98" stroke="url(#ghost-kid-wisp)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.72"/>
-                            <path d="M 44 90 Q 42 100 48 102" stroke="url(#ghost-kid-wisp)" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.75"/>
-                            <path d="M 50 92 Q 50 102 54 104" stroke="url(#ghost-kid-wisp)" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.78"/>
-                            <path d="M 56 90 Q 58 100 52 102" stroke="url(#ghost-kid-wisp)" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.75"/>
-                            <path d="M 66 88 Q 68 96 62 98" stroke="url(#ghost-kid-wisp)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.72"/>
-                            <path d="M 36 52 Q 50 48 64 52" stroke="#fff" stroke-width="0.8" fill="none" opacity="0.3"/>
-                            <path d="M 32 64 Q 36 66 40 64" stroke="#6a1b9a" stroke-width="0.7" fill="none" opacity="0.28"/>
-                            <path d="M 60 64 Q 64 66 68 64" stroke="#6a1b9a" stroke-width="0.7" fill="none" opacity="0.28"/>
-                            <circle cx="46" cy="70" r="1.3" fill="#fff" opacity="0.2"/>
-                            <circle cx="54" cy="72" r="1.1" fill="#e1bee7" opacity="0.18"/>
-                            <circle cx="30" cy="70" r="1.5" fill="#b39ddb" opacity="0.25"/>
-                            <circle cx="70" cy="72" r="1.3" fill="#b39ddb" opacity="0.22"/>
-                            <ellipse cx="50" cy="44" rx="8" ry="5" fill="#fff" opacity="0.07"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="38" rx="6.8" ry="8" fill="#faf8ff" stroke="#6a1b9a" stroke-width="1.5"/>
-                            <ellipse cx="60" cy="38" rx="6.8" ry="8" fill="#faf8ff" stroke="#6a1b9a" stroke-width="1.5"/>
-                            <ellipse cx="40.6" cy="38.4" rx="3.5" ry="4.5" fill="url(#ghost-kid-iris)"/>
-                            <ellipse cx="60.6" cy="38.4" rx="3.5" ry="4.5" fill="url(#ghost-kid-iris)"/>
-                            <ellipse cx="40.6" cy="38.7" rx="1.8" ry="2.7" fill="#060612"/>
-                            <ellipse cx="60.6" cy="38.7" rx="1.8" ry="2.7" fill="#060612"/>
-                            <circle cx="42" cy="35.44" r="2.0" fill="#fff" opacity="0.96"/>
-                            <circle cx="62" cy="35.44" r="2.0" fill="#fff" opacity="0.96"/>
-                            <circle cx="39.2" cy="40.2" r="1.0" fill="#e1bee7" opacity="0.6"/>
-                            <circle cx="59.2" cy="40.2" r="1.0" fill="#e1bee7" opacity="0.6"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.2 38 Q 40 34.5 46.8 38" stroke="#6a1b9a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.2 38 Q 60 34.5 66.8 38" stroke="#6a1b9a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 43 50 Q 50 55.5 57 50" stroke="#6a1b9a" stroke-width="2" fill="none" stroke-linecap="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 52 Q 50 46 57 52" stroke="#6a1b9a" stroke-width="2" fill="none" stroke-linecap="round"/>
-</g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 28 58 Q 12 62 8 50 Q 6 42 14 44" fill="none" stroke="url(#ghost-kid-body)" stroke-width="5.5" stroke-linecap="round" opacity="0.9"/>
-                            <path d="M 10 44 L 4 38 M 10 46 L 2 46 M 12 48 L 6 52" stroke="#b39ddb" stroke-width="1.4" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 72 58 Q 88 62 92 50 Q 94 42 86 44" fill="none" stroke="url(#ghost-kid-body)" stroke-width="5.5" stroke-linecap="round" opacity="0.9"/>
-                            <path d="M 90 44 L 96 38 M 90 46 L 98 46 M 88 48 L 94 52" stroke="#b39ddb" stroke-width="1.4" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="38" cy="92" rx="6.5" ry="4" fill="url(#ghost-kid-wisp)" opacity="0.75"/>
-                            <circle cx="36" cy="93" r="1" fill="#fff" opacity="0.22"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="62" cy="92" rx="6.5" ry="4" fill="url(#ghost-kid-wisp)" opacity="0.75"/>
-                            <circle cx="64" cy="93" r="1" fill="#fff" opacity="0.22"/>
-                        </g>
-
-
-
-
-                </g>
-                <!-- GHOST TEEN — veiled stalker -->
-                <g id="tm-mascot-evo2-ghost" style="display: none;">
-                    <defs>
-                        <radialGradient id="ghost-teen-body" cx="40%" cy="20%" r="82%">
-                            <stop offset="0%" style="stop-color:#d1c4e9;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#9575cd;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="ghost-teen-veil" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#1a237e;stop-opacity:0.7" />
-                            <stop offset="100%" style="stop-color:#0d0221;stop-opacity:0.85" />
-                        </linearGradient>
-                        <radialGradient id="ghost-teen-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#b388ff;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#651fff;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#120338;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="ghost-teen-wisp" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.88" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0.15" />
-                        </linearGradient>
-                        <radialGradient id="ghost-teen-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#7c4dff;stop-opacity:0.6" />
-                            <stop offset="100%" style="stop-color:#120338;stop-opacity:0" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="95" rx="30" ry="5" fill="#1a1a1a" opacity="0.24"/>
-                        <ellipse cx="50" cy="50" rx="44" ry="42" fill="url(#ghost-teen-core)" opacity="0.35"/>
-                        <g class="tm-animate-tail">
-                            <path d="M 54 82 Q 66 98 80 84 Q 86 72 76 66 Q 64 70 54 82 Z" fill="url(#ghost-teen-wisp)" stroke="#9575cd" stroke-width="1" opacity="0.78"/>
-                            <path d="M 64 78 Q 74 88 78 76" stroke="#ce93d8" stroke-width="0.75" fill="none" opacity="0.45"/>
-                            <circle cx="78" cy="70" r="2" fill="#9575cd" opacity="0.5"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 24 50 Q 6 38 4 54 Q 6 72 20 64 Q 26 58 28 52 Z" fill="url(#ghost-teen-wisp)" stroke="#4527a0" stroke-width="1.1" opacity="0.85"/>
-                            <path d="M 12 48 Q 8 56 14 62" stroke="#e1bee7" stroke-width="0.7" fill="none" opacity="0.45"/>
-                            <path d="M 8 52 L 4 48" stroke="#9575cd" stroke-width="1.2" stroke-linecap="round"/>
-                            <circle cx="10" cy="58" r="1.1" fill="#9575cd" opacity="0.32"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 76 50 Q 94 38 96 54 Q 94 72 80 64 Q 74 58 72 52 Z" fill="url(#ghost-teen-wisp)" stroke="#4527a0" stroke-width="1.1" opacity="0.85"/>
-                            <path d="M 88 48 Q 92 56 86 62" stroke="#e1bee7" stroke-width="0.7" fill="none" opacity="0.45"/>
-                            <path d="M 92 52 L 96 48" stroke="#9575cd" stroke-width="1.2" stroke-linecap="round"/>
-                            <circle cx="90" cy="58" r="1.1" fill="#9575cd" opacity="0.32"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <path d="M 24 58 Q 20 34 36 22 Q 50 14 64 22 Q 80 34 76 58 Q 74 78 62 90 Q 50 98 38 90 Q 26 78 24 58 Z"
-                                  fill="url(#ghost-teen-body)" stroke="#4527a0" stroke-width="2.3" opacity="0.92"/>
-                            <path d="M 30 38 Q 50 18 70 38 Q 68 32 50 26 Q 32 32 30 38 Z" fill="url(#ghost-teen-veil)" stroke="#4527a0" stroke-width="1.2"/>
-                            <path d="M 36 34 Q 50 24 64 34" stroke="#b39ddb" stroke-width="0.8" fill="none" opacity="0.4"/>
-                            <ellipse cx="42" cy="32" rx="7" ry="4" fill="#fff" opacity="0.1"/>
-                            <circle cx="50" cy="58" r="8" fill="url(#ghost-teen-core)" opacity="0.75"/>
-                            <circle cx="50" cy="58" r="3.5" fill="#651fff" opacity="0.45"/>
-                            <circle cx="34" cy="64" r="1.8" fill="#9575cd" opacity="0.35"/>
-                            <circle cx="66" cy="66" r="1.5" fill="#e1bee7" opacity="0.3"/>
-                            <path d="M 32 88 Q 30 98 36 100" stroke="url(#ghost-teen-wisp)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
-                            <path d="M 42 92 Q 40 102 46 104" stroke="url(#ghost-teen-wisp)" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.72"/>
-                            <path d="M 50 94 Q 50 104 54 106" stroke="url(#ghost-teen-wisp)" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.75"/>
-                            <path d="M 58 92 Q 60 102 54 104" stroke="url(#ghost-teen-wisp)" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.72"/>
-                            <path d="M 68 88 Q 70 98 64 100" stroke="url(#ghost-teen-wisp)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
-                            <path d="M 34 46 Q 50 42 66 46" stroke="#b39ddb" stroke-width="0.75" fill="none" opacity="0.35"/>
-                            <path d="M 38 52 Q 42 54 46 52" stroke="#4527a0" stroke-width="0.65" fill="none" opacity="0.3"/>
-                            <path d="M 54 52 Q 58 54 62 52" stroke="#4527a0" stroke-width="0.65" fill="none" opacity="0.3"/>
-                            <circle cx="48" cy="64" r="1.4" fill="#651fff" opacity="0.35"/>
-                            <circle cx="52" cy="66" r="1.2" fill="#fff" opacity="0.2"/>
-                            <circle cx="30" cy="62" r="1.3" fill="#9575cd" opacity="0.28"/>
-                            <circle cx="70" cy="64" r="1.1" fill="#9575cd" opacity="0.25"/>
-                            <path d="M 44 30 L 46 34 M 54 30 L 52 34" stroke="#9575cd" stroke-width="0.7" opacity="0.4"/>
-                            <circle cx="50" cy="50" r="1.3" fill="#fff" opacity="0.18"/>
-                            <path d="M 42 60 Q 46 62 50 60" stroke="#9575cd" stroke-width="0.6" fill="none" opacity="0.3"/>
-                        <g class="tm-mascot-eye-open">
-                            <path d="M 35 38 Q 41 28 47 38 Q 41 40 35 38" fill="#faf8ff" stroke="#4527a0" stroke-width="1.4"/>
-                            <path d="M 53 38 Q 59 28 65 38 Q 59 40 53 38" fill="#faf8ff" stroke="#4527a0" stroke-width="1.4"/>
-                            <ellipse cx="41.5" cy="35.5" rx="3.2" ry="3.8" fill="url(#ghost-teen-iris)"/>
-                            <ellipse cx="59.5" cy="35.5" rx="3.2" ry="3.8" fill="url(#ghost-teen-iris)"/>
-                            <ellipse cx="41.5" cy="36" rx="1.6" ry="2.2" fill="#060612"/>
-                            <ellipse cx="59.5" cy="36" rx="1.6" ry="2.2" fill="#060612"/>
-                            <circle cx="42.8" cy="33.2" r="1.5" fill="#fff" opacity="0.95"/>
-                            <circle cx="60.8" cy="33.2" r="1.5" fill="#fff" opacity="0.95"/>
-                            <circle cx="39.8" cy="36.5" r="0.75" fill="#b39ddb" opacity="0.55"/>
-                            <circle cx="57.8" cy="36.5" r="0.75" fill="#b39ddb" opacity="0.55"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 36 36 Q 41 34 46 36" stroke="#4527a0" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                            <path d="M 54 36 Q 59 34 64 36" stroke="#4527a0" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 44 48 Q 50 53.5 56 48" stroke="#4527a0" stroke-width="2" fill="none" stroke-linecap="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 50 Q 50 44 56 50" stroke="#4527a0" stroke-width="2" fill="none" stroke-linecap="round"/>
-</g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 26 58 Q 10 64 6 50 Q 4 42 12 44" fill="none" stroke="url(#ghost-teen-body)" stroke-width="5" stroke-linecap="round" opacity="0.88"/>
-                            <path d="M 8 44 L 2 38 M 8 46 L 0 46 M 10 48 L 4 52" stroke="#9575cd" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 74 58 Q 90 64 94 50 Q 96 42 88 44" fill="none" stroke="url(#ghost-teen-body)" stroke-width="5" stroke-linecap="round" opacity="0.88"/>
-                            <path d="M 92 44 L 98 38 M 92 46 L 100 46 M 90 48 L 96 52" stroke="#9575cd" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="38" cy="94" rx="6" ry="3.8" fill="url(#ghost-teen-wisp)" opacity="0.7"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="62" cy="94" rx="6" ry="3.8" fill="url(#ghost-teen-wisp)" opacity="0.7"/>
-                        </g>
-
-
-
-
-                </g>
-                <!-- GHOST ADULT — Veil Wraith -->
-                <g id="tm-mascot-evo3-ghost" style="display: none;">
+<g id="tm-mascot-evo2-ghost" style="display: none;">
                     <defs>
                         <radialGradient id="ghost-adult-cloak" cx="45%" cy="25%" r="85%">
                             <stop offset="0%" style="stop-color:#4a148c;stop-opacity:1" />
@@ -15019,8 +13217,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
 
                 </g>
-                <!-- GHOST MIDDLE AGE — chain phantom -->
-                <g id="tm-mascot-evo4-ghost" style="display: none;">
+<g id="tm-mascot-evo3-ghost" style="display: none;">
                     <defs>
                         <radialGradient id="ghost-mid-body" cx="42%" cy="24%" r="80%">
                             <stop offset="0%" style="stop-color:#eceff1;stop-opacity:0.92" />
@@ -15126,126 +13323,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
 
                 </g>
-                <!-- GHOST OLD — eternal phantom -->
-                <g id="tm-mascot-evo5-ghost" style="display: none;">
-                    <defs>
-                        <radialGradient id="ghost-old-body" cx="44%" cy="22%" r="82%">
-                            <stop offset="0%" style="stop-color:#fafafa;stop-opacity:0.95" />
-                            <stop offset="35%" style="stop-color:#e0f7fa;stop-opacity:0.88" />
-                            <stop offset="70%" style="stop-color:#80cbc4;stop-opacity:0.82" />
-                            <stop offset="100%" style="stop-color:#4db6ac;stop-opacity:0.85" />
-                        </radialGradient>
-                        <radialGradient id="ghost-old-aura" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.5" />
-                            <stop offset="45%" style="stop-color:#80deea;stop-opacity:0.22" />
-                            <stop offset="100%" style="stop-color:#26c6da;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="ghost-old-iris" cx="40%" cy="35%" r="60%">
-                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#4dd0e1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#01579b;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="ghost-old-ecto" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#4db6ac;stop-opacity:0.25" />
-                        </linearGradient>
-                        <radialGradient id="ghost-old-third" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#00838f;stop-opacity:1" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="54" rx="46" ry="52" fill="url(#ghost-old-aura)" class="tm-wisdom-aura"/>
-                        <ellipse cx="50" cy="99" rx="26" ry="5" fill="#1a1a1a" opacity="0.18"/>
-                        <g class="tm-animate-tail">
-                            <path d="M 56 82 Q 68 98 84 86 Q 90 74 80 68 Q 68 72 56 82 Z" fill="url(#ghost-old-ecto)" stroke="#80deea" stroke-width="0.95" opacity="0.72"/>
-                            <path d="M 66 78 Q 78 90 82 78" stroke="#b2ebf2" stroke-width="0.75" fill="none" opacity="0.45"/>
-                            <path d="M 72 74 Q 84 80 86 70" stroke="#80deea" stroke-width="0.65" fill="none" opacity="0.4"/>
-                            <circle cx="84" cy="72" r="2" fill="#80deea" opacity="0.45"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 24 52 Q 8 40 6 56 Q 8 72 18 66 Q 26 60 28 54 Z" fill="url(#ghost-old-ecto)" stroke="#546e7a" stroke-width="1" opacity="0.78"/>
-                            <path d="M 14 50 Q 10 56 12 62" stroke="#b2ebf2" stroke-width="0.65" fill="none" opacity="0.4"/>
-                            <path d="M 10 58 Q 6 64 10 70" stroke="#80deea" stroke-width="0.6" fill="none" opacity="0.35"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 76 52 Q 92 40 94 56 Q 92 72 82 66 Q 74 60 72 54 Z" fill="url(#ghost-old-ecto)" stroke="#546e7a" stroke-width="1" opacity="0.78"/>
-                            <path d="M 86 50 Q 90 56 88 62" stroke="#b2ebf2" stroke-width="0.65" fill="none" opacity="0.4"/>
-                            <path d="M 90 58 Q 94 64 90 70" stroke="#80deea" stroke-width="0.6" fill="none" opacity="0.35"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <path d="M 22 56 Q 18 34 36 22 Q 50 14 64 22 Q 82 34 78 56 Q 76 80 64 92 Q 50 100 36 92 Q 24 80 22 56 Z"
-                                  fill="url(#ghost-old-body)" stroke="#546e7a" stroke-width="1.8" opacity="0.9"/>
-                            <ellipse cx="42" cy="32" rx="8" ry="5" fill="#fff" opacity="0.14"/>
-                            <path d="M 30 48 Q 34 72 32 88" stroke="#b0bec5" stroke-width="1.5" fill="none" opacity="0.35"/>
-                            <path d="M 70 48 Q 66 72 68 88" stroke="#b0bec5" stroke-width="1.5" fill="none" opacity="0.35"/>
-                            <circle cx="50" cy="60" r="9" fill="url(#ghost-old-aura)" opacity="0.55"/>
-                            <circle cx="50" cy="60" r="4.5" fill="#fff" opacity="0.35"/>
-                            <path d="M 14 62 L 18 62 L 20 58 L 16 58 Z" fill="none" stroke="#80deea" stroke-width="0.9" opacity="0.55"/>
-                            <path d="M 86 58 L 82 58 L 80 62 L 84 62 Z" fill="none" stroke="#80deea" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="18" cy="70" r="2.5" fill="none" stroke="#80deea" stroke-width="0.8" opacity="0.45"/>
-                            <path d="M 82 72 L 86 76 L 82 80 L 78 76 Z" fill="none" stroke="#80deea" stroke-width="0.85" opacity="0.45"/>
-                            <path d="M 12 78 Q 16 74 20 78 Q 16 82 12 78" fill="none" stroke="#4dd0e1" stroke-width="0.8" opacity="0.4"/>
-                            <path d="M 88 84 Q 84 80 80 84 Q 84 88 88 84" fill="none" stroke="#4dd0e1" stroke-width="0.8" opacity="0.4"/>
-                            <path d="M 36 88 Q 34 96 40 98" stroke="url(#ghost-old-ecto)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.65"/>
-                            <path d="M 44 92 Q 42 102 48 104" stroke="url(#ghost-old-ecto)" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.68"/>
-                            <path d="M 50 94 Q 48 104 54 106" stroke="url(#ghost-old-ecto)" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.7"/>
-                            <path d="M 56 92 Q 58 102 52 104" stroke="url(#ghost-old-ecto)" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.68"/>
-                            <path d="M 64 88 Q 66 96 60 98" stroke="url(#ghost-old-ecto)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.65"/>
-                            <path d="M 8 52 Q 4 48 8 44 Q 12 48 8 52" fill="none" stroke="#80deea" stroke-width="0.75" opacity="0.4"/>
-                            <path d="M 92 48 Q 96 44 92 40 Q 88 44 92 48" fill="none" stroke="#80deea" stroke-width="0.75" opacity="0.4"/>
-                            <path d="M 16 64 L 20 64 L 22 60 L 18 60 Z" fill="none" stroke="#80deea" stroke-width="0.75" opacity="0.4"/>
-                            <path d="M 84 68 L 88 68 L 90 64 L 86 64 Z" fill="none" stroke="#80deea" stroke-width="0.75" opacity="0.4"/>
-                            <circle cx="24" cy="78" r="1.8" fill="#80deea" opacity="0.3"/>
-                            <circle cx="76" cy="80" r="1.6" fill="#4dd0e1" opacity="0.28"/>
-                            <path d="M 44 38 Q 50 36 56 38" stroke="#b0bec5" stroke-width="0.65" fill="none" opacity="0.35"/>
-                            <line x1="46" y1="26" x2="54" y2="26" stroke="#80deea" stroke-width="0.6" opacity="0.35"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="42" cy="36" rx="4.8" ry="5.2" fill="#fafafa" stroke="#546e7a" stroke-width="1.5"/>
-                            <ellipse cx="58" cy="36" rx="4.8" ry="5.2" fill="#fafafa" stroke="#546e7a" stroke-width="1.5"/>
-                            <ellipse cx="42.6" cy="36.4" rx="2.5" ry="2.9" fill="url(#ghost-old-iris)"/>
-                            <ellipse cx="58.6" cy="36.4" rx="2.5" ry="2.9" fill="url(#ghost-old-iris)"/>
-                            <ellipse cx="42.6" cy="36.7" rx="1.2" ry="1.8" fill="#060612"/>
-                            <ellipse cx="58.6" cy="36.7" rx="1.2" ry="1.8" fill="#060612"/>
-                            <circle cx="44" cy="34.336" r="1.4" fill="#fff" opacity="0.96"/>
-                            <circle cx="60" cy="34.336" r="1.4" fill="#fff" opacity="0.96"/>
-                            <circle cx="41.2" cy="38.2" r="0.7" fill="#e1bee7" opacity="0.6"/>
-                            <circle cx="57.2" cy="38.2" r="0.7" fill="#e1bee7" opacity="0.6"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 37.2 36 Q 42 32.5 46.8 36" stroke="#546e7a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.2 36 Q 58 32.5 62.8 36" stroke="#546e7a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 45 46 Q 50 51.5 55 46" stroke="#546e7a" stroke-width="2" fill="none" stroke-linecap="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 48 Q 50 42 55 48" stroke="#546e7a" stroke-width="2" fill="none" stroke-linecap="round"/>
-</g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 26 58 Q 10 64 6 50 Q 4 44 12 46" fill="none" stroke="url(#ghost-old-body)" stroke-width="4.5" stroke-linecap="round" opacity="0.85"/>
-                            <path d="M 8 44 L 2 38 M 8 46 L 0 46 M 10 48 L 4 52" stroke="#80deea" stroke-width="1.2" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 74 58 Q 90 64 94 50 Q 96 44 88 46" fill="none" stroke="url(#ghost-old-body)" stroke-width="4.5" stroke-linecap="round" opacity="0.85"/>
-                            <path d="M 92 44 L 98 38 M 92 46 L 100 46 M 90 48 L 96 52" stroke="#80deea" stroke-width="1.2" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="38" cy="96" rx="5.5" ry="3.5" fill="url(#ghost-old-ecto)" opacity="0.6"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="62" cy="96" rx="5.5" ry="3.5" fill="url(#ghost-old-ecto)" opacity="0.6"/>
-                        </g>
-                        <circle cx="50" cy="28" r="2.8" fill="url(#ghost-old-third)" stroke="#546e7a" stroke-width="0.9" opacity="0.75"/>
-                        <circle cx="50" cy="28" r="1.4" fill="#4dd0e1" opacity="0.85"/>
-                        <circle cx="50.5" cy="27.2" r="0.55" fill="#fff"/>
-
-
-
-
-                </g>
-                <!-- CAT CHARACTER - All Life Stages (dense cute epic v4 · feline boss) -->
+                <!-- GHOST KID — sheet wraith -->
+                                <!-- GHOST TEEN — veiled stalker -->
+                                <!-- GHOST ADULT — Veil Wraith -->
+                                <!-- GHOST MIDDLE AGE — chain phantom -->
+                                <!-- GHOST OLD — eternal phantom -->
+                                <!-- CAT CHARACTER - All Life Stages (dense cute epic v4 · feline boss) -->
                 <!-- Fate & Shadow • Rare Rarity • Moonfang Oracle -->
                 <!-- ═══════════════════════════════════════ -->
 
                 <!-- CAT BABY — moon kitten -->
-                <g id="tm-mascot-baby-cat" style="display: none;">
+                <g id="tm-mascot-evo1-cat" style="display: none;">
                     <defs>
                         <radialGradient id="cat-baby-fur" cx="38%" cy="28%" r="75%">
                             <stop offset="0%" style="stop-color:#ce93d8;stop-opacity:1" />
@@ -15387,300 +13475,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
 
                 </g>
-
-                <!-- CAT KID — shadow cub -->
-                <g id="tm-mascot-evo1-cat" style="display: none;">
-                    <defs>
-                        <radialGradient id="cat-kid-fur" cx="38%" cy="28%" r="75%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#7e57c2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4527a0;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="cat-kid-belly" cx="50%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#e1bee7;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="cat-kid-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#ce93d8;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#6a1b9a;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="cat-kid-ear" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#f8bbd0;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ad1457;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="cat-kid-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#f48fb1;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-kid-aura" cx="50%" cy="45%" r="55%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.38" />
-                            <stop offset="45%" style="stop-color:#7e57c2;stop-opacity:0.2" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-kid-mane" cx="50%" cy="40%" r="55%">
-                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:0.7" />
-                            <stop offset="50%" style="stop-color:#7e57c2;stop-opacity:0.35" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-kid-tail-tip" cx="50%" cy="40%" r="55%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#f48fb1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:1" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="94" rx="26" ry="4.5" fill="#0a0614" opacity="0.28"/>
-
-                        <g class="tm-animate-tail">
-                            <path d="M 66 68 Q 86 56 92 40 Q 96 28 86 30 Q 74 44 68 66 Z" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.45"/>
-                            <path d="M 72 56 Q 84 44 90 34" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.4"/>
-                            <ellipse cx="90" cy="34" rx="4" ry="5" fill="url(#cat-kid-tail-tip)" opacity="0.85"/>
-                            <circle cx="86" cy="42" r="1.2" fill="#fff" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <!-- Left ear tuft -->
-                            <path d="M 24 14 Q 14 4 16 18" stroke="#f48fb1" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
-                            <path d="M 22 12 L 12 2" stroke="#4a148c" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
-                            <circle cx="13" cy="4" r="1.35" fill="#fff" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <!-- Right ear tuft -->
-                            <path d="M 76 14 Q 86 4 84 18" stroke="#f48fb1" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
-                            <path d="M 78 12 L 88 2" stroke="#4a148c" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
-                            <circle cx="87" cy="4" r="1.35" fill="#fff" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-body">
-
-                            <ellipse cx="50" cy="66" rx="21" ry="19" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.55"/>
-                            <ellipse cx="50" cy="69" rx="14.0" ry="13.0" fill="url(#cat-kid-belly)"/>
-                            <!-- Soft spots -->
-                            <ellipse cx="40" cy="60" rx="3.5" ry="2.5" fill="#f48fb1" opacity="0.25"/>
-                            <ellipse cx="58" cy="66" rx="2.8" ry="2" fill="#f48fb1" opacity="0.22"/>
-                            <!-- Round cat head -->
-                            <ellipse cx="50" cy="32" rx="18.5" ry="16.5" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.55"/>
-                            <ellipse cx="38.5" cy="27" rx="6.5" ry="3.8" fill="#fff" opacity="0.16"/>
-                            <!-- Cat ears -->
-                            <path d="M 33.2 30 L 24.8 4 L 42 25 Z" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.35"/>
-                            <path d="M 34 29 L 28.2 10 L 38 26.5 Z" fill="url(#cat-kid-ear)" opacity="0.92"/>
-                            <path d="M 66.8 30 L 75.2 4 L 58 25 Z" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.35"/>
-                            <path d="M 66 29 L 71.8 10 L 62 26.5 Z" fill="url(#cat-kid-ear)" opacity="0.92"/>
-
-                            <!-- Muzzle -->
-                            <ellipse cx="50" cy="40" rx="8.5" ry="5.2" fill="url(#cat-kid-belly)"/>
-                            <path d="M 50 38.8 L 47.6 41.6 L 52.4 41.6 Z" fill="#ff8fab" stroke="#e91e63" stroke-width="0.7"/>
-                            <ellipse cx="50" cy="40.2" rx="0.7" ry="0.45" fill="#fff" opacity="0.45"/>
-                            <circle cx="33" cy="37" r="4" fill="url(#cat-kid-cheek)"/>
-                            <circle cx="67" cy="37" r="4" fill="url(#cat-kid-cheek)"/>
-                            <!-- Whiskers -->
-                            <path d="M 41 37 L 28 35 M 41 39 L 29 39 M 41 41 L 29 43" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
-                            <path d="M 59 37 L 72 35 M 59 39 L 71 39 M 59 41 L 71 43" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="30" rx="6.8" ry="8.2" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
-                            <ellipse cx="40.3" cy="30.4" rx="3.5" ry="5.9" fill="url(#cat-kid-iris)"/>
-                            <ellipse cx="40.35" cy="30.5" rx="1.5" ry="3.4" fill="#0a0614"/>
-                            <circle cx="41.4" cy="27.7" r="1.9" fill="#f3e5f5" opacity="0.95"/>
-                            <circle cx="39.1" cy="32.5" r="0.8" fill="#f3e5f5" opacity="0.5"/>
-                            <ellipse cx="60" cy="30" rx="6.8" ry="8.2" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
-                            <ellipse cx="60.3" cy="30.4" rx="3.5" ry="5.9" fill="url(#cat-kid-iris)"/>
-                            <ellipse cx="60.35" cy="30.5" rx="1.5" ry="3.4" fill="#0a0614"/>
-                            <circle cx="61.4" cy="27.7" r="1.9" fill="#f3e5f5" opacity="0.95"/>
-                            <circle cx="59.1" cy="32.5" r="0.8" fill="#f3e5f5" opacity="0.5"/>
-
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.2 30 Q 40 26.8 46.8 30" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.2 30 Q 60 26.8 66.8 30" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 43.8 44 Q 46.9 48.5 50 45.5 Q 53.1 48.5 56.2 44" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 47 Q 50 41.5 56.2 47" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round"/>
-</g>
-                        <g class="tm-animate-arm-left">
-                            <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.2" transform="rotate(-24 27 60)"/>
-                            <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-kid-belly)" stroke="#4a148c" stroke-width="0.9"/>
-                            <ellipse cx="23" cy="71.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
-                            <circle cx="20.9" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="23" cy="70" r="0.95" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="25.1" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <ellipse cx="73" cy="60" rx="6.2" ry="9.2" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.2" transform="rotate(24 73 60)"/>
-                            <ellipse cx="77" cy="70" rx="5.4" ry="4.4" fill="url(#cat-kid-belly)" stroke="#4a148c" stroke-width="0.9"/>
-                            <ellipse cx="77" cy="71.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
-                            <circle cx="74.9" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="77" cy="70" r="0.95" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="79.1" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="39" cy="86" rx="7.2" ry="5.4" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.2"/>
-                            <ellipse cx="39" cy="88" rx="5.2" ry="2.8" fill="url(#cat-kid-belly)"/>
-                            <ellipse cx="39" cy="88.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
-                            <circle cx="36.9" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="39" cy="87" r="0.95" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="41.1" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="61" cy="86" rx="7.2" ry="5.4" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.2"/>
-                            <ellipse cx="61" cy="88" rx="5.2" ry="2.8" fill="url(#cat-kid-belly)"/>
-                            <ellipse cx="61" cy="88.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
-                            <circle cx="58.9" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="61" cy="87" r="0.95" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="63.1" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
-                        </g>
-
-
-
-
-                </g>
-
-                <!-- CAT TEEN — omen stalker -->
-                <g id="tm-mascot-evo2-cat" style="display: none;">
-                    <defs>
-                        <radialGradient id="cat-teen-fur" cx="38%" cy="28%" r="75%">
-                            <stop offset="0%" style="stop-color:#9575cd;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#5e35b1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="cat-teen-belly" cx="50%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#e1bee7;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="cat-teen-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#ce93d8;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#6a1b9a;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="cat-teen-ear" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#f8bbd0;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ad1457;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="cat-teen-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#f48fb1;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-teen-aura" cx="50%" cy="45%" r="55%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.38" />
-                            <stop offset="45%" style="stop-color:#7e57c2;stop-opacity:0.2" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-teen-mane" cx="50%" cy="40%" r="55%">
-                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:0.7" />
-                            <stop offset="50%" style="stop-color:#7e57c2;stop-opacity:0.35" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-teen-tail-tip" cx="50%" cy="40%" r="55%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#f48fb1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:1" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="94" rx="25" ry="4.5" fill="#0a0614" opacity="0.28"/>
-
-                        <g class="tm-animate-tail">
-                            <path d="M 68 66 Q 90 50 96 32 Q 100 20 90 22 Q 78 36 70 64 Z" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.45"/>
-                            <path d="M 72 56 Q 84 44 90 34" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.4"/>
-                            <ellipse cx="94" cy="26" rx="5" ry="6.5" fill="url(#cat-teen-tail-tip)" opacity="0.9"/>
-                            <path d="M 82 44 Q 90 36 94 28" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.45"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <!-- Left ear tuft -->
-                            <path d="M 24 12 Q 14 2 16 16" stroke="#f48fb1" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
-                            <path d="M 22 10 L 12 0" stroke="#311b92" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
-                            <circle cx="13" cy="2" r="1.35" fill="#fff" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <!-- Right ear tuft -->
-                            <path d="M 76 12 Q 86 2 84 16" stroke="#f48fb1" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
-                            <path d="M 78 10 L 88 0" stroke="#311b92" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
-                            <circle cx="87" cy="2" r="1.35" fill="#fff" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-body">
-
-                            <ellipse cx="50" cy="64" rx="19" ry="17" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.55"/>
-                            <ellipse cx="50" cy="67" rx="12.0" ry="11.0" fill="url(#cat-teen-belly)"/>
-                            <!-- Tabby stripes -->
-                            <path d="M 38 56 Q 50 58 62 56" stroke="#311b92" stroke-width="1.1" fill="none" opacity="0.28"/>
-                            <path d="M 40 62 Q 50 64 60 62" stroke="#311b92" stroke-width="0.95" fill="none" opacity="0.22"/>
-                            <path d="M 42 68 Q 50 69.5 58 68" stroke="#311b92" stroke-width="0.85" fill="none" opacity="0.18"/>
-                            <!-- Round cat head -->
-                            <ellipse cx="50" cy="30" rx="17" ry="15" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.55"/>
-                            <ellipse cx="40.0" cy="25" rx="6.5" ry="3.8" fill="#fff" opacity="0.16"/>
-                            <!-- Cat ears -->
-                            <path d="M 33.2 28 L 24.8 2 L 42 23 Z" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.35"/>
-                            <path d="M 34 27 L 28.2 8 L 38 24.5 Z" fill="url(#cat-teen-ear)" opacity="0.92"/>
-                            <path d="M 66.8 28 L 75.2 2 L 58 23 Z" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.35"/>
-                            <path d="M 66 27 L 71.8 8 L 62 24.5 Z" fill="url(#cat-teen-ear)" opacity="0.92"/>
-
-                            <!-- Muzzle -->
-                            <ellipse cx="50" cy="38" rx="8.5" ry="5.2" fill="url(#cat-teen-belly)"/>
-                            <path d="M 50 36.8 L 47.6 39.6 L 52.4 39.6 Z" fill="#ff8fab" stroke="#e91e63" stroke-width="0.7"/>
-                            <ellipse cx="50" cy="38.2" rx="0.7" ry="0.45" fill="#fff" opacity="0.45"/>
-                            <circle cx="33" cy="35" r="4" fill="url(#cat-teen-cheek)"/>
-                            <circle cx="67" cy="35" r="4" fill="url(#cat-teen-cheek)"/>
-                            <!-- Whiskers -->
-                            <path d="M 41 35 L 28 33 M 41 37 L 29 37 M 41 39 L 29 41" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
-                            <path d="M 59 35 L 72 33 M 59 37 L 71 37 M 59 39 L 71 41" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="28" rx="6.4" ry="7.6" fill="#f8fbff" stroke="#311b92" stroke-width="1.45"/>
-                            <ellipse cx="40.3" cy="28.4" rx="3.3" ry="5.5" fill="url(#cat-teen-iris)"/>
-                            <ellipse cx="40.35" cy="28.5" rx="0.9" ry="4.7" fill="#0a0614"/>
-                            <circle cx="41.4" cy="25.9" r="1.8" fill="#f3e5f5" opacity="0.95"/>
-                            <circle cx="39.1" cy="30.3" r="0.8" fill="#f3e5f5" opacity="0.5"/>
-                            <ellipse cx="60" cy="28" rx="6.4" ry="7.6" fill="#f8fbff" stroke="#311b92" stroke-width="1.45"/>
-                            <ellipse cx="60.3" cy="28.4" rx="3.3" ry="5.5" fill="url(#cat-teen-iris)"/>
-                            <ellipse cx="60.35" cy="28.5" rx="0.9" ry="4.7" fill="#0a0614"/>
-                            <circle cx="61.4" cy="25.9" r="1.8" fill="#f3e5f5" opacity="0.95"/>
-                            <circle cx="59.1" cy="30.3" r="0.8" fill="#f3e5f5" opacity="0.5"/>
-
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.6 28 Q 40 24.8 46.4 28" stroke="#311b92" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.6 28 Q 60 24.8 66.4 28" stroke="#311b92" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 43.8 42 Q 46.9 46.5 50 43.5 Q 53.1 46.5 56.2 42" stroke="#311b92" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 45 Q 50 39.5 56.2 45" stroke="#311b92" stroke-width="1.9" fill="none" stroke-linecap="round"/>
-</g>
-                        <g class="tm-animate-arm-left">
-                            <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.2" transform="rotate(-24 27 60)"/>
-                            <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-teen-belly)" stroke="#311b92" stroke-width="0.9"/>
-                            <ellipse cx="23" cy="71.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
-                            <circle cx="21.005" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="23" cy="70" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="24.995" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <ellipse cx="73" cy="60" rx="6.2" ry="9.2" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.2" transform="rotate(24 73 60)"/>
-                            <ellipse cx="77" cy="70" rx="5.4" ry="4.4" fill="url(#cat-teen-belly)" stroke="#311b92" stroke-width="0.9"/>
-                            <ellipse cx="77" cy="71.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
-                            <circle cx="75.005" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="77" cy="70" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="78.995" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="39" cy="86" rx="7.2" ry="5.4" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.2"/>
-                            <ellipse cx="39" cy="88" rx="5.2" ry="2.8" fill="url(#cat-teen-belly)"/>
-                            <ellipse cx="39" cy="88.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
-                            <circle cx="37.005" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="39" cy="87" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="40.995" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="61" cy="86" rx="7.2" ry="5.4" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.2"/>
-                            <ellipse cx="61" cy="88" rx="5.2" ry="2.8" fill="url(#cat-teen-belly)"/>
-                            <ellipse cx="61" cy="88.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
-                            <circle cx="59.005" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="61" cy="87" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="62.995" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                        </g>
-
-
-
-
-                </g>
-
-                <!-- CAT ADULT — Moonfang Oracle -->
-                <g id="tm-mascot-evo3-cat" style="display: none;">
+<g id="tm-mascot-evo2-cat" style="display: none;">
                     <defs>
                         <radialGradient id="cat-adult-fur" cx="38%" cy="28%" r="75%">
                             <stop offset="0%" style="stop-color:#7e57c2;stop-opacity:1" />
@@ -15845,9 +13640,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
 
                 </g>
-
-                <!-- CAT MIDDLE AGE — scarred omen lord -->
-                <g id="tm-mascot-evo4-cat" style="display: none;">
+<g id="tm-mascot-evo3-cat" style="display: none;">
                     <defs>
                         <radialGradient id="cat-mid-fur" cx="38%" cy="28%" r="75%">
                             <stop offset="0%" style="stop-color:#5c6bc0;stop-opacity:1" />
@@ -15994,162 +13787,21 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
                 </g>
 
+                <!-- CAT KID — shadow cub -->
+                
+                <!-- CAT TEEN — omen stalker -->
+                
+                <!-- CAT ADULT — Moonfang Oracle -->
+                
+                <!-- CAT MIDDLE AGE — scarred omen lord -->
+                
                 <!-- CAT OLD — silver moon sage -->
-                <g id="tm-mascot-evo5-cat" style="display: none;">
-                    <defs>
-                        <radialGradient id="cat-old-fur" cx="38%" cy="28%" r="75%">
-                            <stop offset="0%" style="stop-color:#eceff1;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#b0bec5;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#78909c;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="cat-old-belly" cx="50%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#e1bee7;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="cat-old-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#4dd0e1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#006064;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="cat-old-ear" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#f8bbd0;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ad1457;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="cat-old-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#f48fb1;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-old-aura" cx="50%" cy="45%" r="55%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.38" />
-                            <stop offset="45%" style="stop-color:#7e57c2;stop-opacity:0.2" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-old-mane" cx="50%" cy="40%" r="55%">
-                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:0.7" />
-                            <stop offset="50%" style="stop-color:#7e57c2;stop-opacity:0.35" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-old-tail-tip" cx="50%" cy="40%" r="55%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#b3e5fc;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#b3e5fc;stop-opacity:1" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="94" rx="26" ry="4.5" fill="#0a0614" opacity="0.28"/>
-                        <ellipse cx="50" cy="48" rx="40" ry="38" fill="url(#cat-old-aura)" opacity="0.5"/>
-                        <g class="tm-animate-tail">
-                            <path d="M 64 72 Q 80 80 88 68 Q 94 56 84 58 Q 72 66 66 72 Z" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.45"/>
-                            <path d="M 72 56 Q 84 44 90 34" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.4"/>
-                            <ellipse cx="84" cy="62" rx="5" ry="6" fill="#eceff1" opacity="0.75"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <!-- Left ear tuft -->
-                            <path d="M 24 12 Q 14 2 16 16" stroke="#b3e5fc" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
-                            <path d="M 22 10 L 12 0" stroke="#546e7a" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
-                            <circle cx="13" cy="2" r="1.35" fill="#fff" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <!-- Right ear tuft -->
-                            <path d="M 76 12 Q 86 2 84 16" stroke="#b3e5fc" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
-                            <path d="M 78 10 L 88 0" stroke="#546e7a" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
-                            <circle cx="87" cy="2" r="1.35" fill="#fff" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-body">
-
-                            <ellipse cx="50" cy="66" rx="19.5" ry="17" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="2"/>
-                            <ellipse cx="50" cy="69" rx="12.5" ry="11.0" fill="url(#cat-old-belly)"/>
-                            <!-- Silver collar -->
-                            <path d="M 36 50 Q 50 56 64 50" fill="none" stroke="#cfd8dc" stroke-width="1.8" opacity="0.85"/>
-                            <circle cx="50" cy="54" r="2.4" fill="#eceff1" stroke="#90a4ae" stroke-width="0.7"/>
-                            <!-- Round cat head -->
-                            <ellipse cx="50" cy="28" rx="17" ry="15.5" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="2"/>
-                            <ellipse cx="40.0" cy="23" rx="6.5" ry="3.8" fill="#fff" opacity="0.16"/>
-                            <!-- Cat ears -->
-                            <path d="M 33.2 26 L 24.8 2 L 42 21 Z" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.35"/>
-                            <path d="M 34 25 L 28.2 8 L 38 22.5 Z" fill="url(#cat-old-ear)" opacity="0.92"/>
-                            <path d="M 66.8 26 L 75.2 2 L 58 21 Z" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.35"/>
-                            <path d="M 66 25 L 71.8 8 L 62 22.5 Z" fill="url(#cat-old-ear)" opacity="0.92"/>
-                            <!-- Silver moon halo -->
-                            <ellipse cx="50" cy="12" rx="18" ry="3.8" fill="none" stroke="#eceff1" stroke-width="1.5" opacity="0.7"/>
-                            <path d="M 50 6 A 5 5 0 1 1 50 15 A 3.8 3.8 0 1 0 50 6" fill="#fff" opacity="0.85"/>
-                            <!-- Sage cheek ruff -->
-                            <path d="M 32 36 Q 26 44 32 52 Q 36 46 34 40 Z" fill="#eceff1" stroke="#90a4ae" stroke-width="0.7" opacity="0.8"/>
-                            <path d="M 68 36 Q 74 44 68 52 Q 64 46 66 40 Z" fill="#eceff1" stroke="#90a4ae" stroke-width="0.7" opacity="0.8"/>
-                            <!-- Muzzle -->
-                            <ellipse cx="50" cy="36" rx="8.5" ry="5.2" fill="url(#cat-old-belly)"/>
-                            <path d="M 50 34.8 L 47.6 37.6 L 52.4 37.6 Z" fill="#ff8fab" stroke="#e91e63" stroke-width="0.7"/>
-                            <ellipse cx="50" cy="36.2" rx="0.7" ry="0.45" fill="#fff" opacity="0.45"/>
-                            <circle cx="33" cy="33" r="4" fill="url(#cat-old-cheek)"/>
-                            <circle cx="67" cy="33" r="4" fill="url(#cat-old-cheek)"/>
-                            <!-- Whiskers -->
-                            <path d="M 41 33 L 24 31 M 41 35 L 26 35 M 41 37 L 25 39" stroke="#eceff1" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
-                            <path d="M 59 33 L 76 31 M 59 35 L 74 35 M 59 37 L 75 39" stroke="#eceff1" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="26" rx="7" ry="8.2" fill="#f8fbff" stroke="#546e7a" stroke-width="1.45"/>
-                            <ellipse cx="40.3" cy="26.4" rx="3.6" ry="5.9" fill="url(#cat-old-iris)"/>
-                            <ellipse cx="40.35" cy="26.5" rx="1.0" ry="5.1" fill="#0a0614"/>
-                            <circle cx="41.4" cy="23.7" r="2.0" fill="#e0f7fa" opacity="0.95"/>
-                            <circle cx="39.1" cy="28.5" r="0.8" fill="#e0f7fa" opacity="0.5"/>
-                            <ellipse cx="60" cy="26" rx="7" ry="8.2" fill="#f8fbff" stroke="#546e7a" stroke-width="1.45"/>
-                            <ellipse cx="60.3" cy="26.4" rx="3.6" ry="5.9" fill="url(#cat-old-iris)"/>
-                            <ellipse cx="60.35" cy="26.5" rx="1.0" ry="5.1" fill="#0a0614"/>
-                            <circle cx="61.4" cy="23.7" r="2.0" fill="#e0f7fa" opacity="0.95"/>
-                            <circle cx="59.1" cy="28.5" r="0.8" fill="#e0f7fa" opacity="0.5"/>
-                            <path d="M 32.6 25.5 Q 40 20.26 47.4 25.5" fill="#546e7a" opacity="0.78"/>
-                            <path d="M 52.6 25.5 Q 60 20.26 67.4 25.5" fill="#546e7a" opacity="0.78"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33 26 Q 40 22.8 47 26" stroke="#546e7a" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                            <path d="M 53 26 Q 60 22.8 67 26" stroke="#546e7a" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 43.8 40 Q 46.9 44.5 50 41.5 Q 53.1 44.5 56.2 40" stroke="#546e7a" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 43 Q 50 37.5 56.2 43" stroke="#546e7a" stroke-width="1.9" fill="none" stroke-linecap="round"/>
-</g>
-                        <g class="tm-animate-arm-left">
-                            <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.2" transform="rotate(-24 27 60)"/>
-                            <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-old-belly)" stroke="#546e7a" stroke-width="0.9"/>
-                            <ellipse cx="23" cy="71.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
-                            <circle cx="21.005" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="23" cy="70" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="24.995" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <ellipse cx="73" cy="60" rx="6.2" ry="9.2" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.2" transform="rotate(24 73 60)"/>
-                            <ellipse cx="77" cy="70" rx="5.4" ry="4.4" fill="url(#cat-old-belly)" stroke="#546e7a" stroke-width="0.9"/>
-                            <ellipse cx="77" cy="71.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
-                            <circle cx="75.005" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="77" cy="70" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="78.995" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="39" cy="86" rx="7.2" ry="5.4" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.2"/>
-                            <ellipse cx="39" cy="88" rx="5.2" ry="2.8" fill="url(#cat-old-belly)"/>
-                            <ellipse cx="39" cy="88.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
-                            <circle cx="37.005" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="39" cy="87" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="40.995" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="61" cy="86" rx="7.2" ry="5.4" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.2"/>
-                            <ellipse cx="61" cy="88" rx="5.2" ry="2.8" fill="url(#cat-old-belly)"/>
-                            <ellipse cx="61" cy="88.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
-                            <circle cx="59.005" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="61" cy="87" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                            <circle cx="62.995" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
-                        </g>
-
-
-
-
-                </g>
-
+                
                 <!-- PHOENIX CHARACTER - All Life Stages (evolution line v12 · distinct silhouettes per stage) -->
                 <!-- chick > fledgling > blaze raptor > BOSS streamers > charred warlord > solar seraph -->
 
                 <!-- PHOENIX BABY — Ember Chick -->
-                <g id="tm-mascot-baby-phoenix" style="display: none;">
+                <g id="tm-mascot-evo1-phoenix" style="display: none;">
                     <defs>
                         <linearGradient id="phoenix-baby-plum" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#ffd98f;stop-opacity:1" />
@@ -16247,297 +13899,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </g>
                         </g>
                 </g>
-
-                <!-- PHOENIX EVO1 — Flame Fledgling -->
-                <g id="tm-mascot-evo1-phoenix" style="display: none;">
-                    <defs>
-                        <linearGradient id="phoenix-evo1-plum" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffc355;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#ff8c1a;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#dd3f09;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#6b1504;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="phoenix-evo1-fire" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="phoenix-evo1-core" cx="50%" cy="42%" r="60%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:.95" />
-                            <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
-                            <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-evo1-flameOut" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#b71c1c;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#e64a19;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="phoenix-evo1-flameIn" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffb300;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#ffd740;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#fffde7;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="phoenix-evo1-beak" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
-                        </linearGradient>
-                        <filter id="phoenix-evo1-glow" x="-100%" y="-100%" width="300%" height="300%">
-                            <feGaussianBlur stdDeviation="1.5" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                        <filter id="phoenix-evo1-soft" x="-60%" y="-60%" width="220%" height="220%">
-                            <feGaussianBlur stdDeviation=".6" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                    </defs>
-                        <ellipse cx="50" cy="84" rx="17" ry="4.4" fill="#120303" opacity="0.26"/>
-                        <ellipse cx="50" cy="52" rx="16.3" ry="12.8" fill="url(#phoenix-evo1-core)" opacity="0.18" filter="url(#phoenix-evo1-glow)"/>
-                        <path d="M 49.2 40.4 Q 48.9 38.7 49.8 37.7 Q 50.4 36.7 50.9 34.4 Q 51.2 36.8 51.4 37.9 Q 52.3 39.0 52.0 40.4 Q 50.6 40.8 49.2 40.4 Z" transform="rotate(0.9 50.6 40.4)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 59.7 44.0 Q 59.2 41.7 60.5 40.2 Q 60.9 38.9 61.0 35.7 Q 62.1 39.0 62.7 40.5 Q 63.9 42.0 63.5 44.0 Q 61.6 44.5 59.7 44.0 Z" transform="rotate(17.9 61.6 44.0)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 63.2 54.7 Q 62.7 51.9 64.3 50.1 Q 65.4 48.5 66.6 44.7 Q 66.7 48.7 66.9 50.5 Q 68.4 52.3 67.9 54.7 Q 65.6 55.3 63.2 54.7 Z" transform="rotate(36.6 65.6 54.7)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 55.2 62.6 Q 54.9 61.0 55.8 60.0 Q 56.2 59.1 56.5 57.0 Q 57.0 59.2 57.3 60.2 Q 58.1 61.3 57.8 62.6 Q 56.5 62.9 55.2 62.6 Z" transform="rotate(32.7 56.5 62.6)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 44.1 63.1 Q 43.8 61.7 44.6 60.8 Q 44.6 60.0 44.3 58.1 Q 45.3 60.1 45.9 61.0 Q 46.6 61.9 46.3 63.1 Q 45.2 63.4 44.1 63.1 Z" transform="rotate(-26.9 45.2 63.1)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 32.5 55.9 Q 31.9 53.0 33.6 51.1 Q 33.8 49.4 33.2 45.4 Q 35.3 49.6 36.4 51.5 Q 37.9 53.4 37.4 55.9 Q 34.9 56.5 32.5 55.9 Z" transform="rotate(-37.9 34.9 55.9)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 34.2 46.0 Q 33.7 43.5 35.1 41.8 Q 36.0 40.3 36.9 36.8 Q 37.2 40.5 37.5 42.2 Q 38.9 43.8 38.4 46.0 Q 36.3 46.6 34.2 46.0 Z" transform="rotate(-22.6 36.3 46.0)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 49.8 40.4 Q 49.6 39.5 50.2 38.9 Q 50.5 38.3 50.8 37.1 Q 50.9 38.4 51.1 39.0 Q 51.6 39.6 51.4 40.4 Q 50.6 40.6 49.8 40.4 Z" transform="rotate(0.9 50.6 40.4)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 60.5 44.0 Q 60.2 42.7 61.0 41.9 Q 61.2 41.1 61.2 39.3 Q 61.9 41.2 62.2 42.0 Q 63.0 42.9 62.7 44.0 Q 61.6 44.3 60.5 44.0 Z" transform="rotate(17.9 61.6 44.0)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 64.2 54.7 Q 63.9 53.1 64.8 52.1 Q 65.5 51.2 66.2 49.1 Q 66.2 51.3 66.4 52.4 Q 67.2 53.4 66.9 54.7 Q 65.6 55.1 64.2 54.7 Z" transform="rotate(36.6 65.6 54.7)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 55.8 62.6 Q 55.6 61.7 56.1 61.2 Q 56.3 60.7 56.5 59.5 Q 56.8 60.7 56.9 61.3 Q 57.4 61.8 57.2 62.6 Q 56.5 62.8 55.8 62.6 Z" transform="rotate(32.7 56.5 62.6)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 44.5 63.1 Q 44.4 62.3 44.8 61.8 Q 44.8 61.4 44.6 60.3 Q 45.3 61.4 45.6 61.9 Q 46.0 62.4 45.8 63.1 Q 45.2 63.2 44.5 63.1 Z" transform="rotate(-26.9 45.2 63.1)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 33.5 55.9 Q 33.2 54.3 34.2 53.2 Q 34.2 52.3 33.9 50.0 Q 35.1 52.4 35.8 53.4 Q 36.7 54.5 36.3 55.9 Q 34.9 56.3 33.5 55.9 Z" transform="rotate(-37.9 34.9 55.9)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
-                        <path d="M 35.0 46.0 Q 34.8 44.6 35.6 43.7 Q 36.1 42.8 36.6 40.9 Q 36.8 43.0 37.0 43.9 Q 37.8 44.8 37.5 46.0 Q 36.3 46.3 35.0 46.0 Z" transform="rotate(-22.6 36.3 46.0)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
-                        <circle cx="66.1" cy="30.0" r="0.76" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo1-glow)"/>
-                        <circle cx="73.1" cy="44.6" r="0.83" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo1-glow)"/>
-                        <circle cx="27.3" cy="46.1" r="0.88" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo1-glow)"/>
-                        <circle cx="31.1" cy="33.5" r="0.52" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo1-glow)"/>
-                        <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo1-soft)"/>
-                        <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo1-soft)"/>
-                        <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo1-soft)"/>
-                        <circle cx="91" cy="47" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo1-soft)"/>
-                        <circle cx="24" cy="75" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo1-soft)"/>
-                        <g transform="translate(50 50) scale(0.986) translate(-50 -50)">
-                        <g class="tm-animate-tail">
-                            <path d="M 48.5 69.0 Q 52.2 73.1 55.6 76.3 Q 53.9 72.0 51.5 67.0 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 48.2 68.4 Q 50.5 75.4 52.6 81.1 Q 52.4 75.0 51.8 67.6 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 48.2 67.6 Q 47.6 75.0 47.4 81.1 Q 49.5 75.4 51.8 68.4 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 48.5 67.0 Q 46.1 72.0 44.4 76.3 Q 47.8 73.1 51.5 69.0 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo1-soft)"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 42.3 45.3 Q 34.7 43.2 28.3 42.1 Q 33.3 46.3 39.7 50.7 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 41.6 44.8 Q 32.6 44.7 25.2 45.2 Q 32.0 48.3 40.4 51.2 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 40.7 44.8 Q 31.5 47.0 24.1 49.5 Q 31.8 50.6 41.3 51.2 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 40.0 45.2 Q 32.7 49.2 26.9 53.1 Q 33.8 52.4 42.0 50.8 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 42.2 45.8 Q 37.8 44.6 33.9 44.1 Q 36.4 47.1 39.8 50.2 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 41.7 45.3 Q 36.4 45.3 32.0 45.8 Q 35.7 48.3 40.3 50.7 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 41.0 45.2 Q 35.6 46.5 31.1 48.2 Q 35.6 49.6 41.0 50.8 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo1-soft)"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <g transform="translate(100,0) scale(-1,1)">
-                            <path d="M 42.3 45.3 Q 34.7 43.2 28.3 42.1 Q 33.3 46.3 39.7 50.7 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 41.6 44.8 Q 32.6 44.7 25.2 45.2 Q 32.0 48.3 40.4 51.2 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 40.7 44.8 Q 31.5 47.0 24.1 49.5 Q 31.8 50.6 41.3 51.2 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 40.0 45.2 Q 32.7 49.2 26.9 53.1 Q 33.8 52.4 42.0 50.8 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 42.2 45.8 Q 37.8 44.6 33.9 44.1 Q 36.4 47.1 39.8 50.2 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 41.7 45.3 Q 36.4 45.3 32.0 45.8 Q 35.7 48.3 40.3 50.7 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 41.0 45.2 Q 35.6 46.5 31.1 48.2 Q 35.6 49.6 41.0 50.8 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo1-soft)"/>
-                            </g>
-                        </g>
-                        <g class="tm-animate-body">
-                            <path d="M 50 34 C 43 36 40 44 41 54 C 42 63 46 69 50 70 C 54 69 58 63 59 54 C 60 44 57 36 50 34 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width="1.1"/>
-                            <ellipse cx="50" cy="55" rx="6" ry="7" fill="url(#phoenix-evo1-core)" opacity=".55" filter="url(#phoenix-evo1-glow)"/>
-                            <path d="M 45 50 Q 50 48 55 50 M 45.5 57 Q 50 55 54.5 57" fill="none" stroke="#6b1504" stroke-width=".45" opacity=".3"/>
-                            <path d="M 50.7 33.4 Q 48.1 31.1 45.8 29.3 Q 47.3 31.8 49.3 34.6 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 50.9 33.8 Q 49.2 28.6 47.6 24.4 Q 48.2 28.8 49.1 34.2 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 50.9 34.2 Q 51.8 28.8 52.4 24.4 Q 50.8 28.6 49.1 33.8 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo1-soft)"/>
-                            <path d="M 50.7 34.6 Q 52.7 31.8 54.2 29.3 Q 51.9 31.1 49.3 33.4 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo1-soft)"/>
-                        <g class="tm-mascot-eye-open">
-                            <circle cx="46" cy="43.5" r="2.1" fill="#ffd740" stroke="#5d1306" stroke-width=".45"/>
-                            <circle cx="54" cy="43.5" r="2.1" fill="#ffd740" stroke="#5d1306" stroke-width=".45"/>
-                            <ellipse cx="46.1" cy="43.6" rx="0.84" ry="1.51" fill="#1b0502"/>
-                            <ellipse cx="54.1" cy="43.6" rx="0.84" ry="1.51" fill="#1b0502"/>
-                            <circle cx="45.37" cy="42.765" r="0.46" fill="#fffde7"/>
-                            <circle cx="53.37" cy="42.765" r="0.46" fill="#fffde7"/>
-                            <path d="M 43.6 39.9 L 48.2 42.1" fill="none" stroke="#751406" stroke-width="1" stroke-linecap="round"/>
-                            <path d="M 56.4 39.9 L 51.8 42.1" fill="none" stroke="#751406" stroke-width="1" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 44.5 43.5 Q 46 42.3 47.5 43.5" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
-                            <path d="M 52.5 43.5 Q 54 42.3 55.5 43.5" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 47.6 48 Q 50 47.2 52.4 48 L 51.2 51.2 Q 50 53.4 49.8 54 Q 48.68 52.6 48.56 51.2 Z" fill="url(#phoenix-evo1-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.6 48.5 Q 50 47.7 52.4 48.5 L 51.08 52 Q 50 54.2 49.7 54.8 Q 48.8 53.2 48.68 52 Z" fill="url(#phoenix-evo1-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
-                        </g>
-                        <g class="tm-animate-arm-left" opacity=".001"><circle cx="41" cy="48" r=".4"/></g>
-                        <g class="tm-animate-arm-right" opacity=".001"><circle cx="59" cy="48" r=".4"/></g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 46.5 69.5 L 46.2 74.5 M 46.2 74.5 L 44.2 77.4 M 46.2 74.5 L 46.5 77.8 M 46.2 74.5 L 48.2 77.4" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 53.5 69.5 L 53.8 74.5 M 53.8 74.5 L 55.8 77.4 M 53.8 74.5 L 53.5 77.8 M 53.8 74.5 L 51.8 77.4" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
-                        </g>
-                </g>
-
-                <!-- PHOENIX EVO2 — Blaze Raptor -->
-                <g id="tm-mascot-evo2-phoenix" style="display: none;">
-                    <defs>
-                        <linearGradient id="phoenix-evo2-plum" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffb63f;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#ff7a10;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#cf3206;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#571003;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="phoenix-evo2-fire" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="phoenix-evo2-core" cx="50%" cy="42%" r="60%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:.95" />
-                            <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
-                            <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-evo2-flameOut" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#b71c1c;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#e64a19;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="phoenix-evo2-flameIn" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffb300;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#ffd740;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#fffde7;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="phoenix-evo2-beak" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
-                        </linearGradient>
-                        <filter id="phoenix-evo2-glow" x="-100%" y="-100%" width="300%" height="300%">
-                            <feGaussianBlur stdDeviation="1.5" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                        <filter id="phoenix-evo2-soft" x="-60%" y="-60%" width="220%" height="220%">
-                            <feGaussianBlur stdDeviation=".6" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                    </defs>
-                        <ellipse cx="50" cy="94" rx="28" ry="4.4" fill="#120303" opacity="0.26"/>
-                        <ellipse cx="50" cy="46" rx="24.5" ry="19.1" fill="url(#phoenix-evo2-core)" opacity="0.18" filter="url(#phoenix-evo2-glow)"/>
-                        <path d="M 48.9 28.6 Q 48.4 26.1 49.8 24.5 Q 50.6 23.1 51.3 19.7 Q 51.8 23.2 52.2 24.9 Q 53.5 26.5 53.0 28.6 Q 50.9 29.1 48.9 28.6 Z" transform="rotate(0.9 50.9 28.6)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 62.5 32.7 Q 61.9 29.2 63.8 26.9 Q 64.4 24.9 64.5 20.2 Q 66.2 25.2 67.1 27.4 Q 69.0 29.7 68.3 32.7 Q 65.4 33.4 62.5 32.7 Z" transform="rotate(15.5 65.4 32.7)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 70.5 46.2 Q 69.7 42.0 72.1 39.3 Q 73.7 36.9 75.6 31.1 Q 75.7 37.2 76.1 39.9 Q 78.3 42.6 77.5 46.2 Q 74.0 47.1 70.5 46.2 Z" transform="rotate(33.1 74.0 46.2)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 64.5 58.7 Q 64.0 56.3 65.4 54.8 Q 66.0 53.5 66.5 50.3 Q 67.1 53.6 67.6 55.1 Q 68.8 56.7 68.4 58.7 Q 66.4 59.2 64.5 58.7 Z" transform="rotate(40.0 66.4 58.7)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 51.7 63.2 Q 51.3 61.2 52.5 59.8 Q 52.5 58.6 52.1 55.8 Q 53.6 58.8 54.4 60.1 Q 55.5 61.5 55.1 63.2 Q 53.4 63.7 51.7 63.2 Z" transform="rotate(14.4 53.4 63.2)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 33.1 59.7 Q 32.6 57.2 34.0 55.5 Q 34.2 54.1 33.7 50.7 Q 35.5 54.3 36.4 55.9 Q 37.7 57.5 37.2 59.7 Q 35.2 60.2 33.1 59.7 Z" transform="rotate(-39.1 35.2 59.7)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 23.0 48.3 Q 22.3 44.5 24.4 42.0 Q 25.8 39.8 27.1 34.5 Q 27.6 40.0 28.1 42.5 Q 30.1 45.0 29.4 48.3 Q 26.2 49.1 23.0 48.3 Z" transform="rotate(-35.1 26.2 48.3)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 28.1 34.9 Q 27.3 30.8 29.6 28.2 Q 30.3 25.9 30.3 20.3 Q 32.3 26.1 33.5 28.8 Q 35.7 31.4 34.9 34.9 Q 31.5 35.8 28.1 34.9 Z" transform="rotate(-19.5 31.5 34.9)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 49.7 28.6 Q 49.4 27.2 50.3 26.3 Q 50.7 25.5 51.1 23.6 Q 51.4 25.6 51.6 26.5 Q 52.4 27.4 52.1 28.6 Q 50.9 28.9 49.7 28.6 Z" transform="rotate(0.9 50.9 28.6)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 63.7 32.7 Q 63.4 30.7 64.5 29.5 Q 64.8 28.3 64.9 25.7 Q 65.8 28.5 66.4 29.7 Q 67.5 31.0 67.1 32.7 Q 65.4 33.1 63.7 32.7 Z" transform="rotate(15.5 65.4 32.7)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 72.0 46.2 Q 71.5 43.8 72.9 42.3 Q 73.9 41.0 75.0 37.8 Q 75.0 41.1 75.2 42.7 Q 76.5 44.2 76.0 46.2 Q 74.0 46.7 72.0 46.2 Z" transform="rotate(33.1 74.0 46.2)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 65.3 58.7 Q 65.1 57.4 65.8 56.5 Q 66.2 55.8 66.5 54.0 Q 66.9 55.9 67.1 56.7 Q 67.8 57.5 67.6 58.7 Q 66.4 59.0 65.3 58.7 Z" transform="rotate(40.0 66.4 58.7)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 52.4 63.2 Q 52.2 62.1 52.9 61.3 Q 52.9 60.7 52.6 59.1 Q 53.5 60.7 54.0 61.5 Q 54.6 62.2 54.4 63.2 Q 53.4 63.5 52.4 63.2 Z" transform="rotate(14.4 53.4 63.2)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 34.0 59.7 Q 33.7 58.3 34.5 57.4 Q 34.6 56.6 34.3 54.6 Q 35.3 56.7 35.9 57.6 Q 36.7 58.5 36.4 59.7 Q 35.2 60.0 34.0 59.7 Z" transform="rotate(-39.1 35.2 59.7)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 24.4 48.3 Q 23.9 46.2 25.2 44.8 Q 26.0 43.5 26.8 40.6 Q 27.0 43.7 27.3 45.1 Q 28.5 46.5 28.1 48.3 Q 26.2 48.8 24.4 48.3 Z" transform="rotate(-35.1 26.2 48.3)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
-                        <path d="M 29.5 34.9 Q 29.1 32.6 30.4 31.2 Q 30.8 29.8 30.8 26.7 Q 32.0 30.0 32.7 31.5 Q 33.9 33.0 33.4 34.9 Q 31.5 35.4 29.5 34.9 Z" transform="rotate(-19.5 31.5 34.9)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
-                        <circle cx="71.4" cy="11.0" r="0.76" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo2-glow)"/>
-                        <circle cx="85.6" cy="28.4" r="0.83" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo2-glow)"/>
-                        <circle cx="17.2" cy="35.4" r="0.52" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo2-glow)"/>
-                        <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo2-soft)"/>
-                        <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo2-soft)"/>
-                        <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo2-soft)"/>
-                        <circle cx="91" cy="47" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo2-soft)"/>
-                        <circle cx="24" cy="75" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo2-soft)"/>
-                        <circle cx="80" cy="72" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo2-soft)"/>
-                        <circle cx="35" cy="11" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo2-soft)"/>
-                        <g transform="translate(50 50) scale(1.064) translate(-50 -50)">
-                        <g class="tm-animate-tail">
-                            <path d="M 48.1 63.3 Q 53.9 70.0 58.9 75.3 Q 56.0 68.6 51.9 60.7 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 47.8 62.7 Q 52.3 73.9 56.4 83.0 Q 54.8 73.2 52.2 61.3 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 47.7 62.0 Q 48.7 77.4 50.0 90.0 Q 51.3 77.4 52.3 62.0 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 47.8 61.3 Q 45.2 73.2 43.6 83.0 Q 47.7 73.9 52.2 62.7 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 48.1 60.7 Q 44.0 68.6 41.1 75.3 Q 46.1 70.0 51.9 63.3 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 46.0 38.4 Q 28.5 29.9 13.6 23.9 Q 25.2 35.1 40.0 47.6 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 45.2 37.7 Q 25.8 32.6 9.6 29.5 Q 23.4 38.6 40.8 48.3 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 44.0 37.6 Q 24.7 36.3 8.6 36.3 Q 23.5 42.4 42.0 48.4 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 43.0 37.8 Q 24.8 40.1 10.0 43.0 Q 24.8 45.9 43.0 48.3 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 42.0 38.1 Q 26.3 43.4 13.6 48.7 Q 27.3 48.9 44.0 47.9 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 41.3 38.8 Q 28.8 46.0 18.9 52.7 Q 30.7 50.7 44.7 47.2 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 40.8 39.6 Q 32.1 47.4 25.4 54.4 Q 34.5 51.2 45.2 46.4 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 45.8 39.3 Q 35.7 34.2 26.8 30.8 Q 32.5 38.4 40.2 46.7 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 45.1 38.6 Q 33.9 35.5 24.2 33.8 Q 31.5 40.4 40.9 47.4 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 44.2 38.5 Q 32.9 37.6 23.4 37.7 Q 31.5 42.6 41.8 47.5 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 43.3 38.5 Q 32.7 39.8 23.9 41.7 Q 32.3 44.8 42.7 47.5 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 42.5 38.8 Q 33.2 41.8 25.7 45.1 Q 33.8 46.5 43.5 47.2 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 41.8 39.4 Q 34.5 43.5 28.7 47.7 Q 35.8 47.6 44.2 46.6 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".8"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <g transform="translate(100,0) scale(-1,1)">
-                            <path d="M 46.0 38.4 Q 28.5 29.9 13.6 23.9 Q 25.2 35.1 40.0 47.6 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 45.2 37.7 Q 25.8 32.6 9.6 29.5 Q 23.4 38.6 40.8 48.3 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 44.0 37.6 Q 24.7 36.3 8.6 36.3 Q 23.5 42.4 42.0 48.4 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 43.0 37.8 Q 24.8 40.1 10.0 43.0 Q 24.8 45.9 43.0 48.3 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 42.0 38.1 Q 26.3 43.4 13.6 48.7 Q 27.3 48.9 44.0 47.9 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 41.3 38.8 Q 28.8 46.0 18.9 52.7 Q 30.7 50.7 44.7 47.2 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 40.8 39.6 Q 32.1 47.4 25.4 54.4 Q 34.5 51.2 45.2 46.4 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 45.8 39.3 Q 35.7 34.2 26.8 30.8 Q 32.5 38.4 40.2 46.7 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 45.1 38.6 Q 33.9 35.5 24.2 33.8 Q 31.5 40.4 40.9 47.4 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 44.2 38.5 Q 32.9 37.6 23.4 37.7 Q 31.5 42.6 41.8 47.5 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 43.3 38.5 Q 32.7 39.8 23.9 41.7 Q 32.3 44.8 42.7 47.5 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 42.5 38.8 Q 33.2 41.8 25.7 45.1 Q 33.8 46.5 43.5 47.2 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 41.8 39.4 Q 34.5 43.5 28.7 47.7 Q 35.8 47.6 44.2 46.6 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".8"/>
-                            </g>
-                        </g>
-                        <g class="tm-animate-body">
-                            <path d="M 50 35 C 42.5 38.5 40.5 46 42 54 C 43.5 61 47 65.5 50 66.5 C 53 65.5 56.5 61 58 54 C 59.5 46 57.5 38.5 50 35 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width="1.1"/>
-                            <path d="M 44.5 45 Q 50 42.8 55.5 45 M 44 52 Q 50 49.8 56 52 M 46 59 Q 50 57 54 59" fill="none" stroke="#7b1308" stroke-width=".45" opacity=".3"/>
-                            <ellipse cx="50" cy="51" rx="6.5" ry="8" fill="url(#phoenix-evo2-core)" opacity="0.6" filter="url(#phoenix-evo2-glow)"/>
-                            <path d="M 43 30 Q 43 23 50 22 Q 57 23 57 30 Q 56 36 50 37 Q 44 36 43 30 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width="1"/>
-                            <path d="M 50.9 22.2 Q 47.6 19.4 44.8 17.3 Q 46.7 20.3 49.1 23.8 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 51.1 22.6 Q 48.4 17.1 46.1 12.7 Q 47.2 17.6 48.9 23.4 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 51.2 23.0 Q 50.6 15.1 50.0 8.7 Q 49.4 15.1 48.8 23.0 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 51.1 23.4 Q 52.8 17.6 53.9 12.7 Q 51.6 17.1 48.9 22.6 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo2-soft)"/>
-                            <path d="M 50.9 23.8 Q 53.3 20.3 55.2 17.3 Q 52.4 19.4 49.1 22.2 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo2-soft)"/>
-                        <g class="tm-mascot-eye-open">
-                            <circle cx="46.8" cy="28.8" r="2.9" fill="#ffab00" opacity=".5" filter="url(#phoenix-evo2-glow)"/>
-                            <circle cx="53.2" cy="28.8" r="2.9" fill="#ffab00" opacity=".5" filter="url(#phoenix-evo2-glow)"/>
-                            <circle cx="46.8" cy="28.8" r="1.7" fill="#ffab00" stroke="#5d1306" stroke-width=".45"/>
-                            <circle cx="53.2" cy="28.8" r="1.7" fill="#ffab00" stroke="#5d1306" stroke-width=".45"/>
-                            <ellipse cx="46.9" cy="28.95" rx="0.41" ry="1.44" fill="#1b0502"/>
-                            <ellipse cx="53.300000000000004" cy="28.95" rx="0.41" ry="1.44" fill="#1b0502"/>
-                            <circle cx="46.29" cy="28.205000000000002" r="0.37" fill="#fffde7"/>
-                            <circle cx="52.690000000000005" cy="28.205000000000002" r="0.37" fill="#fffde7"/>
-                            <path d="M 44 25.8 L 49.199999999999996 28.1 L 44 27.8 Z" fill="#4a0a02"/>
-                            <path d="M 56 25.8 L 50.800000000000004 28.1 L 56 27.8 Z" fill="#4a0a02"/>
-                            <path d="M 43.8 25.6 L 49.4 27.900000000000002" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
-                            <path d="M 56.2 25.6 L 50.6 27.900000000000002" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 45.3 28.8 Q 46.8 27.6 48.3 28.8" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
-                            <path d="M 51.7 28.8 Q 53.2 27.6 54.7 28.8" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 47.1 32.8 Q 50 31.999999999999996 52.9 32.8 L 51.45 36 Q 50 38.199999999999996 49.8 38.8 Q 48.405 37.4 48.26 36 Z" fill="url(#phoenix-evo2-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.1 33.3 Q 50 32.5 52.9 33.3 L 51.305 36.8 Q 50 39 49.7 39.599999999999994 Q 48.55 38 48.405 36.8 Z" fill="url(#phoenix-evo2-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
-                        </g>
-                        <g class="tm-animate-arm-left" opacity=".001"><circle cx="44" cy="48" r=".4"/></g>
-                        <g class="tm-animate-arm-right" opacity=".001"><circle cx="56" cy="48" r=".4"/></g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 47 64 Q 45.5 66 45.8 68 M 45.8 68 L 43.8 69.8 M 45.8 68 L 46 70.6 M 45.8 68 L 47.8 69.6" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 53 64 Q 54.5 66 54.2 68 M 54.2 68 L 56.2 69.8 M 54.2 68 L 54 70.6 M 54.2 68 L 52.2 69.6" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
-                        </g>
-                </g>
-
-                <!-- PHOENIX EVO3 — Ashborn Phoenix — BOSS -->
-                <g id="tm-mascot-evo3-phoenix" style="display: none;">
+<g id="tm-mascot-evo2-phoenix" style="display: none;">
                     <defs>
                         <linearGradient id="phoenix-evo3-plum" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#ffb300;stop-opacity:1" />
@@ -16714,9 +14076,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </g>
                         </g>
                 </g>
-
-                <!-- PHOENIX EVO4 — Cinder Warlord -->
-                <g id="tm-mascot-evo4-phoenix" style="display: none;">
+<g id="tm-mascot-evo3-phoenix" style="display: none;">
                     <defs>
                         <linearGradient id="phoenix-evo4-plum" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#d98e4a;stop-opacity:1" />
@@ -16885,219 +14245,21 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </g>
                 </g>
 
+                <!-- PHOENIX EVO1 — Flame Fledgling -->
+                
+                <!-- PHOENIX EVO2 — Blaze Raptor -->
+                
+                <!-- PHOENIX EVO3 — Ashborn Phoenix — BOSS -->
+                
+                <!-- PHOENIX EVO4 — Cinder Warlord -->
+                
                 <!-- PHOENIX EVO5 — Solar Seraph -->
-                <g id="tm-mascot-evo5-phoenix" style="display: none;">
-                    <defs>
-                        <linearGradient id="phoenix-evo5-plum" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fff6d0;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#ffe27a;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#ffb300;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#8a5a00;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="phoenix-evo5-fire" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="phoenix-evo5-core" cx="50%" cy="42%" r="60%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:.95" />
-                            <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
-                            <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-evo5-flameOut" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#b71c1c;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#e64a19;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="phoenix-evo5-flameIn" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffb300;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#ffd740;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#fffde7;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="phoenix-evo5-beak" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
-                        </linearGradient>
-                        <filter id="phoenix-evo5-glow" x="-100%" y="-100%" width="300%" height="300%">
-                            <feGaussianBlur stdDeviation="1.5" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                        <filter id="phoenix-evo5-soft" x="-60%" y="-60%" width="220%" height="220%">
-                            <feGaussianBlur stdDeviation=".6" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                    </defs>
-                        <ellipse cx="50" cy="94" rx="40" ry="4.4" fill="#120303" opacity="0.45"/>
-                        <ellipse cx="50" cy="46" rx="42.8" ry="35.7" fill="url(#phoenix-evo5-core)" opacity="0.3" filter="url(#phoenix-evo5-glow)"/>
-                        <path d="M 47.8 13.5 Q 46.8 8.9 49.5 5.9 Q 50.9 3.2 52.3 -3.2 Q 53.2 3.5 53.9 6.5 Q 56.4 9.5 55.5 13.5 Q 51.6 14.5 47.8 13.5 Z" transform="rotate(0.9 51.6 13.5)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 57.2 15.0 Q 56.0 8.5 59.6 4.3 Q 60.7 0.6 60.9 -8.2 Q 64.0 1.1 65.8 5.3 Q 69.2 9.4 67.9 15.0 Q 62.6 16.4 57.2 15.0 Z" transform="rotate(6.8 62.6 15.0)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 73.6 23.3 Q 72.0 15.4 76.4 10.4 Q 79.6 5.9 83.1 -4.8 Q 83.3 6.4 83.9 11.5 Q 88.1 16.6 86.5 23.3 Q 80.1 25.0 73.6 23.3 Z" transform="rotate(17.7 80.1 23.3)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 83.0 34.5 Q 81.4 26.8 85.7 21.9 Q 87.8 17.5 89.4 7.0 Q 91.6 18.0 93.1 23.0 Q 97.1 27.9 95.6 34.5 Q 89.3 36.1 83.0 34.5 Z" transform="rotate(26.2 89.3 34.5)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 86.0 41.4 Q 84.7 34.6 88.5 30.3 Q 88.7 26.4 87.1 17.3 Q 92.2 26.9 94.9 31.2 Q 98.4 35.6 97.1 41.4 Q 91.6 42.8 86.0 41.4 Z" transform="rotate(30.4 91.6 41.4)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 83.7 54.8 Q 82.1 46.5 86.7 41.2 Q 87.1 36.5 85.7 25.4 Q 91.4 37.1 94.5 42.4 Q 98.8 47.7 97.2 54.8 Q 90.4 56.5 83.7 54.8 Z" transform="rotate(37.0 90.4 54.8)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 80.0 65.7 Q 79.2 61.6 81.5 58.9 Q 82.9 56.6 84.4 51.0 Q 84.9 56.9 85.4 59.5 Q 87.6 62.2 86.8 65.7 Q 83.4 66.6 80.0 65.7 Z" transform="rotate(40.3 83.4 65.7)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 66.1 74.7 Q 65.3 70.3 67.7 67.5 Q 68.4 65.0 68.4 59.1 Q 70.6 65.3 71.9 68.1 Q 74.2 70.9 73.3 74.7 Q 69.7 75.6 66.1 74.7 Z" transform="rotate(35.3 69.7 74.7)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 41.5 78.2 Q 40.7 74.2 42.9 71.6 Q 43.8 69.3 44.3 63.9 Q 45.8 69.6 46.8 72.2 Q 48.9 74.8 48.1 78.2 Q 44.8 79.1 41.5 78.2 Z" transform="rotate(-12.6 44.8 78.2)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 31.9 76.5 Q 31.0 72.0 33.5 69.1 Q 35.0 66.5 36.4 60.3 Q 37.2 66.8 37.8 69.7 Q 40.2 72.6 39.3 76.5 Q 35.6 77.5 31.9 76.5 Z" transform="rotate(-29.5 35.6 76.5)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 21.0 71.0 Q 20.5 68.4 22.0 66.7 Q 22.7 65.1 23.1 61.5 Q 24.0 65.3 24.5 67.0 Q 25.9 68.7 25.4 71.0 Q 23.2 71.6 21.0 71.0 Z" transform="rotate(-39.4 23.2 71.0)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 8.8 60.8 Q 7.8 56.1 10.4 53.1 Q 11.3 50.4 11.5 44.0 Q 13.7 50.7 14.9 53.8 Q 17.4 56.8 16.4 60.8 Q 12.6 61.8 8.8 60.8 Z" transform="rotate(-39.2 12.6 60.8)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 2.9 49.2 Q 1.7 42.8 5.3 38.7 Q 8.6 35.0 12.9 26.3 Q 11.5 35.4 11.4 39.6 Q 14.7 43.7 13.5 49.2 Q 8.2 50.6 2.9 49.2 Z" transform="rotate(-34.5 8.2 49.2)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 4.9 33.3 Q 3.4 25.4 7.7 20.4 Q 11.3 15.9 15.6 5.3 Q 14.9 16.5 15.2 21.5 Q 19.3 26.6 17.8 33.3 Q 11.3 35.0 4.9 33.3 Z" transform="rotate(-25.4 11.3 33.3)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 16.9 22.4 Q 15.9 17.1 18.8 13.8 Q 18.8 10.8 17.3 3.7 Q 21.6 11.2 23.8 14.5 Q 26.5 17.9 25.5 22.4 Q 21.2 23.5 16.9 22.4 Z" transform="rotate(-16.8 21.2 22.4)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 34.3 14.9 Q 33.4 10.6 35.8 7.8 Q 37.1 5.3 38.3 -0.5 Q 39.2 5.7 39.9 8.4 Q 42.2 11.2 41.4 14.9 Q 37.8 15.8 34.3 14.9 Z" transform="rotate(-6.6 37.8 14.9)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 49.4 13.5 Q 48.8 10.9 50.4 9.2 Q 51.2 7.7 52.0 4.2 Q 52.5 7.9 52.9 9.6 Q 54.4 11.3 53.8 13.5 Q 51.6 14.1 49.4 13.5 Z" transform="rotate(0.9 51.6 13.5)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 59.5 15.0 Q 58.8 11.4 60.9 9.0 Q 61.5 6.9 61.6 2.0 Q 63.4 7.2 64.5 9.5 Q 66.4 11.9 65.7 15.0 Q 62.6 15.8 59.5 15.0 Z" transform="rotate(6.8 62.6 15.0)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 76.3 23.3 Q 75.4 18.9 78.0 16.1 Q 79.8 13.5 81.9 7.6 Q 81.9 13.9 82.3 16.7 Q 84.7 19.5 83.8 23.3 Q 80.1 24.3 76.3 23.3 Z" transform="rotate(17.7 80.1 23.3)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 85.6 34.5 Q 84.7 30.2 87.2 27.4 Q 88.4 25.0 89.3 19.1 Q 90.6 25.3 91.5 28.0 Q 93.8 30.8 92.9 34.5 Q 89.3 35.4 85.6 34.5 Z" transform="rotate(26.2 89.3 34.5)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 88.4 41.4 Q 87.6 37.6 89.8 35.2 Q 89.9 33.0 88.9 27.9 Q 91.9 33.3 93.5 35.7 Q 95.6 38.1 94.8 41.4 Q 91.6 42.2 88.4 41.4 Z" transform="rotate(30.4 91.6 41.4)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 86.5 54.8 Q 85.6 50.2 88.2 47.2 Q 88.5 44.6 87.6 38.3 Q 91.0 44.9 92.8 47.9 Q 95.3 50.8 94.4 54.8 Q 90.4 55.8 86.5 54.8 Z" transform="rotate(37.0 90.4 54.8)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 81.4 65.7 Q 81.0 63.4 82.3 61.9 Q 83.1 60.6 84.0 57.5 Q 84.3 60.8 84.6 62.3 Q 85.8 63.7 85.3 65.7 Q 83.4 66.2 81.4 65.7 Z" transform="rotate(40.3 83.4 65.7)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 67.6 74.7 Q 67.1 72.2 68.5 70.7 Q 68.9 69.3 68.9 65.9 Q 70.2 69.4 71.0 71.0 Q 72.3 72.6 71.8 74.7 Q 69.7 75.2 67.6 74.7 Z" transform="rotate(35.3 69.7 74.7)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 42.9 78.2 Q 42.4 76.0 43.7 74.5 Q 44.2 73.2 44.5 70.2 Q 45.4 73.4 45.9 74.9 Q 47.2 76.3 46.7 78.2 Q 44.8 78.7 42.9 78.2 Z" transform="rotate(-12.6 44.8 78.2)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 33.4 76.5 Q 32.9 74.0 34.4 72.3 Q 35.3 70.9 36.1 67.4 Q 36.5 71.1 36.9 72.7 Q 38.3 74.3 37.8 76.5 Q 35.6 77.1 33.4 76.5 Z" transform="rotate(-29.5 35.6 76.5)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 21.9 71.0 Q 21.6 69.5 22.5 68.6 Q 22.9 67.7 23.2 65.7 Q 23.7 67.8 24.0 68.8 Q 24.8 69.7 24.5 71.0 Q 23.2 71.3 21.9 71.0 Z" transform="rotate(-39.4 23.2 71.0)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 10.4 60.8 Q 9.8 58.2 11.3 56.5 Q 11.8 55.0 12.0 51.4 Q 13.2 55.2 13.9 56.8 Q 15.4 58.5 14.8 60.8 Q 12.6 61.3 10.4 60.8 Z" transform="rotate(-39.2 12.6 60.8)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 5.1 49.2 Q 4.4 45.6 6.5 43.3 Q 8.5 41.2 11.0 36.4 Q 10.1 41.5 10.0 43.8 Q 12.0 46.1 11.3 49.2 Q 8.2 49.9 5.1 49.2 Z" transform="rotate(-34.5 8.2 49.2)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 7.6 33.3 Q 6.7 28.9 9.3 26.1 Q 11.4 23.6 13.9 17.6 Q 13.5 23.9 13.6 26.7 Q 16.0 29.5 15.1 33.3 Q 11.3 34.2 7.6 33.3 Z" transform="rotate(-25.4 11.3 33.3)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 18.7 22.4 Q 18.1 19.4 19.8 17.6 Q 19.8 15.9 18.9 11.9 Q 21.4 16.1 22.7 18.0 Q 24.3 19.9 23.7 22.4 Q 21.2 23.0 18.7 22.4 Z" transform="rotate(-16.8 21.2 22.4)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 35.8 14.9 Q 35.3 12.5 36.7 10.9 Q 37.4 9.6 38.1 6.3 Q 38.6 9.7 39.1 11.3 Q 40.4 12.8 39.9 14.9 Q 37.8 15.4 35.8 14.9 Z" transform="rotate(-6.6 37.8 14.9)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="67.8" cy="-28.7" r="0.76" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo5-glow)"/>
-                        <circle cx="95.6" cy="-25.3" r="0.83" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo5-glow)"/>
-                        <circle cx="110.3" cy="9.4" r="0.72" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo5-glow)"/>
-                        <circle cx="112.2" cy="25.9" r="0.88" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo5-glow)"/>
-                        <circle cx="11.8" cy="-8.8" r="0.84" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo5-glow)"/>
-                        <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="91" cy="47" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="24" cy="75" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="80" cy="72" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="35" cy="11" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="73" cy="9" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="9" cy="61" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="93" cy="62" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="42" cy="5" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="66" cy="6" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="17" cy="35" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="87" cy="35" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
-                        <circle cx="31" cy="86" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
-                        <g transform="translate(50 50) scale(1.254) translate(-50 -50)">
-                        <g class="tm-animate-tail">
-                            <path d="M 48.9 63.4 Q 54.3 76.7 58.9 87.4 Q 55.5 76.2 51.1 62.6 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 48.8 63.1 Q 51.5 81.1 54.0 95.8 Q 52.9 80.9 51.2 62.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 48.8 62.9 Q 47.1 80.9 46.0 95.8 Q 48.5 81.1 51.2 63.1 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 48.9 62.6 Q 44.5 76.2 41.1 87.4 Q 45.7 76.7 51.1 63.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 48.1 63.3 Q 53.9 70.0 58.9 75.3 Q 56.0 68.6 51.9 60.7 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 47.9 62.9 Q 53.2 72.3 58.0 79.7 Q 55.6 71.2 52.1 61.1 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 47.8 62.6 Q 51.9 74.5 55.8 84.1 Q 54.4 73.8 52.2 61.4 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 47.7 62.2 Q 49.9 76.5 52.2 88.2 Q 52.5 76.3 52.3 61.8 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 47.7 61.8 Q 47.5 76.3 47.8 88.2 Q 50.1 76.5 52.3 62.2 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 47.8 61.4 Q 45.6 73.8 44.2 84.1 Q 48.1 74.5 52.2 62.6 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 47.9 61.1 Q 44.4 71.2 42.0 79.7 Q 46.8 72.3 52.1 62.9 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 48.1 60.7 Q 44.0 68.6 41.1 75.3 Q 46.1 70.0 51.9 63.3 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 49.2 41.1 Q 29.4 23.5 12.3 10.0 Q 24.7 27.9 40.8 48.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 48.5 40.1 Q 25.1 26.3 5.1 16.0 Q 21.1 31.8 41.5 49.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 47.4 39.8 Q 22.5 30.9 1.6 24.8 Q 19.8 36.8 42.6 50.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 46.3 39.7 Q 21.6 36.0 1.2 34.1 Q 20.1 42.0 43.7 50.3 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 45.3 39.8 Q 22.6 40.9 4.0 42.9 Q 22.3 46.8 44.7 50.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 44.3 40.3 Q 25.2 45.1 9.8 50.0 Q 26.0 50.3 45.7 49.7 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 43.6 41.0 Q 29.3 47.9 17.8 54.4 Q 30.8 52.4 46.4 49.0 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 46.5 38.7 Q 27.3 26.3 10.9 17.0 Q 23.4 31.1 39.5 47.3 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 45.7 37.9 Q 23.9 29.2 5.5 23.1 Q 20.9 34.9 40.3 48.1 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 44.6 37.7 Q 22.2 33.4 3.5 30.9 Q 20.4 39.3 41.4 48.3 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 43.5 37.8 Q 22.0 37.8 4.3 38.9 Q 21.4 43.7 42.5 48.2 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 42.6 38.0 Q 23.4 41.9 7.7 46.1 Q 23.8 47.5 43.4 48.0 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 41.8 38.7 Q 26.1 45.2 13.5 51.5 Q 27.5 50.1 44.2 47.3 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 41.2 39.4 Q 29.8 47.2 20.9 54.2 Q 31.9 51.2 44.8 46.6 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 46.2 39.6 Q 35.2 32.1 25.5 26.7 Q 31.6 35.9 39.8 46.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 45.6 38.9 Q 33.0 33.5 22.1 29.9 Q 30.1 38.1 40.4 47.1 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 44.7 38.6 Q 31.6 35.8 20.6 34.4 Q 29.8 40.7 41.3 47.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 43.8 38.6 Q 31.2 38.4 20.8 39.1 Q 30.3 43.3 42.2 47.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 42.9 38.8 Q 31.7 40.8 22.5 43.4 Q 31.8 45.6 43.1 47.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 42.2 39.3 Q 33.0 42.9 25.6 46.7 Q 33.9 47.1 43.8 46.7 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".8"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <g transform="translate(100,0) scale(-1,1)">
-                            <path d="M 49.2 41.1 Q 29.4 23.5 12.3 10.0 Q 24.7 27.9 40.8 48.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 48.5 40.1 Q 25.1 26.3 5.1 16.0 Q 21.1 31.8 41.5 49.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 47.4 39.8 Q 22.5 30.9 1.6 24.8 Q 19.8 36.8 42.6 50.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 46.3 39.7 Q 21.6 36.0 1.2 34.1 Q 20.1 42.0 43.7 50.3 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 45.3 39.8 Q 22.6 40.9 4.0 42.9 Q 22.3 46.8 44.7 50.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 44.3 40.3 Q 25.2 45.1 9.8 50.0 Q 26.0 50.3 45.7 49.7 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 43.6 41.0 Q 29.3 47.9 17.8 54.4 Q 30.8 52.4 46.4 49.0 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 46.5 38.7 Q 27.3 26.3 10.9 17.0 Q 23.4 31.1 39.5 47.3 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 45.7 37.9 Q 23.9 29.2 5.5 23.1 Q 20.9 34.9 40.3 48.1 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 44.6 37.7 Q 22.2 33.4 3.5 30.9 Q 20.4 39.3 41.4 48.3 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 43.5 37.8 Q 22.0 37.8 4.3 38.9 Q 21.4 43.7 42.5 48.2 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 42.6 38.0 Q 23.4 41.9 7.7 46.1 Q 23.8 47.5 43.4 48.0 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 41.8 38.7 Q 26.1 45.2 13.5 51.5 Q 27.5 50.1 44.2 47.3 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 41.2 39.4 Q 29.8 47.2 20.9 54.2 Q 31.9 51.2 44.8 46.6 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 46.2 39.6 Q 35.2 32.1 25.5 26.7 Q 31.6 35.9 39.8 46.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 45.6 38.9 Q 33.0 33.5 22.1 29.9 Q 30.1 38.1 40.4 47.1 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 44.7 38.6 Q 31.6 35.8 20.6 34.4 Q 29.8 40.7 41.3 47.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 43.8 38.6 Q 31.2 38.4 20.8 39.1 Q 30.3 43.3 42.2 47.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 42.9 38.8 Q 31.7 40.8 22.5 43.4 Q 31.8 45.6 43.1 47.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 42.2 39.3 Q 33.0 42.9 25.6 46.7 Q 33.9 47.1 43.8 46.7 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".8"/>
-                            </g>
-                        </g>
-                        <ellipse cx="50" cy="18.5" rx="7.5" ry="2.2" fill="none" stroke="#ffd740" stroke-width="1.1" opacity=".85" filter="url(#phoenix-evo5-glow)"/>
-                        <g class="tm-animate-body">
-                            <path d="M 50 35 C 42.5 38.5 40.5 46 42 54 C 43.5 61 47 65.5 50 66.5 C 53 65.5 56.5 61 58 54 C 59.5 46 57.5 38.5 50 35 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width="1.1"/>
-                            <path d="M 44.5 45 Q 50 42.8 55.5 45 M 44 52 Q 50 49.8 56 52 M 46 59 Q 50 57 54 59" fill="none" stroke="#7b1308" stroke-width=".45" opacity=".3"/>
-                            <ellipse cx="50" cy="51" rx="6.5" ry="8" fill="url(#phoenix-evo5-core)" opacity="0.9" filter="url(#phoenix-evo5-glow)"/>
-                            <path d="M 43 30 Q 43 23 50 22 Q 57 23 57 30 Q 56 36 50 37 Q 44 36 43 30 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width="1"/>
-                            <path d="M 51.2 21.9 L 47.9 18.9 L 46.5 18.4 L 45.5 16.6 L 43.0 15.2 L 45.8 19.7 L 48.8 24.1 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 51.3 22.2 L 48.2 17.8 L 46.8 16.8 L 45.9 14.5 L 43.3 12.1 L 45.9 18.1 L 48.7 23.8 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 51.5 22.4 L 48.9 16.7 L 47.5 15.1 L 46.9 12.3 L 44.6 9.0 L 46.4 16.3 L 48.5 23.6 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 51.5 22.7 L 49.9 15.7 L 48.8 13.6 L 48.6 10.3 L 46.9 6.0 L 47.5 14.7 L 48.5 23.3 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 51.6 23.0 L 51.2 14.8 L 50.5 12.3 L 50.9 8.6 L 50.0 3.5 L 49.1 13.3 L 48.4 23.0 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 51.5 23.3 L 52.5 16.1 L 52.2 13.8 L 53.3 10.6 L 53.1 6.0 L 50.6 14.3 L 48.5 22.7 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 51.5 23.6 L 53.4 17.5 L 53.4 15.5 L 54.9 13.0 L 55.4 9.0 L 51.8 15.7 L 48.5 22.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 51.3 23.8 L 53.8 19.1 L 54.1 17.3 L 55.7 15.4 L 56.7 12.1 L 52.5 17.1 L 48.7 22.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 51.2 24.1 L 53.8 20.5 L 54.2 19.0 L 55.9 17.9 L 57.0 15.2 L 52.8 18.5 L 48.8 21.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
-                        <g class="tm-mascot-eye-open">
-                            <circle cx="46.8" cy="28.8" r="2.9" fill="#ffab00" opacity=".5" filter="url(#phoenix-evo5-glow)"/>
-                            <circle cx="53.2" cy="28.8" r="2.9" fill="#ffab00" opacity=".5" filter="url(#phoenix-evo5-glow)"/>
-                            <circle cx="46.8" cy="28.8" r="1.7" fill="#ffab00" stroke="#5d1306" stroke-width=".45"/>
-                            <circle cx="53.2" cy="28.8" r="1.7" fill="#ffab00" stroke="#5d1306" stroke-width=".45"/>
-                            <ellipse cx="46.9" cy="28.95" rx="0.41" ry="1.44" fill="#1b0502"/>
-                            <ellipse cx="53.300000000000004" cy="28.95" rx="0.41" ry="1.44" fill="#1b0502"/>
-                            <circle cx="46.29" cy="28.205000000000002" r="0.37" fill="#fffde7"/>
-                            <circle cx="52.690000000000005" cy="28.205000000000002" r="0.37" fill="#fffde7"/>
-                            <path d="M 44 25.8 L 49.199999999999996 28.1 L 44 27.8 Z" fill="#4a0a02"/>
-                            <path d="M 56 25.8 L 50.800000000000004 28.1 L 56 27.8 Z" fill="#4a0a02"/>
-                            <path d="M 43.8 25.6 L 49.4 27.900000000000002" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
-                            <path d="M 56.2 25.6 L 50.6 27.900000000000002" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 45.3 28.8 Q 46.8 27.6 48.3 28.8" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
-                            <path d="M 51.7 28.8 Q 53.2 27.6 54.7 28.8" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 47.1 32.8 Q 50 31.999999999999996 52.9 32.8 L 51.45 36 Q 50 38.199999999999996 49.8 38.8 Q 48.405 37.4 48.26 36 Z" fill="url(#phoenix-evo5-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.1 33.3 Q 50 32.5 52.9 33.3 L 51.305 36.8 Q 50 39 49.7 39.599999999999994 Q 48.55 38 48.405 36.8 Z" fill="url(#phoenix-evo5-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
-                        </g>
-                        <g class="tm-animate-arm-left" opacity=".001"><circle cx="44" cy="48" r=".4"/></g>
-                        <g class="tm-animate-arm-right" opacity=".001"><circle cx="56" cy="48" r=".4"/></g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 46.5 63 Q 44.3 65.5 44.7 68.5 M 44.7 68.5 Q 42.2 70 41 72.8 L 40.4 74.2 M 44.7 68.5 Q 44.9 71.6 44.2 74 L 43.9 75.4 M 44.7 68.5 Q 47 70.6 48.2 73 L 48.8 74.4" fill="none" stroke="#d4a54a" stroke-width="1.6" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 53.5 63 Q 55.7 65.5 55.3 68.5 M 55.3 68.5 Q 57.8 70 59 72.8 L 59.6 74.2 M 55.3 68.5 Q 55.1 71.6 55.8 74 L 56.1 75.4 M 55.3 68.5 Q 53 70.6 51.8 73 L 51.2 74.4" fill="none" stroke="#d4a54a" stroke-width="1.6" stroke-linecap="round"/>
-                        </g>
-                        </g>
-                </g>
-                <!-- CRYSTAL CHARACTER - All Life Stages (dense cute epic v3) -->
+                                <!-- CRYSTAL CHARACTER - All Life Stages (dense cute epic v3) -->
                 <!-- Aether & Stone • Epic Rarity • Prism Titan -->
                 <!-- ═══════════════════════════════════════ -->
 
                 <!-- CRYSTAL BABY — round gem spawn -->
-                <g id="tm-mascot-baby-crystal" style="display: none;">
+                <g id="tm-mascot-evo1-crystal" style="display: none;">
                     <defs>
                         <linearGradient id="crystal-baby-body" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:1" />
@@ -17204,226 +14366,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
 
                 </g>
-
-                <!-- CRYSTAL KID — prism cluster -->
-                <g id="tm-mascot-evo1-crystal" style="display: none;">
-                    <defs>
-                        <linearGradient id="crystal-kid-body" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#80deea;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#0097a7;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="crystal-kid-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#76ff03;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#006064;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="crystal-kid-iris" cx="35%" cy="30%" r="65%">
-                            <stop offset="0%" style="stop-color:#b2ebf2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#006064;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="crystal-kid-facet" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.75" />
-                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0.08" />
-                        </linearGradient>
-                        <radialGradient id="crystal-kid-aura" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#4dd0e1;stop-opacity:0.28" />
-                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="92" rx="26" ry="5" fill="#1a1a1a" opacity="0.2"/>
-                        <ellipse cx="50" cy="52" rx="38" ry="36" fill="url(#crystal-kid-aura)"/>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 28 48 L 10 30 L 16 50 L 8 58 L 30 56 Z" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.2"/>
-                            <path d="M 16 44 L 6 36" stroke="#fff" stroke-width="0.75" opacity="0.45"/>
-                            <path d="M 14 50 L 10 54" stroke="#76ff03" stroke-width="0.65" opacity="0.4"/>
-                            <circle cx="7" cy="34" r="1.3" fill="#76ff03" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 72 48 L 90 30 L 84 50 L 92 58 L 70 56 Z" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.2"/>
-                            <path d="M 84 44 L 94 36" stroke="#fff" stroke-width="0.75" opacity="0.45"/>
-                            <path d="M 86 50 L 90 54" stroke="#76ff03" stroke-width="0.65" opacity="0.4"/>
-                            <circle cx="93" cy="34" r="1.3" fill="#76ff03" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 64 72 L 82 84 L 76 68 L 68 66 Z" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.1"/>
-                            <path d="M 72 74 L 78 80" stroke="#fff" stroke-width="0.65" opacity="0.4"/>
-                            <circle cx="80" cy="82" r="1.8" fill="#76ff03" opacity="0.6"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Cluster nodes -->
-                            <circle cx="42" cy="60" r="10" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.3"/>
-                            <circle cx="58" cy="58" r="11" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.3"/>
-                            <circle cx="50" cy="68" r="9" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.2"/>
-                            <path d="M 42 52 L 50 48 L 58 52" stroke="#fff" stroke-width="0.6" opacity="0.3" fill="none"/>
-                            <path d="M 44 66 L 50 62 L 56 66" stroke="#fff" stroke-width="0.55" opacity="0.25" fill="none"/>
-                            <circle cx="50" cy="62" r="7" fill="url(#crystal-kid-core)"/>
-                            <circle cx="50" cy="62" r="3" fill="#fff" opacity="0.6"/>
-                            <path d="M 50 30 L 60 40 L 50 46 L 40 40 Z" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.3"/>
-                            <path d="M 44 38 L 50 32 L 50 42 Z" fill="url(#crystal-kid-facet)"/>
-                            <circle cx="38" cy="56" r="1.5" fill="#76ff03" opacity="0.45"/>
-                            <circle cx="62" cy="54" r="1.4" fill="#4dd0e1" opacity="0.4"/>
-                            <circle cx="46" cy="72" r="1.2" fill="#fff" opacity="0.3"/>
-                            <circle cx="36" cy="54" r="1.2" fill="#fff" opacity="0.25"/>
-                            <circle cx="64" cy="56" r="1.1" fill="#fff" opacity="0.24"/>
-                            <path d="M 46 52 L 50 56 L 54 52" stroke="#4dd0e1" stroke-width="0.7" fill="none" opacity="0.32"/>
-                            <ellipse cx="44" cy="64" rx="2" ry="1.4" fill="#fff" opacity="0.16"/>
-                            <ellipse cx="56" cy="66" rx="2" ry="1.4" fill="#fff" opacity="0.15"/>
-                            <circle cx="50" cy="38" r="1.3" fill="#76ff03" opacity="0.38"/>
-                            <circle cx="34" cy="60" r="1.1" fill="#fff" opacity="0.22"/>
-                            <circle cx="66" cy="62" r="1.1" fill="#fff" opacity="0.21"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="43" cy="36" rx="6" ry="6.8" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
-                            <ellipse cx="57" cy="36" rx="6" ry="6.8" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
-                            <ellipse cx="43.5" cy="36.5" rx="3.3000000000000003" ry="3.9439999999999995" fill="url(#crystal-kid-iris)"/>
-                            <ellipse cx="57.5" cy="36.5" rx="3.3000000000000003" ry="3.9439999999999995" fill="url(#crystal-kid-iris)"/>
-                            <ellipse cx="43.5" cy="36.8" rx="1.6800000000000002" ry="2.38" fill="#050508"/>
-                            <ellipse cx="57.5" cy="36.8" rx="1.6800000000000002" ry="2.38" fill="#050508"/>
-                            <circle cx="44.5" cy="33.62" r="1.6800000000000002" fill="#fff"/>
-                            <circle cx="58.5" cy="33.62" r="1.6800000000000002" fill="#fff"/>
-                            <circle cx="40.9" cy="38.38" r="0.72" fill="#b2ebf2" opacity="0.75"/>
-                            <circle cx="54.9" cy="38.38" r="0.72" fill="#b2ebf2" opacity="0.75"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 37 36 Q 43 33 49 36" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 51 36 Q 57 33 63 36" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 45 44 L 50 49 L 55 44" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 48 L 50 43 L 55 48" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 32 58 L 18 50 L 20 68 L 28 66 Z" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.1"/>
-                            <path d="M 20 68 L 14 76 L 18 74 L 22 78 Z" fill="url(#crystal-kid-body)" stroke="#76ff03" stroke-width="0.85"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 68 58 L 82 50 L 80 68 L 72 66 Z" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.1"/>
-                            <path d="M 80 68 L 86 76 L 82 74 L 78 78 Z" fill="url(#crystal-kid-body)" stroke="#76ff03" stroke-width="0.85"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 40 78 L 36 90 L 44 90 Z" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.1"/>
-                            <ellipse cx="40" cy="90" rx="6" ry="2.5" fill="#006064"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 60 78 L 56 90 L 64 90 Z" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.1"/>
-                            <ellipse cx="60" cy="90" rx="6" ry="2.5" fill="#006064"/>
-                        </g>
-
-
-
-
-                </g>
-
-                <!-- CRYSTAL TEEN — facet warrior -->
-                <g id="tm-mascot-evo2-crystal" style="display: none;">
-                    <defs>
-                        <linearGradient id="crystal-teen-body" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#b2ebf2;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#26c6da;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#00838f;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="crystal-teen-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#76ff03;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#006064;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="crystal-teen-iris" cx="35%" cy="30%" r="65%">
-                            <stop offset="0%" style="stop-color:#b2ebf2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#006064;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="crystal-teen-facet" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.75" />
-                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0.08" />
-                        </linearGradient>
-                        <radialGradient id="crystal-teen-aura" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#4dd0e1;stop-opacity:0.28" />
-                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="94" rx="28" ry="5" fill="#1a1a1a" opacity="0.22"/>
-                        <ellipse cx="50" cy="50" rx="40" ry="38" fill="url(#crystal-teen-aura)"/>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 28 46 L 8 28 L 14 50 L 6 58 L 26 56 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1.3"/>
-                            <path d="M 20 42 L 12 34" stroke="#fff" stroke-width="0.8" opacity="0.45"/>
-                            <path d="M 18 50 L 10 54" stroke="#76ff03" stroke-width="0.7" opacity="0.4"/>
-                            <path d="M 16 38 L 10 30" stroke="#4dd0e1" stroke-width="0.9"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 72 46 L 92 28 L 86 50 L 94 58 L 74 56 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1.3"/>
-                            <path d="M 80 42 L 88 34" stroke="#fff" stroke-width="0.8" opacity="0.45"/>
-                            <path d="M 82 50 L 90 54" stroke="#76ff03" stroke-width="0.7" opacity="0.4"/>
-                            <path d="M 84 38 L 90 30" stroke="#4dd0e1" stroke-width="0.9"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 64 74 L 84 88 L 78 70 L 70 68 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1.2"/>
-                            <path d="M 72 72 L 80 80" stroke="#fff" stroke-width="0.7" opacity="0.4"/>
-                            <path d="M 76 76 L 82 84" stroke="#76ff03" stroke-width="0.65" opacity="0.35"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <path d="M 50 30 L 68 42 L 68 66 L 50 78 L 32 66 L 32 42 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1.7"/>
-                            <path d="M 50 30 L 50 78" stroke="#fff" stroke-width="0.65" opacity="0.28"/>
-                            <path d="M 32 42 L 68 66" stroke="#fff" stroke-width="0.55" opacity="0.22"/>
-                            <path d="M 68 42 L 32 66" stroke="#006064" stroke-width="0.5" opacity="0.25"/>
-                            <!-- Spikes -->
-                            <path d="M 32 42 L 22 32 L 34 46 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1"/>
-                            <path d="M 68 42 L 78 32 L 66 46 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1"/>
-                            <path d="M 50 78 L 44 90 L 56 90 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1"/>
-                            <path d="M 40 36 L 50 42 L 44 50 Z" fill="url(#crystal-teen-facet)"/>
-                            <circle cx="50" cy="54" r="9" fill="url(#crystal-teen-core)"/>
-                            <circle cx="50" cy="54" r="4" fill="#fff" opacity="0.55"/>
-                            <path d="M 50 18 L 60 28 L 50 34 L 40 28 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1.3"/>
-                            <path d="M 44 26 L 50 20 L 50 30 Z" fill="url(#crystal-teen-facet)"/>
-                            <circle cx="38" cy="58" r="1.5" fill="#76ff03" opacity="0.45"/>
-                            <circle cx="62" cy="60" r="1.3" fill="#4dd0e1" opacity="0.4"/>
-                            <circle cx="36" cy="50" r="1.2" fill="#fff" opacity="0.22"/>
-                            <circle cx="64" cy="52" r="1.1" fill="#fff" opacity="0.2"/>
-                            <path d="M 46 50 L 50 54 L 54 50" stroke="#76ff03" stroke-width="0.75" fill="none" opacity="0.4"/>
-                            <ellipse cx="42" cy="60" rx="2.2" ry="1.5" fill="#fff" opacity="0.17"/>
-                            <ellipse cx="58" cy="62" rx="2.2" ry="1.5" fill="#fff" opacity="0.16"/>
-                            <circle cx="32" cy="50" r="1.1" fill="#fff" opacity="0.2"/>
-                            <circle cx="68" cy="52" r="1.1" fill="#fff" opacity="0.19"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="43" cy="30" rx="6" ry="6.8" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
-                            <ellipse cx="57" cy="30" rx="6" ry="6.8" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
-                            <ellipse cx="43.5" cy="30.5" rx="3.3000000000000003" ry="3.9439999999999995" fill="url(#crystal-teen-iris)"/>
-                            <ellipse cx="57.5" cy="30.5" rx="3.3000000000000003" ry="3.9439999999999995" fill="url(#crystal-teen-iris)"/>
-                            <ellipse cx="43.5" cy="30.8" rx="1.6800000000000002" ry="2.38" fill="#050508"/>
-                            <ellipse cx="57.5" cy="30.8" rx="1.6800000000000002" ry="2.38" fill="#050508"/>
-                            <circle cx="44.5" cy="27.62" r="1.6800000000000002" fill="#fff"/>
-                            <circle cx="58.5" cy="27.62" r="1.6800000000000002" fill="#fff"/>
-                            <circle cx="40.9" cy="32.38" r="0.72" fill="#b2ebf2" opacity="0.75"/>
-                            <circle cx="54.9" cy="32.38" r="0.72" fill="#b2ebf2" opacity="0.75"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 37 30 Q 43 27 49 30" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 51 30 Q 57 27 63 30" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 45 40 L 50 45 L 55 40" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 44 L 50 39 L 55 44" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 32 56 L 16 48 L 18 68 L 28 66 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1.2"/>
-                            <path d="M 18 68 L 12 76 L 16 74 L 20 78 Z" fill="url(#crystal-teen-body)" stroke="#76ff03" stroke-width="0.95"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 68 56 L 84 48 L 82 68 L 72 66 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1.2"/>
-                            <path d="M 82 68 L 88 76 L 84 74 L 80 78 Z" fill="url(#crystal-teen-body)" stroke="#76ff03" stroke-width="0.95"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 40 78 L 34 92 L 46 92 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1.2"/>
-                            <ellipse cx="40" cy="92" rx="7" ry="2.5" fill="#006064"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 60 78 L 54 92 L 66 92 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1.2"/>
-                            <ellipse cx="60" cy="92" rx="7" ry="2.5" fill="#006064"/>
-                        </g>
-
-
-
-
-                </g>
-
-                <!-- CRYSTAL ADULT — Prism Titan -->
-                <g id="tm-mascot-evo3-crystal" style="display: none;">
+<g id="tm-mascot-evo2-crystal" style="display: none;">
                     <defs>
                         <linearGradient id="crystal-adult-body" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:1" />
@@ -17531,9 +14474,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
 
                 </g>
-
-                <!-- CRYSTAL MIDDLE AGE — veined colossus -->
-                <g id="tm-mascot-evo4-crystal" style="display: none;">
+<g id="tm-mascot-evo3-crystal" style="display: none;">
                     <defs>
                         <linearGradient id="crystal-mid-body" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#80cbc4;stop-opacity:1" />
@@ -17648,122 +14589,21 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
                 </g>
 
+                <!-- CRYSTAL KID — prism cluster -->
+                
+                <!-- CRYSTAL TEEN — facet warrior -->
+                
+                <!-- CRYSTAL ADULT — Prism Titan -->
+                
+                <!-- CRYSTAL MIDDLE AGE — veined colossus -->
+                
                 <!-- CRYSTAL OLD — eternal crystal -->
-                <g id="tm-mascot-evo5-crystal" style="display: none;">
-                    <defs>
-                        <linearGradient id="crystal-old-body" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#b39ddb;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#7e57c2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="crystal-old-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#ea80fc;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#7b1fa2;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="crystal-old-iris" cx="35%" cy="30%" r="65%">
-                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4a148c;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="crystal-old-facet" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.75" />
-                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:0.08" />
-                        </linearGradient>
-                        <radialGradient id="crystal-old-aura" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ea80fc;stop-opacity:0.38" />
-                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:0" />
-                        </radialGradient>
-                    </defs>
-                        <ellipse cx="50" cy="98" rx="34" ry="5" fill="#1a1a1a" opacity="0.18"/>
-                        <ellipse cx="50" cy="50" rx="46" ry="44" fill="url(#crystal-old-aura)"/>
-                        <ellipse cx="50" cy="50" rx="38" ry="36" fill="none" stroke="#ce93d8" stroke-width="1" opacity="0.3"/>
-                        <!-- Orbit gems -->
-                        <circle cx="22" cy="32" r="4" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="0.9" opacity="0.75"/>
-                        <circle cx="78" cy="30" r="3.5" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="0.85" opacity="0.7"/>
-                        <circle cx="18" cy="58" r="3" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="0.8" opacity="0.65"/>
-                        <circle cx="82" cy="56" r="3.2" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="0.85" opacity="0.68"/>
-                        <circle cx="50" cy="14" r="2.8" fill="#ea80fc" opacity="0.6"/>
-                        <ellipse cx="50" cy="50" rx="28" ry="26" fill="none" stroke="#b39ddb" stroke-width="0.6" opacity="0.25"/>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 24 46 L 4 24 L 10 50 L 0 58 L 22 56 Z" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="1.3" opacity="0.85"/>
-                            <path d="M 12 40 L 6 32" stroke="#fff" stroke-width="0.75" opacity="0.4"/>
-                            <circle cx="4" cy="28" r="1.4" fill="#ea80fc" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 76 46 L 96 24 L 90 50 L 100 58 L 78 56 Z" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="1.3" opacity="0.85"/>
-                            <path d="M 88 40 L 94 32" stroke="#fff" stroke-width="0.75" opacity="0.4"/>
-                            <circle cx="96" cy="28" r="1.4" fill="#ea80fc" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 62 70 L 84 86 L 76 66 L 68 64 Z" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="1.1" opacity="0.8"/>
-                            <circle cx="82" cy="84" r="2.2" fill="#ea80fc" opacity="0.65"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <path d="M 50 26 L 68 38 L 68 64 L 50 76 L 32 64 L 32 38 Z" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="1.8" opacity="0.92"/>
-                            <path d="M 50 26 L 50 76" stroke="#fff" stroke-width="0.65" opacity="0.28"/>
-                            <path d="M 32 38 L 68 64" stroke="#e1bee7" stroke-width="0.55" opacity="0.22"/>
-                            <path d="M 68 38 L 32 64" stroke="#7b1fa2" stroke-width="0.5" opacity="0.22"/>
-                            <path d="M 40 34 L 50 42 L 44 50 Z" fill="url(#crystal-old-facet)"/>
-                            <circle cx="50" cy="52" r="12" fill="url(#crystal-old-core)"/>
-                            <circle cx="50" cy="52" r="6" fill="#ea80fc" opacity="0.85"/>
-                            <circle cx="50" cy="52" r="3" fill="#fff" opacity="0.7"/>
-                            <path d="M 50 16 L 62 26 L 50 30 L 38 26 Z" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="1.4"/>
-                            <path d="M 44 24 L 50 18 L 50 28 Z" fill="url(#crystal-old-facet)"/>
-                            <circle cx="36" cy="56" r="1.6" fill="#ea80fc" opacity="0.5"/>
-                            <circle cx="64" cy="58" r="1.4" fill="#ce93d8" opacity="0.45"/>
-                            <circle cx="34" cy="50" r="1.2" fill="#fff" opacity="0.22"/>
-                            <circle cx="66" cy="52" r="1.1" fill="#fff" opacity="0.2"/>
-                            <path d="M 44 44 L 50 48 L 56 44" stroke="#ea80fc" stroke-width="0.75" fill="none" opacity="0.45"/>
-                            <ellipse cx="40" cy="56" rx="2.2" ry="1.5" fill="#fff" opacity="0.2"/>
-                            <ellipse cx="60" cy="58" rx="2.2" ry="1.5" fill="#fff" opacity="0.19"/>
-                            <line x1="50" y1="36" x2="50" y2="42" stroke="#e1bee7" stroke-width="0.65" opacity="0.35"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="43" cy="26" rx="5.5" ry="6.2" fill="#f3e5f5" stroke="#ce93d8" stroke-width="1.5"/>
-                            <ellipse cx="57" cy="26" rx="5.5" ry="6.2" fill="#f3e5f5" stroke="#ce93d8" stroke-width="1.5"/>
-                            <ellipse cx="43.5" cy="26.5" rx="3.0250000000000004" ry="3.5959999999999996" fill="url(#crystal-old-iris)"/>
-                            <ellipse cx="57.5" cy="26.5" rx="3.0250000000000004" ry="3.5959999999999996" fill="url(#crystal-old-iris)"/>
-                            <ellipse cx="43.5" cy="26.8" rx="1.54" ry="2.17" fill="#050508"/>
-                            <ellipse cx="57.5" cy="26.8" rx="1.54" ry="2.17" fill="#050508"/>
-                            <circle cx="44.5" cy="23.83" r="1.54" fill="#fff"/>
-                            <circle cx="58.5" cy="23.83" r="1.54" fill="#fff"/>
-                            <circle cx="41.075" cy="28.17" r="0.6599999999999999" fill="#b2ebf2" opacity="0.75"/>
-                            <circle cx="55.075" cy="28.17" r="0.6599999999999999" fill="#b2ebf2" opacity="0.75"/>
-                        </g>
-<g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 37.5 26 Q 43 23 48.5 26" stroke="#ce93d8" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 51.5 26 Q 57 23 62.5 26" stroke="#ce93d8" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-<path class="tm-mascot-mouth-happy" d="M 45 36 L 50 41 L 55 36" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-<path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 40 L 50 35 L 55 40" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 30 52 L 14 44 L 16 66 L 26 64 Z" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="1.2" opacity="0.9"/>
-                            <path d="M 16 66 L 10 74 L 14 72 L 18 76 Z" fill="url(#crystal-old-body)" stroke="#ea80fc" stroke-width="0.9"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 70 52 L 86 44 L 84 66 L 74 64 Z" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="1.2" opacity="0.9"/>
-                            <path d="M 84 66 L 90 74 L 86 72 L 82 76 Z" fill="url(#crystal-old-body)" stroke="#ea80fc" stroke-width="0.9"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 40 76 L 36 88 L 44 86 Z" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="1.1" opacity="0.75"/>
-                            <ellipse cx="40" cy="88" rx="5" ry="2" fill="#7b1fa2" opacity="0.6"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 60 76 L 56 88 L 64 86 Z" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="1.1" opacity="0.75"/>
-                            <ellipse cx="60" cy="88" rx="5" ry="2" fill="#7b1fa2" opacity="0.6"/>
-                        </g>
-
-
-
-
-                </g>
-                <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v12 · natural avian cosmic wings) -->
+                                <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v12 · natural avian cosmic wings) -->
                 <!-- Voidseed → Veilspawn → Astral Warden → Star Sovereign → Eclipse Tyrant → Primordial -->
                 <!-- ═══════════════════════════════════════ -->
 
                 <!-- AETHER BABY — Voidseed -->
-                <g id="tm-mascot-baby-aether" style="display: none;">
+                <g id="tm-mascot-evo1-aether" style="display: none;">
                     <defs>
                     <radialGradient id="aether-baby-body" cx="38%" cy="24%" r="85%">
                         <stop offset="0%" style="stop-color:#9aa0c8;stop-opacity:1" />
@@ -17949,476 +14789,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <path class="tm-mascot-mouth-happy" d="M 47 60 L 49.1 60.7 L 50.9 60.7 L 53 60" stroke="#1a122e" stroke-width="1.3" fill="none" stroke-linecap="round"/>
                     <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47 61.5 Q 50 59 53 61.5" stroke="#1a122e" stroke-width="1.3" fill="none" stroke-linecap="round"/>
                 </g>
-
-                <!-- AETHER KID — Veilspawn -->
-                <g id="tm-mascot-evo1-aether" style="display: none;">
-                    <defs>
-                    <radialGradient id="aether-kid-body" cx="38%" cy="24%" r="85%">
-                        <stop offset="0%" style="stop-color:#8b90b8;stop-opacity:1" />
-                        <stop offset="42%" style="stop-color:#3f3368;stop-opacity:1" />
-                        <stop offset="78%" style="stop-color:#241848;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#0e061c;stop-opacity:1" />
-                    </radialGradient>
-                    <linearGradient id="aether-kid-cloak" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#241848;stop-opacity:1" />
-                        <stop offset="55%" style="stop-color:#0e061c;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#04010a;stop-opacity:1" />
-                    </linearGradient>
-                    <radialGradient id="aether-kid-core" cx="50%" cy="45%" r="55%">
-                        <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-                        <stop offset="32%" style="stop-color:#36c9b8;stop-opacity:1" />
-                        <stop offset="70%" style="stop-color:#b8962a;stop-opacity:.85" />
-                        <stop offset="100%" style="stop-color:#04010a;stop-opacity:0" />
-                    </radialGradient>
-                    <linearGradient id="aether-kid-wing" x1="8%" y1="0%" x2="92%" y2="100%">
-                        <stop offset="0%" style="stop-color:#b8962a;stop-opacity:.45" />
-                        <stop offset="28%" style="stop-color:#36c9b8;stop-opacity:.5" />
-                        <stop offset="62%" style="stop-color:#241848;stop-opacity:.72" />
-                        <stop offset="100%" style="stop-color:#04010a;stop-opacity:.88" />
-                    </linearGradient>
-                    <linearGradient id="aether-kid-blade" x1="15%" y1="0%" x2="85%" y2="100%">
-                        <stop offset="0%" style="stop-color:#b8962a;stop-opacity:.85" />
-                        <stop offset="35%" style="stop-color:#36c9b8;stop-opacity:.75" />
-                        <stop offset="70%" style="stop-color:#241848;stop-opacity:.92" />
-                        <stop offset="100%" style="stop-color:#04010a;stop-opacity:1" />
-                    </linearGradient>
-                    <linearGradient id="aether-kid-feather" x1="10%" y1="0%" x2="80%" y2="100%">
-                        <stop offset="0%" style="stop-color:#b8962a;stop-opacity:.8" />
-                        <stop offset="40%" style="stop-color:#36c9b8;stop-opacity:.78" />
-                        <stop offset="75%" style="stop-color:#241848;stop-opacity:.95" />
-                        <stop offset="100%" style="stop-color:#04010a;stop-opacity:1" />
-                    </linearGradient>
-                    <radialGradient id="aether-kid-iris" cx="40%" cy="35%" r="65%">
-                        <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
-                        <stop offset="55%" style="stop-color:#36c9b8;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#04010a;stop-opacity:1" />
-                    </radialGradient>
-                    <radialGradient id="aether-kid-aura" cx="50%" cy="52%" r="70%">
-                        <stop offset="0%" style="stop-color:#36c9b8;stop-opacity:.2" />
-                        <stop offset="45%" style="stop-color:#3f3368;stop-opacity:.1" />
-                        <stop offset="100%" style="stop-color:#04010a;stop-opacity:0" />
-                    </radialGradient>
-                    <linearGradient id="aether-kid-goldrim" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#b8962a;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#241848;stop-opacity:1" />
-                    </linearGradient>
-                    <filter id="aether-kid-glow" x="-80%" y="-80%" width="260%" height="260%">
-                        <feGaussianBlur stdDeviation="1.1" result="b"/>
-                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
-                    </defs>
-                    <ellipse cx="50" cy="96" rx="17" ry="3.6" fill="#05010c" opacity="0.25"/>
-                    <g class="tm-aether-fx " data-fx="aura" opacity="0">
-                    <ellipse class="tm-aether-aura" cx="50" cy="52" rx="38" ry="34" fill="url(#aether-kid-aura)"/>
-                    </g>
-                    <g class="tm-aether-fx " data-fx="corona" opacity="0">
-                    <circle class="tm-aether-corona" cx="50" cy="50" r="30" fill="none" stroke="#36c9b8" stroke-width="0.8" opacity="0.5" stroke-dasharray="3 4"/>
-                    <circle class="tm-aether-corona" cx="50" cy="50" r="36" fill="none" stroke="#b8962a" stroke-width="0.5" opacity="0.35" stroke-dasharray="1.5 5"/>
-                    </g>
-                    <g class="tm-aether-fx " data-fx="sparks" opacity="0">
-                    <circle class="tm-aether-spark" cx="55.34" cy="41.31" r="1.57" fill="#36c9b8"/>
-                    <circle class="tm-aether-spark" cx="47.82" cy="21.2" r="0.72" fill="#b8962a"/>
-                    <circle class="tm-aether-spark" cx="46.02" cy="27.18" r="1.75" fill="#8b90b8"/>
-                    <circle class="tm-aether-spark" cx="12.88" cy="33.59" r="1.79" fill="#36c9b8"/>
-                    <circle class="tm-aether-spark" cx="34.86" cy="57.42" r="0.72" fill="#b8962a"/>
-                    </g>
-                    <g class="tm-animate-wing-left">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="34" cy="54" r="2.56" fill="#b8962a" opacity="0.45" filter="url(#aether-kid-glow)"/>
-                    <circle cx="34" cy="54" r="1.28" fill="#ffffff" opacity="0.9"/>
-                    <path d="M 34.68 54.92 Q 34.38 49.2 29.68 47.54 Q 25.91 46.49 25.4 47 Q 24.89 47.51 26.11 51.11 Q 28.11 55.48 33.49 56.11 Z" fill="#241848" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 32.85 48.1 Q 32.57 41.67 27.31 40.46 Q 23.09 39.8 22.52 40.45 Q 21.94 41.1 23.28 44.99 Q 25.47 49.65 31.5 49.61 Z" fill="#241848" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 30.88 42.43 Q 30.05 35.89 24.54 34.84 Q 20.15 34.32 19.62 35 Q 19.08 35.68 20.78 39.59 Q 23.43 44.26 29.62 44.01 Z" fill="#3f3368" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 28.79 37.93 Q 26.96 31.96 21.45 30.74 Q 17.12 30.05 16.71 30.64 Q 16.29 31.23 18.56 34.87 Q 21.86 39.24 27.83 39.31 Z" fill="#241848" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 34 54 C 29.2 28.4 24.08 24.56 20.88 29.36 S 14.16 40.16 10.96 41.76 Q 13.52 62.96 32.4 57.84 Q 32.4 55.6 34 54" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.45" opacity="0.72"/>
-                    <path d="M 22.91 30.99 Q 19.37 24.82 12.81 24.3 Q 7.72 24.19 7.4 24.89 Q 7.07 25.58 10.54 29.18 Q 15.36 33.4 22.16 32.62 Z" fill="#36c9b8" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 19.72 35.36 Q 15.07 28.38 7.27 28.1 Q 1.25 28.22 0.91 29.04 Q 0.58 29.86 4.95 33.86 Q 10.97 38.52 18.95 37.28 Z" fill="#36c9b8" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 16.49 38.86 Q 11.12 31.73 2.82 31.84 Q -3.58 32.28 -3.89 33.16 Q -4.19 34.05 0.69 38.04 Q 7.36 42.65 15.78 40.93 Z" fill="#3f3368" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 13.21 41.52 Q 7.85 35.07 0.07 35.6 Q -5.92 36.35 -6.16 37.2 Q -6.4 38.05 -1.64 41.57 Q 4.83 45.58 12.64 43.51 Z" fill="#36c9b8" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 9.91 43.32 Q 5.16 38.02 -1.36 38.88 Q -6.36 39.83 -6.53 40.58 Q -6.71 41.33 -2.57 44.12 Q 3.03 47.25 9.51 45.07 Z" fill="#3f3368" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
-                    <circle cx="17.19" cy="30.7" r="0.26" fill="#b8962a" opacity="0.48"/>
-                    <circle cx="28.65" cy="33.42" r="0.66" fill="#b8962a" opacity="0.36"/>
-                    <circle cx="16.23" cy="33.38" r="0.38" fill="#b8962a" opacity="0.84"/>
-                    <circle cx="3.65" cy="41.12" r="0.46" fill="#36c9b8" opacity="0.77"/>
-                    <circle cx="7.59" cy="40.09" r="0.46" fill="#36c9b8" opacity="0.55"/>
-                    <path class="tm-aether-wing-crack" d="M 30.8 52.08 Q 22.48 29.36 11.92 41.76" fill="none" stroke="#b8962a" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
-                    <path class="tm-aether-wing-vein" d="M 34 54 Q 22.48 29.36 10.96 41.76" fill="none" stroke="#b8962a" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 10.96 41.76 C 2.96 36.96 1.36 48.8 -1.84 52.64 Q 0.72 59.04 9.36 48.8 Q 11.6 44.32 10.96 41.76" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.4" opacity="0.65"/>
-                    <path d="M 11.05 40.71 Q 4.95 35.93 -2.1 37.7 Q -7.46 39.35 -7.53 40.14 Q -7.6 40.93 -2.58 43.23 Q 4.1 45.66 10.89 42.55 Z" fill="#b8962a" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 10.8 41.54 Q 4.77 36.05 -3.03 36.64 Q -9 37.38 -9.16 38.12 Q -9.33 38.86 -4.19 41.82 Q 2.73 45.18 10.41 43.27 Z" fill="#241848" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 10.53 42.39 Q 4.67 36.12 -3.68 35.36 Q -10.1 35.06 -10.35 35.74 Q -10.6 36.42 -5.43 40.12 Q 1.58 44.51 9.94 43.98 Z" fill="#36c9b8" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 10.24 43.25 Q 4.67 36.14 -4.01 33.91 Q -10.7 32.47 -11.03 33.08 Q -11.35 33.69 -6.27 38.19 Q 0.69 43.68 9.49 44.68 Z" fill="#36c9b8" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 9.93 44.12 Q 4.77 36.15 -3.98 32.35 Q -10.75 29.69 -11.13 30.22 Q -11.51 30.76 -6.64 36.1 Q 0.07 42.76 9.04 45.37 Z" fill="#36c9b8" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 9.61 44.99 Q 5 36.14 -3.55 30.73 Q -10.19 26.81 -10.62 27.27 Q -11.04 27.72 -6.53 33.92 Q -0.25 41.77 8.61 46.06 Z" fill="#241848" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
-                    <path class="tm-aether-wing-tatter" d="M 13.52 61.68 Q 10.96 64.88 15.12 63.6" fill="#b8962a" opacity="0.35"/>
-                    <path class="tm-aether-wing-tatter" d="M -9.02 28.23 Q -11.58 30.15 -8.38 29.51" fill="#36c9b8" opacity="0.4"/>
-                    <path class="tm-aether-wing-vein" d="M 10.96 41.76 Q 0.17 32.91 -10.62 27.27" fill="none" stroke="#36c9b8" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-10.62" cy="27.27" rx="1.02" ry="0.7" fill="#b8962a" opacity="0.85" filter="url(#aether-kid-glow)"/>
-                    </g>
-                    </g>
-                    </g>
-                    </g>
-                    <g class="tm-animate-wing-right">
-                    <g transform="translate(100,0) scale(-1,1)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="34" cy="54" r="2.56" fill="#b8962a" opacity="0.45" filter="url(#aether-kid-glow)"/>
-                    <circle cx="34" cy="54" r="1.28" fill="#ffffff" opacity="0.9"/>
-                    <path d="M 34.68 54.92 Q 34.38 49.2 29.68 47.54 Q 25.91 46.49 25.4 47 Q 24.89 47.51 26.11 51.11 Q 28.11 55.48 33.49 56.11 Z" fill="#241848" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 32.85 48.1 Q 32.57 41.67 27.31 40.46 Q 23.09 39.8 22.52 40.45 Q 21.94 41.1 23.28 44.99 Q 25.47 49.65 31.5 49.61 Z" fill="#3f3368" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 30.88 42.43 Q 30.05 35.89 24.54 34.84 Q 20.15 34.32 19.62 35 Q 19.08 35.68 20.78 39.59 Q 23.43 44.26 29.62 44.01 Z" fill="#241848" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 28.79 37.93 Q 26.96 31.96 21.45 30.74 Q 17.12 30.05 16.71 30.64 Q 16.29 31.23 18.56 34.87 Q 21.86 39.24 27.83 39.31 Z" fill="#241848" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 34 54 C 29.2 28.4 24.08 24.56 20.88 29.36 S 14.16 40.16 10.96 41.76 Q 13.52 62.96 32.4 57.84 Q 32.4 55.6 34 54" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.45" opacity="0.72"/>
-                    <path d="M 22.91 30.99 Q 19.37 24.82 12.81 24.3 Q 7.72 24.19 7.4 24.89 Q 7.07 25.58 10.54 29.18 Q 15.36 33.4 22.16 32.62 Z" fill="#36c9b8" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 19.72 35.36 Q 15.07 28.38 7.27 28.1 Q 1.25 28.22 0.91 29.04 Q 0.58 29.86 4.95 33.86 Q 10.97 38.52 18.95 37.28 Z" fill="#3f3368" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 16.49 38.86 Q 11.12 31.73 2.82 31.84 Q -3.58 32.28 -3.89 33.16 Q -4.19 34.05 0.69 38.04 Q 7.36 42.65 15.78 40.93 Z" fill="#36c9b8" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 13.21 41.52 Q 7.85 35.07 0.07 35.6 Q -5.92 36.35 -6.16 37.2 Q -6.4 38.05 -1.64 41.57 Q 4.83 45.58 12.64 43.51 Z" fill="#3f3368" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 9.91 43.32 Q 5.16 38.02 -1.36 38.88 Q -6.36 39.83 -6.53 40.58 Q -6.71 41.33 -2.57 44.12 Q 3.03 47.25 9.51 45.07 Z" fill="#3f3368" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
-                    <circle cx="17.81" cy="32.41" r="0.39" fill="#b8962a" opacity="0.71"/>
-                    <circle cx="17.48" cy="32.64" r="0.65" fill="#b8962a" opacity="0.8"/>
-                    <circle cx="21.71" cy="32.16" r="0.29" fill="#b8962a" opacity="0.94"/>
-                    <circle cx="8.44" cy="38.72" r="0.61" fill="#36c9b8" opacity="0.89"/>
-                    <circle cx="12.8" cy="44.18" r="0.34" fill="#36c9b8" opacity="0.54"/>
-                    <path class="tm-aether-wing-crack" d="M 30.8 52.08 Q 22.48 29.36 11.92 41.76" fill="none" stroke="#b8962a" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
-                    <path class="tm-aether-wing-vein" d="M 34 54 Q 22.48 29.36 10.96 41.76" fill="none" stroke="#b8962a" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 10.96 41.76 C 2.96 36.96 1.36 48.8 -1.84 52.64 Q 0.72 59.04 9.36 48.8 Q 11.6 44.32 10.96 41.76" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.4" opacity="0.65"/>
-                    <path d="M 11.05 40.71 Q 4.95 35.93 -2.1 37.7 Q -7.46 39.35 -7.53 40.14 Q -7.6 40.93 -2.58 43.23 Q 4.1 45.66 10.89 42.55 Z" fill="#241848" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 10.8 41.54 Q 4.77 36.05 -3.03 36.64 Q -9 37.38 -9.16 38.12 Q -9.33 38.86 -4.19 41.82 Q 2.73 45.18 10.41 43.27 Z" fill="#36c9b8" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 10.53 42.39 Q 4.67 36.12 -3.68 35.36 Q -10.1 35.06 -10.35 35.74 Q -10.6 36.42 -5.43 40.12 Q 1.58 44.51 9.94 43.98 Z" fill="#36c9b8" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 10.24 43.25 Q 4.67 36.14 -4.01 33.91 Q -10.7 32.47 -11.03 33.08 Q -11.35 33.69 -6.27 38.19 Q 0.69 43.68 9.49 44.68 Z" fill="#36c9b8" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 9.93 44.12 Q 4.77 36.15 -3.98 32.35 Q -10.75 29.69 -11.13 30.22 Q -11.51 30.76 -6.64 36.1 Q 0.07 42.76 9.04 45.37 Z" fill="#241848" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
-                    <path d="M 9.61 44.99 Q 5 36.14 -3.55 30.73 Q -10.19 26.81 -10.62 27.27 Q -11.04 27.72 -6.53 33.92 Q -0.25 41.77 8.61 46.06 Z" fill="#241848" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
-                    <path class="tm-aether-wing-tatter" d="M 13.52 61.68 Q 10.96 64.88 15.12 63.6" fill="#b8962a" opacity="0.35"/>
-                    <path class="tm-aether-wing-tatter" d="M -9.02 28.23 Q -11.58 30.15 -8.38 29.51" fill="#36c9b8" opacity="0.4"/>
-                    <path class="tm-aether-wing-vein" d="M 10.96 41.76 Q 0.17 32.91 -10.62 27.27" fill="none" stroke="#36c9b8" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-10.62" cy="27.27" rx="1.02" ry="0.7" fill="#b8962a" opacity="0.85" filter="url(#aether-kid-glow)"/>
-                    </g>
-                    </g>
-                    </g>
-                    </g>
-                    </g>
-                    <g class="tm-animate-tail">
-                    <path d="M 56 78 Q 66 82 68 92 Q 60 88 54 82 Z" fill="url(#aether-kid-blade)" opacity="0.6"/>
-                    <circle cx="67" cy="90" r="1.1" fill="#b8962a" opacity="0.8"/>
-                    </g>
-                    <g class="tm-animate-body">
-                    <path d="M 50 30 L 66 36 L 74 50 L 70 64 L 76 80 L 62 74 L 56 86 L 50 78 L 44 86 L 38 74 L 24 80 L 30 64 L 26 50 L 34 36 Z" fill="url(#aether-kid-body)" stroke="#160e28" stroke-width="1.3"/>
-                    <path d="M 50 36 L 62 40 L 68 52 L 64 64 L 68 76 L 50 70 L 32 76 L 36 64 L 32 52 L 38 40 Z" fill="url(#aether-kid-cloak)" opacity="0.5"/>
-                    <circle cx="36.6" cy="61.47" r="0.54" fill="#b8962a" opacity="0.39"/>
-                    <circle cx="39.82" cy="63.79" r="0.26" fill="#b8962a" opacity="0.84"/>
-                    <circle cx="47.64" cy="49.28" r="0.4" fill="#b8962a" opacity="0.47"/>
-                    <circle cx="59.48" cy="49.35" r="0.55" fill="#b8962a" opacity="0.87"/>
-                    <circle cx="55.64" cy="51.44" r="0.3" fill="#b8962a" opacity="0.83"/>
-                    <circle cx="50.12" cy="48.13" r="0.43" fill="#b8962a" opacity="0.44"/>
-                    <circle cx="50.05" cy="47.07" r="0.52" fill="#b8962a" opacity="0.69"/>
-                    <circle cx="60.98" cy="49.68" r="0.53" fill="#b8962a" opacity="0.53"/>
-                    <circle cx="46.14" cy="67.4" r="0.66" fill="#b8962a" opacity="0.43"/>
-                    <path d="M 38 34 L 34 26 L 40 30 Z" fill="url(#aether-kid-goldrim)" stroke="#160e28" stroke-width="0.6"/>
-                    <path d="M 62 34 L 66 26 L 60 30 Z" fill="url(#aether-kid-goldrim)" stroke="#160e28" stroke-width="0.6"/>
-                    <circle class="tm-aether-core" cx="50" cy="62" r="4" fill="url(#aether-kid-core)"/>
-                    <circle class="tm-aether-core-ring" cx="50" cy="62" r="6.4" fill="none" stroke="#36c9b8" stroke-width="0.55" opacity="0.4"/>
-                    </g>
-                    <g class="tm-aether-regalia">
-                    <path d="M 44 21 Q 50 17 56 21" fill="none" stroke="#36c9b8" stroke-width="0.7" opacity="0.6" stroke-dasharray="1.6 1.4"/>
-                    <circle cx="50" cy="18.5" r="1.4" fill="#b8962a" opacity="0.9" filter="url(#aether-kid-glow)"/>
-                    </g>
-                    <g class="tm-animate-arm-left">
-                    <path d="M 34 54 Q 27 58 26 66 Q 31 62 35 59 Z" fill="url(#aether-kid-body)" stroke="#160e28" stroke-width="0.8" opacity="0.9"/>
-                    </g>
-                    <g class="tm-animate-arm-right">
-                    <path d="M 66 54 Q 73 58 74 66 Q 69 62 65 59 Z" fill="url(#aether-kid-body)" stroke="#160e28" stroke-width="0.8" opacity="0.9"/>
-                    </g>
-                    <g class="tm-animate-leg-left">
-                    <path d="M 43 84 Q 42 89 44 92 Q 46 89 45 84 Z" fill="#3f3368" opacity="0.45"/>
-                    </g>
-                    <g class="tm-animate-leg-right">
-                    <path d="M 57 84 Q 58 89 56 92 Q 54 89 55 84 Z" fill="#3f3368" opacity="0.45"/>
-                    </g>
-                    <g class="tm-mascot-eye-open tm-aether-eyes">
-                    <ellipse class="tm-aether-eye-sclera" cx="44" cy="44" rx="3.1" ry="4" fill="#1a1228" stroke="#160e28" stroke-width="1.1" opacity="0.94"/>
-                    <ellipse class="tm-aether-eye-sclera" cx="56" cy="44" rx="3.1" ry="4" fill="#1a1228" stroke="#160e28" stroke-width="1.1" opacity="0.94"/>
-                    <ellipse class="tm-aether-iris" cx="44" cy="44" rx="1.61" ry="2.4" fill="url(#aether-kid-iris)"/>
-                    <ellipse class="tm-aether-iris" cx="56" cy="44" rx="1.61" ry="2.4" fill="url(#aether-kid-iris)"/>
-                    <ellipse cx="44" cy="44" rx="0.62" ry="1.36" fill="#05010c"/>
-                    <ellipse cx="56" cy="44" rx="0.62" ry="1.36" fill="#05010c"/>
-                    <circle cx="43.23" cy="42.8" r="0.55" fill="#ffffff" opacity="0.9"/>
-                    <circle cx="55.23" cy="42.8" r="0.55" fill="#ffffff" opacity="0.9"/>
-                    <path d="M 40.9 40.4 L 47.1 43.8 L 47.1 39 L 40.9 39 Z" fill="url(#aether-kid-cloak)"/>
-                    <path d="M 59.1 40.4 L 52.9 43.8 L 52.9 39 L 59.1 39 Z" fill="url(#aether-kid-cloak)"/>
-                    <line x1="40.3" y1="40.2" x2="47.5" y2="43.92" stroke="#160e28" stroke-width="1.2" stroke-linecap="round"/>
-                    <line x1="59.7" y1="40.2" x2="52.5" y2="43.92" stroke="#160e28" stroke-width="1.2" stroke-linecap="round"/>
-                    </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                    <path d="M 40.9 44 Q 44 45.4 47.1 44" stroke="#160e28" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    <path d="M 52.9 44 Q 56 45.4 59.1 44" stroke="#160e28" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <path class="tm-mascot-mouth-happy" d="M 46.8 53 L 49.04 53.7 L 50.96 53.7 L 53.2 53" stroke="#160e28" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 46.8 54.5 Q 50 52 53.2 54.5" stroke="#160e28" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                </g>
-
-                <!-- AETHER TEEN — Astral Warden -->
-                <g id="tm-mascot-evo2-aether" style="display: none;">
-                    <defs>
-                    <radialGradient id="aether-teen-body" cx="38%" cy="24%" r="85%">
-                        <stop offset="0%" style="stop-color:#7e84ae;stop-opacity:1" />
-                        <stop offset="42%" style="stop-color:#34285c;stop-opacity:1" />
-                        <stop offset="78%" style="stop-color:#1c123c;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#0a0416;stop-opacity:1" />
-                    </radialGradient>
-                    <linearGradient id="aether-teen-cloak" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#1c123c;stop-opacity:1" />
-                        <stop offset="55%" style="stop-color:#0a0416;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#030108;stop-opacity:1" />
-                    </linearGradient>
-                    <radialGradient id="aether-teen-core" cx="50%" cy="45%" r="55%">
-                        <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-                        <stop offset="32%" style="stop-color:#2fc4b4;stop-opacity:1" />
-                        <stop offset="70%" style="stop-color:#a88420;stop-opacity:.85" />
-                        <stop offset="100%" style="stop-color:#030108;stop-opacity:0" />
-                    </radialGradient>
-                    <linearGradient id="aether-teen-wing" x1="8%" y1="0%" x2="92%" y2="100%">
-                        <stop offset="0%" style="stop-color:#a88420;stop-opacity:.45" />
-                        <stop offset="28%" style="stop-color:#2fc4b4;stop-opacity:.5" />
-                        <stop offset="62%" style="stop-color:#1c123c;stop-opacity:.72" />
-                        <stop offset="100%" style="stop-color:#030108;stop-opacity:.88" />
-                    </linearGradient>
-                    <linearGradient id="aether-teen-blade" x1="15%" y1="0%" x2="85%" y2="100%">
-                        <stop offset="0%" style="stop-color:#a88420;stop-opacity:.85" />
-                        <stop offset="35%" style="stop-color:#2fc4b4;stop-opacity:.75" />
-                        <stop offset="70%" style="stop-color:#1c123c;stop-opacity:.92" />
-                        <stop offset="100%" style="stop-color:#030108;stop-opacity:1" />
-                    </linearGradient>
-                    <linearGradient id="aether-teen-feather" x1="10%" y1="0%" x2="80%" y2="100%">
-                        <stop offset="0%" style="stop-color:#a88420;stop-opacity:.8" />
-                        <stop offset="40%" style="stop-color:#2fc4b4;stop-opacity:.78" />
-                        <stop offset="75%" style="stop-color:#1c123c;stop-opacity:.95" />
-                        <stop offset="100%" style="stop-color:#030108;stop-opacity:1" />
-                    </linearGradient>
-                    <radialGradient id="aether-teen-iris" cx="40%" cy="35%" r="65%">
-                        <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
-                        <stop offset="55%" style="stop-color:#2fc4b4;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#030108;stop-opacity:1" />
-                    </radialGradient>
-                    <radialGradient id="aether-teen-aura" cx="50%" cy="52%" r="70%">
-                        <stop offset="0%" style="stop-color:#2fc4b4;stop-opacity:.2" />
-                        <stop offset="45%" style="stop-color:#34285c;stop-opacity:.1" />
-                        <stop offset="100%" style="stop-color:#030108;stop-opacity:0" />
-                    </radialGradient>
-                    <linearGradient id="aether-teen-goldrim" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#a88420;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#1c123c;stop-opacity:1" />
-                    </linearGradient>
-                    <filter id="aether-teen-glow" x="-80%" y="-80%" width="260%" height="260%">
-                        <feGaussianBlur stdDeviation="1.1" result="b"/>
-                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
-                    </defs>
-                    <ellipse cx="50" cy="96" rx="19" ry="3.8" fill="#05010c" opacity="0.28"/>
-                    <g class="tm-aether-fx " data-fx="aura" opacity="0">
-                    <ellipse class="tm-aether-aura" cx="50" cy="52" rx="38" ry="34" fill="url(#aether-teen-aura)"/>
-                    </g>
-                    <g class="tm-aether-fx " data-fx="corona" opacity="0">
-                    <circle class="tm-aether-corona" cx="50" cy="50" r="30" fill="none" stroke="#2fc4b4" stroke-width="0.8" opacity="0.5" stroke-dasharray="3 4"/>
-                    <circle class="tm-aether-corona" cx="50" cy="50" r="36" fill="none" stroke="#a88420" stroke-width="0.5" opacity="0.35" stroke-dasharray="1.5 5"/>
-                    </g>
-                    <g class="tm-aether-fx " data-fx="haze" opacity="0">
-                    <g class="tm-aether-haze">
-                        <ellipse class="tm-aether-haze-blob" cx="30" cy="40" rx="12" ry="7" fill="#34285c" opacity="0.2"/>
-                        <ellipse class="tm-aether-haze-blob" cx="68" cy="58" rx="14" ry="8" fill="#2fc4b4" opacity="0.14"/>
-                        <ellipse class="tm-aether-haze-blob" cx="50" cy="26" rx="10" ry="6" fill="#a88420" opacity="0.12"/>
-                    </g>
-                    </g>
-                    <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
-                    <path class="tm-aether-beam-glow" d="M 46 6 L 54 6 L 52 46 L 48 46 Z" fill="#a88420" opacity="0.18"/>
-                    <path d="M 30 12 L 34 12 L 33 44 L 31 44 Z" fill="#2fc4b4" opacity="0.14"/>
-                    <path d="M 66 12 L 70 12 L 69 44 L 67 44 Z" fill="#2fc4b4" opacity="0.14"/>
-                    </g>
-                    <g class="tm-aether-fx " data-fx="sigil" opacity="0">
-                    <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="22" ry="4.5" fill="none" stroke="#2fc4b4" stroke-width="0.8" opacity="0.6"/>
-                    <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="15" ry="3" fill="none" stroke="#a88420" stroke-width="0.5" opacity="0.5" stroke-dasharray="2 2"/>
-                    <path class="tm-aether-sigil" d="M 50 90 L 54 94 L 50 98 L 46 94 Z" fill="none" stroke="#7e84ae" stroke-width="0.5" opacity="0.55"/>
-                    </g>
-                    <g class="tm-animate-wing-left">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="35" cy="46" r="3.2" fill="#a88420" opacity="0.45" filter="url(#aether-teen-glow)"/>
-                    <circle cx="35" cy="46" r="1.6" fill="#ffffff" opacity="0.9"/>
-                    <path d="M 35.85 47.15 Q 35.48 40 29.59 37.93 Q 24.89 36.62 24.25 37.25 Q 23.62 37.89 25.14 42.38 Q 27.63 47.84 34.36 48.64 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 34.14 40.16 Q 33.85 32.3 27.41 30.67 Q 22.26 29.74 21.55 30.51 Q 20.84 31.29 22.45 36.08 Q 25.11 41.83 32.49 41.96 Z" fill="#1c123c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 32.35 34.02 Q 31.76 25.79 24.97 24.44 Q 19.55 23.76 18.84 24.61 Q 18.12 25.46 19.98 30.39 Q 22.96 36.28 30.69 36 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 30.45 28.78 Q 29.13 20.72 22.23 19.39 Q 16.75 18.71 16.11 19.54 Q 15.47 20.37 17.76 25.21 Q 21.26 30.98 28.96 30.72 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 28.49 24.42 Q 26.2 16.95 19.31 15.43 Q 13.9 14.57 13.38 15.31 Q 12.87 16.04 15.7 20.59 Q 19.83 26.04 27.28 26.14 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 35 46 C 29 12 22.6 7.2 18.6 13.2 S 10.2 27.4 6.2 29.4 Q 9.4 57.2 33 50.8 Q 33 48 35 46" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.45" opacity="0.72"/>
-                    <path d="M 21.14 15.24 Q 16.71 7.52 8.51 6.88 Q 2.15 6.74 1.75 7.61 Q 1.34 8.48 5.67 12.97 Q 11.7 18.25 20.19 17.27 Z" fill="#34285c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 17.96 19.84 Q 12.39 11.27 2.91 10.84 Q -4.43 10.92 -4.84 11.92 Q -5.26 12.92 0 17.84 Q 7.26 23.6 16.98 22.18 Z" fill="#34285c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 14.73 23.73 Q 8.29 14.77 -1.99 14.7 Q -9.92 15.07 -10.32 16.16 Q -10.72 17.25 -4.79 22.32 Q 3.35 28.19 13.8 26.27 Z" fill="#1c123c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 11.47 26.95 Q 4.66 18.27 -5.61 18.62 Q -13.52 19.33 -13.88 20.44 Q -14.23 21.54 -8.09 26.35 Q 0.28 31.89 10.65 29.53 Z" fill="#2fc4b4" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 8.18 29.5 Q 1.59 21.69 -7.87 22.46 Q -15.14 23.45 -15.43 24.5 Q -15.71 25.54 -9.88 29.77 Q -1.96 34.58 7.51 31.94 Z" fill="#34285c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 4.89 31.35 Q -1.05 24.73 -9.2 25.8 Q -15.45 26.99 -15.67 27.92 Q -15.88 28.86 -10.71 32.35 Q -3.72 36.26 4.38 33.54 Z" fill="#1c123c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
-                    <circle cx="24.34" cy="11.63" r="0.65" fill="#a88420" opacity="0.43"/>
-                    <circle cx="27.18" cy="13.26" r="0.31" fill="#a88420" opacity="0.68"/>
-                    <circle cx="18.87" cy="13.73" r="0.62" fill="#a88420" opacity="0.56"/>
-                    <circle cx="0.54" cy="33.66" r="0.26" fill="#2fc4b4" opacity="0.38"/>
-                    <circle cx="7.41" cy="28.62" r="0.36" fill="#2fc4b4" opacity="0.58"/>
-                    <circle cx="9.96" cy="28.5" r="0.47" fill="#2fc4b4" opacity="0.41"/>
-                    <path class="tm-aether-wing-crack" d="M 31 43.6 Q 20.6 13.2 7.4 29.4" fill="none" stroke="#a88420" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
-                    <path class="tm-aether-wing-vein" d="M 35 46 Q 20.6 13.2 6.2 29.4" fill="none" stroke="#a88420" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 6.2 29.4 C -3.8 23.4 -5.8 39 -9.8 43.8 Q -6.6 51.8 4.2 38.2 Q 7 32.6 6.2 29.4" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.4" opacity="0.65"/>
-                    <path d="M 6.32 28.09 Q -1.31 22.12 -10.12 24.33 Q -16.83 26.39 -16.91 27.38 Q -17 28.36 -10.73 31.23 Q -2.38 34.28 6.11 30.39 Z" fill="#a88420" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 6.05 28.95 Q -1.51 22.24 -11.11 23.24 Q -18.46 24.36 -18.65 25.3 Q -18.83 26.24 -12.43 29.79 Q -3.82 33.79 5.61 31.14 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 5.77 29.83 Q -1.63 22.32 -11.87 21.96 Q -19.73 22.03 -20.01 22.91 Q -20.29 23.78 -13.83 28.1 Q -5.08 33.13 5.12 31.88 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 5.48 30.72 Q -1.68 22.37 -12.36 20.52 Q -20.58 19.44 -20.94 20.25 Q -21.3 21.06 -14.88 26.18 Q -6.12 32.34 4.64 32.61 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 5.17 31.62 Q -1.64 22.38 -12.55 18.95 Q -20.98 16.65 -21.41 17.38 Q -21.84 18.12 -15.56 24.09 Q -6.94 31.43 4.17 33.33 Z" fill="#1c123c" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 4.85 32.53 Q -1.5 22.38 -12.42 17.3 Q -20.87 13.72 -21.36 14.37 Q -21.85 15.02 -15.83 21.88 Q -7.5 30.44 3.71 34.05 Z" fill="#1c123c" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 4.51 33.44 Q -1.25 22.38 -11.94 15.61 Q -20.24 10.71 -20.77 11.28 Q -21.31 11.86 -15.67 19.6 Q -7.82 29.41 3.27 34.77 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path class="tm-aether-wing-tatter" d="M 9.4 55.6 Q 6.2 59.6 11.4 58" fill="#a88420" opacity="0.35"/>
-                    <path class="tm-aether-wing-tatter" d="M -18.77 12.48 Q -21.97 14.88 -17.97 14.08" fill="#2fc4b4" opacity="0.4"/>
-                    <path class="tm-aether-wing-vein" d="M 6.2 29.4 Q -7.29 18.34 -20.77 11.28" fill="none" stroke="#2fc4b4" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-20.77" cy="11.28" rx="1.28" ry="0.8" fill="#a88420" opacity="0.85" filter="url(#aether-teen-glow)"/>
-                    </g>
-                    </g>
-                    </g>
-                    </g>
-                    <g class="tm-animate-wing-right">
-                    <g transform="translate(100,0) scale(-1,1)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="35" cy="46" r="3.2" fill="#a88420" opacity="0.45" filter="url(#aether-teen-glow)"/>
-                    <circle cx="35" cy="46" r="1.6" fill="#ffffff" opacity="0.9"/>
-                    <path d="M 35.85 47.15 Q 35.48 40 29.59 37.93 Q 24.89 36.62 24.25 37.25 Q 23.62 37.89 25.14 42.38 Q 27.63 47.84 34.36 48.64 Z" fill="#1c123c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 34.14 40.16 Q 33.85 32.3 27.41 30.67 Q 22.26 29.74 21.55 30.51 Q 20.84 31.29 22.45 36.08 Q 25.11 41.83 32.49 41.96 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 32.35 34.02 Q 31.76 25.79 24.97 24.44 Q 19.55 23.76 18.84 24.61 Q 18.12 25.46 19.98 30.39 Q 22.96 36.28 30.69 36 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 30.45 28.78 Q 29.13 20.72 22.23 19.39 Q 16.75 18.71 16.11 19.54 Q 15.47 20.37 17.76 25.21 Q 21.26 30.98 28.96 30.72 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 28.49 24.42 Q 26.2 16.95 19.31 15.43 Q 13.9 14.57 13.38 15.31 Q 12.87 16.04 15.7 20.59 Q 19.83 26.04 27.28 26.14 Z" fill="#2fc4b4" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 35 46 C 29 12 22.6 7.2 18.6 13.2 S 10.2 27.4 6.2 29.4 Q 9.4 57.2 33 50.8 Q 33 48 35 46" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.45" opacity="0.72"/>
-                    <path d="M 21.14 15.24 Q 16.71 7.52 8.51 6.88 Q 2.15 6.74 1.75 7.61 Q 1.34 8.48 5.67 12.97 Q 11.7 18.25 20.19 17.27 Z" fill="#34285c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 17.96 19.84 Q 12.39 11.27 2.91 10.84 Q -4.43 10.92 -4.84 11.92 Q -5.26 12.92 0 17.84 Q 7.26 23.6 16.98 22.18 Z" fill="#1c123c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 14.73 23.73 Q 8.29 14.77 -1.99 14.7 Q -9.92 15.07 -10.32 16.16 Q -10.72 17.25 -4.79 22.32 Q 3.35 28.19 13.8 26.27 Z" fill="#2fc4b4" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 11.47 26.95 Q 4.66 18.27 -5.61 18.62 Q -13.52 19.33 -13.88 20.44 Q -14.23 21.54 -8.09 26.35 Q 0.28 31.89 10.65 29.53 Z" fill="#34285c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 8.18 29.5 Q 1.59 21.69 -7.87 22.46 Q -15.14 23.45 -15.43 24.5 Q -15.71 25.54 -9.88 29.77 Q -1.96 34.58 7.51 31.94 Z" fill="#1c123c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 4.89 31.35 Q -1.05 24.73 -9.2 25.8 Q -15.45 26.99 -15.67 27.92 Q -15.88 28.86 -10.71 32.35 Q -3.72 36.26 4.38 33.54 Z" fill="#2fc4b4" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
-                    <circle cx="16.27" cy="12.78" r="0.26" fill="#a88420" opacity="0.66"/>
-                    <circle cx="20.01" cy="13.23" r="0.58" fill="#a88420" opacity="0.52"/>
-                    <circle cx="26.91" cy="13.68" r="0.69" fill="#a88420" opacity="0.56"/>
-                    <circle cx="5.26" cy="29.05" r="0.55" fill="#2fc4b4" opacity="0.8"/>
-                    <circle cx="1.54" cy="25.36" r="0.4" fill="#2fc4b4" opacity="0.87"/>
-                    <circle cx="1.14" cy="27.57" r="0.44" fill="#2fc4b4" opacity="0.79"/>
-                    <path class="tm-aether-wing-crack" d="M 31 43.6 Q 20.6 13.2 7.4 29.4" fill="none" stroke="#a88420" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
-                    <path class="tm-aether-wing-vein" d="M 35 46 Q 20.6 13.2 6.2 29.4" fill="none" stroke="#a88420" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 6.2 29.4 C -3.8 23.4 -5.8 39 -9.8 43.8 Q -6.6 51.8 4.2 38.2 Q 7 32.6 6.2 29.4" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.4" opacity="0.65"/>
-                    <path d="M 6.32 28.09 Q -1.31 22.12 -10.12 24.33 Q -16.83 26.39 -16.91 27.38 Q -17 28.36 -10.73 31.23 Q -2.38 34.28 6.11 30.39 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 6.05 28.95 Q -1.51 22.24 -11.11 23.24 Q -18.46 24.36 -18.65 25.3 Q -18.83 26.24 -12.43 29.79 Q -3.82 33.79 5.61 31.14 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 5.77 29.83 Q -1.63 22.32 -11.87 21.96 Q -19.73 22.03 -20.01 22.91 Q -20.29 23.78 -13.83 28.1 Q -5.08 33.13 5.12 31.88 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 5.48 30.72 Q -1.68 22.37 -12.36 20.52 Q -20.58 19.44 -20.94 20.25 Q -21.3 21.06 -14.88 26.18 Q -6.12 32.34 4.64 32.61 Z" fill="#1c123c" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 5.17 31.62 Q -1.64 22.38 -12.55 18.95 Q -20.98 16.65 -21.41 17.38 Q -21.84 18.12 -15.56 24.09 Q -6.94 31.43 4.17 33.33 Z" fill="#1c123c" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 4.85 32.53 Q -1.5 22.38 -12.42 17.3 Q -20.87 13.72 -21.36 14.37 Q -21.85 15.02 -15.83 21.88 Q -7.5 30.44 3.71 34.05 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path d="M 4.51 33.44 Q -1.25 22.38 -11.94 15.61 Q -20.24 10.71 -20.77 11.28 Q -21.31 11.86 -15.67 19.6 Q -7.82 29.41 3.27 34.77 Z" fill="#1c123c" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
-                    <path class="tm-aether-wing-tatter" d="M 9.4 55.6 Q 6.2 59.6 11.4 58" fill="#a88420" opacity="0.35"/>
-                    <path class="tm-aether-wing-tatter" d="M -18.77 12.48 Q -21.97 14.88 -17.97 14.08" fill="#2fc4b4" opacity="0.4"/>
-                    <path class="tm-aether-wing-vein" d="M 6.2 29.4 Q -7.29 18.34 -20.77 11.28" fill="none" stroke="#2fc4b4" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-20.77" cy="11.28" rx="1.28" ry="0.8" fill="#a88420" opacity="0.85" filter="url(#aether-teen-glow)"/>
-                    </g>
-                    </g>
-                    </g>
-                    </g>
-                    </g>
-                    <g class="tm-animate-tail">
-                    <path d="M 54 80 C 62 84 64 92 60 97 C 59 91 55 86 51 83 Z" fill="url(#aether-teen-cloak)" stroke="#120a22" stroke-width="0.7" opacity="0.8"/>
-                    </g>
-                    <g class="tm-animate-body">
-                    <path d="M 50 10 L 56 22 L 55 34 L 58 52 L 54 74 L 60 90 L 52 86 L 50 94 L 48 86 L 40 90 L 46 74 L 42 52 L 45 34 L 44 22 Z" fill="url(#aether-teen-body)" stroke="#120a22" stroke-width="1.3"/>
-                    <path d="M 50 16 L 53 26 L 53 36 L 55 52 L 52 72 L 50 78 L 48 72 L 45 52 L 47 36 L 47 26 Z" fill="url(#aether-teen-cloak)" opacity="0.62"/>
-                    <line x1="46" y1="48" x2="49" y2="55" stroke="#a88420" stroke-width="0.3" opacity="0.4"/>
-                    <line x1="49" y1="55" x2="47" y2="62" stroke="#a88420" stroke-width="0.3" opacity="0.4"/>
-                    <line x1="47" y1="62" x2="51" y2="68" stroke="#a88420" stroke-width="0.3" opacity="0.4"/>
-                    <line x1="51" y1="68" x2="54" y2="58" stroke="#a88420" stroke-width="0.3" opacity="0.4"/>
-                    <line x1="54" y1="58" x2="52" y2="50" stroke="#a88420" stroke-width="0.3" opacity="0.4"/>
-                    <circle cx="46" cy="48" r="0.87" fill="#a88420" opacity="0.9"/>
-                    <circle cx="49" cy="55" r="0.95" fill="#a88420" opacity="0.9"/>
-                    <circle cx="47" cy="62" r="0.51" fill="#a88420" opacity="0.9"/>
-                    <circle cx="51" cy="68" r="0.57" fill="#a88420" opacity="0.9"/>
-                    <circle cx="54" cy="58" r="0.85" fill="#a88420" opacity="0.9"/>
-                    <circle cx="52" cy="50" r="0.63" fill="#a88420" opacity="0.9"/>
-                    <circle cx="53.28" cy="49.61" r="0.66" fill="#7e84ae" opacity="0.76"/>
-                    <circle cx="52.91" cy="48.52" r="0.38" fill="#7e84ae" opacity="0.51"/>
-                    <circle cx="50.03" cy="52.22" r="0.26" fill="#7e84ae" opacity="0.36"/>
-                    <circle cx="50.01" cy="51.81" r="0.58" fill="#7e84ae" opacity="0.66"/>
-                    <circle cx="53.87" cy="49.8" r="0.43" fill="#7e84ae" opacity="0.69"/>
-                    <circle cx="48.42" cy="68.75" r="0.64" fill="#7e84ae" opacity="0.4"/>
-                    <path d="M 44 32 L 36 26 L 32 32 L 38 36 Z" fill="url(#aether-teen-goldrim)" stroke="#120a22" stroke-width="0.7"/>
-                    <path d="M 56 32 L 64 26 L 68 32 L 62 36 Z" fill="url(#aether-teen-goldrim)" stroke="#120a22" stroke-width="0.7"/>
-                    <path d="M 44 35 L 38 32 L 34 34" fill="none" stroke="#a88420" stroke-width="0.5" opacity="0.7"/>
-                    <path d="M 56 35 L 62 32 L 66 34" fill="none" stroke="#a88420" stroke-width="0.5" opacity="0.7"/>
-                    <path d="M 45 22 L 40 12 L 47 18 Z" fill="url(#aether-teen-cloak)" stroke="#120a22" stroke-width="0.7"/>
-                    <path d="M 55 22 L 60 12 L 53 18 Z" fill="url(#aether-teen-cloak)" stroke="#120a22" stroke-width="0.7"/>
-                    <path d="M 45 66 L 55 66 L 53 70 L 47 70 Z" fill="url(#aether-teen-goldrim)" opacity="0.85"/>
-                    <g class="tm-aether-rune-tattoos">
-                        <path class="tm-aether-rune-glyph" d="M 44 60 l 1.6 -2 l 1.6 2 l -1.6 2 Z" fill="none" stroke="#2fc4b4" stroke-width="0.5" opacity="0.8"/>
-                        <path class="tm-aether-rune-glyph" d="M 54.5 59 v 3.4 m -1.4 -1.7 h 2.8" fill="none" stroke="#a88420" stroke-width="0.5" opacity="0.8"/>
-                        <path class="tm-aether-rune-glyph" d="M 49 65 l 1.2 -2.2 l 1.2 2.2 Z" fill="none" stroke="#7e84ae" stroke-width="0.5" opacity="0.75"/>
-                    </g>
-                    <circle class="tm-aether-core" cx="50" cy="46" r="3.6" fill="url(#aether-teen-core)"/>
-                    </g>
-                    <g class="tm-aether-regalia">
-                    <path d="M 47 27 L 50 24 L 53 27 L 50 30 Z" fill="#a88420" opacity="0.95" filter="url(#aether-teen-glow)"/>
-                    <path d="M 44 21 Q 50 16 56 21" fill="none" stroke="#2fc4b4" stroke-width="0.6" opacity="0.55" stroke-dasharray="1.4 1.6"/>
-                    </g>
-                    <g class="tm-animate-arm-left">
-                    <path d="M 38 50 Q 30 56 29 66 L 32 64 L 31 70 L 35 66 Q 37 58 40 54 Z" fill="url(#aether-teen-body)" stroke="#120a22" stroke-width="0.9"/>
-                    <path d="M 27 65 L 25 70 M 30 66 L 29 71 M 33 65 L 33 70" fill="none" stroke="#2fc4b4" stroke-width="0.8" stroke-linecap="round" opacity="0.85"/>
-                    </g>
-                    <g class="tm-animate-arm-right">
-                    <path d="M 62 50 Q 70 56 71 66 L 68 64 L 69 70 L 65 66 Q 63 58 60 54 Z" fill="url(#aether-teen-body)" stroke="#120a22" stroke-width="0.9"/>
-                    <path d="M 73 65 L 75 70 M 70 66 L 71 71 M 67 65 L 67 70" fill="none" stroke="#2fc4b4" stroke-width="0.8" stroke-linecap="round" opacity="0.85"/>
-                    </g>
-                    <g class="tm-animate-leg-left">
-                    <path d="M 43 86 L 41 94 L 46 94 L 47 87 Z" fill="url(#aether-teen-cloak)" stroke="#120a22" stroke-width="0.8"/>
-                    </g>
-                    <g class="tm-animate-leg-right">
-                    <path d="M 57 86 L 59 94 L 54 94 L 53 87 Z" fill="url(#aether-teen-cloak)" stroke="#120a22" stroke-width="0.8"/>
-                    </g>
-                    <g class="tm-mascot-eye-open tm-aether-eyes">
-                    <ellipse class="tm-aether-eye-sclera" cx="45" cy="36" rx="2.9" ry="3.4" fill="#1a1228" stroke="#120a22" stroke-width="1.1" opacity="0.94"/>
-                    <ellipse class="tm-aether-eye-sclera" cx="55" cy="36" rx="2.9" ry="3.4" fill="#1a1228" stroke="#120a22" stroke-width="1.1" opacity="0.94"/>
-                    <ellipse class="tm-aether-iris" cx="45" cy="36" rx="1.51" ry="2.04" fill="url(#aether-teen-iris)"/>
-                    <ellipse class="tm-aether-iris" cx="55" cy="36" rx="1.51" ry="2.04" fill="url(#aether-teen-iris)"/>
-                    <ellipse cx="45" cy="36" rx="0.58" ry="1.16" fill="#05010c"/>
-                    <ellipse cx="55" cy="36" rx="0.58" ry="1.16" fill="#05010c"/>
-                    <circle cx="44.27" cy="34.98" r="0.55" fill="#ffffff" opacity="0.9"/>
-                    <circle cx="54.27" cy="34.98" r="0.55" fill="#ffffff" opacity="0.9"/>
-                    <path d="M 42.1 32.73 L 47.9 35.83 L 47.9 31.6 L 42.1 31.6 Z" fill="url(#aether-teen-cloak)"/>
-                    <path d="M 57.9 32.73 L 52.1 35.83 L 52.1 31.6 L 57.9 31.6 Z" fill="url(#aether-teen-cloak)"/>
-                    <line x1="41.5" y1="32.56" x2="48.3" y2="35.93" stroke="#120a22" stroke-width="1.2" stroke-linecap="round"/>
-                    <line x1="58.5" y1="32.56" x2="51.7" y2="35.93" stroke="#120a22" stroke-width="1.2" stroke-linecap="round"/>
-                    </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                    <path d="M 42.1 36 Q 45 37.4 47.9 36" stroke="#120a22" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    <path d="M 52.1 36 Q 55 37.4 57.9 36" stroke="#120a22" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <path class="tm-mascot-mouth-happy" d="M 47.2 44 L 49.16 44.7 L 50.84 44.7 L 52.8 44" stroke="#120a22" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.2 45.5 Q 50 43 52.8 45.5" stroke="#120a22" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                    <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
-                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="10" fill="none" stroke="#2fc4b4" stroke-width="0.55" opacity="0.5" transform="rotate(-14 50 52)"/>
-                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="36" ry="13" fill="none" stroke="#34285c" stroke-width="0.45" opacity="0.4" transform="rotate(12 50 52)"/>
-                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="28" ry="8" fill="none" stroke="#a88420" stroke-width="0.4" opacity="0.45" transform="rotate(-30 50 52)"/>
-                    </g>
-                    <g class="tm-aether-fx " data-fx="sparks" opacity="0">
-                    <circle class="tm-aether-spark" cx="67.29" cy="49.26" r="1.75" fill="#2fc4b4"/>
-                    <circle class="tm-aether-spark" cx="84.04" cy="61.54" r="1.6" fill="#a88420"/>
-                    <circle class="tm-aether-spark" cx="85.27" cy="64.32" r="1.6" fill="#7e84ae"/>
-                    <circle class="tm-aether-spark" cx="9.92" cy="23.95" r="1.79" fill="#2fc4b4"/>
-                    <circle class="tm-aether-spark" cx="86.85" cy="57.13" r="1.08" fill="#a88420"/>
-                    <circle class="tm-aether-spark" cx="71" cy="52.5" r="0.88" fill="#7e84ae"/>
-                    </g>
-                </g>
-
-                <!-- AETHER ADULT — Star Sovereign -->
-                <g id="tm-mascot-evo3-aether" style="display: none;">
+<g id="tm-mascot-evo2-aether" style="display: none;">
                     <defs>
                     <radialGradient id="aether-adult-body" cx="38%" cy="24%" r="85%">
                         <stop offset="0%" style="stop-color:#a8a0c4;stop-opacity:1" />
@@ -18726,9 +15097,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle class="tm-aether-spark" cx="81.69" cy="59.72" r="1.64" fill="#2ee0d0"/>
                     </g>
                 </g>
-
-                <!-- AETHER MIDDLEAGE — Eclipse Tyrant -->
-                <g id="tm-mascot-evo4-aether" style="display: none;">
+<g id="tm-mascot-evo3-aether" style="display: none;">
                     <defs>
                     <radialGradient id="aether-mid-body" cx="38%" cy="24%" r="85%">
                         <stop offset="0%" style="stop-color:#6a6080;stop-opacity:1" />
@@ -19114,413 +15483,18 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                 </g>
 
+                <!-- AETHER KID — Veilspawn -->
+                
+                <!-- AETHER TEEN — Astral Warden -->
+                
+                <!-- AETHER ADULT — Star Sovereign -->
+                
+                <!-- AETHER MIDDLEAGE — Eclipse Tyrant -->
+                
                 <!-- AETHER OLD — Primordial -->
-                <g id="tm-mascot-evo5-aether" style="display: none;">
-                    <defs>
-                    <radialGradient id="aether-old-body" cx="38%" cy="24%" r="85%">
-                        <stop offset="0%" style="stop-color:#d8d0b8;stop-opacity:1" />
-                        <stop offset="42%" style="stop-color:#4a3a68;stop-opacity:1" />
-                        <stop offset="78%" style="stop-color:#1e1438;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#080412;stop-opacity:1" />
-                    </radialGradient>
-                    <linearGradient id="aether-old-cloak" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#1e1438;stop-opacity:1" />
-                        <stop offset="55%" style="stop-color:#080412;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:1" />
-                    </linearGradient>
-                    <radialGradient id="aether-old-core" cx="50%" cy="45%" r="55%">
-                        <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-                        <stop offset="32%" style="stop-color:#4aefe0;stop-opacity:1" />
-                        <stop offset="70%" style="stop-color:#e8c040;stop-opacity:.85" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:0" />
-                    </radialGradient>
-                    <linearGradient id="aether-old-wing" x1="8%" y1="0%" x2="92%" y2="100%">
-                        <stop offset="0%" style="stop-color:#e8c040;stop-opacity:.45" />
-                        <stop offset="28%" style="stop-color:#4aefe0;stop-opacity:.5" />
-                        <stop offset="62%" style="stop-color:#1e1438;stop-opacity:.72" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:.88" />
-                    </linearGradient>
-                    <linearGradient id="aether-old-blade" x1="15%" y1="0%" x2="85%" y2="100%">
-                        <stop offset="0%" style="stop-color:#e8c040;stop-opacity:.85" />
-                        <stop offset="35%" style="stop-color:#4aefe0;stop-opacity:.75" />
-                        <stop offset="70%" style="stop-color:#1e1438;stop-opacity:.92" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:1" />
-                    </linearGradient>
-                    <linearGradient id="aether-old-feather" x1="10%" y1="0%" x2="80%" y2="100%">
-                        <stop offset="0%" style="stop-color:#e8c040;stop-opacity:.8" />
-                        <stop offset="40%" style="stop-color:#4aefe0;stop-opacity:.78" />
-                        <stop offset="75%" style="stop-color:#1e1438;stop-opacity:.95" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:1" />
-                    </linearGradient>
-                    <radialGradient id="aether-old-iris" cx="40%" cy="35%" r="65%">
-                        <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
-                        <stop offset="55%" style="stop-color:#4aefe0;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:1" />
-                    </radialGradient>
-                    <radialGradient id="aether-old-aura" cx="50%" cy="52%" r="70%">
-                        <stop offset="0%" style="stop-color:#4aefe0;stop-opacity:.2" />
-                        <stop offset="45%" style="stop-color:#4a3a68;stop-opacity:.1" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:0" />
-                    </radialGradient>
-                    <linearGradient id="aether-old-goldrim" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#e8c040;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#1e1438;stop-opacity:1" />
-                    </linearGradient>
-                    <filter id="aether-old-glow" x="-80%" y="-80%" width="260%" height="260%">
-                        <feGaussianBlur stdDeviation="1.1" result="b"/>
-                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
-                    </defs>
-                    <ellipse cx="50" cy="96" rx="23" ry="4.2" fill="#05010c" opacity="0.38"/>
-                    <g class="tm-aether-fx " data-fx="aura" opacity="0">
-                    <ellipse class="tm-aether-aura" cx="50" cy="52" rx="38" ry="34" fill="url(#aether-old-aura)"/>
-                    </g>
-                    <g class="tm-aether-fx " data-fx="aura-outer" opacity="0">
-                    <ellipse class="tm-aether-aura-outer" cx="50" cy="52" rx="46" ry="42" fill="none" stroke="#4a3a68" stroke-width="1.6" opacity="0.3"/>
-                    <ellipse class="tm-aether-aura-outer" cx="50" cy="52" rx="43" ry="39" fill="url(#aether-old-aura)" opacity="0.5"/>
-                    </g>
-                    <g class="tm-aether-fx " data-fx="corona" opacity="0">
-                    <circle class="tm-aether-corona" cx="50" cy="50" r="30" fill="none" stroke="#4aefe0" stroke-width="0.8" opacity="0.5" stroke-dasharray="3 4"/>
-                    <circle class="tm-aether-corona" cx="50" cy="50" r="36" fill="none" stroke="#e8c040" stroke-width="0.5" opacity="0.35" stroke-dasharray="1.5 5"/>
-                    </g>
-                    <g class="tm-aether-fx " data-fx="haze" opacity="0">
-                    <g class="tm-aether-haze">
-                        <ellipse class="tm-aether-haze-blob" cx="30" cy="40" rx="12" ry="7" fill="#4a3a68" opacity="0.2"/>
-                        <ellipse class="tm-aether-haze-blob" cx="68" cy="58" rx="14" ry="8" fill="#4aefe0" opacity="0.14"/>
-                        <ellipse class="tm-aether-haze-blob" cx="50" cy="26" rx="10" ry="6" fill="#e8c040" opacity="0.12"/>
-                    </g>
-                    </g>
-                    <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
-                    <path class="tm-aether-beam-glow" d="M 46 6 L 54 6 L 52 46 L 48 46 Z" fill="#e8c040" opacity="0.18"/>
-                    <path d="M 30 12 L 34 12 L 33 44 L 31 44 Z" fill="#4aefe0" opacity="0.14"/>
-                    <path d="M 66 12 L 70 12 L 69 44 L 67 44 Z" fill="#4aefe0" opacity="0.14"/>
-                    </g>
-                    <g class="tm-aether-fx " data-fx="sigil" opacity="0">
-                    <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="22" ry="4.5" fill="none" stroke="#4aefe0" stroke-width="0.8" opacity="0.6"/>
-                    <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="15" ry="3" fill="none" stroke="#e8c040" stroke-width="0.5" opacity="0.5" stroke-dasharray="2 2"/>
-                    <path class="tm-aether-sigil" d="M 50 90 L 54 94 L 50 98 L 46 94 Z" fill="none" stroke="#d8d0b8" stroke-width="0.5" opacity="0.55"/>
-                    </g>
-                    <g class="tm-aether-fx tm-aether-runes" data-fx="runes" opacity="0">
-                    <circle class="tm-aether-rune-ring" cx="50" cy="54" r="30" fill="none" stroke="#e8c040" stroke-width="0.6" opacity="0.55" stroke-dasharray="4 3"/>
-                    <path d="M 48.6 26.4 L 51.4 26.4 L 50 29.8 Z M 50 26.4 L 50 29.8" fill="none" stroke="#e8c040" stroke-width="0.5" opacity="0.7"/>
-                    <path d="M 77.13 44.37 L 79.93 44.37 L 78.53 47.77 Z M 78.53 44.37 L 78.53 47.77" fill="none" stroke="#e8c040" stroke-width="0.5" opacity="0.7"/>
-                    <path d="M 66.23 73.43 L 69.03 73.43 L 67.63 76.83 Z M 67.63 73.43 L 67.63 76.83" fill="none" stroke="#e8c040" stroke-width="0.5" opacity="0.7"/>
-                    <path d="M 30.97 73.43 L 33.77 73.43 L 32.37 76.83 Z M 32.37 73.43 L 32.37 76.83" fill="none" stroke="#e8c040" stroke-width="0.5" opacity="0.7"/>
-                    <path d="M 20.07 44.37 L 22.87 44.37 L 21.47 47.77 Z M 21.47 44.37 L 21.47 47.77" fill="none" stroke="#e8c040" stroke-width="0.5" opacity="0.7"/>
-                    </g>
-                    <g class="tm-aether-fx " data-fx="fracture" opacity="0">
-                    <g class="tm-aether-ground-fracture">
-                        <path d="M 50 93 L 38 95 L 30 99" fill="none" stroke="#4aefe0" stroke-width="0.7" stroke-dasharray="2 1.4" opacity="0.7"/>
-                        <path d="M 50 93 L 62 96 L 72 99" fill="none" stroke="#e8c040" stroke-width="0.6" stroke-dasharray="1.8 1.2" opacity="0.65"/>
-                        <path d="M 50 93 L 48 98" fill="none" stroke="#d8d0b8" stroke-width="0.5" stroke-dasharray="1.2 1" opacity="0.55"/>
-                    </g>
-                    </g>
-                    <path class="tm-aether-halo" d="M 55.99 7.17 A 16 16 0 1 1 34.35 18.67" fill="none" stroke="#e8c040" stroke-width="1.15" opacity="0.55"/>
-                    <path class="tm-aether-halo" d="M 55.99 7.17 A 19.52 19.52 0 1 1 35.35 19.67" fill="none" stroke="#e64a3c" stroke-width="0.5" opacity="0.35" stroke-dasharray="2.2 3"/>
-                    <path d="M 34.35 18.67 L 38.92 7.82 L 32.35 21.67 Z" fill="#e8c040" opacity="0.7"/>
-                    <path d="M 38.92 7.82 L 37.42 12.82 L 40.12 11.32 Z" fill="#e64a3c" opacity="0.75"/>
-                    <g class="tm-aether-ghost-wing-left" opacity="0.28" transform="translate(-5 4) scale(1.14)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="35" cy="42" r="2.72" fill="#e8c040" opacity="0.45" filter="url(#aether-old-glow)"/>
-                    <circle cx="35" cy="42" r="1.36" fill="#ffffff" opacity="0.9"/>
-                    <path d="M 35.72 42.98 Q 35.41 36.9 30.41 35.14 Q 26.41 34.02 25.86 34.56 Q 25.32 35.11 26.62 38.93 Q 28.74 43.57 34.46 44.24 Z" fill="#4aefe0" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 33.78 35.27 Q 33.48 28.44 27.89 27.16 Q 23.41 26.46 22.8 27.15 Q 22.19 27.83 23.61 31.97 Q 25.94 36.91 32.35 36.87 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 31.68 28.87 Q 30.8 21.92 24.95 20.81 Q 20.29 20.26 19.72 20.98 Q 19.15 21.7 20.95 25.86 Q 23.77 30.82 30.35 30.55 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 29.47 23.8 Q 27.52 17.46 21.67 16.16 Q 17.06 15.43 16.63 16.06 Q 16.19 16.69 18.59 20.55 Q 22.1 25.19 28.44 25.27 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 35 42 C 29.9 13.3 24.46 9.22 21.06 14.32 S 13.92 26.32 10.52 28.02 Q 13.24 51.52 33.3 46.08 Q 33.3 43.7 35 42" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.45" opacity="0.72"/>
-                    <path d="M 23.22 16.05 Q 19.45 9.49 12.49 8.95 Q 7.08 8.83 6.74 9.57 Q 6.39 10.31 10.07 14.13 Q 15.2 18.62 22.42 17.78 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 19.83 20.83 Q 14.88 13.41 6.6 13.12 Q 0.2 13.24 -0.15 14.11 Q -0.51 14.98 4.13 19.23 Q 10.53 24.19 19.01 22.87 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 16.39 24.68 Q 10.69 17.1 1.87 17.22 Q -4.93 17.68 -5.26 18.62 Q -5.58 19.56 -0.4 23.8 Q 6.7 28.7 15.64 26.87 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 12.91 27.64 Q 7.21 20.78 -1.05 21.35 Q -7.41 22.14 -7.67 23.04 Q -7.93 23.95 -2.87 27.69 Q 4.01 31.95 12.3 29.75 Z" fill="#1e1438" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 9.4 29.68 Q 4.35 24.05 -2.57 24.96 Q -7.88 25.97 -8.07 26.76 Q -8.25 27.56 -3.86 30.53 Q 2.09 33.85 8.98 31.54 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <circle cx="27.05" cy="18.06" r="0.46" fill="#e8c040" opacity="0.84"/>
-                    <circle cx="23.12" cy="16.55" r="0.58" fill="#e8c040" opacity="0.57"/>
-                    <circle cx="21.89" cy="19.85" r="0.48" fill="#e8c040" opacity="0.84"/>
-                    <circle cx="4.13" cy="27.08" r="0.37" fill="#4aefe0" opacity="0.88"/>
-                    <circle cx="5.14" cy="27.37" r="0.39" fill="#4aefe0" opacity="0.64"/>
-
-                    <path class="tm-aether-wing-vein" d="M 35 42 Q 22.76 14.32 10.52 28.02" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 10.52 28.02 C 2.02 22.92 0.32 36.1 -3.08 40.18 Q -0.36 46.98 8.82 35.5 Q 11.2 30.74 10.52 28.02" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.4" opacity="0.65"/>
-                    <path d="M 10.62 26.9 Q 4.13 21.83 -3.36 23.71 Q -9.05 25.46 -9.12 26.3 Q -9.2 27.14 -3.87 29.58 Q 3.23 32.17 10.45 28.86 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 10.35 27.79 Q 3.94 21.95 -4.34 22.58 Q -10.68 23.36 -10.86 24.15 Q -11.03 24.93 -5.57 28.08 Q 1.78 31.65 9.94 29.62 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 10.06 28.69 Q 3.84 22.02 -5.04 21.22 Q -11.86 20.9 -12.12 21.62 Q -12.39 22.34 -6.9 26.28 Q 0.56 30.94 9.44 30.37 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 9.75 29.6 Q 3.83 22.05 -5.39 19.68 Q -12.5 18.15 -12.84 18.8 Q -13.18 19.45 -7.78 24.23 Q -0.39 30.06 8.95 31.12 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 9.43 30.52 Q 3.94 22.06 -5.35 18.02 Q -12.55 15.19 -12.95 15.76 Q -13.36 16.33 -8.19 22.01 Q -1.05 29.08 8.48 31.85 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 9.08 31.45 Q 4.18 22.05 -4.9 16.3 Q -11.96 12.14 -12.41 12.62 Q -12.86 13.11 -8.07 19.69 Q -1.39 28.03 8.03 32.58 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-
-                    <path class="tm-aether-wing-vein" d="M 10.52 28.02 Q -0.94 18.62 -12.41 12.62" fill="none" stroke="#4aefe0" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-12.41" cy="12.62" rx="1.09" ry="0.7" fill="#e8c040" opacity="0.85" filter="url(#aether-old-glow)"/>
-                    </g>
-                    </g>
-                    </g>
-                    </g>
-                    <g class="tm-aether-ghost-wing-right" opacity="0.28" transform="translate(5 4) scale(1.14)">
-                    <g transform="translate(100,0) scale(-1,1)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="35" cy="42" r="2.72" fill="#e8c040" opacity="0.45" filter="url(#aether-old-glow)"/>
-                    <circle cx="35" cy="42" r="1.36" fill="#ffffff" opacity="0.9"/>
-                    <path d="M 35.72 42.98 Q 35.41 36.9 30.41 35.14 Q 26.41 34.02 25.86 34.56 Q 25.32 35.11 26.62 38.93 Q 28.74 43.57 34.46 44.24 Z" fill="#4aefe0" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 33.78 35.27 Q 33.48 28.44 27.89 27.16 Q 23.41 26.46 22.8 27.15 Q 22.19 27.83 23.61 31.97 Q 25.94 36.91 32.35 36.87 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 31.68 28.87 Q 30.8 21.92 24.95 20.81 Q 20.29 20.26 19.72 20.98 Q 19.15 21.7 20.95 25.86 Q 23.77 30.82 30.35 30.55 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 29.47 23.8 Q 27.52 17.46 21.67 16.16 Q 17.06 15.43 16.63 16.06 Q 16.19 16.69 18.59 20.55 Q 22.1 25.19 28.44 25.27 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 35 42 C 29.9 13.3 24.46 9.22 21.06 14.32 S 13.92 26.32 10.52 28.02 Q 13.24 51.52 33.3 46.08 Q 33.3 43.7 35 42" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.45" opacity="0.72"/>
-                    <path d="M 23.22 16.05 Q 19.45 9.49 12.49 8.95 Q 7.08 8.83 6.74 9.57 Q 6.39 10.31 10.07 14.13 Q 15.2 18.62 22.42 17.78 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 19.83 20.83 Q 14.88 13.41 6.6 13.12 Q 0.2 13.24 -0.15 14.11 Q -0.51 14.98 4.13 19.23 Q 10.53 24.19 19.01 22.87 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 16.39 24.68 Q 10.69 17.1 1.87 17.22 Q -4.93 17.68 -5.26 18.62 Q -5.58 19.56 -0.4 23.8 Q 6.7 28.7 15.64 26.87 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 12.91 27.64 Q 7.21 20.78 -1.05 21.35 Q -7.41 22.14 -7.67 23.04 Q -7.93 23.95 -2.87 27.69 Q 4.01 31.95 12.3 29.75 Z" fill="#1e1438" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 9.4 29.68 Q 4.35 24.05 -2.57 24.96 Q -7.88 25.97 -8.07 26.76 Q -8.25 27.56 -3.86 30.53 Q 2.09 33.85 8.98 31.54 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <circle cx="27.05" cy="18.06" r="0.46" fill="#e8c040" opacity="0.84"/>
-                    <circle cx="23.12" cy="16.55" r="0.58" fill="#e8c040" opacity="0.57"/>
-                    <circle cx="21.89" cy="19.85" r="0.48" fill="#e8c040" opacity="0.84"/>
-                    <circle cx="4.13" cy="27.08" r="0.37" fill="#4aefe0" opacity="0.88"/>
-                    <circle cx="5.14" cy="27.37" r="0.39" fill="#4aefe0" opacity="0.64"/>
-
-                    <path class="tm-aether-wing-vein" d="M 35 42 Q 22.76 14.32 10.52 28.02" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 10.52 28.02 C 2.02 22.92 0.32 36.1 -3.08 40.18 Q -0.36 46.98 8.82 35.5 Q 11.2 30.74 10.52 28.02" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.4" opacity="0.65"/>
-                    <path d="M 10.62 26.9 Q 4.13 21.83 -3.36 23.71 Q -9.05 25.46 -9.12 26.3 Q -9.2 27.14 -3.87 29.58 Q 3.23 32.17 10.45 28.86 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 10.35 27.79 Q 3.94 21.95 -4.34 22.58 Q -10.68 23.36 -10.86 24.15 Q -11.03 24.93 -5.57 28.08 Q 1.78 31.65 9.94 29.62 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 10.06 28.69 Q 3.84 22.02 -5.04 21.22 Q -11.86 20.9 -12.12 21.62 Q -12.39 22.34 -6.9 26.28 Q 0.56 30.94 9.44 30.37 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 9.75 29.6 Q 3.83 22.05 -5.39 19.68 Q -12.5 18.15 -12.84 18.8 Q -13.18 19.45 -7.78 24.23 Q -0.39 30.06 8.95 31.12 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 9.43 30.52 Q 3.94 22.06 -5.35 18.02 Q -12.55 15.19 -12.95 15.76 Q -13.36 16.33 -8.19 22.01 Q -1.05 29.08 8.48 31.85 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 9.08 31.45 Q 4.18 22.05 -4.9 16.3 Q -11.96 12.14 -12.41 12.62 Q -12.86 13.11 -8.07 19.69 Q -1.39 28.03 8.03 32.58 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-
-                    <path class="tm-aether-wing-vein" d="M 10.52 28.02 Q -0.94 18.62 -12.41 12.62" fill="none" stroke="#4aefe0" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-12.41" cy="12.62" rx="1.09" ry="0.7" fill="#e8c040" opacity="0.85" filter="url(#aether-old-glow)"/>
-                    </g>
-                    </g>
-                    </g>
-                    </g>
-                    </g>
-                    <g class="tm-animate-wing-left tm-aether-wing-broken" transform="translate(50 52) scale(0.74) translate(-50 -52)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="36" cy="46" r="2.72" fill="#e8c040" opacity="0.45" filter="url(#aether-old-glow)"/>
-                    <circle cx="36" cy="46" r="1.36" fill="#ffffff" opacity="0.9"/>
-                    <path d="M 36.72 46.98 Q 36.41 40.9 31.41 39.14 Q 27.41 38.02 26.86 38.56 Q 26.32 39.11 27.62 42.93 Q 29.74 47.57 35.46 48.24 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 34.78 40.49 Q 34.48 33.66 28.89 32.38 Q 24.41 31.68 23.8 32.37 Q 23.19 33.05 24.61 37.19 Q 26.94 42.14 33.35 42.1 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 32.68 35.09 Q 31.8 28.15 25.95 27.03 Q 21.29 26.48 20.72 27.2 Q 20.15 27.92 21.95 32.08 Q 24.77 37.04 31.35 36.78 Z" fill="#4a3a68" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 30.47 30.8 Q 28.52 24.46 22.67 23.16 Q 18.06 22.43 17.63 23.06 Q 17.19 23.69 19.59 27.55 Q 23.1 32.19 29.44 32.27 Z" fill="#4a3a68" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 36 46 C 30.9 21.3 25.46 17.22 22.06 22.32 S 14.92 32.92 11.52 34.62 Q 14.24 55.52 34.3 50.08 Q 34.3 47.7 36 46" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.45" opacity="0.72"/>
-                    <path d="M 24.22 24.05 Q 20.45 17.49 13.49 16.95 Q 8.08 16.83 7.74 17.57 Q 7.39 18.31 11.07 22.13 Q 16.2 26.62 23.42 25.78 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 20.83 28.48 Q 15.88 21.06 7.6 20.77 Q 1.2 20.89 0.85 21.76 Q 0.49 22.63 5.13 26.88 Q 11.53 31.84 20.01 30.52 Z" fill="#1e1438" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 17.39 31.98 Q 11.69 24.4 2.87 24.52 Q -3.93 24.98 -4.26 25.92 Q -4.58 26.86 0.6 31.1 Q 7.7 36 16.64 34.17 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 13.91 34.59 Q 8.21 27.73 -0.05 28.3 Q -6.41 29.09 -6.67 29.99 Q -6.93 30.9 -1.87 34.64 Q 5.01 38.9 13.3 36.7 Z" fill="#1e1438" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 10.4 36.28 Q 5.35 30.65 -1.57 31.56 Q -6.88 32.57 -7.07 33.36 Q -7.25 34.16 -2.86 37.13 Q 3.09 40.45 9.98 38.14 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <circle cx="18.7" cy="27.91" r="0.61" fill="#e8c040" opacity="0.84"/>
-                    <circle cx="17.28" cy="25.91" r="0.53" fill="#e8c040" opacity="0.61"/>
-                    <circle cx="29.88" cy="25.36" r="0.51" fill="#e8c040" opacity="0.39"/>
-                    <circle cx="6.79" cy="38" r="0.39" fill="#4aefe0" opacity="0.68"/>
-                    <circle cx="8.34" cy="37.11" r="0.45" fill="#4aefe0" opacity="0.54"/>
-                    <path class="tm-aether-wing-crack" d="M 32.6 43.96 Q 23.76 22.32 12.54 34.62" fill="none" stroke="#e8c040" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
-                    <path class="tm-aether-wing-vein" d="M 36 46 Q 23.76 22.32 11.52 34.62" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 11.52 34.62 C 3.02 29.52 1.32 41.1 -2.08 45.18 Q 0.64 51.98 9.82 42.1 Q 12.2 37.34 11.52 34.62" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.4" opacity="0.65"/>
-                    <path d="M 11.62 33.5 Q 5.13 28.43 -2.36 30.31 Q -8.05 32.06 -8.12 32.9 Q -8.2 33.74 -2.87 36.18 Q 4.23 38.77 11.45 35.46 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 11.35 34.39 Q 4.94 28.55 -3.34 29.18 Q -9.68 29.96 -9.86 30.75 Q -10.03 31.53 -4.57 34.68 Q 2.78 38.25 10.94 36.22 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 11.06 35.29 Q 4.84 28.62 -4.04 27.82 Q -10.86 27.5 -11.12 28.22 Q -11.39 28.94 -5.9 32.88 Q 1.56 37.54 10.44 36.97 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 10.75 36.2 Q 4.83 28.65 -4.39 26.28 Q -11.5 24.75 -11.84 25.4 Q -12.18 26.05 -6.78 30.83 Q 0.61 36.66 9.95 37.72 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 10.43 37.12 Q 4.94 28.66 -4.35 24.62 Q -11.55 21.79 -11.95 22.36 Q -12.36 22.93 -7.19 28.61 Q -0.05 35.68 9.48 38.45 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 10.08 38.05 Q 5.18 28.65 -3.9 22.9 Q -10.96 18.74 -11.41 19.22 Q -11.86 19.71 -7.07 26.29 Q -0.39 34.63 9.03 39.18 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path class="tm-aether-wing-tatter" d="M 14.24 54.16 Q 11.52 57.56 15.94 56.2" fill="#e8c040" opacity="0.35"/>
-                    <path class="tm-aether-wing-tatter" d="M -9.71 20.24 Q -12.43 22.28 -9.03 21.6" fill="#4aefe0" opacity="0.4"/>
-                    <path class="tm-aether-wing-vein" d="M 11.52 34.62 Q 0.06 25.22 -11.41 19.22" fill="none" stroke="#4aefe0" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-11.41" cy="19.22" rx="1.09" ry="0.7" fill="#e8c040" opacity="0.85" filter="url(#aether-old-glow)"/>
-                    </g>
-                    </g>
-                    </g>
-                    <path class="tm-aether-wing-break" d="M 12 32 L 5 40 L 14 46" fill="none" stroke="#e64a3c" stroke-width="1.1" stroke-dasharray="2 1.5" opacity="0.75"/>
-                    <path class="tm-aether-wing-break" d="M 4 56 L 12 62 L 6 70" fill="none" stroke="#e8c040" stroke-width="0.85" stroke-dasharray="1.5 1.2" opacity="0.6"/>
-                    <path d="M 6 30 L 10 25 L 12 31 Z" fill="url(#aether-old-blade)" opacity="0.7"/>
-                    <path d="M 0 46 L 5 42 L 6 49 Z" fill="url(#aether-old-blade)" opacity="0.6"/>
-                    <path d="M 8 64 L 13 61 L 13 68 Z" fill="url(#aether-old-blade)" opacity="0.55"/>
-                    </g>
-                    <g class="tm-animate-wing-right tm-aether-wing-dominant" transform="translate(50 52) scale(1.38) translate(-50 -52)">
-                    <g transform="translate(100,0) scale(-1,1)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="36" cy="45" r="4" fill="#e8c040" opacity="0.45" filter="url(#aether-old-glow)"/>
-                    <circle cx="36" cy="45" r="2" fill="#ffffff" opacity="0.9"/>
-                    <path d="M 37.06 46.44 Q 36.6 37.49 29.24 34.91 Q 23.36 33.27 22.56 34.06 Q 21.77 34.86 23.68 40.48 Q 26.79 47.31 35.2 48.3 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 34.93 36.99 Q 34.56 27.17 26.51 25.13 Q 20.07 23.97 19.19 24.94 Q 18.3 25.9 20.31 31.9 Q 23.64 39.09 32.86 39.25 Z" fill="#4a3a68" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 32.69 28.71 Q 31.95 18.43 23.46 16.74 Q 16.69 15.88 15.8 16.95 Q 14.9 18.01 17.22 24.18 Q 20.95 31.54 30.61 31.19 Z" fill="#4a3a68" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 30.31 21.64 Q 28.67 11.57 20.04 9.9 Q 13.19 9.06 12.39 10.1 Q 11.59 11.13 14.45 17.18 Q 18.83 24.4 28.45 24.07 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 27.86 15.77 Q 24.99 6.44 16.39 4.54 Q 9.62 3.46 8.98 4.38 Q 8.33 5.3 11.87 10.99 Q 17.04 17.81 26.35 17.92 Z" fill="#4a3a68" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 36 45 C 28.5 -0.5 20.5 -6.5 15.5 1 S 5 19.8 0 22.3 Q 4 59 33.5 51 Q 33.5 47.5 36 45" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.45" opacity="0.72"/>
-                    <path d="M 18.68 3.55 Q 13.13 -6.1 2.89 -6.9 Q -5.06 -7.08 -5.56 -5.99 Q -6.07 -4.9 -0.66 0.71 Q 6.88 7.32 17.49 6.09 Z" fill="#1e1438" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 15.36 8.58 Q 8.63 -1.99 -2.98 -2.58 Q -11.97 -2.54 -12.49 -1.31 Q -13.01 -0.08 -6.62 6 Q 2.21 13.13 14.15 11.44 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 12.02 12.99 Q 4.27 1.86 -8.34 1.61 Q -18.09 1.94 -18.6 3.28 Q -19.11 4.61 -11.92 10.94 Q -2.04 18.3 10.82 16.1 Z" fill="#1e1438" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 8.63 16.81 Q 0.25 5.67 -12.72 5.84 Q -22.73 6.52 -23.2 7.91 Q -23.68 9.29 -16.05 15.52 Q -5.62 22.73 7.52 20.03 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 5.22 20.05 Q -3.28 9.49 -15.88 10.11 Q -25.58 11.13 -25.99 12.49 Q -26.41 13.86 -18.8 19.67 Q -8.43 26.32 4.25 23.23 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M 1.79 22.7 Q -6.34 13.17 -17.92 14.2 Q -26.82 15.5 -27.16 16.78 Q -27.51 18.07 -20.33 23.21 Q -10.59 29.03 0.99 25.7 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M -1.64 24.74 Q -9.07 16.46 -19.25 17.8 Q -27.06 19.28 -27.33 20.45 Q -27.6 21.62 -21.14 25.99 Q -12.4 30.88 -2.27 27.47 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
-                    <circle cx="12.66" cy="8.36" r="0.66" fill="#e8c040" opacity="0.94"/>
-                    <circle cx="21.09" cy="8.5" r="0.43" fill="#e8c040" opacity="0.51"/>
-                    <circle cx="12.47" cy="3.82" r="0.6" fill="#e8c040" opacity="0.46"/>
-                    <circle cx="8.96" cy="3.31" r="0.54" fill="#e8c040" opacity="0.39"/>
-                    <circle cx="-3.64" cy="22.17" r="0.39" fill="#4aefe0" opacity="0.64"/>
-                    <circle cx="-3.12" cy="22.78" r="0.27" fill="#4aefe0" opacity="0.89"/>
-                    <circle cx="-3.67" cy="19.24" r="0.57" fill="#4aefe0" opacity="0.8"/>
-                    <circle cx="-9.42" cy="25.59" r="0.45" fill="#4aefe0" opacity="0.72"/>
-                    <path class="tm-aether-wing-crack" d="M 31 42 Q 18 1 1.5 22.3" fill="none" stroke="#e8c040" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
-                    <path class="tm-aether-wing-vein" d="M 36 45 Q 18 1 0 22.3" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 0 22.3 C -12.5 14.8 -15 35.5 -20 41.5 Q -16 51.5 -2.5 33.3 Q 1 26.3 0 22.3" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.4" opacity="0.65"/>
-                    <path d="M 0.14 20.66 Q -9.39 13.2 -20.41 15.96 Q -28.78 18.54 -28.89 19.77 Q -29 21.01 -21.16 24.59 Q -10.72 28.4 -0.11 23.53 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M -0.14 21.58 Q -9.6 13.33 -21.48 14.81 Q -30.56 16.39 -30.78 17.57 Q -30.99 18.75 -23 23.07 Q -12.28 27.89 -0.65 24.34 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M -0.43 22.52 Q -9.75 13.43 -22.35 13.48 Q -32.01 13.96 -32.33 15.08 Q -32.64 16.19 -24.57 21.31 Q -13.67 27.22 -1.17 25.13 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M -0.74 23.47 Q -9.84 13.49 -22.98 11.99 Q -33.09 11.27 -33.5 12.32 Q -33.91 13.37 -25.84 19.33 Q -14.87 26.42 -1.69 25.92 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M -1.06 24.43 Q -9.84 13.52 -23.35 10.38 Q -33.77 8.38 -34.25 9.35 Q -34.74 10.32 -26.77 17.18 Q -15.87 25.5 -2.2 26.7 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M -1.4 25.4 Q -9.76 13.53 -23.44 8.66 Q -34 5.33 -34.56 6.22 Q -35.12 7.11 -27.35 14.88 Q -16.65 24.49 -2.7 27.47 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M -1.75 26.37 Q -9.59 13.53 -23.22 6.88 Q -33.77 2.16 -34.39 2.97 Q -35.01 3.77 -27.54 12.49 Q -17.21 23.42 -3.19 28.25 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path d="M -2.11 27.35 Q -9.32 13.52 -22.68 5.06 Q -33.05 -1.06 -33.72 -0.34 Q -34.38 0.37 -27.33 10.05 Q -17.52 22.32 -3.66 29.01 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
-                    <path class="tm-aether-wing-tatter" d="M 4 57 Q 0 62 6.5 60" fill="#e8c040" opacity="0.35"/>
-                    <path class="tm-aether-wing-tatter" d="M -31.22 1.16 Q -35.22 4.16 -30.22 3.16" fill="#4aefe0" opacity="0.4"/>
-                    <path class="tm-aether-wing-vein" d="M 0 22.3 Q -16.86 8.48 -33.72 -0.34" fill="none" stroke="#4aefe0" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-33.72" cy="-0.34" rx="1.6" ry="1" fill="#e8c040" opacity="0.85" filter="url(#aether-old-glow)"/>
-                    </g>
-                    </g>
-                    </g>
-                    </g>
-                    </g>
-                    <g class="tm-animate-tail">
-                    <path d="M 50 82 C 59 87 62 94 58 99 C 55 94 50 90 45 87 Z" fill="url(#aether-old-cloak)" stroke="#10081c" stroke-width="0.7" opacity="0.85"/>
-                    <path d="M 46 84 C 40 89 39 96 43 99 C 44 94 46 90 49 87 Z" fill="url(#aether-old-cloak)" stroke="#10081c" stroke-width="0.6" opacity="0.7"/>
-                    </g>
-                    <g class="tm-animate-body">
-                    <path d="M 48 6 L 56 10 L 64 18 L 72 30 L 78 46 L 76 64 L 84 90 L 64 82 L 52 96 L 42 86 L 28 90 L 34 68 L 26 52 L 30 34 L 36 20 L 42 10 Z" fill="url(#aether-old-body)" stroke="#10081c" stroke-width="1.5"/>
-                    <path d="M 48 14 L 56 18 L 62 28 L 68 40 L 70 56 L 68 74 L 52 68 L 38 76 L 40 58 L 34 44 L 38 30 L 44 20 Z" fill="url(#aether-old-cloak)" opacity="0.72"/>
-                    <line x1="42" y1="40" x2="48" y2="46" stroke="#e8c040" stroke-width="0.3" opacity="0.4"/>
-                    <line x1="48" y1="46" x2="44" y2="54" stroke="#e8c040" stroke-width="0.3" opacity="0.4"/>
-                    <line x1="44" y1="54" x2="52" y2="62" stroke="#e8c040" stroke-width="0.3" opacity="0.4"/>
-                    <line x1="52" y1="62" x2="60" y2="52" stroke="#e8c040" stroke-width="0.3" opacity="0.4"/>
-                    <line x1="60" y1="52" x2="56" y2="44" stroke="#e8c040" stroke-width="0.3" opacity="0.4"/>
-                    <line x1="56" y1="44" x2="62" y2="38" stroke="#e8c040" stroke-width="0.3" opacity="0.4"/>
-                    <circle cx="42" cy="40" r="0.99" fill="#e8c040" opacity="0.9"/>
-                    <circle cx="48" cy="46" r="0.73" fill="#e8c040" opacity="0.9"/>
-                    <circle cx="44" cy="54" r="0.58" fill="#e8c040" opacity="0.9"/>
-                    <circle cx="52" cy="62" r="0.9" fill="#e8c040" opacity="0.9"/>
-                    <circle cx="60" cy="52" r="0.95" fill="#e8c040" opacity="0.9"/>
-                    <circle cx="56" cy="44" r="0.65" fill="#e8c040" opacity="0.9"/>
-                    <circle cx="62" cy="38" r="0.64" fill="#e8c040" opacity="0.9"/>
-                    <circle cx="40.8" cy="55.55" r="0.68" fill="#d8d0b8" opacity="0.52"/>
-                    <circle cx="60.25" cy="53.01" r="0.64" fill="#d8d0b8" opacity="0.55"/>
-                    <circle cx="62.19" cy="53.29" r="0.66" fill="#d8d0b8" opacity="0.51"/>
-                    <circle cx="61.99" cy="56.1" r="0.33" fill="#d8d0b8" opacity="0.48"/>
-                    <circle cx="58.18" cy="58.55" r="0.3" fill="#d8d0b8" opacity="0.88"/>
-                    <circle cx="58.93" cy="59.82" r="0.66" fill="#d8d0b8" opacity="0.39"/>
-                    <circle cx="51.82" cy="44.25" r="0.33" fill="#d8d0b8" opacity="0.7"/>
-                    <circle cx="62.72" cy="57.1" r="0.3" fill="#d8d0b8" opacity="0.36"/>
-                    <circle cx="48.4" cy="63.35" r="0.74" fill="#d8d0b8" opacity="0.65"/>
-                    <circle cx="61.1" cy="40.58" r="0.65" fill="#d8d0b8" opacity="0.43"/>
-                    <circle cx="50.44" cy="37.16" r="0.25" fill="#d8d0b8" opacity="0.66"/>
-                    <circle cx="54.26" cy="42.16" r="0.58" fill="#d8d0b8" opacity="0.4"/>
-                    <path d="M 36 24 L 22 14 L 12 24 L 20 22 L 28 32 Z" fill="url(#aether-old-cloak)" stroke="#e8c040" stroke-width="0.8"/>
-                    <path d="M 62 22 L 76 10 L 90 22 L 80 20 L 72 30 Z" fill="url(#aether-old-cloak)" stroke="#e8c040" stroke-width="0.8"/>
-                    <path d="M 18 20 L 12 11 L 24 18 Z" fill="#e8c040" opacity="0.8"/>
-                    <path d="M 82 18 L 88 8 L 76 16 Z" fill="#e8c040" opacity="0.8"/>
-                    <path d="M 49 32 L 51 32 L 52 58 L 50 58 Z" fill="#ffffff" opacity="0.85" filter="url(#aether-old-glow)"/>
-                    <circle class="tm-aether-core" cx="52" cy="44" r="5.4" fill="url(#aether-old-core)" filter="url(#aether-old-glow)"/>
-                    <circle class="tm-aether-core-ring" cx="52" cy="44" r="8.6" fill="none" stroke="#e8c040" stroke-width="0.8" opacity="0.55"/>
-                    <path d="M 44 64 L 58 64 L 56 69 L 46 69 Z" fill="url(#aether-old-goldrim)" opacity="0.9"/>
-                    <g class="tm-aether-rune-tattoos">
-                        <path class="tm-aether-rune-glyph" d="M 46 57 l 1.6 -2 l 1.6 2 l -1.6 2 Z" fill="none" stroke="#4aefe0" stroke-width="0.5" opacity="0.8"/>
-                        <path class="tm-aether-rune-glyph" d="M 56.5 56 v 3.4 m -1.4 -1.7 h 2.8" fill="none" stroke="#e8c040" stroke-width="0.5" opacity="0.8"/>
-                        <path class="tm-aether-rune-glyph" d="M 51 62 l 1.2 -2.2 l 1.2 2.2 Z" fill="none" stroke="#d8d0b8" stroke-width="0.5" opacity="0.75"/>
-                    </g>
-                    </g>
-                    <g class="tm-aether-regalia">
-                    <g class="tm-aether-crown-constellation">
-                        <line x1="35" y1="6" x2="40" y2="2.5" stroke="#e8c040" stroke-width="0.35" opacity="0.5"/>
-                        <line x1="40" y1="2.5" x2="45" y2="-0.06" stroke="#e8c040" stroke-width="0.35" opacity="0.5"/>
-                        <line x1="45" y1="-0.06" x2="50" y2="-1" stroke="#e8c040" stroke-width="0.35" opacity="0.5"/>
-                        <line x1="50" y1="-1" x2="55" y2="-0.06" stroke="#e8c040" stroke-width="0.35" opacity="0.5"/>
-                        <line x1="55" y1="-0.06" x2="60" y2="2.5" stroke="#e8c040" stroke-width="0.35" opacity="0.5"/>
-                        <line x1="60" y1="2.5" x2="65" y2="6" stroke="#e8c040" stroke-width="0.35" opacity="0.5"/>
-                        <circle class="tm-aether-crown-star" cx="35" cy="6" r="0.94" fill="#e8c040"/>
-                        <circle class="tm-aether-crown-star" cx="40" cy="2.5" r="1.21" fill="#4aefe0"/>
-                        <circle class="tm-aether-crown-star" cx="45" cy="-0.06" r="1.27" fill="#e8c040"/>
-                        <circle class="tm-aether-crown-star" cx="50" cy="-1" r="1.5" fill="#4aefe0"/>
-                        <circle class="tm-aether-crown-star" cx="55" cy="-0.06" r="1.27" fill="#e8c040"/>
-                        <circle class="tm-aether-crown-star" cx="60" cy="2.5" r="0.97" fill="#4aefe0"/>
-                        <circle class="tm-aether-crown-star" cx="65" cy="6" r="0.98" fill="#e8c040"/>
-                        <path d="M 40.4 8 Q 50 3 59.6 8" fill="none" stroke="#e8c040" stroke-width="0.5" opacity="0.6"/>
-                    </g>
-                    <path d="M 41 14 L 38 4 L 44 10 Z" fill="url(#aether-old-goldrim)" stroke="#10081c" stroke-width="0.6"/>
-                    <path d="M 59 14 L 62 4 L 56 10 Z" fill="url(#aether-old-goldrim)" stroke="#10081c" stroke-width="0.6"/>
-                    <path d="M 50 12 L 48 3 L 52 3 Z" fill="#e8c040" opacity="0.9" filter="url(#aether-old-glow)"/>
-                    </g>
-                    <g class="tm-animate-arm-left">
-                    <path d="M 36 44 Q 24 51 21 66 L 27 61 L 26 70 L 32 63 Q 34 53 38 48 Z" fill="url(#aether-old-body)" stroke="#10081c" stroke-width="1.1"/>
-                    <path d="M 19 65 L 14 73 M 24 66 L 22 74 M 28 65 L 28 72" fill="none" stroke="#4aefe0" stroke-width="1.1" stroke-linecap="round" opacity="0.95"/>
-                    </g>
-                    <g class="tm-animate-arm-right">
-                    <path d="M 64 44 Q 76 51 79 66 L 73 61 L 74 70 L 68 63 Q 66 53 62 48 Z" fill="url(#aether-old-body)" stroke="#10081c" stroke-width="1.1"/>
-                    <path d="M 81 65 L 86 73 M 76 66 L 78 74 M 72 65 L 72 72" fill="none" stroke="#4aefe0" stroke-width="1.1" stroke-linecap="round" opacity="0.95"/>
-                    </g>
-                    <g class="tm-animate-leg-left">
-                    <path d="M 43 88 L 38 96 L 46 96 L 47 89 Z" fill="url(#aether-old-cloak)" stroke="#10081c" stroke-width="0.8"/>
-                    </g>
-                    <g class="tm-animate-leg-right">
-                    <path d="M 57 88 L 62 96 L 54 96 L 53 89 Z" fill="url(#aether-old-cloak)" stroke="#10081c" stroke-width="0.8"/>
-                    </g>
-                    <g class="tm-mascot-eye-open tm-aether-eyes tm-aether-eyes-eclipse">
-                    <ellipse class="tm-aether-eye-sclera" cx="44.6" cy="26" rx="3.1" ry="3.3" fill="#020106" stroke="#10081c" stroke-width="1.1" opacity="0.94"/>
-                    <ellipse class="tm-aether-eye-sclera" cx="55.4" cy="26" rx="3.1" ry="3.3" fill="#020106" stroke="#10081c" stroke-width="1.1" opacity="0.94"/>
-                    <ellipse class="tm-aether-iris" cx="44.6" cy="26" rx="2.48" ry="2.8" fill="url(#aether-old-iris)" opacity="0.5"/>
-                    <ellipse class="tm-aether-iris" cx="55.4" cy="26" rx="2.48" ry="2.8" fill="url(#aether-old-iris)" opacity="0.5"/>
-                    <circle class="tm-aether-eclipse-pupil" cx="44.6" cy="26" r="1.92" fill="#05010c"/>
-                    <path class="tm-aether-eclipse-crescent" d="M 44.23 24.15 A 1.3 1.81 0 1 1 44.23 27.85" fill="#f4ecd0" opacity="0.9"/>
-                    <circle class="tm-aether-eclipse-pupil" cx="55.4" cy="26" r="1.92" fill="#05010c"/>
-                    <path class="tm-aether-eclipse-crescent" d="M 55.77 24.15 A 1.3 1.81 0 1 0 55.77 27.85" fill="#e64a3c" opacity="0.8"/>
-                    <path d="M 41.5 22.38 L 47.7 25.84 L 47.7 21.7 L 41.5 21.7 Z" fill="url(#aether-old-cloak)"/>
-                    <path d="M 58.5 22.38 L 52.3 25.84 L 52.3 21.7 L 58.5 21.7 Z" fill="url(#aether-old-cloak)"/>
-                    <line x1="40.9" y1="22.22" x2="48.1" y2="25.93" stroke="#10081c" stroke-width="1.2" stroke-linecap="round"/>
-                    <line x1="59.1" y1="22.22" x2="51.9" y2="25.93" stroke="#10081c" stroke-width="1.2" stroke-linecap="round"/>
-                    </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                    <path d="M 41.5 26 Q 44.6 27.4 47.7 26" stroke="#10081c" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    <path d="M 52.3 26 Q 55.4 27.4 58.5 26" stroke="#10081c" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <path class="tm-mascot-mouth-happy" d="M 47.4 34.5 L 49.22 35.2 L 50.78 35.2 L 52.6 34.5" stroke="#10081c" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.4 36 Q 50 33.5 52.6 36" stroke="#10081c" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                    <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
-                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="10" fill="none" stroke="#4aefe0" stroke-width="0.55" opacity="0.5" transform="rotate(-14 50 52)"/>
-                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="36" ry="13" fill="none" stroke="#4a3a68" stroke-width="0.45" opacity="0.4" transform="rotate(12 50 52)"/>
-                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="28" ry="8" fill="none" stroke="#e8c040" stroke-width="0.4" opacity="0.45" transform="rotate(-30 50 52)"/>
-                    <circle class="tm-aether-orbit-node" cx="18" cy="52" r="1.4" fill="#e8c040" opacity="0.9"/>
-                    <circle class="tm-aether-orbit-node" cx="82" cy="52" r="1.1" fill="#4aefe0" opacity="0.9"/>
-                    <circle class="tm-aether-orbit-node" cx="50" cy="24" r="1.2" fill="#d8d0b8" opacity="0.85"/>
-                    </g>
-                    <g class="tm-aether-fx tm-aether-ribbons" data-fx="ribbons" opacity="0">
-                    <path class="tm-aether-ribbon" d="M 18 30 C 10 44 14 62 24 74 C 18 60 20 44 26 34 Z" fill="#4aefe0" opacity="0.3"/>
-                    <path class="tm-aether-ribbon" d="M 82 30 C 90 44 86 62 76 74 C 82 60 80 44 74 34 Z" fill="#4a3a68" opacity="0.3"/>
-                    <path class="tm-aether-ribbon" d="M 30 16 C 40 8 60 8 70 16 C 58 12 42 12 30 16 Z" fill="#e8c040" opacity="0.25"/>
-                    </g>
-                    <g class="tm-aether-fx tm-aether-shards" data-fx="shards" opacity="0">
-                    <path class="tm-aether-shard" d="M 16 34 L 20 30 L 21 37 Z" fill="#4aefe0" opacity="0.8"/>
-                    <path class="tm-aether-shard" d="M 84 32 L 80 27 L 78 35 Z" fill="#4a3a68" opacity="0.8"/>
-                    <path class="tm-aether-shard" d="M 12 58 L 16 55 L 15 62 Z" fill="#e8c040" opacity="0.7"/>
-                    <path class="tm-aether-shard" d="M 88 56 L 84 52 L 83 60 Z" fill="#d8d0b8" opacity="0.7"/>
-                    </g>
-                    <g class="tm-aether-fx " data-fx="sparks" opacity="0">
-                    <circle class="tm-aether-spark" cx="84.39" cy="24.86" r="0.72" fill="#4aefe0"/>
-                    <circle class="tm-aether-spark" cx="25.5" cy="27.7" r="0.72" fill="#e8c040"/>
-                    <circle class="tm-aether-spark" cx="73.81" cy="40.73" r="0.75" fill="#d8d0b8"/>
-                    <circle class="tm-aether-spark" cx="18.49" cy="29.72" r="0.82" fill="#4aefe0"/>
-                    <circle class="tm-aether-spark" cx="53.82" cy="50.84" r="0.82" fill="#e8c040"/>
-                    <circle class="tm-aether-spark" cx="37.8" cy="22.12" r="1.59" fill="#d8d0b8"/>
-                    <circle class="tm-aether-spark" cx="11.57" cy="14.16" r="0.76" fill="#4aefe0"/>
-                    <circle class="tm-aether-spark" cx="34.78" cy="24.42" r="1.08" fill="#e8c040"/>
-                    <circle class="tm-aether-spark" cx="8.86" cy="62.83" r="1.77" fill="#d8d0b8"/>
-                    </g>
-                </g>
-                <!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Sovereign Presence v13 · commanding boss morphs) -->
+                                <!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Sovereign Presence v13 · commanding boss morphs) -->
                 <!-- LEVIATHAN BABY — Tide Serpentling -->
-                <g id="tm-mascot-baby-leviathan" style="display: none;">
+                <g id="tm-mascot-evo1-leviathan" style="display: none;">
                     <defs>
                         <linearGradient id="leviathan-baby-skin" x1="15%" y1="0%" x2="80%" y2="100%">
                             <stop offset="0%" style="stop-color:#7ab0c8;stop-opacity:1" />
@@ -19645,303 +15619,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <g class="tm-animate-leg-right" opacity="0.001"><circle cx="52.6" cy="61.9" r="0.5" fill="#142636"/></g>
                         </g>
                 </g>
-
-                <!-- LEVIATHAN KID — Squall Serpent -->
-                <g id="tm-mascot-evo1-leviathan" style="display: none;">
-                    <defs>
-                        <linearGradient id="leviathan-kid-skin" x1="15%" y1="0%" x2="80%" y2="100%">
-                            <stop offset="0%" style="stop-color:#5a8ca6;stop-opacity:1" />
-                            <stop offset="22%" style="stop-color:#8ecae6;stop-opacity:1" />
-                            <stop offset="48%" style="stop-color:#243f52;stop-opacity:1" />
-                            <stop offset="78%" style="stop-color:#08121a;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#02070b;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="leviathan-kid-skin-rad" cx="45%" cy="30%" r="75%">
-                            <stop offset="0%" style="stop-color:#5a8ca6;stop-opacity:0.95" />
-                            <stop offset="35%" style="stop-color:#243f52;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#02070b;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="leviathan-kid-belly" x1="40%" y1="0%" x2="55%" y2="100%">
-                            <stop offset="0%" style="stop-color:#355468;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#243f52;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#08121a;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="leviathan-kid-fin" x1="50%" y1="0%" x2="50%" y2="100%">
-                            <stop offset="0%" style="stop-color:#8ecae6;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#243f52;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#02070b;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="leviathan-kid-eye" cx="36%" cy="30%" r="70%">
-                            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-                            <stop offset="18%" style="stop-color:#b4eafd;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#8ecae6;stop-opacity:1" />
-                            <stop offset="82%" style="stop-color:#08121a;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="leviathan-kid-glow" cx="50%" cy="45%" r="55%">
-                            <stop offset="0%" style="stop-color:#b4eafd;stop-opacity:0.35" />
-                            <stop offset="45%" style="stop-color:#67e8f9;stop-opacity:0.12" />
-                            <stop offset="100%" style="stop-color:#67e8f9;stop-opacity:0" />
-                        </radialGradient>
-                        <pattern id="leviathan-kid-scales" width="3.2" height="2.6" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
-                            <path d="M 0 1.3 Q 1.6 0.1 3.2 1.3 Q 1.6 2.4 0 1.3 Z" fill="#08121a" opacity="0.42"/>
-                            <path d="M 0 1.3 Q 1.6 0.35 3.2 1.3" fill="none" stroke="#8ecae6" stroke-width="0.28" opacity="0.4"/>
-                            <path d="M 1.6 0 Q 3.2 1.1 1.6 2.2" fill="none" stroke="#5a8ca6" stroke-width="0.18" opacity="0.18"/>
-                        </pattern>
-                        <pattern id="leviathan-kid-micro" width="2" height="2" patternUnits="userSpaceOnUse">
-                            <circle cx="0.6" cy="0.7" r="0.25" fill="#8ecae6" opacity="0.12"/>
-                            <circle cx="1.5" cy="1.4" r="0.18" fill="#02070b" opacity="0.18"/>
-                        </pattern>
-                        <filter id="leviathan-kid-soft" x="-60%" y="-60%" width="220%" height="220%">
-                            <feGaussianBlur stdDeviation="0.9" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                        <filter id="leviathan-kid-glowf" x="-100%" y="-100%" width="300%" height="300%">
-                            <feGaussianBlur stdDeviation="1.4" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                        <filter id="leviathan-kid-wet" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur in="SourceAlpha" stdDeviation="0.6" result="blur"/>
-                            <feSpecularLighting in="blur" surfaceScale="2.2" specularConstant="0.9" specularExponent="18" lighting-color="#8ecae6" result="spec">
-                              <fePointLight x="30" y="10" z="40"/>
-                            </feSpecularLighting>
-                            <feComposite in="spec" in2="SourceAlpha" operator="in" result="specOut"/>
-                            <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="1" k3="0.55" k4="0"/>
-                        </filter>
-                    </defs>
-                        <ellipse cx="48" cy="93" rx="28" ry="4.2" fill="#010408" opacity="0.3"/>
-
-                        <path d="M 8 10 L 14 26 L 10 34" stroke="#67e8f9" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7" filter="url(#leviathan-kid-glowf)"/>
-                        <circle cx="12" cy="22" r="0.55" fill="#aed6e8" opacity="0.28" filter="url(#leviathan-kid-soft)"/>
-                        <circle cx="88" cy="18" r="0.8" fill="#aed6e8" opacity="0.35000000000000003" filter="url(#leviathan-kid-soft)"/>
-                        <circle cx="18" cy="40" r="1.05" fill="#aed6e8" opacity="0.42000000000000004" filter="url(#leviathan-kid-soft)"/>
-                        <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-                        <g class="tm-animate-tail">
-                            <circle cx="24.3" cy="44.0" r="0.4" fill="#08121a" opacity="0.001"/>                            <ellipse cx="24.3" cy="44.0" rx="2.8" ry="2.2" fill="url(#leviathan-kid-fin)" opacity="0.9"/>
-                            <path d="M 25.8 43.3 Q 20.8 35.5 12.8 42.5 Q 18.8 44.0 13.3 46.0 Q 21.3 51.0 25.8 44.8 Z" fill="url(#leviathan-kid-fin)" stroke="#08121a" stroke-width="0.95"/>
-                        </g>
-                            <path d="M 70.1 41.6 C 70.2 41.9 70.7 42.6 70.7 43.3 C 70.7 44.0 70.6 45.0 70.3 45.8 C 70.0 46.6 69.3 47.3 68.8 47.9 C 68.2 48.5 67.6 48.9 67.0 49.3 C 66.3 49.6 65.6 50.0 64.8 50.2 C 64.0 50.5 63.2 50.6 62.4 50.7 C 61.5 50.8 60.7 50.9 59.8 50.8 C 58.8 50.8 57.9 50.7 56.8 50.5 C 55.8 50.3 54.7 50.1 53.6 49.9 C 52.4 49.6 51.1 49.4 49.9 49.2 C 48.7 49.0 47.4 48.8 46.3 48.7 C 45.1 48.5 44.0 48.4 43.0 48.3 C 42.0 48.1 41.1 47.9 40.3 47.7 C 39.4 47.5 38.7 47.3 37.9 47.0 C 37.2 46.7 36.5 46.4 35.8 46.1 C 35.1 45.8 34.4 45.4 33.8 45.1 C 33.2 44.7 32.6 44.4 32.1 44.1 C 31.5 43.7 31.0 43.4 30.5 43.2 C 30.0 42.9 29.5 42.7 29.0 42.6 C 28.5 42.5 27.9 42.4 27.3 42.4 C 26.7 42.4 26.0 42.2 25.4 42.4 C 24.8 42.7 24.5 43.6 23.7 43.8 C 22.9 44.1 20.4 43.5 20.3 43.8 C 20.2 44.1 22.3 45.2 23.2 45.7 C 24.1 46.1 24.8 46.2 25.8 46.5 C 26.7 46.8 27.7 47.2 28.6 47.5 C 29.6 47.9 30.7 48.2 31.7 48.5 C 32.7 48.8 33.7 49.2 34.7 49.5 C 35.6 49.8 36.6 50.2 37.5 50.6 C 38.3 50.9 39.2 51.4 40.0 51.8 C 40.9 52.2 41.7 52.7 42.5 53.2 C 43.2 53.7 44.0 54.2 44.6 54.7 C 45.3 55.2 45.9 55.8 46.4 56.3 C 46.9 56.8 47.4 57.3 47.7 57.8 C 48.1 58.2 48.3 58.5 48.6 58.8 C 48.9 59.0 49.2 59.1 49.5 59.2 C 49.9 59.2 50.3 59.2 50.8 59.2 C 51.3 59.1 51.8 59.0 52.4 58.9 C 53.0 58.9 53.7 58.8 54.3 58.7 C 55.0 58.5 55.7 58.4 56.5 58.3 C 57.2 58.2 58.0 58.1 58.8 58.0 C 59.7 57.9 60.6 57.7 61.6 57.7 C 62.5 57.7 63.4 57.8 64.6 58.0 C 65.8 58.1 67.2 58.5 68.8 58.5 C 70.3 58.6 73.1 58.4 73.9 58.4 Z" fill="url(#leviathan-kid-skin)" stroke="#08121a" stroke-width="1.15" stroke-linejoin="round" filter="url(#leviathan-kid-wet)"/>
-                            <path d="M 70.1 41.6 C 70.2 41.9 70.7 42.6 70.7 43.3 C 70.7 44.0 70.6 45.0 70.3 45.8 C 70.0 46.6 69.3 47.3 68.8 47.9 C 68.2 48.5 67.6 48.9 67.0 49.3 C 66.3 49.6 65.6 50.0 64.8 50.2 C 64.0 50.5 63.2 50.6 62.4 50.7 C 61.5 50.8 60.7 50.9 59.8 50.8 C 58.8 50.8 57.9 50.7 56.8 50.5 C 55.8 50.3 54.7 50.1 53.6 49.9 C 52.4 49.6 51.1 49.4 49.9 49.2 C 48.7 49.0 47.4 48.8 46.3 48.7 C 45.1 48.5 44.0 48.4 43.0 48.3 C 42.0 48.1 41.1 47.9 40.3 47.7 C 39.4 47.5 38.7 47.3 37.9 47.0 C 37.2 46.7 36.5 46.4 35.8 46.1 C 35.1 45.8 34.4 45.4 33.8 45.1 C 33.2 44.7 32.6 44.4 32.1 44.1 C 31.5 43.7 31.0 43.4 30.5 43.2 C 30.0 42.9 29.5 42.7 29.0 42.6 C 28.5 42.5 27.9 42.4 27.3 42.4 C 26.7 42.4 26.0 42.2 25.4 42.4 C 24.8 42.7 24.5 43.6 23.7 43.8 C 22.9 44.1 20.4 43.5 20.3 43.8 C 20.2 44.1 22.3 45.2 23.2 45.7 C 24.1 46.1 24.8 46.2 25.8 46.5 C 26.7 46.8 27.7 47.2 28.6 47.5 C 29.6 47.9 30.7 48.2 31.7 48.5 C 32.7 48.8 33.7 49.2 34.7 49.5 C 35.6 49.8 36.6 50.2 37.5 50.6 C 38.3 50.9 39.2 51.4 40.0 51.8 C 40.9 52.2 41.7 52.7 42.5 53.2 C 43.2 53.7 44.0 54.2 44.6 54.7 C 45.3 55.2 45.9 55.8 46.4 56.3 C 46.9 56.8 47.4 57.3 47.7 57.8 C 48.1 58.2 48.3 58.5 48.6 58.8 C 48.9 59.0 49.2 59.1 49.5 59.2 C 49.9 59.2 50.3 59.2 50.8 59.2 C 51.3 59.1 51.8 59.0 52.4 58.9 C 53.0 58.9 53.7 58.8 54.3 58.7 C 55.0 58.5 55.7 58.4 56.5 58.3 C 57.2 58.2 58.0 58.1 58.8 58.0 C 59.7 57.9 60.6 57.7 61.6 57.7 C 62.5 57.7 63.4 57.8 64.6 58.0 C 65.8 58.1 67.2 58.5 68.8 58.5 C 70.3 58.6 73.1 58.4 73.9 58.4 Z" fill="url(#leviathan-kid-scales)" opacity="0.35"/>
-                            <path d="M 70.1 41.6 C 70.2 41.9 70.7 42.6 70.7 43.3 C 70.7 44.0 70.6 45.0 70.3 45.8 C 70.0 46.6 69.3 47.3 68.8 47.9 C 68.2 48.5 67.6 48.9 67.0 49.3 C 66.3 49.6 65.6 50.0 64.8 50.2 C 64.0 50.5 63.2 50.6 62.4 50.7 C 61.5 50.8 60.7 50.9 59.8 50.8 C 58.8 50.8 57.9 50.7 56.8 50.5 C 55.8 50.3 54.7 50.1 53.6 49.9 C 52.4 49.6 51.1 49.4 49.9 49.2 C 48.7 49.0 47.4 48.8 46.3 48.7 C 45.1 48.5 44.0 48.4 43.0 48.3 C 42.0 48.1 41.1 47.9 40.3 47.7 C 39.4 47.5 38.7 47.3 37.9 47.0 C 37.2 46.7 36.5 46.4 35.8 46.1 C 35.1 45.8 34.4 45.4 33.8 45.1 C 33.2 44.7 32.6 44.4 32.1 44.1 C 31.5 43.7 31.0 43.4 30.5 43.2 C 30.0 42.9 29.5 42.7 29.0 42.6 C 28.5 42.5 27.9 42.4 27.3 42.4 C 26.7 42.4 26.0 42.2 25.4 42.4 C 24.8 42.7 24.5 43.6 23.7 43.8 C 22.9 44.1 20.4 43.5 20.3 43.8 C 20.2 44.1 22.3 45.2 23.2 45.7 C 24.1 46.1 24.8 46.2 25.8 46.5 C 26.7 46.8 27.7 47.2 28.6 47.5 C 29.6 47.9 30.7 48.2 31.7 48.5 C 32.7 48.8 33.7 49.2 34.7 49.5 C 35.6 49.8 36.6 50.2 37.5 50.6 C 38.3 50.9 39.2 51.4 40.0 51.8 C 40.9 52.2 41.7 52.7 42.5 53.2 C 43.2 53.7 44.0 54.2 44.6 54.7 C 45.3 55.2 45.9 55.8 46.4 56.3 C 46.9 56.8 47.4 57.3 47.7 57.8 C 48.1 58.2 48.3 58.5 48.6 58.8 C 48.9 59.0 49.2 59.1 49.5 59.2 C 49.9 59.2 50.3 59.2 50.8 59.2 C 51.3 59.1 51.8 59.0 52.4 58.9 C 53.0 58.9 53.7 58.8 54.3 58.7 C 55.0 58.5 55.7 58.4 56.5 58.3 C 57.2 58.2 58.0 58.1 58.8 58.0 C 59.7 57.9 60.6 57.7 61.6 57.7 C 62.5 57.7 63.4 57.8 64.6 58.0 C 65.8 58.1 67.2 58.5 68.8 58.5 C 70.3 58.6 73.1 58.4 73.9 58.4 Z" fill="url(#leviathan-kid-micro)" opacity="0.55"/>
-                            <path d="M 70.1 41.6 C 70.2 41.9 70.7 42.6 70.7 43.3 C 70.7 44.0 70.6 45.0 70.3 45.8 C 70.0 46.6 69.3 47.3 68.8 47.9 C 68.2 48.5 67.6 48.9 67.0 49.3 C 66.3 49.6 65.6 50.0 64.8 50.2 C 64.0 50.5 63.2 50.6 62.4 50.7 C 61.5 50.8 60.7 50.9 59.8 50.8 C 58.8 50.8 57.9 50.7 56.8 50.5 C 55.8 50.3 54.7 50.1 53.6 49.9 C 52.4 49.6 51.1 49.4 49.9 49.2 C 48.7 49.0 47.4 48.8 46.3 48.7 C 45.1 48.5 44.0 48.4 43.0 48.3 C 42.0 48.1 41.1 47.9 40.3 47.7 C 39.4 47.5 38.7 47.3 37.9 47.0 C 37.2 46.7 36.5 46.4 35.8 46.1 C 35.1 45.8 34.4 45.4 33.8 45.1 C 33.2 44.7 32.6 44.4 32.1 44.1 C 31.5 43.7 31.0 43.4 30.5 43.2 C 30.0 42.9 29.5 42.7 29.0 42.6 C 28.5 42.5 27.9 42.4 27.3 42.4 C 26.7 42.4 26.0 42.2 25.4 42.4 C 24.8 42.7 24.0 43.6 23.7 43.8" fill="none" stroke="#08121a" stroke-width="0.4" opacity="0.25"/>
-                            <path d="M 70.1 42.9 C 70.2 43.1 70.7 43.8 70.7 44.5 C 70.7 45.1 70.5 46.0 70.2 46.7 C 69.9 47.4 69.3 48.1 68.7 48.7 C 68.2 49.2 67.6 49.6 66.9 49.9 C 66.2 50.3 65.5 50.6 64.7 50.8 C 64.0 51.1 63.1 51.2 62.3 51.3 C 61.5 51.4 60.6 51.5 59.7 51.4 C 58.8 51.4 57.8 51.3 56.8 51.2 C 55.8 51.0 54.7 50.8 53.5 50.6 C 52.4 50.4 51.1 50.1 49.9 49.9 C 48.7 49.7 47.4 49.5 46.3 49.3 C 45.1 49.2 44.1 49.0 43.1 48.9 C 42.1 48.7 41.2 48.5 40.3 48.3 C 39.5 48.0 38.7 47.7 38.0 47.5 C 37.2 47.2 36.5 46.8 35.8 46.5 C 35.1 46.2 34.5 45.8 33.9 45.5 C 33.2 45.1 32.6 44.8 32.1 44.5 C 31.5 44.1 31.0 43.8 30.5 43.6 C 30.0 43.3 29.5 43.1 29.0 43.0 C 28.5 42.8 27.9 42.8 27.3 42.7 C 26.7 42.7 25.9 42.5 25.3 42.7 C 24.7 42.9 23.9 43.6 23.7 43.8" fill="none" stroke="#ffffff" stroke-width="0.45" opacity="0.14" stroke-linecap="round"/>
-                            <path d="M 69.6 52.1 C 69.2 52.2 67.9 52.6 67.0 52.8 C 66.2 53.1 65.4 53.3 64.6 53.5 C 63.9 53.8 63.1 54.0 62.3 54.3 C 61.5 54.5 60.8 54.7 60.0 54.9 C 59.3 55.0 58.5 55.2 57.8 55.3 C 57.0 55.4 56.3 55.5 55.5 55.5 C 54.8 55.5 54.1 55.5 53.4 55.5 C 52.6 55.4 51.9 55.3 51.2 55.2 C 50.5 55.1 49.9 54.9 49.2 54.7 C 48.5 54.5 47.8 54.2 47.1 53.9 C 46.4 53.6 45.7 53.2 45.0 52.9 C 44.3 52.5 43.5 52.1 42.8 51.7 C 42.0 51.4 41.3 50.9 40.5 50.6 C 39.8 50.2 39.0 49.8 38.2 49.4 C 37.5 49.0 36.7 48.6 35.9 48.2 C 35.1 47.9 34.3 47.5 33.6 47.2 C 32.8 46.9 32.0 46.5 31.2 46.2 C 30.4 46.0 29.6 45.7 28.8 45.4 C 28.0 45.2 26.9 44.8 26.4 44.8 C 26.0 44.8 25.7 45.2 26.1 45.4 C 26.5 45.7 27.8 45.9 28.7 46.2 C 29.6 46.5 30.5 46.8 31.4 47.1 C 32.3 47.4 33.2 47.7 34.1 48.1 C 35.0 48.4 35.8 48.7 36.6 49.1 C 37.5 49.5 38.3 49.9 39.1 50.3 C 39.9 50.7 40.7 51.1 41.4 51.5 C 42.2 52.0 42.9 52.4 43.6 52.9 C 44.3 53.3 45.0 53.7 45.7 54.2 C 46.3 54.6 46.9 55.0 47.4 55.3 C 47.9 55.7 48.4 56.0 48.9 56.2 C 49.4 56.4 49.9 56.6 50.4 56.7 C 51.0 56.8 51.5 56.8 52.2 56.9 C 52.8 56.9 53.4 56.8 54.1 56.8 C 54.7 56.7 55.4 56.7 56.2 56.6 C 56.9 56.4 57.6 56.3 58.3 56.2 C 59.1 56.0 59.9 55.8 60.7 55.7 C 61.5 55.5 62.3 55.3 63.2 55.1 C 64.1 55.0 64.9 54.9 65.9 54.8 C 66.9 54.7 68.6 54.5 69.2 54.5 Z" fill="url(#leviathan-kid-belly)" opacity="0.55"/>
-
-
-                            <path d="M 68.8 46.1 C 68.1 46.4 66.3 47.2 64.8 47.6 C 63.3 48.0 61.6 48.6 59.8 48.6 C 57.9 48.7 55.8 48.5 53.6 48.1 C 51.3 47.6 48.5 46.5 46.3 46.1 C 44.1 45.6 42.0 45.8 40.3 45.5 C 38.5 45.2 36.5 44.2 35.8 44.3 C 35.0 44.4 35.4 45.6 35.8 46.1 C 36.1 46.5 37.2 46.7 37.9 47.0 C 38.7 47.3 39.4 47.5 40.3 47.7 C 41.1 47.9 42.0 48.1 43.0 48.3 C 44.0 48.4 45.1 48.5 46.3 48.7 C 47.4 48.8 48.7 49.0 49.9 49.2 C 51.1 49.4 52.4 49.6 53.6 49.9 C 54.7 50.1 55.8 50.3 56.8 50.5 C 57.9 50.7 58.8 50.8 59.8 50.8 C 60.7 50.9 61.5 50.8 62.4 50.7 C 63.2 50.6 64.0 50.5 64.8 50.2 C 65.6 50.0 66.3 49.6 67.0 49.3 C 67.6 48.9 68.5 48.1 68.8 47.9 Z" fill="url(#leviathan-kid-fin)" stroke="#08121a" stroke-width="0.55" opacity="0.85"/>
-                            <path d="M 64.1 44.4
-      C 70.9 41.4 79.1 45.9 82.9 49.6
-      Q 83.6 51.1 82.1 53.0
-      L 66.8 55.3
-      Q 63.0 51.1 64.1 44.4 Z" fill="url(#leviathan-kid-skin-rad)" stroke="#08121a" stroke-width="1.2" stroke-linejoin="round"/>
-                            <path d="M 64.1 44.4
-      C 70.9 41.4 79.1 45.9 82.9 49.6
-      Q 83.6 51.1 82.1 53.0
-      L 66.8 55.3
-      Q 63.0 51.1 64.1 44.4 Z" fill="url(#leviathan-kid-scales)" opacity="0.3"/>
-
-                            <path d="M 67.5 44.8 Q 74.3 42.9 78.8 47.4" fill="none" stroke="#8ecae6" stroke-width="0.7" opacity="0.45" stroke-linecap="round"/>
-                            <ellipse cx="79.9" cy="49.6" rx="0.9" ry="0.6" fill="#02070b" opacity="0.85"/>
-                            <path d="M 78.8 51.9 Q 83.3 55.3 86.3 54.1" fill="none" stroke="#08121a" stroke-width="0.7" opacity="0.7" stroke-linecap="round"/>
-                            <path d="M 78.4 53.0 Q 82.1 56.8 84.8 56.4" fill="none" stroke="#08121a" stroke-width="0.55" opacity="0.55" stroke-linecap="round"/>
-                        <g class="tm-mascot-mouth-happy">
-                            <path d="M 67.9 52.6 Q 74.8 60.4 81.8 59.4 L 82.9 51.5 L 80.3 53.8 Z" fill="url(#leviathan-kid-skin)" stroke="#08121a" stroke-width="1"/>
-                            <path d="M 69.0 53.4 L 79.9 54.1 L 81.0 58.3 Z" fill="#02070b" opacity="0.92"/>
-                            <path d="M 69.3 53.7 L 69.7 55.8 L 70.1 53.7 Z" fill="#eef8fc"/>
-                            <path d="M 71.4 56.5 L 71.7 55.0 L 72.1 56.5 Z" fill="#eef8fc" opacity="0.9"/>
-                            <path d="M 79.8 53.4 L 80.2 56.3 L 80.6 53.4 Z" fill="#eef8fc"/>
-                            <path d="M 77.7 57.7 L 78.0 55.6 L 78.4 57.7 Z" fill="#eef8fc" opacity="0.9"/>
-                        </g>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 67.9 52.6 Q 75.4 54.8 81.4 54.3 L 80.3 53.8 Z" fill="url(#leviathan-kid-skin)" stroke="#08121a" stroke-width="1"/>
-                        <g class="tm-mascot-eye-open tm-leviathan-eye">
-                            <ellipse cx="73.1" cy="48.1" rx="4.7" ry="4.8" fill="#b4eafd" opacity="0.14" filter="url(#leviathan-kid-glowf)"/>
-                            <ellipse cx="73.1" cy="48.1" rx="3.2" ry="2.6" fill="#02070b" opacity="0.88"/>
-                            <ellipse class="tm-leviathan-iris" cx="73.1" cy="48.1" rx="2.4" ry="2.1" fill="url(#leviathan-kid-eye)" stroke="#08121a" stroke-width="0.7"/>
-                            <ellipse class="tm-leviathan-pupil" cx="73.3" cy="48.1" rx="0.6" ry="1.4" fill="#000"/>
-                            <ellipse cx="72.3" cy="47.6" rx="0.4" ry="0.4" fill="#fff" opacity="0.75"/>
-
-
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 70.7 48.1 Q 73.1 47.0 75.5 48.1" stroke="#08121a" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-                        </g>
-
-                        <g class="tm-animate-wing-left">
-                            <circle cx="65.9" cy="56.2" r="0.4" fill="#08121a" opacity="0.001"/>                            <ellipse cx="65.9" cy="56.8" rx="2.4" ry="1.6" fill="url(#leviathan-kid-fin)" opacity="0.85"/>
-                            <path d="M 65.9 56.2 Q 62.7 63.4 58.7 60.6 Q 63.5 59.0 66.9 56.5 Z" fill="url(#leviathan-kid-fin)" stroke="#08121a" stroke-width="0.85"/>
-                        </g>
-                        <g class="tm-animate-wing-right" opacity="0.001"><circle cx="68.9" cy="56.2" r="0.4" fill="#08121a"/></g>
-                        <g class="tm-animate-arm-left" opacity="0.001"><circle cx="50.8" cy="59.2" r="0.5" fill="#08121a"/></g>
-                        <g class="tm-animate-arm-right" opacity="0.001"><circle cx="53.8" cy="59.2" r="0.5" fill="#08121a"/></g>
-                        <g class="tm-animate-leg-left" opacity="0.001"><circle cx="46.4" cy="56.3" r="0.5" fill="#08121a"/></g>
-                        <g class="tm-animate-leg-right" opacity="0.001"><circle cx="49.4" cy="56.3" r="0.5" fill="#08121a"/></g>
-                        </g>
-                </g>
-
-                <!-- LEVIATHAN TEEN — Thunder Serpent -->
-                <g id="tm-mascot-evo2-leviathan" style="display: none;">
-                    <defs>
-                        <linearGradient id="leviathan-teen-skin" x1="15%" y1="0%" x2="80%" y2="100%">
-                            <stop offset="0%" style="stop-color:#3a6a82;stop-opacity:1" />
-                            <stop offset="22%" style="stop-color:#6aa8c8;stop-opacity:1" />
-                            <stop offset="48%" style="stop-color:#152838;stop-opacity:1" />
-                            <stop offset="78%" style="stop-color:#040a12;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#010306;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="leviathan-teen-skin-rad" cx="45%" cy="30%" r="75%">
-                            <stop offset="0%" style="stop-color:#3a6a82;stop-opacity:0.95" />
-                            <stop offset="35%" style="stop-color:#152838;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#010306;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="leviathan-teen-belly" x1="40%" y1="0%" x2="55%" y2="100%">
-                            <stop offset="0%" style="stop-color:#243e50;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#152838;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#040a12;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="leviathan-teen-fin" x1="50%" y1="0%" x2="50%" y2="100%">
-                            <stop offset="0%" style="stop-color:#6aa8c8;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#152838;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#010306;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="leviathan-teen-eye" cx="36%" cy="30%" r="70%">
-                            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-                            <stop offset="18%" style="stop-color:#9ad8f0;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#6aa8c8;stop-opacity:1" />
-                            <stop offset="82%" style="stop-color:#040a12;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="leviathan-teen-glow" cx="50%" cy="45%" r="55%">
-                            <stop offset="0%" style="stop-color:#9ad8f0;stop-opacity:0.35" />
-                            <stop offset="45%" style="stop-color:#38bdf8;stop-opacity:0.12" />
-                            <stop offset="100%" style="stop-color:#38bdf8;stop-opacity:0" />
-                        </radialGradient>
-                        <pattern id="leviathan-teen-scales" width="3.2" height="2.6" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
-                            <path d="M 0 1.3 Q 1.6 0.1 3.2 1.3 Q 1.6 2.4 0 1.3 Z" fill="#040a12" opacity="0.42"/>
-                            <path d="M 0 1.3 Q 1.6 0.35 3.2 1.3" fill="none" stroke="#6aa8c8" stroke-width="0.28" opacity="0.4"/>
-                            <path d="M 1.6 0 Q 3.2 1.1 1.6 2.2" fill="none" stroke="#3a6a82" stroke-width="0.18" opacity="0.18"/>
-                        </pattern>
-                        <pattern id="leviathan-teen-micro" width="2" height="2" patternUnits="userSpaceOnUse">
-                            <circle cx="0.6" cy="0.7" r="0.25" fill="#6aa8c8" opacity="0.12"/>
-                            <circle cx="1.5" cy="1.4" r="0.18" fill="#010306" opacity="0.18"/>
-                        </pattern>
-                        <filter id="leviathan-teen-soft" x="-60%" y="-60%" width="220%" height="220%">
-                            <feGaussianBlur stdDeviation="0.9" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                        <filter id="leviathan-teen-glowf" x="-100%" y="-100%" width="300%" height="300%">
-                            <feGaussianBlur stdDeviation="1.4" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                        <filter id="leviathan-teen-wet" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur in="SourceAlpha" stdDeviation="0.6" result="blur"/>
-                            <feSpecularLighting in="blur" surfaceScale="2.2" specularConstant="0.9" specularExponent="18" lighting-color="#6aa8c8" result="spec">
-                              <fePointLight x="30" y="10" z="40"/>
-                            </feSpecularLighting>
-                            <feComposite in="spec" in2="SourceAlpha" operator="in" result="specOut"/>
-                            <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="1" k3="0.55" k4="0"/>
-                        </filter>
-                    </defs>
-                        <ellipse cx="48" cy="93" rx="34" ry="4.2" fill="#010408" opacity="0.3"/>
-                        <ellipse cx="52" cy="50" rx="36" ry="22.3" fill="url(#leviathan-teen-glow)"/>
-                        <path d="M 8 10 L 14 26 L 10 34" stroke="#38bdf8" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7" filter="url(#leviathan-teen-glowf)"/>
-                        <path d="M 92 8 L 86 24 L 90 32" stroke="#38bdf8" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7" filter="url(#leviathan-teen-glowf)"/>
-                        <circle cx="12" cy="22" r="0.55" fill="#8ebed4" opacity="0.28" filter="url(#leviathan-teen-soft)"/>
-                        <circle cx="88" cy="18" r="0.8" fill="#8ebed4" opacity="0.35000000000000003" filter="url(#leviathan-teen-soft)"/>
-                        <circle cx="18" cy="40" r="1.05" fill="#8ebed4" opacity="0.42000000000000004" filter="url(#leviathan-teen-soft)"/>
-                        <circle cx="82" cy="36" r="0.55" fill="#8ebed4" opacity="0.49000000000000005" filter="url(#leviathan-teen-soft)"/>
-                        <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-                        <g class="tm-animate-tail">
-                            <circle cx="18.2" cy="38.6" r="0.4" fill="#040a12" opacity="0.001"/>                            <ellipse cx="18.2" cy="38.6" rx="2.8" ry="2.8" fill="url(#leviathan-teen-fin)" opacity="0.9"/>
-                            <path d="M 20.7 35.8 L 15.4 25.3 L 3.5 38.6 L 15.4 51.9 L 20.7 41.4 Q 16.1 38.6 20.7 35.8 Z" fill="url(#leviathan-teen-fin)" stroke="#040a12" stroke-width="1.05" stroke-linejoin="round"/>
-                            <path d="M 16.8 30.9 L 7.0 38.6 L 16.8 46.3" fill="none" stroke="#040a12" stroke-width="0.45" opacity="0.35"/>
-                        </g>
-                            <path d="M 74.0 31.7 C 74.3 32.0 75.4 32.5 75.9 33.2 C 76.5 33.9 77.0 34.9 77.2 35.9 C 77.4 36.9 77.2 38.1 77.0 39.0 C 76.8 39.9 76.4 40.7 76.0 41.3 C 75.6 42.0 75.1 42.5 74.6 43.0 C 74.0 43.4 73.4 43.8 72.7 44.2 C 72.1 44.5 71.3 44.7 70.6 44.9 C 69.8 45.1 69.0 45.2 68.1 45.2 C 67.3 45.3 66.4 45.2 65.5 45.1 C 64.6 45.0 63.6 44.8 62.6 44.5 C 61.5 44.3 60.4 43.9 59.3 43.6 C 58.1 43.2 56.9 42.7 55.6 42.3 C 54.3 41.9 52.9 41.4 51.6 41.0 C 50.2 40.6 48.7 40.2 47.3 39.9 C 46.0 39.6 44.6 39.4 43.4 39.1 C 42.1 38.9 41.0 38.7 39.9 38.5 C 38.9 38.3 38.0 38.1 37.1 37.9 C 36.2 37.7 35.4 37.4 34.6 37.2 C 33.9 36.9 33.2 36.6 32.5 36.4 C 31.8 36.1 31.2 35.8 30.6 35.6 C 30.0 35.3 29.4 35.1 28.8 34.9 C 28.2 34.7 27.6 34.5 27.1 34.4 C 26.5 34.2 26.0 34.1 25.5 34.1 C 24.9 34.0 24.4 34.0 23.8 34.0 C 23.3 34.1 22.8 34.2 22.2 34.3 C 21.7 34.5 21.1 34.8 20.6 35.1 C 20.0 35.4 19.1 35.4 18.7 36.2 C 18.3 36.9 19.0 39.1 18.2 39.7 C 17.4 40.3 13.9 39.4 13.8 39.7 C 13.7 39.9 16.6 40.9 17.7 41.1 C 18.8 41.3 19.4 40.8 20.3 40.7 C 21.2 40.6 22.1 40.6 23.1 40.6 C 24.0 40.6 24.9 40.6 25.9 40.6 C 26.8 40.7 27.8 40.8 28.7 41.0 C 29.6 41.2 30.6 41.4 31.5 41.7 C 32.4 42.0 33.3 42.4 34.2 42.8 C 35.1 43.2 36.0 43.6 36.8 44.1 C 37.7 44.6 38.5 45.2 39.3 45.8 C 40.1 46.4 40.9 47.0 41.6 47.7 C 42.4 48.4 43.0 49.2 43.6 49.9 C 44.2 50.7 44.8 51.5 45.2 52.3 C 45.6 53.1 46.0 53.9 46.2 54.6 C 46.5 55.3 46.6 56.0 46.7 56.6 C 46.8 57.2 46.8 57.6 46.9 58.0 C 47.0 58.4 47.0 58.6 47.2 58.8 C 47.4 59.0 47.7 59.1 48.0 59.2 C 48.3 59.3 48.7 59.3 49.2 59.4 C 49.6 59.4 50.1 59.4 50.7 59.4 C 51.2 59.4 51.8 59.4 52.4 59.4 C 53.1 59.4 53.7 59.3 54.4 59.3 C 55.1 59.2 55.9 59.1 56.7 59.1 C 57.5 59.0 58.3 59.0 59.3 58.9 C 60.2 58.9 61.2 58.8 62.3 58.9 C 63.3 58.9 64.4 59.0 65.7 59.3 C 67.0 59.5 68.3 60.0 70.0 60.3 C 71.6 60.6 73.6 60.8 75.6 60.8 C 77.6 60.8 81.0 60.4 82.0 60.3 Z" fill="url(#leviathan-teen-skin)" stroke="#040a12" stroke-width="1.15" stroke-linejoin="round" filter="url(#leviathan-teen-wet)"/>
-                            <path d="M 74.0 31.7 C 74.3 32.0 75.4 32.5 75.9 33.2 C 76.5 33.9 77.0 34.9 77.2 35.9 C 77.4 36.9 77.2 38.1 77.0 39.0 C 76.8 39.9 76.4 40.7 76.0 41.3 C 75.6 42.0 75.1 42.5 74.6 43.0 C 74.0 43.4 73.4 43.8 72.7 44.2 C 72.1 44.5 71.3 44.7 70.6 44.9 C 69.8 45.1 69.0 45.2 68.1 45.2 C 67.3 45.3 66.4 45.2 65.5 45.1 C 64.6 45.0 63.6 44.8 62.6 44.5 C 61.5 44.3 60.4 43.9 59.3 43.6 C 58.1 43.2 56.9 42.7 55.6 42.3 C 54.3 41.9 52.9 41.4 51.6 41.0 C 50.2 40.6 48.7 40.2 47.3 39.9 C 46.0 39.6 44.6 39.4 43.4 39.1 C 42.1 38.9 41.0 38.7 39.9 38.5 C 38.9 38.3 38.0 38.1 37.1 37.9 C 36.2 37.7 35.4 37.4 34.6 37.2 C 33.9 36.9 33.2 36.6 32.5 36.4 C 31.8 36.1 31.2 35.8 30.6 35.6 C 30.0 35.3 29.4 35.1 28.8 34.9 C 28.2 34.7 27.6 34.5 27.1 34.4 C 26.5 34.2 26.0 34.1 25.5 34.1 C 24.9 34.0 24.4 34.0 23.8 34.0 C 23.3 34.1 22.8 34.2 22.2 34.3 C 21.7 34.5 21.1 34.8 20.6 35.1 C 20.0 35.4 19.1 35.4 18.7 36.2 C 18.3 36.9 19.0 39.1 18.2 39.7 C 17.4 40.3 13.9 39.4 13.8 39.7 C 13.7 39.9 16.6 40.9 17.7 41.1 C 18.8 41.3 19.4 40.8 20.3 40.7 C 21.2 40.6 22.1 40.6 23.1 40.6 C 24.0 40.6 24.9 40.6 25.9 40.6 C 26.8 40.7 27.8 40.8 28.7 41.0 C 29.6 41.2 30.6 41.4 31.5 41.7 C 32.4 42.0 33.3 42.4 34.2 42.8 C 35.1 43.2 36.0 43.6 36.8 44.1 C 37.7 44.6 38.5 45.2 39.3 45.8 C 40.1 46.4 40.9 47.0 41.6 47.7 C 42.4 48.4 43.0 49.2 43.6 49.9 C 44.2 50.7 44.8 51.5 45.2 52.3 C 45.6 53.1 46.0 53.9 46.2 54.6 C 46.5 55.3 46.6 56.0 46.7 56.6 C 46.8 57.2 46.8 57.6 46.9 58.0 C 47.0 58.4 47.0 58.6 47.2 58.8 C 47.4 59.0 47.7 59.1 48.0 59.2 C 48.3 59.3 48.7 59.3 49.2 59.4 C 49.6 59.4 50.1 59.4 50.7 59.4 C 51.2 59.4 51.8 59.4 52.4 59.4 C 53.1 59.4 53.7 59.3 54.4 59.3 C 55.1 59.2 55.9 59.1 56.7 59.1 C 57.5 59.0 58.3 59.0 59.3 58.9 C 60.2 58.9 61.2 58.8 62.3 58.9 C 63.3 58.9 64.4 59.0 65.7 59.3 C 67.0 59.5 68.3 60.0 70.0 60.3 C 71.6 60.6 73.6 60.8 75.6 60.8 C 77.6 60.8 81.0 60.4 82.0 60.3 Z" fill="url(#leviathan-teen-scales)" opacity="0.58"/>
-                            <path d="M 74.0 31.7 C 74.3 32.0 75.4 32.5 75.9 33.2 C 76.5 33.9 77.0 34.9 77.2 35.9 C 77.4 36.9 77.2 38.1 77.0 39.0 C 76.8 39.9 76.4 40.7 76.0 41.3 C 75.6 42.0 75.1 42.5 74.6 43.0 C 74.0 43.4 73.4 43.8 72.7 44.2 C 72.1 44.5 71.3 44.7 70.6 44.9 C 69.8 45.1 69.0 45.2 68.1 45.2 C 67.3 45.3 66.4 45.2 65.5 45.1 C 64.6 45.0 63.6 44.8 62.6 44.5 C 61.5 44.3 60.4 43.9 59.3 43.6 C 58.1 43.2 56.9 42.7 55.6 42.3 C 54.3 41.9 52.9 41.4 51.6 41.0 C 50.2 40.6 48.7 40.2 47.3 39.9 C 46.0 39.6 44.6 39.4 43.4 39.1 C 42.1 38.9 41.0 38.7 39.9 38.5 C 38.9 38.3 38.0 38.1 37.1 37.9 C 36.2 37.7 35.4 37.4 34.6 37.2 C 33.9 36.9 33.2 36.6 32.5 36.4 C 31.8 36.1 31.2 35.8 30.6 35.6 C 30.0 35.3 29.4 35.1 28.8 34.9 C 28.2 34.7 27.6 34.5 27.1 34.4 C 26.5 34.2 26.0 34.1 25.5 34.1 C 24.9 34.0 24.4 34.0 23.8 34.0 C 23.3 34.1 22.8 34.2 22.2 34.3 C 21.7 34.5 21.1 34.8 20.6 35.1 C 20.0 35.4 19.1 35.4 18.7 36.2 C 18.3 36.9 19.0 39.1 18.2 39.7 C 17.4 40.3 13.9 39.4 13.8 39.7 C 13.7 39.9 16.6 40.9 17.7 41.1 C 18.8 41.3 19.4 40.8 20.3 40.7 C 21.2 40.6 22.1 40.6 23.1 40.6 C 24.0 40.6 24.9 40.6 25.9 40.6 C 26.8 40.7 27.8 40.8 28.7 41.0 C 29.6 41.2 30.6 41.4 31.5 41.7 C 32.4 42.0 33.3 42.4 34.2 42.8 C 35.1 43.2 36.0 43.6 36.8 44.1 C 37.7 44.6 38.5 45.2 39.3 45.8 C 40.1 46.4 40.9 47.0 41.6 47.7 C 42.4 48.4 43.0 49.2 43.6 49.9 C 44.2 50.7 44.8 51.5 45.2 52.3 C 45.6 53.1 46.0 53.9 46.2 54.6 C 46.5 55.3 46.6 56.0 46.7 56.6 C 46.8 57.2 46.8 57.6 46.9 58.0 C 47.0 58.4 47.0 58.6 47.2 58.8 C 47.4 59.0 47.7 59.1 48.0 59.2 C 48.3 59.3 48.7 59.3 49.2 59.4 C 49.6 59.4 50.1 59.4 50.7 59.4 C 51.2 59.4 51.8 59.4 52.4 59.4 C 53.1 59.4 53.7 59.3 54.4 59.3 C 55.1 59.2 55.9 59.1 56.7 59.1 C 57.5 59.0 58.3 59.0 59.3 58.9 C 60.2 58.9 61.2 58.8 62.3 58.9 C 63.3 58.9 64.4 59.0 65.7 59.3 C 67.0 59.5 68.3 60.0 70.0 60.3 C 71.6 60.6 73.6 60.8 75.6 60.8 C 77.6 60.8 81.0 60.4 82.0 60.3 Z" fill="url(#leviathan-teen-micro)" opacity="0.55"/>
-                            <path d="M 74.0 31.7 C 74.3 32.0 75.4 32.5 75.9 33.2 C 76.5 33.9 77.0 34.9 77.2 35.9 C 77.4 36.9 77.2 38.1 77.0 39.0 C 76.8 39.9 76.4 40.7 76.0 41.3 C 75.6 42.0 75.1 42.5 74.6 43.0 C 74.0 43.4 73.4 43.8 72.7 44.2 C 72.1 44.5 71.3 44.7 70.6 44.9 C 69.8 45.1 69.0 45.2 68.1 45.2 C 67.3 45.3 66.4 45.2 65.5 45.1 C 64.6 45.0 63.6 44.8 62.6 44.5 C 61.5 44.3 60.4 43.9 59.3 43.6 C 58.1 43.2 56.9 42.7 55.6 42.3 C 54.3 41.9 52.9 41.4 51.6 41.0 C 50.2 40.6 48.7 40.2 47.3 39.9 C 46.0 39.6 44.6 39.4 43.4 39.1 C 42.1 38.9 41.0 38.7 39.9 38.5 C 38.9 38.3 38.0 38.1 37.1 37.9 C 36.2 37.7 35.4 37.4 34.6 37.2 C 33.9 36.9 33.2 36.6 32.5 36.4 C 31.8 36.1 31.2 35.8 30.6 35.6 C 30.0 35.3 29.4 35.1 28.8 34.9 C 28.2 34.7 27.6 34.5 27.1 34.4 C 26.5 34.2 26.0 34.1 25.5 34.1 C 24.9 34.0 24.4 34.0 23.8 34.0 C 23.3 34.1 22.8 34.2 22.2 34.3 C 21.7 34.5 21.1 34.8 20.6 35.1 C 20.0 35.4 19.1 35.4 18.7 36.2 C 18.3 36.9 18.3 39.1 18.2 39.7" fill="none" stroke="#040a12" stroke-width="0.4" opacity="0.25"/>
-                            <path d="M 74.1 33.8 C 74.4 34.1 75.4 34.6 75.9 35.3 C 76.4 35.9 77.0 36.9 77.1 37.7 C 77.3 38.6 77.1 39.7 76.9 40.5 C 76.7 41.4 76.3 42.0 75.9 42.7 C 75.5 43.3 75.0 43.7 74.4 44.2 C 73.9 44.6 73.2 45.0 72.6 45.3 C 71.9 45.6 71.2 45.8 70.4 46.0 C 69.6 46.2 68.8 46.3 68.0 46.3 C 67.1 46.3 66.3 46.3 65.3 46.2 C 64.4 46.1 63.4 45.9 62.4 45.6 C 61.4 45.4 60.3 45.1 59.2 44.7 C 58.0 44.4 56.8 44.0 55.5 43.5 C 54.3 43.1 52.9 42.7 51.5 42.3 C 50.2 41.9 48.7 41.5 47.3 41.2 C 46.0 40.8 44.6 40.6 43.4 40.3 C 42.2 40.0 41.0 39.8 40.0 39.6 C 38.9 39.3 38.0 39.1 37.1 38.8 C 36.3 38.5 35.5 38.3 34.7 38.0 C 34.0 37.7 33.3 37.4 32.6 37.1 C 31.9 36.8 31.3 36.5 30.6 36.2 C 30.0 36.0 29.4 35.7 28.8 35.5 C 28.2 35.3 27.7 35.1 27.1 34.9 C 26.6 34.8 26.0 34.7 25.5 34.6 C 24.9 34.5 24.4 34.5 23.9 34.5 C 23.3 34.6 22.8 34.6 22.2 34.8 C 21.7 35.0 21.1 35.2 20.6 35.5 C 20.0 35.8 19.1 35.9 18.7 36.5 C 18.3 37.2 18.3 39.2 18.2 39.7" fill="none" stroke="#ffffff" stroke-width="0.45" opacity="0.14" stroke-linecap="round"/>
-                            <path d="M 75.8 49.1 C 75.3 49.2 73.9 49.7 73.0 49.9 C 72.2 50.2 71.3 50.4 70.5 50.7 C 69.7 50.9 68.9 51.2 68.1 51.4 C 67.3 51.7 66.5 51.9 65.8 52.1 C 65.0 52.4 64.3 52.6 63.5 52.7 C 62.8 52.9 62.0 53.1 61.3 53.2 C 60.6 53.3 59.8 53.3 59.1 53.4 C 58.4 53.4 57.7 53.4 57.0 53.3 C 56.3 53.3 55.5 53.2 54.9 53.1 C 54.2 52.9 53.5 52.8 52.8 52.6 C 52.1 52.3 51.5 52.1 50.8 51.8 C 50.1 51.5 49.5 51.2 48.9 50.8 C 48.2 50.4 47.6 50.0 46.9 49.5 C 46.3 49.1 45.7 48.6 45.0 48.0 C 44.3 47.5 43.7 47.0 43.0 46.4 C 42.3 45.9 41.6 45.4 40.8 44.8 C 40.1 44.3 39.4 43.7 38.7 43.2 C 37.9 42.7 37.2 42.2 36.4 41.8 C 35.7 41.3 34.9 40.9 34.2 40.5 C 33.4 40.1 32.7 39.7 31.9 39.4 C 31.1 39.1 30.4 38.8 29.6 38.6 C 28.9 38.4 28.1 38.2 27.3 38.1 C 26.5 37.9 25.8 37.9 25.0 37.8 C 24.2 37.8 23.1 37.7 22.7 37.9 C 22.3 38.1 22.4 38.8 22.9 38.9 C 23.3 39.1 24.6 38.9 25.4 38.9 C 26.3 38.9 27.1 39.0 28.0 39.2 C 28.8 39.3 29.7 39.5 30.5 39.8 C 31.3 40.0 32.2 40.3 33.0 40.7 C 33.8 41.0 34.6 41.4 35.4 41.9 C 36.2 42.3 37.0 42.8 37.8 43.3 C 38.6 43.8 39.3 44.4 40.1 44.9 C 40.8 45.5 41.5 46.1 42.2 46.7 C 42.8 47.4 43.5 48.0 44.0 48.6 C 44.6 49.3 45.1 49.9 45.6 50.5 C 46.0 51.1 46.4 51.7 46.8 52.2 C 47.2 52.7 47.5 53.1 47.9 53.5 C 48.3 53.9 48.7 54.2 49.1 54.4 C 49.6 54.7 50.0 54.9 50.5 55.1 C 51.0 55.2 51.6 55.4 52.2 55.4 C 52.8 55.5 53.4 55.6 54.0 55.6 C 54.6 55.7 55.3 55.7 56.0 55.6 C 56.6 55.6 57.3 55.5 58.1 55.5 C 58.8 55.4 59.5 55.3 60.3 55.1 C 61.1 55.0 61.9 54.9 62.7 54.7 C 63.6 54.6 64.4 54.4 65.4 54.2 C 66.3 54.1 67.2 54.0 68.3 53.9 C 69.3 53.8 70.3 53.9 71.6 53.8 C 72.8 53.8 75.0 53.6 75.7 53.5 Z" fill="url(#leviathan-teen-belly)" opacity="0.55"/>
-                            <path d="M 74.8 39.5 Q 74.2 42.6 80.5 40.2" fill="none" stroke="#040a12" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 70.5 44.7 Q 68.7 46.4 76.2 45.4" fill="none" stroke="#040a12" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 65.9 45.7 Q 64.2 47.3 71.6 46.4" fill="none" stroke="#040a12" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 57.1 44.1 Q 56.5 46.0 62.8 44.8" fill="none" stroke="#040a12" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 45.1 40.4 Q 47.2 42.6 50.8 41.1" fill="none" stroke="#040a12" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 34.9 38.4 Q 38.7 39.4 40.6 39.1" fill="none" stroke="#040a12" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 28.4 36.1 Q 32.1 36.2 34.1 36.8" fill="none" stroke="#040a12" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 73.3 43.5 C 72.5 44.2 71.9 46.9 68.9 47.4 C 65.9 47.8 59.1 46.7 55.2 46.0 C 51.3 45.4 49.6 45.0 45.6 43.4 C 41.7 41.9 33.7 37.9 31.4 36.8" fill="none" stroke="#38bdf8" stroke-width="1.15" opacity="0.7" filter="url(#leviathan-teen-glowf)" class="tm-leviathan-vein" stroke-linecap="round"/>
-                            <path d="M 75.4 39.4 L 76.1 33.0 L 78.8 39.6 Z" fill="url(#leviathan-teen-fin)" stroke="#040a12" stroke-width="0.7"/>
-                            <path d="M 77.0 39.0 L 76.1 34.0" stroke="#38bdf8" stroke-width="0.55" opacity="0.65" filter="url(#leviathan-teen-glowf)" class="tm-leviathan-vein"/>
-                            <path d="M 69.0 45.3 L 69.4 37.4 L 72.4 45.5 Z" fill="url(#leviathan-teen-fin)" stroke="#040a12" stroke-width="0.7"/>
-                            <path d="M 61.0 44.9 L 61.8 39.6 L 64.4 45.1 Z" fill="url(#leviathan-teen-fin)" stroke="#040a12" stroke-width="0.7"/>
-                            <path d="M 62.6 44.5 L 61.8 40.6" stroke="#38bdf8" stroke-width="0.55" opacity="0.65" filter="url(#leviathan-teen-glowf)" class="tm-leviathan-vein"/>
-                            <path d="M 45.7 40.3 L 46.8 36.5 L 49.1 40.5 Z" fill="url(#leviathan-teen-fin)" stroke="#040a12" stroke-width="0.7"/>
-                            <path d="M 35.5 38.3 L 36.2 32.2 L 38.9 38.5 Z" fill="url(#leviathan-teen-fin)" stroke="#040a12" stroke-width="0.7"/>
-                            <path d="M 37.1 37.9 L 36.2 33.2" stroke="#38bdf8" stroke-width="0.55" opacity="0.65" filter="url(#leviathan-teen-glowf)" class="tm-leviathan-vein"/>
-                            <path d="M 27.2 35.3 L 27.9 29.0 L 30.6 35.5 Z" fill="url(#leviathan-teen-fin)" stroke="#040a12" stroke-width="0.7"/>
-                            <path d="M 65.9 35.5
-      C 75.8 31.1 87.3 38.3 92.8 44.4
-      Q 94.0 46.0 92.3 49.9
-      L 87.9 52.0
-      L 68.7 55.4
-      Q 64.3 48.2 65.9 35.5 Z" fill="url(#leviathan-teen-skin-rad)" stroke="#040a12" stroke-width="1.2" stroke-linejoin="round"/>
-                            <path d="M 65.9 35.5
-      C 75.8 31.1 87.3 38.3 92.8 44.4
-      Q 94.0 46.0 92.3 49.9
-      L 87.9 52.0
-      L 68.7 55.4
-      Q 64.3 48.2 65.9 35.5 Z" fill="url(#leviathan-teen-scales)" opacity="0.4"/>
-                            <path d="M 71.4 36.1
-      Q 79.1 32.3 86.3 39.4
-      L 83.0 42.1
-      Q 78.0 38.3 73.0 40.5 Z" fill="#040a12" opacity="0.55"/>
-                            <path d="M 71.4 38.3 Q 81.3 35.5 87.9 42.1" fill="none" stroke="#6aa8c8" stroke-width="0.7" opacity="0.45" stroke-linecap="round"/>
-                            <ellipse cx="89.5" cy="45.5" rx="1.3" ry="0.9" fill="#010306" opacity="0.85"/>
-                            <path d="M 76.9 35.0 L 74.2 30.1 L 81.3 35.5 Z" fill="url(#leviathan-teen-fin)" stroke="#040a12" stroke-width="0.75"/>
-                        <g class="tm-mascot-mouth-happy">
-                            <path d="M 72.0 49.9 Q 81.6 61.3 91.2 60.3 L 92.8 48.2 L 89.0 51.5 Z" fill="url(#leviathan-teen-skin)" stroke="#040a12" stroke-width="1"/>
-                            <path d="M 73.6 51.0 L 88.4 52.0 L 90.1 58.6 Z" fill="#010306" opacity="0.92"/>
-                            <path d="M 73.9 51.4 L 74.5 54.5 L 75.1 51.4 Z" fill="#eef6fa"/>
-                            <path d="M 76.8 55.9 L 77.3 53.6 L 77.8 55.9 Z" fill="#eef6fa" opacity="0.9"/>
-                            <path d="M 78.7 51.3 L 79.3 55.5 L 79.9 51.3 Z" fill="#eef6fa"/>
-                            <path d="M 79.7 56.5 L 80.2 53.4 L 80.7 56.5 Z" fill="#eef6fa" opacity="0.9"/>
-                            <path d="M 83.6 51.2 L 84.2 54.2 L 84.8 51.2 Z" fill="#eef6fa"/>
-                            <path d="M 82.6 57.1 L 83.1 54.8 L 83.7 57.1 Z" fill="#eef6fa" opacity="0.9"/>
-                            <path d="M 88.5 51.0 L 89.1 54.1 L 89.7 51.0 Z" fill="#eef6fa"/>
-                            <path d="M 85.5 57.7 L 86.1 55.4 L 86.6 57.7 Z" fill="#eef6fa" opacity="0.9"/>
-                        </g>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 72.0 49.9 Q 82.4 52.5 90.6 52.0 L 89.0 51.5 Z" fill="url(#leviathan-teen-skin)" stroke="#040a12" stroke-width="1"/>
-                        <g class="tm-mascot-eye-open tm-leviathan-eye">
-                            <ellipse cx="79.3" cy="44.0" rx="6.3" ry="4.0" fill="#9ad8f0" opacity="0.14" filter="url(#leviathan-teen-glowf)"/>
-                            <ellipse cx="79.3" cy="44.0" rx="4.3" ry="2.2" fill="#010306" opacity="0.88"/>
-                            <ellipse class="tm-leviathan-iris" cx="79.3" cy="44.0" rx="3.2" ry="1.7" fill="url(#leviathan-teen-eye)" stroke="#040a12" stroke-width="0.7"/>
-                            <ellipse class="tm-leviathan-pupil" cx="79.5" cy="44.0" rx="0.4" ry="2.0" fill="#000"/>
-                            <ellipse cx="78.2" cy="43.6" rx="0.6" ry="0.3" fill="#fff" opacity="0.55"/>
-                            <path d="M 75.6 43.8 Q 79.3 41.7 83.0 43.6" fill="none" stroke="#040a12" stroke-width="1.35" opacity="0.9" stroke-linecap="round"/>
-                            <path d="M 76.1 45.0 Q 79.3 45.7 82.5 44.9" fill="none" stroke="#040a12" stroke-width="0.7" opacity="0.45"/>
-
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 76.1 44.0 Q 79.3 43.1 82.5 44.0" stroke="#040a12" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                            <circle cx="61.5" cy="53.6" r="0.7" fill="#040a12" opacity="0.45"/>
-                        <g class="tm-animate-wing-left">
-                            <circle cx="68.3" cy="56.2" r="0.4" fill="#040a12" opacity="0.001"/>                            <ellipse cx="68.3" cy="56.8" rx="2.4" ry="1.6" fill="url(#leviathan-teen-fin)" opacity="0.85"/>
-                            <path d="M 66.8 55.4 L 70.3 56.0 C 69.3 60.1 64.4 66.7 56.7 65.0 C 63.9 61.7 67.8 58.4 66.8 55.4 Z" fill="url(#leviathan-teen-fin)" stroke="#040a12" stroke-width="0.95" opacity="0.95"/>
-                            <path d="M 68.3 57.0 Q 63.3 61.7 59.5 63.4" fill="none" stroke="#040a12" stroke-width="0.45" opacity="0.4"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <circle cx="68.3" cy="56.2" r="0.4" fill="#040a12" opacity="0.001"/>
-                            <path d="M 71.3 55.7 C 70.3 61.7 66.6 65.0 63.3 63.4 C 68.8 59.5 70.8 56.3 71.3 55.7 Z" fill="url(#leviathan-teen-fin)" stroke="#040a12" stroke-width="0.85" opacity="0.85"/>
-                        </g>
-                        <g class="tm-animate-arm-left" opacity="0.001"><circle cx="49.2" cy="59.4" r="0.5" fill="#040a12"/></g>
-                        <g class="tm-animate-arm-right" opacity="0.001"><circle cx="52.2" cy="59.4" r="0.5" fill="#040a12"/></g>
-                        <g class="tm-animate-leg-left" opacity="0.001"><circle cx="46.2" cy="54.6" r="0.5" fill="#040a12"/></g>
-                        <g class="tm-animate-leg-right" opacity="0.001"><circle cx="49.2" cy="54.6" r="0.5" fill="#040a12"/></g>
-                        </g>
-                </g>
-
-                <!-- LEVIATHAN ADULT — Storm Leviathan — BOSS -->
-                <g id="tm-mascot-evo3-leviathan" style="display: none;">
+<g id="tm-mascot-evo2-leviathan" style="display: none;">
                     <defs>
                         <linearGradient id="leviathan-adult-skin" x1="15%" y1="0%" x2="80%" y2="100%">
                             <stop offset="0%" style="stop-color:#2f5a72;stop-opacity:1" />
@@ -20122,9 +15800,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <g class="tm-animate-leg-right" opacity="0.001"><circle cx="49.0" cy="54.4" r="0.5" fill="#02060a"/></g>
                         </g>
                 </g>
-
-                <!-- LEVIATHAN MIDDLE AGE — Tempest Sovereign -->
-                <g id="tm-mascot-evo4-leviathan" style="display: none;">
+<g id="tm-mascot-evo3-leviathan" style="display: none;">
                     <defs>
                         <linearGradient id="leviathan-mid-skin" x1="15%" y1="0%" x2="80%" y2="100%">
                             <stop offset="0%" style="stop-color:#284858;stop-opacity:1" />
@@ -20313,214 +15989,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </g>
                 </g>
 
+                <!-- LEVIATHAN KID — Squall Serpent -->
+                
+                <!-- LEVIATHAN TEEN — Thunder Serpent -->
+                
+                <!-- LEVIATHAN ADULT — Storm Leviathan — BOSS -->
+                
+                <!-- LEVIATHAN MIDDLE AGE — Tempest Sovereign -->
+                
                 <!-- LEVIATHAN OLD — Primordial Chaos Serpent -->
-                <g id="tm-mascot-evo5-leviathan" style="display: none;">
-                    <defs>
-                        <linearGradient id="leviathan-old-skin" x1="15%" y1="0%" x2="80%" y2="100%">
-                            <stop offset="0%" style="stop-color:#3a5058;stop-opacity:1" />
-                            <stop offset="22%" style="stop-color:#d0e8f4;stop-opacity:1" />
-                            <stop offset="48%" style="stop-color:#080e12;stop-opacity:1" />
-                            <stop offset="78%" style="stop-color:#000204;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="leviathan-old-skin-rad" cx="45%" cy="30%" r="75%">
-                            <stop offset="0%" style="stop-color:#3a5058;stop-opacity:0.95" />
-                            <stop offset="35%" style="stop-color:#080e12;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="leviathan-old-belly" x1="40%" y1="0%" x2="55%" y2="100%">
-                            <stop offset="0%" style="stop-color:#121c22;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#080e12;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#000204;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="leviathan-old-fin" x1="50%" y1="0%" x2="50%" y2="100%">
-                            <stop offset="0%" style="stop-color:#d0e8f4;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#080e12;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="leviathan-old-eye" cx="36%" cy="30%" r="70%">
-                            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-                            <stop offset="18%" style="stop-color:#ffffff;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#d0e8f4;stop-opacity:1" />
-                            <stop offset="82%" style="stop-color:#000204;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="leviathan-old-glow" cx="50%" cy="45%" r="55%">
-                            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.35" />
-                            <stop offset="45%" style="stop-color:#ffffff;stop-opacity:0.12" />
-                            <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
-                        </radialGradient>
-                        <pattern id="leviathan-old-scales" width="3.2" height="2.6" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
-                            <path d="M 0 1.3 Q 1.6 0.1 3.2 1.3 Q 1.6 2.4 0 1.3 Z" fill="#000204" opacity="0.42"/>
-                            <path d="M 0 1.3 Q 1.6 0.35 3.2 1.3" fill="none" stroke="#d0e8f4" stroke-width="0.28" opacity="0.4"/>
-                            <path d="M 1.6 0 Q 3.2 1.1 1.6 2.2" fill="none" stroke="#3a5058" stroke-width="0.18" opacity="0.18"/>
-                        </pattern>
-                        <pattern id="leviathan-old-micro" width="2" height="2" patternUnits="userSpaceOnUse">
-                            <circle cx="0.6" cy="0.7" r="0.25" fill="#d0e8f4" opacity="0.12"/>
-                            <circle cx="1.5" cy="1.4" r="0.18" fill="#000000" opacity="0.18"/>
-                        </pattern>
-                        <filter id="leviathan-old-soft" x="-60%" y="-60%" width="220%" height="220%">
-                            <feGaussianBlur stdDeviation="0.9" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                        <filter id="leviathan-old-glowf" x="-100%" y="-100%" width="300%" height="300%">
-                            <feGaussianBlur stdDeviation="1.4" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                        <filter id="leviathan-old-wet" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur in="SourceAlpha" stdDeviation="0.6" result="blur"/>
-                            <feSpecularLighting in="blur" surfaceScale="2.2" specularConstant="0.9" specularExponent="18" lighting-color="#d0e8f4" result="spec">
-                              <fePointLight x="30" y="10" z="40"/>
-                            </feSpecularLighting>
-                            <feComposite in="spec" in2="SourceAlpha" operator="in" result="specOut"/>
-                            <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="1" k3="0.55" k4="0"/>
-                        </filter>
-                    </defs>
-                        <ellipse cx="48" cy="93" rx="44" ry="4.2" fill="#010408" opacity="0.48"/>
-                        <ellipse cx="52" cy="48" rx="56.7" ry="38.9" fill="url(#leviathan-old-glow)" opacity="0.95"/>
-                        <ellipse cx="52" cy="48" rx="29.7" ry="20.5" fill="url(#leviathan-old-glow)" opacity="0.7"/>
-                        <ellipse cx="52" cy="48" rx="60.5" ry="42.1" fill="none" stroke="url(#leviathan-old-glow)" stroke-width="0.8" opacity="0.45"/>
-                        <path d="M 8 10 L 14 26 L 10 34" stroke="#ffffff" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7" filter="url(#leviathan-old-glowf)"/>
-                        <path d="M 92 8 L 86 24 L 90 32" stroke="#ffffff" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7" filter="url(#leviathan-old-glowf)"/>
-                        <path d="M 14 42 L 20 52 L 16 62" stroke="#ffffff" stroke-width="0.85" fill="none" stroke-linecap="round" opacity="0.7" filter="url(#leviathan-old-glowf)"/>
-                        <path d="M 86 40 L 80 50 L 84 60" stroke="#ffffff" stroke-width="0.85" fill="none" stroke-linecap="round" opacity="0.7" filter="url(#leviathan-old-glowf)"/>
-                        <path d="M 30 6 L 34 16 L 32 22" stroke="#ffffff" stroke-width="0.85" fill="none" stroke-linecap="round" opacity="0.7" filter="url(#leviathan-old-glowf)"/>
-                        <path d="M 70 5 L 66 15 L 68 22" stroke="#ffffff" stroke-width="0.85" fill="none" stroke-linecap="round" opacity="0.7" filter="url(#leviathan-old-glowf)"/>
-                        <circle cx="12" cy="22" r="0.55" fill="#90a8b4" opacity="0.28" filter="url(#leviathan-old-soft)"/>
-                        <circle cx="88" cy="18" r="0.8" fill="#90a8b4" opacity="0.35000000000000003" filter="url(#leviathan-old-soft)"/>
-                        <circle cx="18" cy="40" r="1.05" fill="#90a8b4" opacity="0.42000000000000004" filter="url(#leviathan-old-soft)"/>
-                        <circle cx="82" cy="36" r="0.55" fill="#90a8b4" opacity="0.49000000000000005" filter="url(#leviathan-old-soft)"/>
-                        <circle cx="25" cy="14" r="0.8" fill="#90a8b4" opacity="0.28" filter="url(#leviathan-old-soft)"/>
-                        <circle cx="75" cy="12" r="1.05" fill="#90a8b4" opacity="0.35000000000000003" filter="url(#leviathan-old-soft)"/>
-                        <circle cx="8" cy="55" r="0.55" fill="#90a8b4" opacity="0.42000000000000004" filter="url(#leviathan-old-soft)"/>
-                        <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-                        <g class="tm-animate-tail">
-                            <circle cx="12.1" cy="38.0" r="0.4" fill="#000204" opacity="0.001"/>                            <ellipse cx="12.1" cy="38.0" rx="2.8" ry="4.2" fill="url(#leviathan-old-fin)" opacity="0.9"/>
-                            <path d="M 14.1 37.0 L 1.1 11.0 L -16.9 23.0 L 5.1 37.7 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="1.05" stroke-linejoin="round"/>
-                            <path d="M 14.1 39.0 L 1.1 65.0 L -16.9 53.0 L 5.1 38.3 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="1.05" stroke-linejoin="round"/>
-                            <path d="M 8.1 24.0 L -10.9 38.0 L 8.1 52.0" fill="none" stroke="#ffffff" stroke-width="0.85" opacity="0.8" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein"/>
-                        </g>
-                            <path d="M 77.1 20.5 C 79.1 21.0 86.3 21.7 89.1 23.4 C 92.0 25.1 93.3 28.7 94.1 30.9 C 94.9 33.1 94.1 34.9 93.7 36.4 C 93.3 38.0 92.2 39.1 91.5 40.1 C 90.8 41.0 90.2 41.6 89.5 42.1 C 88.9 42.7 88.3 43.0 87.7 43.2 C 87.1 43.5 86.4 43.6 85.6 43.6 C 84.9 43.6 84.2 43.5 83.4 43.2 C 82.6 42.9 81.8 42.6 80.8 42.0 C 79.9 41.5 79.0 40.8 77.8 39.9 C 76.6 39.0 75.4 37.8 73.7 36.6 C 71.9 35.3 69.9 33.5 67.3 32.3 C 64.6 31.1 61.0 29.8 58.0 29.3 C 55.0 28.8 51.7 29.1 49.3 29.3 C 47.0 29.5 45.3 30.0 43.8 30.2 C 42.4 30.4 41.4 30.5 40.5 30.4 C 39.6 30.4 38.9 30.2 38.3 30.0 C 37.6 29.7 37.1 29.4 36.6 29.0 C 36.2 28.6 36.0 28.3 35.6 27.6 C 35.1 26.9 34.2 25.4 34.0 24.7 C 33.9 23.9 34.3 23.4 34.6 22.9 C 35.0 22.4 35.6 21.9 36.1 21.7 C 36.6 21.5 37.2 21.4 37.6 21.5 C 37.9 21.6 38.1 22.0 38.0 22.2 C 37.9 22.5 37.6 22.8 37.1 23.0 C 36.6 23.3 36.0 23.5 35.2 23.6 C 34.4 23.8 33.5 23.9 32.5 23.9 C 31.5 24.0 30.3 24.0 29.1 24.2 C 27.8 24.3 26.4 24.3 25.0 24.6 C 23.6 24.9 22.0 25.3 20.7 25.8 C 19.4 26.3 18.1 27.0 17.0 27.7 C 16.0 28.4 15.1 29.1 14.3 29.8 C 13.5 30.5 12.8 31.2 12.2 31.9 C 11.5 32.6 11.0 33.2 10.4 33.9 C 9.8 34.6 9.4 35.0 8.8 36.0 C 8.2 37.0 6.0 39.2 6.8 39.9 C 7.5 40.5 11.8 39.9 13.2 39.9 C 14.7 39.9 14.6 40.1 15.3 39.9 C 16.1 39.8 17.0 39.1 17.8 38.8 C 18.6 38.5 19.4 38.3 20.1 38.2 C 20.9 38.1 21.6 38.1 22.2 38.2 C 22.7 38.3 23.2 38.5 23.5 38.8 C 23.8 39.0 23.9 39.4 24.0 39.7 C 24.0 39.9 23.8 40.1 23.8 40.3 C 23.8 40.4 23.7 40.4 23.8 40.5 C 23.9 40.6 24.2 40.7 24.5 40.9 C 24.9 41.1 25.3 41.3 25.9 41.6 C 26.5 41.9 27.2 42.4 28.1 42.8 C 29.0 43.3 30.0 44.0 31.3 44.5 C 32.6 45.1 34.2 45.8 35.9 46.3 C 37.6 46.8 39.6 47.2 41.5 47.4 C 43.3 47.7 45.3 47.7 47.0 47.7 C 48.7 47.8 50.5 47.9 51.8 47.8 C 53.0 47.6 53.4 46.9 54.3 46.9 C 55.3 46.9 56.4 47.5 57.4 47.9 C 58.3 48.3 59.1 48.8 59.8 49.5 C 60.6 50.2 61.3 50.9 61.7 51.8 C 62.1 52.7 62.6 53.8 62.5 55.0 C 62.4 56.2 62.1 57.7 61.1 58.9 C 60.1 60.0 58.2 61.4 56.6 61.8 C 55.0 62.2 52.6 61.8 51.4 61.4 C 50.2 61.1 49.5 60.1 49.1 59.6 C 48.7 59.0 48.9 58.6 49.1 58.2 C 49.3 57.8 49.7 57.6 50.2 57.4 C 50.6 57.1 51.2 57.0 51.7 56.8 C 52.3 56.7 52.9 56.5 53.6 56.3 C 54.2 56.2 54.9 56.0 55.6 55.8 C 56.4 55.7 57.2 55.5 57.9 55.3 C 58.6 55.2 59.4 55.0 60.0 55.1 C 60.7 55.2 61.0 55.4 62.0 55.9 C 62.9 56.4 63.5 57.2 65.7 58.2 C 67.8 59.2 70.5 61.7 74.7 62.2 C 79.0 62.7 88.2 61.6 90.9 61.5 Z" fill="url(#leviathan-old-skin)" stroke="#000204" stroke-width="1.15" stroke-linejoin="round" filter="url(#leviathan-old-wet)"/>
-                            <path d="M 77.1 20.5 C 79.1 21.0 86.3 21.7 89.1 23.4 C 92.0 25.1 93.3 28.7 94.1 30.9 C 94.9 33.1 94.1 34.9 93.7 36.4 C 93.3 38.0 92.2 39.1 91.5 40.1 C 90.8 41.0 90.2 41.6 89.5 42.1 C 88.9 42.7 88.3 43.0 87.7 43.2 C 87.1 43.5 86.4 43.6 85.6 43.6 C 84.9 43.6 84.2 43.5 83.4 43.2 C 82.6 42.9 81.8 42.6 80.8 42.0 C 79.9 41.5 79.0 40.8 77.8 39.9 C 76.6 39.0 75.4 37.8 73.7 36.6 C 71.9 35.3 69.9 33.5 67.3 32.3 C 64.6 31.1 61.0 29.8 58.0 29.3 C 55.0 28.8 51.7 29.1 49.3 29.3 C 47.0 29.5 45.3 30.0 43.8 30.2 C 42.4 30.4 41.4 30.5 40.5 30.4 C 39.6 30.4 38.9 30.2 38.3 30.0 C 37.6 29.7 37.1 29.4 36.6 29.0 C 36.2 28.6 36.0 28.3 35.6 27.6 C 35.1 26.9 34.2 25.4 34.0 24.7 C 33.9 23.9 34.3 23.4 34.6 22.9 C 35.0 22.4 35.6 21.9 36.1 21.7 C 36.6 21.5 37.2 21.4 37.6 21.5 C 37.9 21.6 38.1 22.0 38.0 22.2 C 37.9 22.5 37.6 22.8 37.1 23.0 C 36.6 23.3 36.0 23.5 35.2 23.6 C 34.4 23.8 33.5 23.9 32.5 23.9 C 31.5 24.0 30.3 24.0 29.1 24.2 C 27.8 24.3 26.4 24.3 25.0 24.6 C 23.6 24.9 22.0 25.3 20.7 25.8 C 19.4 26.3 18.1 27.0 17.0 27.7 C 16.0 28.4 15.1 29.1 14.3 29.8 C 13.5 30.5 12.8 31.2 12.2 31.9 C 11.5 32.6 11.0 33.2 10.4 33.9 C 9.8 34.6 9.4 35.0 8.8 36.0 C 8.2 37.0 6.0 39.2 6.8 39.9 C 7.5 40.5 11.8 39.9 13.2 39.9 C 14.7 39.9 14.6 40.1 15.3 39.9 C 16.1 39.8 17.0 39.1 17.8 38.8 C 18.6 38.5 19.4 38.3 20.1 38.2 C 20.9 38.1 21.6 38.1 22.2 38.2 C 22.7 38.3 23.2 38.5 23.5 38.8 C 23.8 39.0 23.9 39.4 24.0 39.7 C 24.0 39.9 23.8 40.1 23.8 40.3 C 23.8 40.4 23.7 40.4 23.8 40.5 C 23.9 40.6 24.2 40.7 24.5 40.9 C 24.9 41.1 25.3 41.3 25.9 41.6 C 26.5 41.9 27.2 42.4 28.1 42.8 C 29.0 43.3 30.0 44.0 31.3 44.5 C 32.6 45.1 34.2 45.8 35.9 46.3 C 37.6 46.8 39.6 47.2 41.5 47.4 C 43.3 47.7 45.3 47.7 47.0 47.7 C 48.7 47.8 50.5 47.9 51.8 47.8 C 53.0 47.6 53.4 46.9 54.3 46.9 C 55.3 46.9 56.4 47.5 57.4 47.9 C 58.3 48.3 59.1 48.8 59.8 49.5 C 60.6 50.2 61.3 50.9 61.7 51.8 C 62.1 52.7 62.6 53.8 62.5 55.0 C 62.4 56.2 62.1 57.7 61.1 58.9 C 60.1 60.0 58.2 61.4 56.6 61.8 C 55.0 62.2 52.6 61.8 51.4 61.4 C 50.2 61.1 49.5 60.1 49.1 59.6 C 48.7 59.0 48.9 58.6 49.1 58.2 C 49.3 57.8 49.7 57.6 50.2 57.4 C 50.6 57.1 51.2 57.0 51.7 56.8 C 52.3 56.7 52.9 56.5 53.6 56.3 C 54.2 56.2 54.9 56.0 55.6 55.8 C 56.4 55.7 57.2 55.5 57.9 55.3 C 58.6 55.2 59.4 55.0 60.0 55.1 C 60.7 55.2 61.0 55.4 62.0 55.9 C 62.9 56.4 63.5 57.2 65.7 58.2 C 67.8 59.2 70.5 61.7 74.7 62.2 C 79.0 62.7 88.2 61.6 90.9 61.5 Z" fill="url(#leviathan-old-scales)" opacity="0.82"/>
-                            <path d="M 77.1 20.5 C 79.1 21.0 86.3 21.7 89.1 23.4 C 92.0 25.1 93.3 28.7 94.1 30.9 C 94.9 33.1 94.1 34.9 93.7 36.4 C 93.3 38.0 92.2 39.1 91.5 40.1 C 90.8 41.0 90.2 41.6 89.5 42.1 C 88.9 42.7 88.3 43.0 87.7 43.2 C 87.1 43.5 86.4 43.6 85.6 43.6 C 84.9 43.6 84.2 43.5 83.4 43.2 C 82.6 42.9 81.8 42.6 80.8 42.0 C 79.9 41.5 79.0 40.8 77.8 39.9 C 76.6 39.0 75.4 37.8 73.7 36.6 C 71.9 35.3 69.9 33.5 67.3 32.3 C 64.6 31.1 61.0 29.8 58.0 29.3 C 55.0 28.8 51.7 29.1 49.3 29.3 C 47.0 29.5 45.3 30.0 43.8 30.2 C 42.4 30.4 41.4 30.5 40.5 30.4 C 39.6 30.4 38.9 30.2 38.3 30.0 C 37.6 29.7 37.1 29.4 36.6 29.0 C 36.2 28.6 36.0 28.3 35.6 27.6 C 35.1 26.9 34.2 25.4 34.0 24.7 C 33.9 23.9 34.3 23.4 34.6 22.9 C 35.0 22.4 35.6 21.9 36.1 21.7 C 36.6 21.5 37.2 21.4 37.6 21.5 C 37.9 21.6 38.1 22.0 38.0 22.2 C 37.9 22.5 37.6 22.8 37.1 23.0 C 36.6 23.3 36.0 23.5 35.2 23.6 C 34.4 23.8 33.5 23.9 32.5 23.9 C 31.5 24.0 30.3 24.0 29.1 24.2 C 27.8 24.3 26.4 24.3 25.0 24.6 C 23.6 24.9 22.0 25.3 20.7 25.8 C 19.4 26.3 18.1 27.0 17.0 27.7 C 16.0 28.4 15.1 29.1 14.3 29.8 C 13.5 30.5 12.8 31.2 12.2 31.9 C 11.5 32.6 11.0 33.2 10.4 33.9 C 9.8 34.6 9.4 35.0 8.8 36.0 C 8.2 37.0 6.0 39.2 6.8 39.9 C 7.5 40.5 11.8 39.9 13.2 39.9 C 14.7 39.9 14.6 40.1 15.3 39.9 C 16.1 39.8 17.0 39.1 17.8 38.8 C 18.6 38.5 19.4 38.3 20.1 38.2 C 20.9 38.1 21.6 38.1 22.2 38.2 C 22.7 38.3 23.2 38.5 23.5 38.8 C 23.8 39.0 23.9 39.4 24.0 39.7 C 24.0 39.9 23.8 40.1 23.8 40.3 C 23.8 40.4 23.7 40.4 23.8 40.5 C 23.9 40.6 24.2 40.7 24.5 40.9 C 24.9 41.1 25.3 41.3 25.9 41.6 C 26.5 41.9 27.2 42.4 28.1 42.8 C 29.0 43.3 30.0 44.0 31.3 44.5 C 32.6 45.1 34.2 45.8 35.9 46.3 C 37.6 46.8 39.6 47.2 41.5 47.4 C 43.3 47.7 45.3 47.7 47.0 47.7 C 48.7 47.8 50.5 47.9 51.8 47.8 C 53.0 47.6 53.4 46.9 54.3 46.9 C 55.3 46.9 56.4 47.5 57.4 47.9 C 58.3 48.3 59.1 48.8 59.8 49.5 C 60.6 50.2 61.3 50.9 61.7 51.8 C 62.1 52.7 62.6 53.8 62.5 55.0 C 62.4 56.2 62.1 57.7 61.1 58.9 C 60.1 60.0 58.2 61.4 56.6 61.8 C 55.0 62.2 52.6 61.8 51.4 61.4 C 50.2 61.1 49.5 60.1 49.1 59.6 C 48.7 59.0 48.9 58.6 49.1 58.2 C 49.3 57.8 49.7 57.6 50.2 57.4 C 50.6 57.1 51.2 57.0 51.7 56.8 C 52.3 56.7 52.9 56.5 53.6 56.3 C 54.2 56.2 54.9 56.0 55.6 55.8 C 56.4 55.7 57.2 55.5 57.9 55.3 C 58.6 55.2 59.4 55.0 60.0 55.1 C 60.7 55.2 61.0 55.4 62.0 55.9 C 62.9 56.4 63.5 57.2 65.7 58.2 C 67.8 59.2 70.5 61.7 74.7 62.2 C 79.0 62.7 88.2 61.6 90.9 61.5 Z" fill="url(#leviathan-old-micro)" opacity="0.55"/>
-                            <path d="M 77.1 20.5 C 79.1 21.0 86.3 21.7 89.1 23.4 C 92.0 25.1 93.3 28.7 94.1 30.9 C 94.9 33.1 94.1 34.9 93.7 36.4 C 93.3 38.0 92.2 39.1 91.5 40.1 C 90.8 41.0 90.2 41.6 89.5 42.1 C 88.9 42.7 88.3 43.0 87.7 43.2 C 87.1 43.5 86.4 43.6 85.6 43.6 C 84.9 43.6 84.2 43.5 83.4 43.2 C 82.6 42.9 81.8 42.6 80.8 42.0 C 79.9 41.5 79.0 40.8 77.8 39.9 C 76.6 39.0 75.4 37.8 73.7 36.6 C 71.9 35.3 69.9 33.5 67.3 32.3 C 64.6 31.1 61.0 29.8 58.0 29.3 C 55.0 28.8 51.7 29.1 49.3 29.3 C 47.0 29.5 45.3 30.0 43.8 30.2 C 42.4 30.4 41.4 30.5 40.5 30.4 C 39.6 30.4 38.9 30.2 38.3 30.0 C 37.6 29.7 37.1 29.4 36.6 29.0 C 36.2 28.6 36.0 28.3 35.6 27.6 C 35.1 26.9 34.2 25.4 34.0 24.7 C 33.9 23.9 34.3 23.4 34.6 22.9 C 35.0 22.4 35.6 21.9 36.1 21.7 C 36.6 21.5 37.2 21.4 37.6 21.5 C 37.9 21.6 38.1 22.0 38.0 22.2 C 37.9 22.5 37.6 22.8 37.1 23.0 C 36.6 23.3 36.0 23.5 35.2 23.6 C 34.4 23.8 33.5 23.9 32.5 23.9 C 31.5 24.0 30.3 24.0 29.1 24.2 C 27.8 24.3 26.4 24.3 25.0 24.6 C 23.6 24.9 22.0 25.3 20.7 25.8 C 19.4 26.3 18.1 27.0 17.0 27.7 C 16.0 28.4 15.1 29.1 14.3 29.8 C 13.5 30.5 12.8 31.2 12.2 31.9 C 11.5 32.6 11.0 33.2 10.4 33.9 C 9.8 34.6 9.4 35.0 8.8 36.0 C 8.2 37.0 7.1 39.2 6.8 39.9" fill="none" stroke="#000204" stroke-width="0.4" opacity="0.25"/>
-                            <path d="M 77.2 23.6 C 79.2 24.1 86.2 24.7 89.0 26.3 C 91.8 27.8 93.1 31.0 93.8 32.9 C 94.5 34.9 93.8 36.5 93.4 37.9 C 92.9 39.3 91.9 40.3 91.2 41.2 C 90.5 42.1 89.9 42.6 89.2 43.1 C 88.6 43.6 88.0 43.9 87.4 44.2 C 86.7 44.4 86.0 44.5 85.3 44.5 C 84.6 44.6 83.9 44.5 83.1 44.2 C 82.3 44.0 81.5 43.7 80.5 43.2 C 79.6 42.7 78.7 42.1 77.5 41.2 C 76.3 40.4 75.1 39.4 73.4 38.3 C 71.7 37.2 69.7 35.6 67.1 34.5 C 64.5 33.4 60.9 32.2 58.0 31.7 C 55.0 31.2 51.8 31.5 49.4 31.5 C 47.1 31.6 45.5 32.0 44.0 32.1 C 42.6 32.1 41.7 32.1 40.7 32.0 C 39.8 31.9 39.1 31.7 38.5 31.4 C 37.8 31.1 37.3 30.8 36.8 30.4 C 36.4 30.0 36.2 29.7 35.7 29.1 C 35.3 28.4 34.4 27.1 34.2 26.4 C 34.0 25.7 34.4 25.2 34.8 24.8 C 35.1 24.3 35.7 23.9 36.1 23.6 C 36.6 23.4 37.2 23.3 37.5 23.4 C 37.8 23.4 38.0 23.7 37.9 23.9 C 37.8 24.1 37.5 24.3 37.0 24.5 C 36.6 24.7 35.9 24.9 35.1 25.0 C 34.3 25.1 33.4 25.1 32.4 25.2 C 31.4 25.3 30.2 25.3 29.0 25.4 C 27.8 25.5 26.4 25.5 25.0 25.8 C 23.6 26.0 22.1 26.4 20.7 26.8 C 19.4 27.3 18.2 27.9 17.1 28.5 C 16.0 29.1 15.2 29.8 14.4 30.5 C 13.6 31.1 12.9 31.7 12.3 32.4 C 11.6 33.0 11.1 33.6 10.5 34.3 C 9.9 35.0 9.5 35.4 8.8 36.3 C 8.2 37.2 7.2 39.3 6.8 39.9" fill="none" stroke="#ffffff" stroke-width="0.45" opacity="0.14" stroke-linecap="round"/>
-                            <path d="M 80.9 45.7 C 80.3 45.8 78.7 46.3 77.8 46.6 C 76.9 46.9 76.2 47.3 75.5 47.6 C 74.7 48.0 74.1 48.4 73.4 48.7 C 72.7 49.1 72.0 49.4 71.3 49.7 C 70.7 50.0 70.0 50.3 69.3 50.5 C 68.6 50.7 67.9 50.8 67.2 50.9 C 66.5 51.0 65.8 51.1 65.2 51.0 C 64.5 51.0 63.8 50.9 63.2 50.8 C 62.6 50.7 61.9 50.6 61.3 50.4 C 60.7 50.2 60.1 50.0 59.5 49.8 C 59.0 49.6 58.5 49.4 58.1 49.1 C 57.7 48.8 57.5 48.4 57.2 48.0 C 56.8 47.5 56.5 46.9 56.1 46.3 C 55.7 45.7 55.1 45.0 54.6 44.4 C 54.0 43.9 53.3 43.3 52.7 42.7 C 52.1 42.2 51.4 41.7 50.7 41.2 C 50.0 40.7 49.3 40.3 48.6 39.8 C 47.8 39.4 47.1 39.0 46.4 38.7 C 45.6 38.4 45.0 38.2 44.2 38.0 C 43.5 37.7 42.6 37.4 41.8 37.2 C 40.9 36.9 40.0 36.7 39.2 36.5 C 38.3 36.2 37.4 36.0 36.6 35.8 C 35.8 35.5 34.9 35.3 34.2 35.0 C 33.4 34.8 32.7 34.6 31.9 34.4 C 31.2 34.2 30.5 34.1 29.9 34.0 C 29.2 33.8 28.5 33.7 27.9 33.7 C 27.3 33.6 26.7 33.6 26.1 33.6 C 25.5 33.6 24.9 33.6 24.3 33.6 C 23.7 33.6 23.2 33.7 22.6 33.8 C 22.0 33.8 21.4 33.9 20.8 34.1 C 20.1 34.2 19.5 34.4 18.8 34.6 C 18.1 34.9 16.8 35.2 16.8 35.5 C 16.7 35.8 17.8 36.4 18.4 36.5 C 19.0 36.6 19.8 36.1 20.4 36.0 C 21.0 35.8 21.6 35.8 22.1 35.8 C 22.5 35.8 22.9 35.9 23.2 36.0 C 23.6 36.0 23.8 36.1 24.1 36.1 C 24.3 36.2 24.6 36.2 25.0 36.2 C 25.4 36.2 25.8 36.3 26.3 36.4 C 26.8 36.5 27.4 36.6 28.0 36.8 C 28.6 37.0 29.3 37.3 30.1 37.6 C 30.9 37.9 31.8 38.3 32.8 38.6 C 33.9 39.0 35.0 39.4 36.3 39.7 C 37.5 40.1 38.9 40.4 40.3 40.6 C 41.6 40.8 43.0 41.0 44.2 41.2 C 45.5 41.3 46.8 41.6 47.8 41.7 C 48.7 41.8 49.3 41.6 50.1 41.8 C 50.9 42.0 51.9 42.5 52.7 42.9 C 53.5 43.3 54.3 43.8 55.0 44.3 C 55.7 44.9 56.4 45.5 56.9 46.2 C 57.5 46.8 58.0 47.6 58.3 48.4 C 58.5 49.2 58.7 50.2 58.5 51.0 C 58.2 51.8 57.5 52.7 56.9 53.2 C 56.3 53.6 55.3 53.7 55.0 53.7 C 54.6 53.8 54.5 53.5 54.6 53.5 C 54.7 53.4 55.2 53.4 55.6 53.3 C 56.0 53.3 56.5 53.3 57.1 53.3 C 57.6 53.3 58.2 53.3 58.8 53.2 C 59.5 53.2 60.1 53.1 60.8 53.0 C 61.5 52.9 62.1 52.7 62.8 52.5 C 63.6 52.3 64.3 52.1 65.0 51.8 C 65.7 51.6 66.4 51.3 67.1 51.1 C 67.8 51.0 68.3 50.8 69.1 50.8 C 69.9 50.7 70.6 50.8 72.1 51.0 C 73.6 51.2 77.0 51.8 78.0 51.9 Z" fill="url(#leviathan-old-belly)" opacity="0.55"/>
-                            <path d="M 89.3 40.6 Q 83.6 42.3 95.0 41.3" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 85.5 43.7 Q 79.7 44.9 91.2 44.4" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 81.2 43.7 Q 75.5 45.1 86.9 44.4" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 75.6 40.4 Q 70.6 42.9 81.3 41.1" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 65.1 32.8 Q 63.3 38.1 70.8 33.5" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 47.1 29.8 Q 52.3 35.2 52.8 30.5" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 41.6 30.7 Q 48.5 34.9 47.3 31.4" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 36.1 30.5 Q 43.7 33.3 41.8 31.2" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 33.4 28.1 Q 40.2 30.9 39.1 28.8" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 32.4 23.4 Q 37.7 27.6 38.1 24.1" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 35.4 22.0 Q 37.1 26.2 41.1 22.7" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 34.9 23.5 Q 34.9 26.5 40.6 24.2" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 30.3 24.4 Q 30.5 26.7 36.0 25.1" fill="none" stroke="#000204" stroke-width="0.85" opacity="0.55" stroke-linecap="round"/>
-                            <path d="M 82.2 39.6 C 81.0 40.7 79.8 46.7 74.6 46.0 C 69.4 45.3 56.6 37.7 51.1 35.3 C 45.7 33.0 44.9 33.1 41.9 31.8 C 38.9 30.6 34.5 28.4 33.1 27.8" fill="none" stroke="#ffffff" stroke-width="1.15" opacity="0.7" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein" stroke-linecap="round"/>
-                            <path d="M 80.6 43.7 C 79.2 44.3 77.9 48.1 72.4 46.9 C 66.8 45.6 52.7 39.0 47.4 36.5 C 42.1 34.1 43.6 33.4 40.5 32.2 C 37.4 31.0 30.7 29.8 28.8 29.3" fill="none" stroke="#ffffff" stroke-width="0.95" opacity="0.58" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein" stroke-linecap="round"/>
-                            <path d="M 76.5 48.6 C 75.4 48.4 75.2 49.0 70.0 47.1 C 64.7 45.3 49.8 39.8 44.7 37.4 C 39.6 35.0 42.4 33.9 39.3 32.8 C 36.2 31.7 28.4 31.2 26.2 30.8" fill="none" stroke="#ffffff" stroke-width="0.7499999999999999" opacity="0.45999999999999996" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein" stroke-linecap="round"/>
-                            <path d="M 74.5 51.0 C 73.3 50.3 72.4 49.0 67.1 46.8 C 61.8 44.6 47.4 40.1 42.6 37.9 C 37.7 35.8 41.3 34.7 38.1 33.8 C 34.9 32.9 25.9 32.8 23.4 32.5" fill="none" stroke="#ffffff" stroke-width="0.5499999999999998" opacity="0.33999999999999997" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein" stroke-linecap="round"/>
-                            <path d="M 88.8 36.2 C 88.5 36.1 87.8 35.5 86.8 35.6 C 85.8 35.7 84.2 36.7 82.6 36.7 C 81.0 36.7 79.9 36.9 77.3 35.4 C 74.6 33.9 71.5 29.6 66.7 27.5 C 61.9 25.3 52.4 23.0 48.5 22.2 C 44.5 21.5 44.8 22.4 43.0 22.8 C 41.2 23.2 39.0 24.5 37.6 24.6 C 36.3 24.7 35.7 24.6 35.0 23.3 C 34.4 22.1 33.7 18.5 33.9 16.9 C 34.2 15.3 36.1 14.1 36.7 13.9 C 37.2 13.7 37.0 14.3 37.2 15.7 C 37.5 17.2 37.9 21.5 38.0 22.5 C 38.1 23.5 38.1 21.7 37.6 21.8 C 37.0 21.9 35.0 22.2 34.6 23.2 C 34.3 24.2 34.9 26.8 35.6 27.9 C 36.2 29.1 36.9 29.8 38.3 30.3 C 39.6 30.7 42.0 30.6 43.8 30.5 C 45.7 30.4 45.4 29.2 49.3 29.6 C 53.2 30.0 62.5 30.9 67.3 32.6 C 72.0 34.4 75.1 38.4 77.8 40.2 C 80.5 42.0 81.7 42.9 83.4 43.5 C 85.0 44.1 86.7 43.7 87.7 43.5 C 88.7 43.4 89.2 42.6 89.5 42.4 Z" fill="url(#leviathan-old-fin)" opacity="0.35" stroke="#000204" stroke-width="0.4"/>
-                            <path d="M 87.9 42.5 L 88.0 32.0 L 89.6 35.6 L 88.4 34.9 L 91.3 42.7 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.7"/>
-                            <path d="M 89.5 42.1 L 88.0 33.0" stroke="#ffffff" stroke-width="0.55" opacity="0.65" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein"/>
-                            <path d="M 84.0 44.0 L 83.9 32.0 L 87.4 44.2 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.7"/>
-                            <path d="M 79.2 42.4 L 79.5 33.0 L 82.6 42.6 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.7"/>
-                            <path d="M 80.8 42.0 L 79.5 34.0" stroke="#ffffff" stroke-width="0.55" opacity="0.65" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein"/>
-                            <path d="M 72.1 37.0 L 72.5 29.0 L 74.1 31.7 L 72.9 31.1 L 75.5 37.2 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.7"/>
-                            <path d="M 56.4 29.7 L 56.5 19.5 L 59.8 29.9 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.7"/>
-                            <path d="M 58.0 29.3 L 56.5 20.5" stroke="#ffffff" stroke-width="0.55" opacity="0.65" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein"/>
-                            <path d="M 42.2 30.6 L 42.3 20.2 L 45.6 30.8 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.7"/>
-                            <path d="M 36.7 30.4 L 37.2 22.9 L 38.8 25.4 L 37.6 24.9 L 40.1 30.6 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.7"/>
-                            <path d="M 38.3 30.0 L 37.2 23.9" stroke="#ffffff" stroke-width="0.55" opacity="0.65" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein"/>
-                            <path d="M 34.0 28.0 L 34.5 20.7 L 37.4 28.2 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.7"/>
-                            <path d="M 33.0 23.3 L 33.2 13.7 L 36.4 23.5 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.7"/>
-                            <path d="M 34.6 22.9 L 33.2 14.7" stroke="#ffffff" stroke-width="0.55" opacity="0.65" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein"/>
-                            <path d="M 36.0 21.9 L 36.3 13.4 L 37.9 16.3 L 36.7 15.7 L 39.4 22.1 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.7"/>
-                            <path d="M 35.5 23.4 L 36.3 17.7 L 38.9 23.6 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.7"/>
-                            <path d="M 37.1 23.0 L 36.3 18.7" stroke="#ffffff" stroke-width="0.55" opacity="0.65" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein"/>
-                            <path d="M 30.9 24.3 L 31.5 17.4 L 34.3 24.5 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.7"/>
-                            <path d="M 85.6 43.6 Q 81.6 35.6 76.6 38.6" fill="none" stroke="#ffffff" stroke-width="0.7" opacity="0.55" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein" stroke-linecap="round"/>
-                            <path d="M 73.7 36.6 Q 69.7 27.6 64.7 30.1" fill="none" stroke="#ffffff" stroke-width="0.7" opacity="0.55" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein" stroke-linecap="round"/>
-                            <path d="M 43.8 30.2 Q 39.8 20.2 34.8 22.2" fill="none" stroke="#ffffff" stroke-width="0.7" opacity="0.55" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein" stroke-linecap="round"/>
-                            <path d="M 34.0 24.7 Q 30.0 13.7 25.0 15.2" fill="none" stroke="#ffffff" stroke-width="0.7" opacity="0.55" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein" stroke-linecap="round"/>
-                            <path d="M 61.6 21.8
-      C 81.6 12.2 96.0 21.0 112.0 34.6
-      Q 115.2 41.0 110.4 49.8
-      L 102.4 50.6
-      L 99.2 56.2
-      L 66.4 61.0
-      Q 59.2 45.0 61.6 21.8 Z" fill="url(#leviathan-old-skin-rad)" stroke="#000204" stroke-width="1.2" stroke-linejoin="round"/>
-                            <path d="M 61.6 21.8
-      C 81.6 12.2 96.0 21.0 112.0 34.6
-      Q 115.2 41.0 110.4 49.8
-      L 102.4 50.6
-      L 99.2 56.2
-      L 66.4 61.0
-      Q 59.2 45.0 61.6 21.8 Z" fill="url(#leviathan-old-scales)" opacity="0.4"/>
-                            <path d="M 69.6 22.6
-      Q 86.4 14.6 100.8 28.2
-      L 95.2 35.4
-      Q 84.0 26.6 72.8 33.0 Z" fill="#000204" opacity="0.78"/>
-                            <path d="M 74.4 29.8 Q 88.8 25.8 98.4 35.4" fill="none" stroke="#d0e8f4" stroke-width="0.7" opacity="0.45" stroke-linecap="round"/>
-                            <ellipse cx="100.8" cy="40.2" rx="1.9" ry="1.3" fill="#000000" opacity="0.85"/>
-                            <path d="M 75.2 21.0 L 64.0 -2.2 L 83.2 21.8 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="1"/>
-                            <path d="M 84.0 22.6 L 77.6 2.6 L 92.0 24.2 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.9"/>
-                            <path d="M 90.4 25.0 L 84.8 9.0 L 96.8 26.6 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.85"/>
-                            <path d="M 76.8 37.0 L 89.6 44.2" stroke="#000000" stroke-width="1" opacity="0.75" stroke-linecap="round"/>
-                            <path d="M 67.2 45.8 Q 52.0 41.8 48.8 29.8 L 62.4 29.0 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.8" opacity="0.95"/>
-                            <path d="M 92.8 50.6 L 99.2 59.4 L 88.8 54.6 Z" fill="#000204" stroke="#000204" stroke-width="0.65"/>
-                            <path d="M 71.2 21.8 Q 84.0 15.4 96.0 25.0" fill="none" stroke="#d8e8f0" stroke-width="1.15" opacity="0.9"/>
-                            <path d="M 69.6 19.4 L 65.6 1.8" stroke="#ffffff" stroke-width="0.75" opacity="0.9" filter="url(#leviathan-old-glowf)" class="tm-leviathan-vein"/>
-                        <g class="tm-mascot-mouth-happy">
-                            <path d="M 75.2 46.6 Q 91.2 61.5 107.2 60.5 L 109.6 44.2 L 104.0 49.0 Z" fill="url(#leviathan-old-skin)" stroke="#000204" stroke-width="1"/>
-                            <path d="M 77.6 48.2 L 103.2 49.8 L 105.6 58.1 Z" fill="#000000" opacity="0.92"/>
-                            <path d="M 78.0 48.9 L 79.3 55.0 L 80.6 48.9 Z" fill="#ffffff"/>
-                            <path d="M 83.0 54.7 L 84.1 50.1 L 85.2 54.7 Z" fill="#ffffff" opacity="0.9"/>
-                            <path d="M 84.1 48.8 L 85.3 56.8 L 86.6 48.8 Z" fill="#ffffff"/>
-                            <path d="M 90.1 48.6 L 91.4 56.6 L 92.6 48.6 Z" fill="#ffffff"/>
-                            <path d="M 90.3 55.9 L 91.4 49.9 L 92.5 55.9 Z" fill="#ffffff" opacity="0.9"/>
-                            <path d="M 96.1 48.5 L 97.4 54.5 L 98.7 48.5 Z" fill="#ffffff"/>
-                            <path d="M 102.1 48.3 L 103.4 54.4 L 104.7 48.3 Z" fill="#ffffff"/>
-                            <path d="M 97.6 57.1 L 98.7 52.5 L 99.7 57.1 Z" fill="#ffffff" opacity="0.9"/>
-                        </g>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 75.2 46.6 Q 92.4 50.0 106.4 49.5 L 104.0 49.0 Z" fill="url(#leviathan-old-skin)" stroke="#000204" stroke-width="1"/>
-                        <g class="tm-mascot-eye-open tm-leviathan-eye">
-                            <ellipse cx="85.9" cy="38.1" rx="14.7" ry="9.3" fill="#ffffff" opacity="0.38" filter="url(#leviathan-old-glowf)"/>
-                            <ellipse cx="85.9" cy="38.1" rx="5.7" ry="2.9" fill="#000000" opacity="0.88"/>
-                            <ellipse class="tm-leviathan-iris" cx="85.9" cy="38.1" rx="4.3" ry="2.3" fill="url(#leviathan-old-eye)" stroke="#000204" stroke-width="0.7"/>
-                            <ellipse class="tm-leviathan-pupil" cx="86.2" cy="38.1" rx="0.5" ry="2.7" fill="#000"/>
-                            <ellipse cx="84.4" cy="37.5" rx="0.8" ry="0.5" fill="#fff" opacity="0.55"/>
-                            <path d="M 81.0 37.8 Q 85.9 35.0 90.8 37.5" fill="none" stroke="#000204" stroke-width="1.35" opacity="0.9" stroke-linecap="round"/>
-                            <path d="M 81.7 39.4 Q 85.9 40.3 90.2 39.3" fill="none" stroke="#000204" stroke-width="0.7" opacity="0.45"/>
-                            <circle cx="87.0" cy="38.6" r="0.4" fill="#ffffff" opacity="0.55"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 81.7 38.1 Q 85.9 36.9 90.2 38.1" stroke="#000204" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                            <circle cx="64.5" cy="51.2" r="0.7" fill="#000204" opacity="0.45"/>
-                            <circle cx="58.8" cy="47.0" r="0.95" fill="#000204" opacity="0.45"/>
-                            <circle cx="48.1" cy="41.2" r="1.2" fill="#000204" opacity="0.45"/>
-                            <circle cx="42.3" cy="36.8" r="0.7" fill="#000204" opacity="0.45"/>
-                            <circle cx="29.6" cy="34.1" r="0.95" fill="#000204" opacity="0.45"/>
-                        <g class="tm-animate-wing-left">
-                            <circle cx="67.1" cy="52.9" r="0.4" fill="#000204" opacity="0.001"/>                            <ellipse cx="67.1" cy="53.5" rx="2.4" ry="1.6" fill="url(#leviathan-old-fin)" opacity="0.85"/>
-                            <path d="M 65.6 52.1 L 69.1 52.7 C 68.1 60.9 59.1 74.7 43.0 71.2 C 57.9 64.4 66.6 57.5 65.6 52.1 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.95" opacity="0.95"/>
-                            <path d="M 67.1 53.7 Q 56.8 64.4 48.8 67.8" fill="none" stroke="#000204" stroke-width="0.45" opacity="0.4"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <circle cx="67.1" cy="52.9" r="0.4" fill="#000204" opacity="0.001"/>
-                            <path d="M 70.1 52.4 C 69.1 64.4 63.7 71.2 56.8 67.8 C 67.6 59.8 69.6 53.0 70.1 52.4 Z" fill="url(#leviathan-old-fin)" stroke="#000204" stroke-width="0.85" opacity="0.85"/>
-                        </g>
-                        <g class="tm-animate-arm-left" opacity="0.001"><circle cx="51.4" cy="61.4" r="0.5" fill="#000204"/></g>
-                        <g class="tm-animate-arm-right" opacity="0.001"><circle cx="54.4" cy="61.4" r="0.5" fill="#000204"/></g>
-                        <g class="tm-animate-leg-left" opacity="0.001"><circle cx="51.8" cy="47.8" r="0.5" fill="#000204"/></g>
-                        <g class="tm-animate-leg-right" opacity="0.001"><circle cx="54.8" cy="47.8" r="0.5" fill="#000204"/></g>
-                        </g>
-                </g>
-                <!-- Integrated accessories (anchor-local art, positioned by layoutMascotAccessory) -->
+                                <!-- Integrated accessories (anchor-local art, positioned by layoutMascotAccessory) -->
                 <g id="digital_headphones" class="tm-mascot-accessory" style="display: none;">
                     <g class="tm-accessory-art">
                         <path d="M -14 -6 Q 0 -14 14 -6" fill="none" stroke="#0099cc" stroke-width="3.5" stroke-linecap="round"/>
@@ -20886,7 +16364,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             if (petStats.happiness < 40) {
                 return { level: 'warn', icon: '💕', text: 'Λυπημένο — χάιδεψέ το ή παίξε μαζί του.' };
             }
-            if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.old && tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.death) {
+            if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.evo3 && tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.death) {
                 return { level: 'warn', icon: '⏳', text: 'Μεγάλος σε ηλικία — φρόντισέ τον καλά.' };
             }
             const fav = getActiveMascotPrefs()?.favorite;
@@ -20931,7 +16409,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <h2 class="tm-mascot-name" id="tm-mascot-care-title">${characterName}</h2>
                             <p class="tm-mascot-meta">
                                 <span class="tm-mascot-stage-pill">${stageGr}</span>
-                                <span id="tm-mascot-meta-age">${isEgg ? `Εκκόλαψη ~${minutesToHatch} λεπτά` : `Ηλικία ${Math.floor(tamagotchiAge)}`}</span>
+                                <span id="tm-mascot-meta-age">${isEgg ? `Εκκόλαψη ~${minutesToHatch} λεπτά` : `Εξέλιξη: ${MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage}`}</span>
                                 ${isEgg ? '' : `<span>·</span><span id="tm-mascot-meta-weight">${formatTamagotchiWeightKg()}</span>`}
                             </p>
                         </div>
@@ -21607,7 +17085,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             const metaWeight = modal.querySelector('#tm-mascot-meta-weight');
             if (metaWeight) metaWeight.textContent = formatTamagotchiWeightKg();
             const metaAge = modal.querySelector('#tm-mascot-meta-age');
-            if (metaAge) metaAge.textContent = `Ηλικία ${Math.floor(tamagotchiAge)}`;
+            if (metaAge) metaAge.textContent = `Εξέλιξη: ${MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage}`;
             const stagePill = modal.querySelector('.tm-mascot-stage-pill');
             if (stagePill) stagePill.textContent = MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage;
 
@@ -22343,7 +17821,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     container.addEventListener('contextmenu', (e) => {
         if (tamagotchiCharacterType !== 'aether') return;
         e.preventDefault();
-        playAetherRarityLedger(container, tamagotchiStage || 'adult');
+        playAetherRarityLedger(container, tamagotchiStage || 'evo2');
     });
 
     container.addEventListener('dblclick', (e) => {
@@ -23018,7 +18496,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     const currentLevel = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
     // Update appearance based on Tamagotchi stage (not level)
     updateMascotAppearanceByStage(tamagotchiStage);
-    console.log(`[MMS Fun] Interactive Mascot initialized at stage: ${tamagotchiStage}, age: ${Math.floor(tamagotchiAge)} years.`);
+    console.log(`[MMS Fun] Interactive Mascot initialized at stage: ${tamagotchiStage}, stage: ${tamagotchiStage}.`);
     
     // Set initial state and start roaming
     // Note: This must come AFTER buff restoration and accessory loading
@@ -23471,7 +18949,7 @@ function updateMascotAppearanceByStage(stage) {
 
     const eggSprite = getMascotSpriteById(container, 'tm-mascot-base');
     const allCharacterTypes = TAMA_CHARACTER_TYPES;
-    const allStages = ['base', 'baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+    const allStages = ['base', 'evo1', 'evo2', 'evo3'];
 
     allStages.forEach((stageId) => {
         allCharacterTypes.forEach((charType) => {
@@ -23486,7 +18964,7 @@ function updateMascotAppearanceByStage(stage) {
         const robot = container.querySelector('.tm-mascot-robot');
         if (robot) {
             TAMA_CHARACTER_TYPES.forEach((charType) => robot.classList.remove(`mascot-char-${charType}`));
-            robot.classList.remove('mascot-baby', 'mascot-kid', 'mascot-teen', 'mascot-adult', 'mascot-middleage', 'mascot-old', 'mascot-child');
+            robot.classList.remove('mascot-evo1', 'mascot-evo2', 'mascot-evo3');
             robot.classList.add('mascot-egg');
         }
         TAMA_CHARACTER_TYPES.forEach((charType) => container.classList.remove(`mascot-char-${charType}`));
@@ -23531,13 +19009,10 @@ function updateMascotAppearanceByStage(stage) {
     let stageId = '';
 
     switch (stage) {
-        case 'baby': stageId = 'baby'; break;
-        case 'kid': stageId = 'evo1'; break;
-        case 'teen': stageId = 'evo2'; break;
-        case 'adult': stageId = 'evo3'; break;
-        case 'middleage': stageId = 'evo4'; break;
-        case 'old': stageId = 'evo5'; break;
-        default: stageId = 'baby';
+        case 'evo1': stageId = 'evo1'; break;
+        case 'evo2': stageId = 'evo2'; break;
+        case 'evo3': stageId = 'evo3'; break;
+        default: stageId = 'evo1';
     }
 
     const element = getMascotSpriteById(container, `tm-mascot-${stageId}-${previewCharacter}`);
@@ -23559,8 +19034,7 @@ function updateMascotAppearanceByStage(stage) {
     const robot = container.querySelector('.tm-mascot-robot');
     if (robot) {
         robot.classList.remove(
-            'mascot-baby', 'mascot-kid', 'mascot-child', 'mascot-adult', 'mascot-egg',
-            'mascot-teen', 'mascot-middleage', 'mascot-old'
+            'mascot-egg', 'mascot-evo1', 'mascot-evo2', 'mascot-evo3'
         );
         allCharacterTypes.forEach((charType) => {
             robot.classList.remove(`mascot-char-${charType}`);

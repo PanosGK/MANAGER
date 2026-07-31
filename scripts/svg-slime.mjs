@@ -10,9 +10,9 @@ const I2 = I + '    ';
 const I3 = I2 + '    ';
 const I4 = I3 + '    ';
 
-const STAGES = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+const STAGES = ['evo1', 'evo2', 'evo3'];
 const STAGE_LABEL = {
-  baby: 'BABY', evo1: 'KID', evo2: 'TEEN', evo3: 'ADULT', evo4: 'MIDDLE AGE', evo5: 'OLD',
+  baby: 'EVO1', evo1: 'KID', evo2: 'TEEN', evo3: 'EVO2', evo4: 'EVO3', evo5: 'OLD',
 };
 const HOOKS = [
   'tm-animate-body', 'tm-animate-arm-left', 'tm-animate-arm-right',
@@ -452,16 +452,13 @@ ${wingPlaceholders(54)}`;
 }
 
 export const slimeSvg = [
-  `${I}<!-- SLIME CHARACTER - All Life Stages (dense cute epic goo v4) -->`,
+  `${I}<!-- SLIME CHARACTER - All Life Stages (dense cute epic goo v4 · 3-stage) -->`,
   `${I}<!-- Liquid & Bounce • Rare Rarity • Abyssal Ooze -->`,
   `${I}<!-- ═══════════════════════════════════════ -->`,
   '',
-  slimeBaby(),
-  slimeKid(),
-  slimeTeen(),
-  slimeAdult(),
-  slimeMiddle(),
-  slimeOld(),
+  slimeBaby().replace('tm-mascot-baby-slime', 'tm-mascot-evo1-slime'),
+  slimeAdult().replace('tm-mascot-evo3-slime', 'tm-mascot-evo2-slime'),
+  slimeMiddle().replace('tm-mascot-evo4-slime', 'tm-mascot-evo3-slime'),
   `${I}<!-- ═══════════════════════════════════════ -->`,
 ].join('\n');
 

@@ -3680,7 +3680,7 @@ function getMascotSettingsHTML() {
 
                     <h4>Εξέλιξη &amp; ζωή</h4>
                     <ul>
-                        <li><strong>Αυγό → Baby → Kid → Teen → Adult → Middle → Old</strong> — μεγαλώνει με χρόνο γραφείου (περίπου 09:00–21:00).</li>
+                        <li><strong>Αυγό → Εξέλιξη 1 → Εξέλιξη 2 → Εξέλιξη 3</strong> — εξελίσσεται με χρόνο γραφείου (περίπου 09:00–21:00).</li>
                         <li>Στο hatch εμφανίζεται cinematic και επιλέγεται / αποκαλύπτεται χαρακτήρας.</li>
                         <li>Κάθε χαρακτήρας έχει <strong>likes / dislikes / favorite</strong> ενέργειες — το αγαπημένο δίνει extra χαρά.</li>
                         <li>Αξεσουάρ και cosmetics από το <strong>Κατάστημα</strong>.</li>

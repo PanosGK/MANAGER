@@ -1,11 +1,11 @@
 {
-  "version": "327",
+  "version": "328",
   "loaderVersion": "36",
-  "silentVersion": "19",
-  "displayVersion": "36.19",
+  "silentVersion": "20",
+  "displayVersion": "36.20",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether natural avian cosmic wings (shingled plumage).",
+  "releaseNotes": "Mascot: 3 evolutions only, remove ages.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

@@ -1,5 +1,5 @@
 /**
- * Prism Titan — dense cute epic v3 (6 life stages)
+ * Prism Titan — dense cute epic v3 (3-stage export)
  * Export for apply-cute-epic-svgs.mjs
  */
 
@@ -8,9 +8,9 @@ const I2 = I + '    ';
 const I3 = I2 + '    ';
 const I4 = I3 + '    ';
 
-const STAGES = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+const STAGES = ['evo1', 'evo2', 'evo3'];
 const STAGE_LABEL = {
-  baby: 'BABY', evo1: 'KID', evo2: 'TEEN', evo3: 'ADULT', evo4: 'MIDDLE AGE', evo5: 'OLD',
+  baby: 'EVO1', evo1: 'KID', evo2: 'TEEN', evo3: 'EVO2', evo4: 'EVO3', evo5: 'OLD',
 };
 
 function grad(id, stops, type = 'radial', attrs = 'cx="40%" cy="30%" r="75%"') {
@@ -480,9 +480,11 @@ ${chevronMouths(36, accent)}`;
 }
 
 export const crystalSvg = [
-  `${I}<!-- CRYSTAL CHARACTER - All Life Stages (dense cute epic v3) -->`,
+  `${I}<!-- CRYSTAL CHARACTER - All Life Stages (dense cute epic v3 · 3-stage) -->`,
   `${I}<!-- Aether & Stone • Epic Rarity • Prism Titan -->`,
   `${I}<!-- ═══════════════════════════════════════ -->`,
   '',
-  ...STAGES.map(crystalStage),
+  crystalStage('baby').replace('tm-mascot-baby-crystal', 'tm-mascot-evo1-crystal'),
+  crystalStage('evo3').replace('tm-mascot-evo3-crystal', 'tm-mascot-evo2-crystal'),
+  crystalStage('evo4').replace('tm-mascot-evo4-crystal', 'tm-mascot-evo3-crystal'),
 ].join('\n');

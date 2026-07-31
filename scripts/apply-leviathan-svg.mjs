@@ -31,7 +31,7 @@ if (existingStart >= 0 && existingStart < end) {
 
 fs.writeFileSync(path, src);
 
-const stages = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+const stages = ['evo1', 'evo2', 'evo3'];
 const hooks = [
   'tm-animate-body', 'tm-animate-arm-left', 'tm-animate-arm-right',
   'tm-animate-leg-left', 'tm-animate-leg-right', 'tm-animate-tail',

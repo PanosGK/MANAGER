@@ -784,12 +784,9 @@ function getMascotStageSpriteKey() {
         ? window.TAMA_STAGE_TO_SPRITE_KEY
         : {
             egg: 'base',
-            baby: 'baby',
-            kid: 'evo1',
-            teen: 'evo2',
-            adult: 'evo3',
-            middleage: 'evo4',
-            old: 'evo5',
+            evo1: 'evo1',
+            evo2: 'evo2',
+            evo3: 'evo3',
         };
     return map[tamagotchiStage] || 'evo3';
 }

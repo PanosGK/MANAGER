@@ -4928,7 +4928,7 @@
             /* Stage growth is applied as container px size in syncEliteMascotContainerSize
                (--tm-stage-scale). Do NOT scale .tm-mascot-robot — idle/eat animations overwrite
                transform and caused a brief "huge then tiny" flicker. */
-            #tm-mascot-container.mascot-char-phoenix:has(.mascot-teen)::before {
+            #tm-mascot-container.mascot-char-phoenix:has(.mascot-evo2)::before {
                 background: radial-gradient(ellipse 58% 74% at 50% 66%,
                     rgba(255,213,79,0.32) 0%,
                     rgba(255,120,0,0.24) 40%,
@@ -4936,7 +4936,7 @@
                     transparent 78%) !important;
                 box-shadow: 0 0 32px rgba(255,80,0,0.35), 0 0 64px rgba(255,40,0,0.18) !important;
             }
-            #tm-mascot-container.mascot-char-phoenix:has(.mascot-adult)::before {
+            #tm-mascot-container.mascot-char-phoenix:has(.mascot-evo2)::before {
                 background: radial-gradient(ellipse 62% 78% at 50% 64%,
                     rgba(255,244,214,0.45) 0%,
                     rgba(255,193,7,0.35) 25%,
@@ -4946,8 +4946,8 @@
                 box-shadow: 0 0 42px rgba(255,193,7,0.45), 0 0 80px rgba(255,60,0,0.25), 0 0 100px rgba(156,39,176,0.15) !important;
                 animation: tm-phoenix-fire-flicker 0.95s linear infinite !important;
             }
-            #tm-mascot-container.mascot-char-phoenix:has(.mascot-middleage)::before,
-            #tm-mascot-container.mascot-char-phoenix:has(.mascot-old)::before {
+            #tm-mascot-container.mascot-char-phoenix:has(.mascot-evo3)::before,
+            #tm-mascot-container.mascot-char-phoenix:has(.mascot-evo3)::before {
                 background: radial-gradient(ellipse 66% 82% at 50% 62%,
                     rgba(255,248,225,0.5) 0%,
                     rgba(255,213,79,0.36) 22%,
@@ -4957,9 +4957,9 @@
                 box-shadow: 0 0 48px rgba(255,248,225,0.35), 0 0 96px rgba(255,193,7,0.3), 0 0 120px rgba(255,60,0,0.18) !important;
                 animation: tm-phoenix-fire-flicker 0.85s linear infinite !important;
             }
-            .tm-mascot-robot.mascot-char-phoenix.mascot-adult,
-            .tm-mascot-robot.mascot-char-phoenix.mascot-middleage,
-            .tm-mascot-robot.mascot-char-phoenix.mascot-old {
+            .tm-mascot-robot.mascot-char-phoenix.mascot-evo2,
+            .tm-mascot-robot.mascot-char-phoenix.mascot-evo3,
+            .tm-mascot-robot.mascot-char-phoenix.mascot-evo3 {
                 filter: drop-shadow(0 0 8px rgba(255,193,7,0.8)) drop-shadow(0 0 16px rgba(156,39,176,0.35)) drop-shadow(0 0 24px rgba(255,60,0,0.25));
             }
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-leviathan .tm-animate-wing-left {
@@ -4969,36 +4969,36 @@
                 animation: tm-wing-flap-right 2.8s ease-in-out infinite 0.15s !important;
             }
             /* Stage aura tint — soft colored bloom (avoid heavy void black) */
-            #tm-mascot-container.mascot-char-aether:has(.mascot-baby)::before {
+            #tm-mascot-container.mascot-char-aether:has(.mascot-evo1)::before {
                 background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(61,207,191,0.14) 0%, rgba(8,2,18,0.45) 55%, transparent 100%) !important;
                 box-shadow: 0 6px 28px rgba(61,207,191,0.12), 0 0 48px rgba(8,2,18,0.25) !important;
             }
-            #tm-mascot-container.mascot-char-aether:has(.mascot-kid)::before {
+            #tm-mascot-container.mascot-char-aether:has(.mascot-evo1)::before {
                 background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(54,201,184,0.15) 0%, rgba(160,30,48,0.08) 45%, rgba(8,2,18,0.4) 70%, transparent 100%) !important;
                 box-shadow: 0 8px 34px rgba(54,201,184,0.14), 0 0 56px rgba(8,2,18,0.28) !important;
             }
-            #tm-mascot-container.mascot-char-aether:has(.mascot-teen)::before {
+            #tm-mascot-container.mascot-char-aether:has(.mascot-evo2)::before {
                 background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(47,196,180,0.15) 0%, rgba(183,28,44,0.1) 48%, rgba(5,1,12,0.45) 72%, transparent 100%) !important;
                 box-shadow: 0 10px 42px rgba(47,196,180,0.16), 0 0 72px rgba(5,1,12,0.3) !important;
             }
-            #tm-mascot-container.mascot-char-aether:has(.mascot-adult)::before {
+            #tm-mascot-container.mascot-char-aether:has(.mascot-evo2)::before {
                 background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(46,224,208,0.14) 0%, rgba(198,40,40,0.1) 42%, rgba(5,1,12,0.4) 70%, transparent 100%) !important;
                 box-shadow: 0 10px 48px rgba(46,224,208,0.14), 0 0 90px rgba(198,40,40,0.1) !important;
             }
-            #tm-mascot-container.mascot-char-aether:has(.mascot-middleage)::before {
+            #tm-mascot-container.mascot-char-aether:has(.mascot-evo3)::before {
                 background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(239,83,80,0.14) 0%, rgba(106,27,154,0.1) 45%, rgba(191,143,46,0.05) 70%, transparent 100%) !important;
                 box-shadow: 0 12px 50px rgba(239,83,80,0.14), 0 0 96px rgba(106,27,154,0.12) !important;
             }
-            #tm-mascot-container.mascot-char-aether:has(.mascot-old)::before {
+            #tm-mascot-container.mascot-char-aether:has(.mascot-evo3)::before {
                 background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(139,0,0,0.12) 0%, rgba(93,64,55,0.1) 42%, rgba(201,184,150,0.05) 70%, transparent 100%) !important;
                 box-shadow: 0 12px 52px rgba(139,0,0,0.14), 0 0 100px rgba(93,64,55,0.12) !important;
             }
-            .tm-mascot-robot.mascot-char-aether.mascot-middleage {
+            .tm-mascot-robot.mascot-char-aether.mascot-evo3 {
                 filter:
                     drop-shadow(0 6px 12px rgba(18,0,31,0.22))
                     drop-shadow(0 0 18px rgba(239,83,80,0.16)) !important;
             }
-            .tm-mascot-robot.mascot-char-aether.mascot-old {
+            .tm-mascot-robot.mascot-char-aether.mascot-evo3 {
                 filter:
                     drop-shadow(0 6px 12px rgba(10,2,2,0.24))
                     drop-shadow(0 0 18px rgba(139,0,0,0.16)) !important;
@@ -5270,8 +5270,8 @@
             }
             #tm-mascot-container.tm-aether-lite .tm-mascot-robot.mascot-char-aether,
             #tm-mascot-container.tm-aether-lite:hover .tm-mascot-robot.mascot-char-aether,
-            #tm-mascot-container.tm-aether-lite .tm-mascot-robot.mascot-char-aether.mascot-middleage,
-            #tm-mascot-container.tm-aether-lite .tm-mascot-robot.mascot-char-aether.mascot-old {
+            #tm-mascot-container.tm-aether-lite .tm-mascot-robot.mascot-char-aether.mascot-evo3,
+            #tm-mascot-container.tm-aether-lite .tm-mascot-robot.mascot-char-aether.mascot-evo3 {
                 filter: drop-shadow(0 4px 8px rgba(18,0,31,0.28)) !important;
             }
             #tm-mascot-container.tm-aether-lite .tm-aether-fx {
@@ -5555,13 +5555,13 @@
                 50% { transform: translateY(-8px) scale(1.015); }
             }
             /* Height bob by power — older forms hover higher */
-            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether.mascot-adult {
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether.mascot-evo2 {
                 animation: tm-aether-hover-adult 5.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important;
             }
-            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether.mascot-middleage {
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether.mascot-evo3 {
                 animation: tm-aether-hover-mid 5.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important;
             }
-            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether.mascot-old {
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether.mascot-evo3 {
                 animation: tm-aether-hover-old 6.2s cubic-bezier(0.4, 0.02, 0.6, 0.98) infinite !important;
             }
             @keyframes tm-aether-hover-adult {
@@ -6332,11 +6332,11 @@
             }
 
             /* ─── Aether boss pack II: twin / sheen / domain / eclipse / rarity ─── */
-            .mascot-char-aether.mascot-old .tm-aether-wing-broken {
+            .mascot-char-aether.mascot-evo3 .tm-aether-wing-broken {
                 opacity: 0.82;
                 filter: saturate(0.85);
             }
-            .mascot-char-aether.mascot-old .tm-aether-wing-dominant {
+            .mascot-char-aether.mascot-evo3 .tm-aether-wing-dominant {
                 filter: contrast(1.05);
             }
             .mascot-char-aether .tm-aether-wing-break {
@@ -6680,10 +6680,10 @@
                 box-shadow: 0 0 12px rgba(124,77,255,0.2);
                 filter: blur(2px);
             }
-            #tm-mascot-container.mascot-char-aether:has(.mascot-old) .tm-aether-form-crest {
+            #tm-mascot-container.mascot-char-aether:has(.mascot-evo3) .tm-aether-form-crest {
                 background: radial-gradient(ellipse at 50% 50%, rgba(122,0,0,0.4), transparent 70%);
             }
-            #tm-mascot-container.mascot-char-aether:has(.mascot-middleage) .tm-aether-form-crest {
+            #tm-mascot-container.mascot-char-aether:has(.mascot-evo3) .tm-aether-form-crest {
                 background: radial-gradient(ellipse at 50% 50%, rgba(198,40,40,0.35), transparent 70%);
             }
 

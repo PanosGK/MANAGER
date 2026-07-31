@@ -328,7 +328,6 @@
 
             // Reset mascot to egg state with default values
             const defaultTamagotchiData = {
-                age: 0,
                 lifeMinutes: 0,
                 eggGeneration: Date.now(),
                 stage: 'egg',
@@ -341,8 +340,9 @@
                 lastPlayed: Date.now(),
                 isSleeping: false,
                 lightsOn: true,
-                birthdate: Date.now(),
-                evolutionHistory: [],
+                birthday: Date.now(),
+                maxReachedStage: 'egg',
+                evolutionDiscovery: {},
                 poopCount: 0,
                 lastPoopTime: Date.now(),
                 characterType: 'none',
@@ -880,36 +880,35 @@
                         <div class="tm-setting-control tm-setting-control--wrap">
                             <button type="button" id="tm-debug-hatch-egg-btn" class="tm-settings-ghost-btn">Force Hatch</button>
                             <button type="button" id="tm-debug-reset-egg-btn" class="tm-settings-ghost-btn">Reset to Egg</button>
-                            <button type="button" id="tm-debug-age-up-btn" class="tm-settings-ghost-btn">Age +10</button>
                             <button type="button" id="tm-debug-next-evo-btn" class="tm-settings-ghost-btn">Next Evolution</button>
                         </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-debug-mascot-lifespan-days">Mascot lifespan (office days → old)</label>
-                            <p class="tm-setting-description">Default <strong>15</strong> office-days (09:00–21:00) to reach old age. Lower = faster growth &amp; death. Death stays ~3.3× that.</p>
+                            <label for="tm-debug-mascot-lifespan-days">Mascot lifespan (office days → final evo)</label>
+                            <p class="tm-setting-description">Default <strong>7.5</strong> office-days (09:00–21:00) to reach Εξέλιξη 3. Lower = faster evolutions &amp; death. Death stays ~6.7× that.</p>
                         </div>
                         <div class="tm-setting-control tm-setting-control--wrap">
                             <input type="number" id="tm-debug-mascot-lifespan-days" class="tm-settings-input" min="0.05" max="365" step="0.05" value="${(() => {
                                 try {
                                     if (typeof window.getMascotLifespanDays === 'function') return window.getMascotLifespanDays();
-                                    return GM_getValue('tm_mascot_lifespan_days', 15);
-                                } catch (_) { return 15; }
+                                    return GM_getValue('tm_mascot_lifespan_days', 7.5);
+                                } catch (_) { return 7.5; }
                             })()}">
                             <button type="button" id="tm-debug-mascot-lifespan-apply" class="tm-settings-ghost-btn">Apply</button>
-                            <button type="button" id="tm-debug-mascot-lifespan-reset" class="tm-settings-ghost-btn">Reset 15</button>
+                            <button type="button" id="tm-debug-mascot-lifespan-reset" class="tm-settings-ghost-btn">Reset 7.5</button>
                         </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <label for="tm-debug-natural-death-cause">Natural death</label>
-                            <p class="tm-setting-description">Θάνατος από πείνα / υγεία / ηλικία (όχι το shooting cinematic).</p>
+                            <p class="tm-setting-description">Θάνατος από πείνα / υγεία / τέλος ζωής (όχι το shooting cinematic).</p>
                         </div>
                         <div class="tm-setting-control tm-setting-control--wrap">
                             <select id="tm-debug-natural-death-cause" class="tm-settings-select" aria-label="Αιτία θανάτου">
                                 <option value="hunger">Hunger</option>
                                 <option value="health">Health</option>
-                                <option value="oldAge">Old age</option>
+                                <option value="oldAge">Lifespan end</option>
                             </select>
                             <button type="button" id="tm-debug-natural-death-btn" class="tm-settings-ghost-btn">Kill (natural)</button>
                         </div>
@@ -947,7 +946,7 @@
                     <div class="tm-setting-row tm-setting-row--stack">
                         <div class="tm-setting-label">
                             <label>Character</label>
-                            <p class="tm-setting-description">Αποθηκεύεται. Αν είναι αυγό, προχωρά σε baby για προβολή.</p>
+                            <p class="tm-setting-description">Αποθηκεύεται. Αν είναι αυγό, προχωρά σε Εξέλιξη 1 για προβολή.</p>
                         </div>
                         <div class="tm-setting-control tm-setting-control--grid">
                             <button type="button" class="tm-mascot-char-btn" data-character="dragon">Dragon</button>
@@ -976,12 +975,9 @@
                         <div class="tm-setting-label"><label>Stages</label></div>
                         <div class="tm-setting-control tm-setting-control--grid">
                             <button type="button" class="tm-mascot-stage-btn" data-stage="egg">Egg</button>
-                            <button type="button" class="tm-mascot-stage-btn" data-stage="baby">Baby</button>
-                            <button type="button" class="tm-mascot-stage-btn" data-stage="kid">Kid</button>
-                            <button type="button" class="tm-mascot-stage-btn" data-stage="teen">Teen</button>
-                            <button type="button" class="tm-mascot-stage-btn" data-stage="adult">Adult</button>
-                            <button type="button" class="tm-mascot-stage-btn" data-stage="middleage">Middle Age</button>
-                            <button type="button" class="tm-mascot-stage-btn" data-stage="old">Old</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="evo1">Evo 1</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="evo2">Evo 2</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="evo3">Evo 3</button>
                         </div>
                     </div>
 
@@ -2096,9 +2092,8 @@
                     const characterTypes = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether', 'leviathan'];
                     const selectedCharacter = characterTypes[Math.floor(Math.random() * characterTypes.length)];
                     
-                    tamaData.age = 0;
-                    tamaData.lifeMinutes = 1; // baby hatch threshold (1 office-min)
-                    tamaData.stage = 'baby';
+                    tamaData.lifeMinutes = 1; // evo1 hatch threshold (1 office-min)
+                    tamaData.stage = 'evo1';
                     tamaData.characterType = selectedCharacter;
                     tamaData.lastUpdate = Date.now();
                     GM_setValue(STORAGE_KEYS.TAMAGOTCHI_DATA, JSON.stringify(tamaData));
@@ -2111,7 +2106,7 @@
                     // Update appearance
                     setTimeout(() => {
                         if (typeof window.updateMascotAppearanceByStage === 'function') {
-                            window.updateMascotAppearanceByStage('baby');
+                            window.updateMascotAppearanceByStage('evo1');
                         }
                     }, 4000); // After reveal animation
                     
@@ -2124,7 +2119,6 @@
             document.getElementById('tm-debug-reset-egg-btn')?.addEventListener('click', () => {
                 const tamaData = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
                 if (tamaData) {
-                    tamaData.age = 0;
                     tamaData.lifeMinutes = 0;
                     tamaData.eggGeneration = (Number(tamaData.eggGeneration) || 0) + 1;
                     tamaData.stage = 'egg';
@@ -2141,41 +2135,6 @@
                     showPositiveMessage('❌ Mascot data not found. Enable mascot first.');
                 }
             });
-            
-            document.getElementById('tm-debug-age-up-btn')?.addEventListener('click', () => {
-                const tamaData = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
-                if (tamaData) {
-                    const minutesPerYear = (typeof window.refreshTamaLifespanScale === 'function'
-                        ? window.refreshTamaLifespanScale().minutesPerYear
-                        : null)
-                        || (window.TAMA_STAGE_MINUTES && typeof window.getMascotLifespanDays === 'function'
-                            ? Math.max(1, Math.round(450 * (window.getMascotLifespanDays() / 15)))
-                            : 450);
-                    const currentLife = Number(tamaData.lifeMinutes);
-                    const life = Number.isFinite(currentLife) ? currentLife : 0;
-                    tamaData.lifeMinutes = life + (10 * minutesPerYear);
-                    tamaData.age = Math.floor(tamaData.lifeMinutes / minutesPerYear);
-                    tamaData.lastUpdate = Date.now();
-                    GM_setValue(STORAGE_KEYS.TAMAGOTCHI_DATA, JSON.stringify(tamaData));
-
-                    // Apply evolution + sprite immediately (no refresh required)
-                    if (typeof window.hydrateTamagotchiFromStorage === 'function') {
-                        window.hydrateTamagotchiFromStorage(STORAGE_KEYS, document.getElementById('tm-mascot-container'), {
-                            mergeMemory: true,
-                            saveAfter: true,
-                            evolve: true,
-                        });
-                    } else if (typeof window.resyncMascotAppearanceFromStorage === 'function') {
-                        window.resyncMascotAppearanceFromStorage(STORAGE_KEYS);
-                    }
-                    const stage = typeof window.getEffectiveMascotStage === 'function'
-                        ? window.getEffectiveMascotStage()
-                        : (tamaData.stage || '?');
-                    showPositiveMessage(`⏭️ Aged up! Age ${Math.floor(tamaData.age)} · stage ${stage}`);
-                } else {
-                    showPositiveMessage('❌ Mascot data not found. Enable mascot first.');
-                }
-            });
 
             document.getElementById('tm-debug-next-evo-btn')?.addEventListener('click', () => {
                 if (typeof window.debugAdvanceMascotEvolution !== 'function') {
@@ -2186,7 +2145,7 @@
                 if (result?.ok) {
                     showPositiveMessage(`✨ Evolution: ${result.from} → ${result.to}`);
                 } else if (result?.reason === 'max') {
-                    showPositiveMessage('👴 Ήδη στο τελευταίο στάδιο (old).');
+                    showPositiveMessage('✨ Ήδη στην τελική εξέλιξη (Εξέλιξη 3).');
                 } else if (result?.reason === 'dead') {
                     showPositiveMessage('💀 Το mascot είναι νεκρό — reset to egg πρώτα.');
                 } else if (result?.reason === 'cinematic') {
@@ -2207,9 +2166,9 @@
                     : null;
                 const input = document.getElementById('tm-debug-mascot-lifespan-days');
                 if (input) input.value = String(applied);
-                const oldDays = info ? (info.stages.old / 720).toFixed(2) : applied;
+                const finalDays = info ? (info.stages.evo3 / 720).toFixed(2) : applied;
                 const deathDays = info ? (info.stages.death / 720).toFixed(2) : '—';
-                showPositiveMessage(`⏱️ Lifespan set: ~${oldDays} office-days to old, ~${deathDays} to death`);
+                showPositiveMessage(`⏱️ Lifespan set: ~${finalDays} office-days to Εξέλιξη 3, ~${deathDays} to death`);
             };
 
             document.getElementById('tm-debug-mascot-lifespan-apply')?.addEventListener('click', () => {
@@ -2217,7 +2176,7 @@
                 applyLifespan(raw);
             });
             document.getElementById('tm-debug-mascot-lifespan-reset')?.addEventListener('click', () => {
-                applyLifespan(15);
+                applyLifespan(7.5);
             });
 
             document.getElementById('tm-debug-natural-death-btn')?.addEventListener('click', () => {
@@ -2226,7 +2185,7 @@
                     showPositiveMessage('❌ Natural death debug δεν είναι διαθέσιμο.');
                     return;
                 }
-                const labels = { hunger: 'πείνα', health: 'υγεία', oldAge: 'ηλικία' };
+                const labels = { hunger: 'πείνα', health: 'υγεία', oldAge: 'τέλος ζωής' };
                 if (!confirm(`Να πεθάνει το mascot από ${labels[cause] || cause}; (όχι shooting)`)) return;
                 const ok = window.debugKillTamagotchiNatural(STORAGE_KEYS, cause);
                 if (ok) {

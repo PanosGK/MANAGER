@@ -2,7 +2,7 @@ import fs from 'fs';
 
 const src = fs.readFileSync('myman_mascot.js', 'utf8');
 const chars = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether', 'leviathan'];
-const stages = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+const stages = ['evo1', 'evo2', 'evo3'];
 const missing = [];
 for (const s of stages) {
   for (const c of chars) {
@@ -11,28 +11,22 @@ for (const s of stages) {
   }
 }
 
-const lifeStages = ['egg', 'baby', 'kid', 'teen', 'adult', 'middleage', 'old'];
-// Office-minutes thresholds (~12h/day × 15 days ≈ old)
-const thresholds = { egg: 0, baby: 1, kid: 488, teen: 1350, adult: 2700, middleage: 5400, old: 10800, death: 36000 };
+const lifeStages = ['egg', 'evo1', 'evo2', 'evo3'];
+// Office-minutes thresholds (3-evo line)
+const thresholds = { egg: 0, evo1: 1, evo2: 2700, evo3: 5400, death: 36000 };
 
 function stageFromMinutes(m) {
-  if (m < thresholds.baby) return 'egg';
-  if (m < thresholds.kid) return 'baby';
-  if (m < thresholds.teen) return 'kid';
-  if (m < thresholds.adult) return 'teen';
-  if (m < thresholds.middleage) return 'adult';
-  if (m < thresholds.old) return 'middleage';
-  return 'old';
+  if (m < thresholds.evo1) return 'egg';
+  if (m < thresholds.evo2) return 'evo1';
+  if (m < thresholds.evo3) return 'evo2';
+  return 'evo3';
 }
 
 const stageToSprite = {
   egg: 'base',
-  baby: 'baby',
-  kid: 'evo1',
-  teen: 'evo2',
-  adult: 'evo3',
-  middleage: 'evo4',
-  old: 'evo5',
+  evo1: 'evo1',
+  evo2: 'evo2',
+  evo3: 'evo3',
 };
 
 console.log('=== Mascot Sanity Check ===\n');
@@ -47,7 +41,7 @@ for (const [label, min] of Object.entries(thresholds)) {
   console.log(`  ${label.padEnd(10)} @ ${String(min).padStart(5)} office-min (~${officeDays}d @ 9–21) -> sprite tm-mascot-${sprite}-*`);
 }
 
-const testMinutes = [0, 0.9, 1, 487, 488, 1349, 1350, 2699, 2700, 5399, 5400, 10799, 10800, 35999, 36000];
+const testMinutes = [0, 0.9, 1, 2699, 2700, 5399, 5400, 35999, 36000];
 console.log('\nBoundary office-minutes -> stage:');
 for (const m of testMinutes) {
   console.log(`  ${String(m).padStart(7)} min -> ${stageFromMinutes(m)}`);
@@ -83,8 +77,8 @@ const initGuards = {
   scopedSprites: src.includes('getMascotSpriteById'),
   noDragonFallback: !/previewCharacter = tamagotchiCharacterType && tamagotchiCharacterType !== 'none'\s*\n\s*\? tamagotchiCharacterType\s*\n\s*: 'dragon'/.test(src)
     && !src.includes(": 'dragon';"),
-  noSaveReroll: !src.includes("ensureTamagotchiCharacterType({ allowRandom: true })")
-    || (src.match(/ensureTamagotchiCharacterType\(\{\s*allowRandom:\s*true\s*\}\)/g) || []).length <= 1,
+  // Hatch paths only (warm egg + evolution hatch) — never on every save
+  noSaveReroll: (src.match(/ensureTamagotchiCharacterType\(\{\s*allowRandom:\s*true\s*\}\)/g) || []).length <= 2,
 };
 
 console.log('\nDuplicate mascot / type-flip guards:');

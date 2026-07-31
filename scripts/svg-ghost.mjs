@@ -7,9 +7,9 @@ const I2 = I + '    ';
 const I3 = I2 + '    ';
 const I4 = I3 + '    ';
 
-const STAGES = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+const STAGES = ['evo1', 'evo2', 'evo3'];
 const STAGE_LABEL = {
-  baby: 'BABY', evo1: 'KID', evo2: 'TEEN', evo3: 'ADULT', evo4: 'MIDDLE AGE', evo5: 'OLD',
+  baby: 'EVO1', evo1: 'KID', evo2: 'TEEN', evo3: 'EVO2', evo4: 'EVO3', evo5: 'OLD',
 };
 
 function grad(id, stops, type = 'radial', attrs = 'cx="40%" cy="30%" r="75%"') {
@@ -567,8 +567,8 @@ ${mouths(46, stroke, 5)}`;
   return wrapStage('evo5', 'eternal phantom', defs, body);
 }
 
-export const ghostSvg = `${I}<!-- GHOST CHARACTER - All Life Stages (dense cute epic v3) -->
+export const ghostSvg = `${I}<!-- GHOST CHARACTER - All Life Stages (dense cute epic v3 · 3-stage) -->
 ${I}<!-- Spirit & Void • Epic Rarity • Veil Wraith -->
 ${I}<!-- ═══════════════════════════════════════ -->
 
-${babyGhost()}${evo1Ghost()}${evo2Ghost()}${evo3Ghost()}${evo4Ghost()}${evo5Ghost()}`;
+${babyGhost().replace('tm-mascot-baby-ghost', 'tm-mascot-evo1-ghost')}${evo3Ghost().replace('tm-mascot-evo3-ghost', 'tm-mascot-evo2-ghost')}${evo4Ghost().replace('tm-mascot-evo4-ghost', 'tm-mascot-evo3-ghost')}`;

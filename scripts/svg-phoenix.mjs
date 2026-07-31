@@ -1,20 +1,17 @@
 /**
  * Ashborn Phoenix — v12 "Evolution Line"
  *
- * Pokémon-style evolution: every stage has its own silhouette and pose.
- *   baby  — chubby standing chick with stub wings and a tail puff
- *   evo1  — slim standing fledgling testing half-open wings
- *   evo2  — full flight raptor with spread wing fans
- *   evo3  — BOSS: giant wings, flowing tail streamers, sun-ray aura
- *   evo4  — charred warlord: jagged angular wings, glowing body cracks
- *   evo5  — solar seraph: double wing layers, halo, long divine streamers
+ * 3-stage export line (art remapped from former builders):
+ *   evo1 — Ember Chick (former baby)
+ *   evo2 — Ashborn Phoenix BOSS (former evo3)
+ *   evo3 — Cinder Warlord (former evo4)
  */
 const I = '                ';
 const I2 = I + '    ';
 const I3 = I2 + '    ';
 const I4 = I3 + '    ';
 
-const STAGES = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+const STAGES = ['evo1', 'evo2', 'evo3'];
 const TITLES = {
   baby: 'Ember Chick', evo1: 'Flame Fledgling', evo2: 'Blaze Raptor',
   evo3: 'Ashborn Phoenix — BOSS', evo4: 'Cinder Warlord', evo5: 'Solar Seraph',
@@ -377,8 +374,10 @@ ${I}</g>
 }
 
 export const phoenixSvg = [
-  `${I}<!-- PHOENIX CHARACTER - All Life Stages (evolution line v12 · distinct silhouettes per stage) -->`,
-  `${I}<!-- chick > fledgling > blaze raptor > BOSS streamers > charred warlord > solar seraph -->`,
+  `${I}<!-- PHOENIX CHARACTER - All Life Stages (evolution line v12 · 3-stage) -->`,
+  `${I}<!-- chick > BOSS streamers > charred warlord -->`,
   '',
-  ...STAGES.map(stageSvg),
+  stageSvg('baby').replace('tm-mascot-baby-phoenix', 'tm-mascot-evo1-phoenix'),
+  stageSvg('evo3').replace('tm-mascot-evo3-phoenix', 'tm-mascot-evo2-phoenix'),
+  stageSvg('evo4').replace('tm-mascot-evo4-phoenix', 'tm-mascot-evo3-phoenix'),
 ].join('\n');

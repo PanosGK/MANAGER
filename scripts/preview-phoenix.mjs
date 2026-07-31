@@ -40,7 +40,7 @@ const html = `<!DOCTYPE html>
 </head>
 <body>
 <h1>Ashborn Phoenix — Evolution Line v12</h1>
-<p style="color:#c8a060;text-align:center;font-size:12px;margin:-8px 0 16px;letter-spacing:0.5px;">Pokémon-style: chick &gt; fledgling &gt; blaze raptor &gt; BOSS streamers &gt; charred warlord &gt; solar seraph</p>
+<p style="color:#c8a060;text-align:center;font-size:12px;margin:-8px 0 16px;letter-spacing:0.5px;">3-stage: chick &gt; BOSS streamers &gt; charred warlord</p>
 <div class="grid">
 ${cards}
 </div>

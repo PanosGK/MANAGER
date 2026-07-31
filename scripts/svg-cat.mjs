@@ -9,9 +9,9 @@ const I2 = I + '    ';
 const I3 = I2 + '    ';
 const I4 = I3 + '    ';
 
-const STAGES = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+const STAGES = ['evo1', 'evo2', 'evo3'];
 const STAGE_LABEL = {
-  baby: 'BABY', evo1: 'KID', evo2: 'TEEN', evo3: 'ADULT', evo4: 'MIDDLE AGE', evo5: 'OLD',
+  baby: 'EVO1', evo1: 'KID', evo2: 'TEEN', evo3: 'EVO2', evo4: 'EVO3', evo5: 'OLD',
 };
 
 function grad(id, stops, type = 'radial', attrs) {
@@ -361,11 +361,13 @@ ${catMouths(c.mouthY, stroke, stage === 'baby' ? 5.5 : 6.2)}`;
   return wrapStage(stage, titles[stage], defs, body);
 }
 
-const header = `${I}<!-- CAT CHARACTER - All Life Stages (dense cute epic v4 · feline boss) -->
+const header = `${I}<!-- CAT CHARACTER - All Life Stages (dense cute epic v4 · feline boss · 3-stage) -->
 ${I}<!-- Fate & Shadow • Rare Rarity • Moonfang Oracle -->
 ${I}<!-- ═══════════════════════════════════════ -->`;
 
 export const catSvg = `${header}
 
-${STAGES.map(catStage).join('\n')}
+${catStage('baby').replace('tm-mascot-baby-cat', 'tm-mascot-evo1-cat')}
+${catStage('evo3').replace('tm-mascot-evo3-cat', 'tm-mascot-evo2-cat')}
+${catStage('evo4').replace('tm-mascot-evo4-cat', 'tm-mascot-evo3-cat')}
 `;

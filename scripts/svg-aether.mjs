@@ -5,16 +5,13 @@
  * not a radial energy fan. Coverts / secondaries / primaries overlap like
  * shingles. Cosmic teal/gold/void palette kept. 3-seg flap + hooks preserved.
  *
- * Pokémon-style evolution: every stage has a distinct MAIN BODY shape.
- *   baby — Voidseed: faceted crystal seed (compact hex)
- *   evo1 — Veilspawn: short wide ragged husk
- *   evo2 — Astral Warden: ultra-thin spear pillar
- *   evo3 — Star Sovereign: broad armored hourglass
- *   evo4 — Eclipse Tyrant: wide diamond mantle with side spikes
- *   evo5 — Primordial: asymmetric twisted god-mass
+ * 3-stage export line (art remapped from former 6-stage builders):
+ *   evo1 — Voidseed (former baby)
+ *   evo2 — Star Sovereign (former evo3)
+ *   evo3 — Eclipse Tyrant (former evo4)
  *
  * Every tm-aether-* hook class and data-fx group used by myman_styles.js /
- * myman_mascot.js FX code is preserved per stage (verified by self-check).
+ * myman_mascot.js FX code is preserved per exported stage (verified by self-check).
  */
 const I = '                ';
 const I2 = I + '    ';
@@ -900,23 +897,20 @@ ${I}</g>`;
 
 /* ════════════════ assembly + self-check ════════════════ */
 
-const HEADER = `${I}<!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v12 · natural avian cosmic wings) -->
-${I}<!-- Voidseed → Veilspawn → Astral Warden → Star Sovereign → Eclipse Tyrant → Primordial -->
+const HEADER = `${I}<!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v12 · 3-stage · natural avian cosmic wings) -->
+${I}<!-- Voidseed → Star Sovereign → Eclipse Tyrant -->
 ${I}<!-- ═══════════════════════════════════════ -->
 `;
 
 export const aetherSvg = [
   HEADER,
-  buildBaby(), '',
-  buildEvo1(), '',
-  buildEvo2(), '',
-  buildEvo3(), '',
-  buildEvo4(), '',
-  buildEvo5(), '',
+  buildBaby().replace('tm-mascot-baby-aether', 'tm-mascot-evo1-aether'), '',
+  buildEvo3().replace('tm-mascot-evo3-aether', 'tm-mascot-evo2-aether'), '',
+  buildEvo4().replace('tm-mascot-evo4-aether', 'tm-mascot-evo3-aether'), '',
 ].join('\n');
 
-/* Required hook classes and data-fx groups per stage (from the original
- * sprite inventory — CSS/JS in myman_styles.js + myman_mascot.js target these). */
+/* Required hook classes and data-fx groups per exported stage
+ * (mapped from former baby / evo3 / evo4 requirements). */
 const COMMON = [
   'tm-animate-body', 'tm-animate-arm-left', 'tm-animate-arm-right',
   'tm-animate-leg-left', 'tm-animate-leg-right', 'tm-animate-tail',
@@ -929,21 +923,11 @@ const COMMON = [
   'tm-aether-wing-root', 'tm-aether-wing-mid', 'tm-aether-wing-tip',
 ];
 const REQUIRED = {
-  baby: {
+  evo1: {
     classes: [...COMMON, 'tm-aether-core-ring', 'tm-aether-iris'],
     fx: ['sparks'],
   },
-  evo1: {
-    classes: [...COMMON, 'tm-aether-core-ring', 'tm-aether-iris', 'tm-aether-aura', 'tm-aether-corona', 'tm-aether-wing-crack'],
-    fx: ['aura', 'corona', 'sparks'],
-  },
   evo2: {
-    classes: [...COMMON, 'tm-aether-iris', 'tm-aether-aura', 'tm-aether-corona', 'tm-aether-wing-crack',
-      'tm-aether-beam-glow', 'tm-aether-beams', 'tm-aether-haze', 'tm-aether-haze-blob',
-      'tm-aether-orbit', 'tm-aether-orbit-group', 'tm-aether-sigil'],
-    fx: ['aura', 'beams', 'corona', 'haze', 'orbits', 'sigil', 'sparks'],
-  },
-  evo3: {
     classes: [...COMMON, 'tm-aether-core-ring', 'tm-aether-iris', 'tm-aether-aura', 'tm-aether-aura-outer', 'tm-aether-corona',
       'tm-aether-wing-crack', 'tm-aether-beam-glow', 'tm-aether-beams', 'tm-aether-haze', 'tm-aether-haze-blob',
       'tm-aether-orbit', 'tm-aether-orbit-group', 'tm-aether-sigil', 'tm-aether-crown-constellation', 'tm-aether-crown-star',
@@ -951,7 +935,7 @@ const REQUIRED = {
       'tm-aether-rune-glyph', 'tm-aether-rune-ring', 'tm-aether-rune-tattoos', 'tm-aether-runes'],
     fx: ['aura', 'aura-outer', 'beams', 'corona', 'fracture', 'haze', 'orbits', 'ribbons', 'runes', 'sigil', 'sparks'],
   },
-  evo4: {
+  evo3: {
     classes: [...COMMON, 'tm-aether-iris', 'tm-aether-aura', 'tm-aether-aura-outer', 'tm-aether-corona',
       'tm-aether-wing-crack', 'tm-aether-beam-glow', 'tm-aether-beams', 'tm-aether-haze', 'tm-aether-haze-blob',
       'tm-aether-orbit', 'tm-aether-orbit-group', 'tm-aether-orbit-node', 'tm-aether-sigil',
@@ -960,18 +944,6 @@ const REQUIRED = {
       'tm-aether-rune-tattoos', 'tm-aether-runes', 'tm-aether-shard', 'tm-aether-shards',
       'tm-aether-eclipse', 'tm-aether-eclipse-crescent', 'tm-aether-eclipse-pupil', 'tm-aether-eyes-eclipse',
       'tm-aether-ghost-wing-left', 'tm-aether-ghost-wing-right'],
-    fx: ['aura', 'aura-outer', 'beams', 'corona', 'fracture', 'haze', 'orbits', 'ribbons', 'runes', 'shards', 'sigil', 'sparks'],
-  },
-  evo5: {
-    classes: [...COMMON, 'tm-aether-core-ring', 'tm-aether-iris', 'tm-aether-aura', 'tm-aether-aura-outer', 'tm-aether-corona',
-      'tm-aether-wing-crack', 'tm-aether-beam-glow', 'tm-aether-beams', 'tm-aether-haze', 'tm-aether-haze-blob',
-      'tm-aether-orbit', 'tm-aether-orbit-group', 'tm-aether-orbit-node', 'tm-aether-sigil',
-      'tm-aether-crown-constellation', 'tm-aether-crown-star', 'tm-aether-ground-fracture', 'tm-aether-halo',
-      'tm-aether-ribbon', 'tm-aether-ribbons', 'tm-aether-rune-glyph', 'tm-aether-rune-ring',
-      'tm-aether-rune-tattoos', 'tm-aether-runes', 'tm-aether-shard', 'tm-aether-shards',
-      'tm-aether-eclipse-crescent', 'tm-aether-eclipse-pupil', 'tm-aether-eyes-eclipse',
-      'tm-aether-ghost-wing-left', 'tm-aether-ghost-wing-right',
-      'tm-aether-wing-break', 'tm-aether-wing-broken', 'tm-aether-wing-dominant'],
     fx: ['aura', 'aura-outer', 'beams', 'corona', 'fracture', 'haze', 'orbits', 'ribbons', 'runes', 'shards', 'sigil', 'sparks'],
   },
 };

@@ -5,21 +5,19 @@
  * commanding / respected boss presence: colder regal palette, stern slit eyes,
  * heavier brow & jaw armor, crown circlet, thicker mass, authority halo.
  *
- *   baby  — Tide Serpentling: chubby tadpole-eel
- *   evo1  — Squall Serpent: slim juvenile eel
- *   evo2  — Thunder Serpent: armored sea-serpent (first authority cues)
- *   evo3  — Storm Leviathan BOSS: horned dragon-head, crown plate, thick mid-body
- *   evo4  — Tempest Sovereign: dual-horn crown, frill, sail, regal mass
- *   evo5  — Primordial Chaos: ancient final sovereign — triple horns, forked fluke
+ * 3-stage export line (art remapped from former builders):
+ *   evo1 — Tide Serpentling (former baby)
+ *   evo2 — Storm Leviathan BOSS (former evo3)
+ *   evo3 — Tempest Sovereign (former evo4)
  */
 const I = '                ';
 const I2 = I + '    ';
 const I3 = I2 + '    ';
 const I4 = I3 + '    ';
 
-const STAGES = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+const STAGES = ['evo1', 'evo2', 'evo3'];
 const STAGE_LABEL = {
-  baby: 'BABY', evo1: 'KID', evo2: 'TEEN', evo3: 'ADULT', evo4: 'MIDDLE AGE', evo5: 'OLD',
+  baby: 'EVO1', evo1: 'KID', evo2: 'TEEN', evo3: 'EVO2', evo4: 'EVO3', evo5: 'OLD',
 };
 const STAGE_SLUG = {
   baby: 'baby', evo1: 'kid', evo2: 'teen', evo3: 'adult', evo4: 'mid', evo5: 'old',
@@ -770,5 +768,7 @@ function leviathanStage(stage) {
   return wrapStage(stage, defs, body);
 }
 
-export const leviathanSvg = `${I}<!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Sovereign Presence v13 · commanding boss morphs) -->
-${STAGES.map(leviathanStage).join('\n')}`;
+export const leviathanSvg = `${I}<!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Sovereign Presence v13 · 3-stage) -->
+${leviathanStage('baby').replace('tm-mascot-baby-leviathan', 'tm-mascot-evo1-leviathan')}
+${leviathanStage('evo3').replace('tm-mascot-evo3-leviathan', 'tm-mascot-evo2-leviathan')}
+${leviathanStage('evo4').replace('tm-mascot-evo4-leviathan', 'tm-mascot-evo3-leviathan')}`;

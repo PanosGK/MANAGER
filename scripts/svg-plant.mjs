@@ -10,9 +10,9 @@ const I2 = I + '    ';
 const I3 = I2 + '    ';
 const I4 = I3 + '    ';
 
-const STAGES = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+const STAGES = ['evo1', 'evo2', 'evo3'];
 const STAGE_LABEL = {
-  baby: 'BABY', evo1: 'KID', evo2: 'TEEN', evo3: 'ADULT', evo4: 'MIDDLE AGE', evo5: 'OLD',
+  baby: 'EVO1', evo1: 'KID', evo2: 'TEEN', evo3: 'EVO2', evo4: 'EVO3', evo5: 'OLD',
 };
 const HOOKS = [
   'tm-animate-body', 'tm-animate-arm-left', 'tm-animate-arm-right',
@@ -585,16 +585,13 @@ ${mouths(38, '#33691e', 7, 2)}`;
 }
 
 export const plantSvg = [
-  `${I}<!-- PLANT CHARACTER - All Life Stages (dense cute epic v3) -->`,
+  `${I}<!-- PLANT CHARACTER - All Life Stages (dense cute epic v3 · 3-stage) -->`,
   `${I}<!-- Wildwood & Life • Rare Rarity • Worldroot Warden -->`,
   `${I}<!-- ═══════════════════════════════════════ -->`,
   '',
-  babyStage(),
-  kidStage(),
-  teenStage(),
-  adultStage(),
-  midStage(),
-  oldStage(),
+  babyStage().replace('tm-mascot-baby-plant', 'tm-mascot-evo1-plant'),
+  adultStage().replace('tm-mascot-evo3-plant', 'tm-mascot-evo2-plant'),
+  midStage().replace('tm-mascot-evo4-plant', 'tm-mascot-evo3-plant'),
 ].join('\n');
 
 const isMain = process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('svg-plant.mjs');

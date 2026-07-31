@@ -63,7 +63,7 @@ for (const job of jobs) {
 }
 
 const chars = ['robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether'];
-const stages = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+const stages = ['evo1', 'evo2', 'evo3'];
 const issues = [];
 for (const c of chars) {
   for (const s of stages) {

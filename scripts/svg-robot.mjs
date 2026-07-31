@@ -570,9 +570,9 @@ ${I4}<circle cx="63.5" cy="69.5" r="1.2" fill="#ce93d8" opacity="0.75"/>
 ${I4}<ellipse cx="58" cy="94" rx="5" ry="2.5" fill="#4db6ac" opacity="0.5"/>
 ${I3}</g>`;
 
-export const robotSvg = `${I}<!-- ROBOT CHARACTER - All Life Stages (dense cute epic v3) -->
+export const robotSvg = `${I}<!-- ROBOT CHARACTER - All Life Stages (dense cute epic v3 · 3-stage) -->
 ${I}<!-- Plasma & Code • Epic Rarity • Neon Colossus -->
 ${I}<!-- ═══════════════════════════════════════ -->
 
-${wrap('tm-mascot-baby-robot', 'BABY — chubby cube spawn', babyDefs, babyBody)}${wrap('tm-mascot-evo1-robot', 'KID — tread scout', evo1Defs, evo1Body)}${wrap('tm-mascot-evo2-robot', 'TEEN — sleek visor mecha', evo2Defs, evo2Body)}${wrap('tm-mascot-evo3-robot', 'ADULT — Neon Colossus', evo3Defs, evo3Body)}${wrap('tm-mascot-evo4-robot', 'MIDDLE AGE — battle-scarred engineer', evo4Defs, evo4Body)}${wrap('tm-mascot-evo5-robot', 'OLD — ancient sage unit', evo5Defs, evo5Body)}
+${wrap('tm-mascot-evo1-robot', 'EVO1 — chubby cube spawn', babyDefs, babyBody)}${wrap('tm-mascot-evo2-robot', 'EVO2 — Neon Colossus', evo3Defs, evo3Body)}${wrap('tm-mascot-evo3-robot', 'EVO3 — battle-scarred engineer', evo4Defs, evo4Body)}
 `;

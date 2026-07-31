@@ -21,7 +21,7 @@ const end = src.indexOf(endM[0]);
 src = src.slice(0, start) + svg + src.slice(end);
 fs.writeFileSync(path, src);
 
-const stages = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+const stages = ['evo1', 'evo2', 'evo3'];
 const hooks = [
   'tm-animate-body', 'tm-animate-arm-left', 'tm-animate-arm-right',
   'tm-animate-leg-left', 'tm-animate-leg-right', 'tm-animate-tail',
