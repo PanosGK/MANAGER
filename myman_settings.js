@@ -2503,7 +2503,18 @@
                         `;
                     } else {
                         const historyHTML = coinHistory.slice(0, 20).map(entry => {
-                            const bonus = entry.amount > entry.baseAmount ? ` (+${entry.amount - entry.baseAmount} bonus)` : '';
+                            const signedAmt = Number(entry.amount);
+                            const signedBase = Number(entry.baseAmount);
+                            const deltaLabel = (typeof window.formatSignedCoinDelta === 'function')
+                                ? window.formatSignedCoinDelta(signedAmt)
+                                : (Number.isFinite(signedAmt) && signedAmt !== 0
+                                    ? (signedAmt > 0 ? `+${signedAmt}` : String(signedAmt))
+                                    : '0');
+                            const bonus = (Number.isFinite(signedAmt) && Number.isFinite(signedBase)
+                                && signedAmt > signedBase && signedAmt > 0)
+                                ? ` (+${signedAmt - signedBase} bonus)`
+                                : '';
+                            const amtColor = signedAmt < 0 ? '#ff6b6b' : '#00ffff';
                             return `
                                 <div style="
                                     padding: 6px 0;
@@ -2512,7 +2523,7 @@
                                     justify-content: space-between;
                                     align-items: center;
                                 ">
-                                    <span style="color: #00ffff; display:inline-flex; align-items:center; gap:4px;">${typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(12) : 'FC'} +${entry.amount}${bonus}</span>
+                                    <span style="color: ${amtColor}; display:inline-flex; align-items:center; gap:4px;">${typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(12) : 'FC'} ${deltaLabel}${bonus}</span>
                                     <span style="color: #888; font-size: 11px;">${formatTime(entry.timestamp)}</span>
                                 </div>
                             `;

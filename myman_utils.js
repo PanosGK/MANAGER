@@ -531,6 +531,21 @@
         return `${getCoinIconHTML(size)}<span class="tm-coin-amount">${amount}</span>`;
     }
 
+    /**
+     * Format a net coin balance change for notifications / history.
+     * Credits → "+50", debits → "-50", zero/invalid → "0".
+     */
+    function formatSignedCoinDelta(amount) {
+        const n = Math.trunc(Number(amount));
+        if (!Number.isFinite(n) || n === 0) return '0';
+        return n > 0 ? `+${n}` : String(n);
+    }
+
+    /** e.g. "+50 coins" / "-50 coins" */
+    function formatCoinChangeMessage(amount, noun = 'coins') {
+        return `${formatSignedCoinDelta(amount)} ${noun}`;
+    }
+
     function getGearIconHTML(size = 18) {
         const s = Math.max(12, Number(size) || 18);
         return `<svg class="tm-ui-icon" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">`
@@ -563,6 +578,8 @@
     window.closeFullScreenNotificationOverlay = closeFullScreenNotificationOverlay;
     window.getCoinIconHTML = getCoinIconHTML;
     window.formatCoinAmountHTML = formatCoinAmountHTML;
+    window.formatSignedCoinDelta = formatSignedCoinDelta;
+    window.formatCoinChangeMessage = formatCoinChangeMessage;
     window.getGearIconHTML = getGearIconHTML;
     window.getBellIconHTML = getBellIconHTML;
 

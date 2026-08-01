@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v330 / Custom Ver. 36.22 — generated, do not edit */
+/* MyManager Suite bundle v331 / Custom Ver. 36.23 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '330',
+        version: '331',
         loaderVersion: '36',
-        silentVersion: '22',
-        displayVersion: '36.22',
+        silentVersion: '23',
+        displayVersion: '36.23',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -4707,6 +4707,21 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return `${getCoinIconHTML(size)}<span class="tm-coin-amount">${amount}</span>`;
     }
 
+    /**
+     * Format a net coin balance change for notifications / history.
+     * Credits → "+50", debits → "-50", zero/invalid → "0".
+     */
+    function formatSignedCoinDelta(amount) {
+        const n = Math.trunc(Number(amount));
+        if (!Number.isFinite(n) || n === 0) return '0';
+        return n > 0 ? `+${n}` : String(n);
+    }
+
+    /** e.g. "+50 coins" / "-50 coins" */
+    function formatCoinChangeMessage(amount, noun = 'coins') {
+        return `${formatSignedCoinDelta(amount)} ${noun}`;
+    }
+
     function getGearIconHTML(size = 18) {
         const s = Math.max(12, Number(size) || 18);
         return `<svg class="tm-ui-icon" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">`
@@ -4739,6 +4754,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     window.closeFullScreenNotificationOverlay = closeFullScreenNotificationOverlay;
     window.getCoinIconHTML = getCoinIconHTML;
     window.formatCoinAmountHTML = formatCoinAmountHTML;
+    window.formatSignedCoinDelta = formatSignedCoinDelta;
+    window.formatCoinChangeMessage = formatCoinChangeMessage;
     window.getGearIconHTML = getGearIconHTML;
     window.getBellIconHTML = getBellIconHTML;
 
@@ -18370,7 +18387,18 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         `;
                     } else {
                         const historyHTML = coinHistory.slice(0, 20).map(entry => {
-                            const bonus = entry.amount > entry.baseAmount ? ` (+${entry.amount - entry.baseAmount} bonus)` : '';
+                            const signedAmt = Number(entry.amount);
+                            const signedBase = Number(entry.baseAmount);
+                            const deltaLabel = (typeof window.formatSignedCoinDelta === 'function')
+                                ? window.formatSignedCoinDelta(signedAmt)
+                                : (Number.isFinite(signedAmt) && signedAmt !== 0
+                                    ? (signedAmt > 0 ? `+${signedAmt}` : String(signedAmt))
+                                    : '0');
+                            const bonus = (Number.isFinite(signedAmt) && Number.isFinite(signedBase)
+                                && signedAmt > signedBase && signedAmt > 0)
+                                ? ` (+${signedAmt - signedBase} bonus)`
+                                : '';
+                            const amtColor = signedAmt < 0 ? '#ff6b6b' : '#00ffff';
                             return `
                                 <div style="
                                     padding: 6px 0;
@@ -18379,7 +18407,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                                     justify-content: space-between;
                                     align-items: center;
                                 ">
-                                    <span style="color: #00ffff; display:inline-flex; align-items:center; gap:4px;">${typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(12) : 'FC'} +${entry.amount}${bonus}</span>
+                                    <span style="color: ${amtColor}; display:inline-flex; align-items:center; gap:4px;">${typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(12) : 'FC'} ${deltaLabel}${bonus}</span>
                                     <span style="color: #888; font-size: 11px;">${formatTime(entry.timestamp)}</span>
                                 </div>
                             `;
@@ -22468,15 +22496,21 @@ function getMascotCareCoinCost(actionId) {
 
 function recordMascotCareCoinSpend(STORAGE_KEYS, amount, actionId) {
     if (!STORAGE_KEYS || !(amount > 0)) return;
+    const signed = -Math.abs(amount);
+    const source = `mascot_care_${actionId || 'unknown'}`;
+    if (typeof window.recordCoinHistory === 'function') {
+        window.recordCoinHistory(STORAGE_KEYS, signed, source, signed);
+        return;
+    }
     const historyKey = STORAGE_KEYS.COIN_HISTORY || 'tm_coin_history';
     try {
         const raw = GM_getValue(historyKey, '[]');
         const history = Array.isArray(raw) ? raw.slice() : (JSON.parse(raw || '[]') || []);
         history.unshift({
-            amount: -Math.abs(amount),
-            baseAmount: -Math.abs(amount),
+            amount: signed,
+            baseAmount: signed,
             timestamp: Date.now(),
-            source: `mascot_care_${actionId || 'unknown'}`,
+            source,
         });
         if (history.length > 50) history.length = 50;
         GM_setValue(historyKey, JSON.stringify(history));
@@ -43047,6 +43081,40 @@ function writeCoinBalance(STORAGE_KEYS, balance) {
     return safe;
 }
 
+/** Append a signed coin delta to history (positive = credit, negative = debit). */
+function recordCoinHistory(STORAGE_KEYS, amount, source = 'unknown', baseAmount) {
+    if (!STORAGE_KEYS?.COIN_HISTORY) return;
+    const signed = Math.trunc(Number(amount));
+    if (!Number.isFinite(signed) || signed === 0) return;
+    const base = baseAmount !== undefined ? Math.trunc(Number(baseAmount)) : signed;
+    try {
+        const coinHistory = JSON.parse(GM_getValue(STORAGE_KEYS.COIN_HISTORY, '[]'));
+        coinHistory.unshift({
+            amount: signed,
+            baseAmount: Number.isFinite(base) ? base : signed,
+            timestamp: Date.now(),
+            source: source || 'unknown',
+        });
+        if (coinHistory.length > 50) coinHistory.length = 50;
+        GM_setValue(STORAGE_KEYS.COIN_HISTORY, JSON.stringify(coinHistory));
+    } catch (_) { /* ignore */ }
+}
+
+/**
+ * Deduct coins (shop / consumable use). Records a negative history entry and pulses the UI.
+ * @returns {{ ok: boolean, cost?: number, balance?: number, reason?: string }}
+ */
+function spendCoins(config, STORAGE_KEYS, amount, source = 'shop') {
+    const cost = Math.abs(Math.floor(Number(amount) || 0));
+    if (cost <= 0) return { ok: false, reason: 'invalid', cost: 0 };
+    let current = readCoinBalance(STORAGE_KEYS);
+    if (current < cost) return { ok: false, reason: 'insufficient', cost, balance: current };
+    current = writeCoinBalance(STORAGE_KEYS, current - cost);
+    recordCoinHistory(STORAGE_KEYS, -cost, source, -cost);
+    updateCoinBalanceUI(STORAGE_KEYS, current, config);
+    return { ok: true, cost, balance: current };
+}
+
 /** Fresh installs had 0 coins and no stipend until Lv.10 — shop was unusable. */
 function ensureStarterCoins(config, STORAGE_KEYS) {
     if (!STORAGE_KEYS?.USER_COINS) return readCoinBalance(STORAGE_KEYS);
@@ -43097,7 +43165,10 @@ function ensureStarterCoins(config, STORAGE_KEYS) {
     } catch (_) { /* ignore */ }
 
     if (typeof window.createNotification === 'function') {
-        window.createNotification(`Καλωσήρθες! +${starter} Fixer-Coins για το shop.`, 'welcome');
+        const label = (typeof window.formatCoinChangeMessage === 'function')
+            ? window.formatCoinChangeMessage(starter, 'Fixer-Coins')
+            : `+${starter} Fixer-Coins`;
+        window.createNotification(`Καλωσήρθες! ${label} για το shop.`, 'welcome');
     }
     if (typeof window.updateCoinBalanceUI === 'function') {
         window.updateCoinBalanceUI(STORAGE_KEYS, starter, config);
@@ -43116,7 +43187,10 @@ function tryGrantDailyStipend(config, STORAGE_KEYS) {
     if (stipend <= 0) return;
     grantCoins(config, STORAGE_KEYS, stipend, 'daily_stipend');
     if (typeof window.createNotification === 'function') {
-        window.createNotification(`Daily stipend: +${stipend} coins (Lv.${level})`, 'FC');
+        const label = (typeof window.formatCoinChangeMessage === 'function')
+            ? window.formatCoinChangeMessage(stipend)
+            : `+${stipend} coins`;
+        window.createNotification(`Daily stipend: ${label} (Lv.${level})`, 'FC');
     }
 }
 
@@ -43157,7 +43231,10 @@ function claimDailyCareCoins(config, STORAGE_KEYS) {
     }
     GM_setValue(dateKey, today);
     if (typeof window.createNotification === 'function') {
-        window.createNotification(`Ημερήσιο δώρο: +${granted} coins!`, 'FC');
+        const label = (typeof window.formatCoinChangeMessage === 'function')
+            ? window.formatCoinChangeMessage(granted)
+            : `+${granted} coins`;
+        window.createNotification(`Ημερήσιο δώρο: ${label}!`, 'FC');
     }
     return { ok: true, reason: 'claimed', amount: granted };
 }
@@ -43860,7 +43937,9 @@ function pulseCoinShopButton(el, delta) {
 
     const float = document.createElement('span');
     float.className = `tm-coin-delta-float ${gain ? 'tm-coin-delta-gain' : 'tm-coin-delta-loss'}`;
-    float.textContent = `${gain ? '+' : '−'}${Math.abs(delta)}`;
+    float.textContent = (typeof window.formatSignedCoinDelta === 'function')
+        ? window.formatSignedCoinDelta(delta)
+        : `${gain ? '+' : '-'}${Math.abs(delta)}`;
     float.setAttribute('aria-hidden', 'true');
 
     const host = el;
@@ -45122,15 +45201,11 @@ function handleShopPurchase(button, config, STORAGE_KEYS) {
     const itemType = button.dataset.itemType;
 
     const { final: finalCost } = getDiscountedShopCost(itemCost, STORAGE_KEYS, config);
-    let currentCoins = readCoinBalance(STORAGE_KEYS);
-
-    if (currentCoins < finalCost) {
+    const spent = spendCoins(config, STORAGE_KEYS, finalCost, `shop_buy_${itemId || 'unknown'}`);
+    if (!spent.ok) {
         alert('Δεν έχετε αρκετά Fixer-Coins!');
         return;
     }
-
-    currentCoins = writeCoinBalance(STORAGE_KEYS, currentCoins - finalCost);
-    updateCoinBalanceUI(STORAGE_KEYS, currentCoins, config);
 
     if (itemType === 'consumable' && itemId === 'reroll_token') {
         const currentTokens = GM_getValue(STORAGE_KEYS.USER_REROLL_TOKENS, 0);
@@ -45155,8 +45230,14 @@ function handleShopPurchase(button, config, STORAGE_KEYS) {
         }
     }
 
+    const changeLabel = (typeof window.formatCoinChangeMessage === 'function')
+        ? window.formatCoinChangeMessage(-spent.cost)
+        : `-${spent.cost} coins`;
     if (typeof window.showPositiveMessage === 'function') {
-        window.showPositiveMessage('Αγορά επιτυχής!');
+        window.showPositiveMessage(`Αγορά επιτυχής! ${changeLabel}`);
+    }
+    if (typeof window.createNotification === 'function') {
+        window.createNotification(`Shop: ${changeLabel}`, 'FC');
     }
     populateShop(config, STORAGE_KEYS); // Re-render the shop
     if (document.getElementById('tm-shop-dashboard-wrapper')) {
@@ -47576,25 +47657,12 @@ function populateShopDashboard(config, STORAGE_KEYS) {
         } else if (button.classList.contains('use')) {
             const itemId = button.dataset.itemId;
             const price = parseInt(button.dataset.itemPrice, 10);
-            const coins = typeof window.readCoinBalance === 'function'
-                ? window.readCoinBalance(STORAGE_KEYS)
-                : (Number(GM_getValue(STORAGE_KEYS.USER_COINS, 0)) || 0);
-
-            if (coins < price) {
+            const spent = spendCoins(config, STORAGE_KEYS, price, `shop_use_${itemId || 'unknown'}`);
+            if (!spent.ok) {
                 if (typeof window.showNotification === 'function') {
                     window.showNotification('error', 'Not enough coins!');
                 }
                 return;
-            }
-
-            if (typeof window.writeCoinBalance === 'function') {
-                window.writeCoinBalance(STORAGE_KEYS, coins - price);
-            } else {
-                GM_setValue(STORAGE_KEYS.USER_COINS, coins - price);
-            }
-
-            if (typeof window.updateCoinBalanceUI === 'function') {
-                window.updateCoinBalanceUI(STORAGE_KEYS, coins - price, config);
             }
 
             if (typeof window.applyConsumableEffect === 'function') {
@@ -47603,8 +47671,14 @@ function populateShopDashboard(config, STORAGE_KEYS) {
 
             populateShopDashboard(config, STORAGE_KEYS);
 
+            const changeLabel = (typeof window.formatCoinChangeMessage === 'function')
+                ? window.formatCoinChangeMessage(-spent.cost)
+                : `-${spent.cost} coins`;
             if (typeof window.showNotification === 'function') {
-                window.showNotification('success', `Consumable used!`);
+                window.showNotification('success', `Consumable used! ${changeLabel}`);
+            }
+            if (typeof window.createNotification === 'function') {
+                window.createNotification(`Shop: ${changeLabel}`, 'FC');
             }
         }
     });
@@ -47989,6 +48063,8 @@ window.populateQuestsModal = populateQuestsModal;
 window.trackDailyStat = trackDailyStat;
 window.grantXp = grantXp;
 window.grantCoins = grantCoins;
+window.spendCoins = spendCoins;
+window.recordCoinHistory = recordCoinHistory;
 window.readCoinBalance = readCoinBalance;
 window.writeCoinBalance = writeCoinBalance;
 window.ensureStarterCoins = ensureStarterCoins;

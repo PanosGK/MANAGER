@@ -1,11 +1,11 @@
 {
-  "version": "330",
+  "version": "331",
   "loaderVersion": "36",
-  "silentVersion": "22",
-  "displayVersion": "36.22",
+  "silentVersion": "23",
+  "displayVersion": "36.23",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Mascot: plant Bloomkin, ghost Wispuff, eye paint fixes, unified preview",
+  "releaseNotes": "Fix coinshop notifications: show -coins for spends, +coins for rewards",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

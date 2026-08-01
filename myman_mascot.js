@@ -1070,15 +1070,21 @@ function getMascotCareCoinCost(actionId) {
 
 function recordMascotCareCoinSpend(STORAGE_KEYS, amount, actionId) {
     if (!STORAGE_KEYS || !(amount > 0)) return;
+    const signed = -Math.abs(amount);
+    const source = `mascot_care_${actionId || 'unknown'}`;
+    if (typeof window.recordCoinHistory === 'function') {
+        window.recordCoinHistory(STORAGE_KEYS, signed, source, signed);
+        return;
+    }
     const historyKey = STORAGE_KEYS.COIN_HISTORY || 'tm_coin_history';
     try {
         const raw = GM_getValue(historyKey, '[]');
         const history = Array.isArray(raw) ? raw.slice() : (JSON.parse(raw || '[]') || []);
         history.unshift({
-            amount: -Math.abs(amount),
-            baseAmount: -Math.abs(amount),
+            amount: signed,
+            baseAmount: signed,
             timestamp: Date.now(),
-            source: `mascot_care_${actionId || 'unknown'}`,
+            source,
         });
         if (history.length > 50) history.length = 50;
         GM_setValue(historyKey, JSON.stringify(history));
