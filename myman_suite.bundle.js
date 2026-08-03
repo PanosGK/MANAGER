@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v361 / Custom Ver. 41.5 — generated, do not edit */
+/* MyManager Suite bundle v362 / Custom Ver. 41.6 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '361',
+        version: '362',
         loaderVersion: '41',
-        silentVersion: '5',
-        displayVersion: '41.5',
+        silentVersion: '6',
+        displayVersion: '41.6',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -21561,6 +21561,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     let chatAttachmentFieldUnsupported = false;
     /** Pending File selected in composer (cleared after successful send). */
     let chatPendingFile = null;
+    /** Last rendered message snapshot — skip identical redraws (stops poll flicker). */
+    let chatMessagesRenderKey = '';
 
     const CHAT_EMOJI_LIST = [
         '😀','😁','😂','🤣','😊','😍','😘','😎','🤔','😅',
@@ -22448,8 +22450,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function setChatStatus(status, detail) {
+        const nextDetail = detail || '';
+        if (chatStatus === status && chatStatusDetail === nextDetail) return;
         chatStatus = status;
-        chatStatusDetail = detail || '';
+        chatStatusDetail = nextDetail;
         updateChatStatusUi();
     }
 
@@ -22474,7 +22478,33 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return (s[0] || '?').toUpperCase();
     }
 
-    function renderMessages() {
+    function chatMessagesFingerprint(list) {
+        return (list || [])
+            .slice()
+            .sort((a, b) => {
+                const ta = new Date(a.created || 0).getTime();
+                const tb = new Date(b.created || 0).getTime();
+                if (ta !== tb) return ta - tb;
+                return String(a.id || '').localeCompare(String(b.id || ''));
+            })
+            .map((m) => [
+                m.id,
+                m.text || '',
+                m.displayName || '',
+                m.store || '',
+                m.attachment || '',
+                m.created || '',
+            ].join('\u0001'))
+            .join('\u0002');
+    }
+
+    function isChatMessagesNearBottom(list) {
+        if (!list) return true;
+        const gap = list.scrollHeight - list.scrollTop - list.clientHeight;
+        return gap < 80;
+    }
+
+    function renderMessages({ force, newIds } = {}) {
         const list = document.getElementById('tm-chat-messages');
         if (!list) return;
         const sorted = chatMessages.slice().sort((a, b) => {
@@ -22482,6 +22512,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const tb = new Date(b.created || 0).getTime();
             return ta - tb;
         });
+        const nextKey = chatMessagesFingerprint(sorted);
+        if (!force && nextKey === chatMessagesRenderKey && list.childElementCount > 0) {
+            return;
+        }
+        const stickToBottom = force || isChatMessagesNearBottom(list) || !chatMessagesRenderKey;
+        const newIdSet = new Set((newIds || []).map(String));
+        chatMessagesRenderKey = nextKey;
+
         const me = getDisplayName();
         if (!sorted.length) {
             list.innerHTML = `<div class="tm-chat-empty">
@@ -22491,8 +22529,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             </div>`;
             return;
         }
+        const prevScrollTop = list.scrollTop;
         list.innerHTML = sorted.map((m) => {
             const mine = String(m.displayName || '') === me;
+            const isNew = newIdSet.has(String(m.id));
             const storeHtml = m.store
                 ? `<span class="tm-chat-msg-store">${escapeHtml(m.store)}</span>`
                 : '';
@@ -22503,7 +22543,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const attachHtml = formatChatAttachmentHtml(m);
             const bodyHtml = [attachHtml, textHtml].filter(Boolean).join('')
                 || escapeHtml(rawText);
-            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}" data-id="${escapeHtml(m.id)}">
+            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}${isNew ? ' is-new' : ''}" data-id="${escapeHtml(m.id)}">
                 <div class="tm-chat-msg-avatar" aria-hidden="true">${escapeHtml(chatAvatarLetter(name))}</div>
                 <div class="tm-chat-msg-bubble">
                     <div class="tm-chat-msg-meta">
@@ -22517,7 +22557,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 </div>
             </div>`;
         }).join('');
-        list.scrollTop = list.scrollHeight;
+        if (stickToBottom) list.scrollTop = list.scrollHeight;
+        else list.scrollTop = prevScrollTop;
     }
 
     function updateUnreadBadge() {
@@ -22602,6 +22643,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (!Array.isArray(records) || !records.length) return;
         const byId = new Map(chatMessages.map((m) => [m.id, m]));
         let added = 0;
+        let changed = false;
         const newlyAdded = [];
         records.forEach((rec) => {
             if (!rec?.id) return;
@@ -22619,7 +22661,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             };
             if (!prev) {
                 added += 1;
+                changed = true;
                 newlyAdded.push(mapped);
+            } else if (
+                String(prev.text || '') !== String(mapped.text || '')
+                || String(prev.displayName || '') !== String(mapped.displayName || '')
+                || String(prev.store || '') !== String(mapped.store || '')
+                || String(prev.attachment || '') !== String(mapped.attachment || '')
+                || String(prev.created || '') !== String(mapped.created || '')
+            ) {
+                changed = true;
             }
             byId.set(rec.id, mapped);
         });
@@ -22629,8 +22680,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 .slice()
                 .sort((a, b) => new Date(a.created || 0) - new Date(b.created || 0))
                 .slice(-200);
+            changed = true;
         }
-        renderMessages();
+        if (changed) {
+            renderMessages({ newIds: newlyAdded.map((m) => m.id) });
+        }
         if (chatHydrated && fromPollOrRealtime && added > 0) {
             if (!chatPanelOpen) {
                 chatUnread += added;
@@ -23155,6 +23209,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 display: flex; align-items: flex-end; gap: 8px;
                 max-width: 92%; align-self: flex-start;
                 background: transparent; border: none; padding: 0;
+            }
+            .tm-chat-msg.is-new {
                 animation: tm-chat-msg-in 0.22s ease-out;
             }
             @keyframes tm-chat-msg-in {

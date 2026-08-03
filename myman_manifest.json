@@ -1,11 +1,11 @@
 {
-  "version": "361",
+  "version": "362",
   "loaderVersion": "41",
-  "silentVersion": "5",
-  "displayVersion": "41.5",
+  "silentVersion": "6",
+  "displayVersion": "41.6",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix chat file upload multipart for Tampermonkey",
+  "releaseNotes": "Stop chat message list flicker on poll refresh",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
