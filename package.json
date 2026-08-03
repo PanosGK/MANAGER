@@ -4,8 +4,9 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/generate-loader.mjs",
-    "sanity": "node scripts/sanity-check-syntax.mjs && node scripts/sanity-check-mascot.mjs && node scripts/test-coin-sign.mjs",
+    "sanity": "node scripts/sanity-check-syntax.mjs && node scripts/sanity-check-mascot.mjs && node scripts/test-coin-sign.mjs && node scripts/test-evo-names.mjs",
     "test:coin-sign": "node scripts/test-coin-sign.mjs",
+    "test:evo-names": "node scripts/test-evo-names.mjs",
     "preview:mascots": "node scripts/preview-mascots.mjs",
     "release": "node scripts/release.mjs",
     "release:loader": "node scripts/release.mjs --loader",
