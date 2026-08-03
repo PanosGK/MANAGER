@@ -1702,26 +1702,36 @@
                 opacity: 0.97;
                 box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
             }
-            #tm-chat-panel.is-resizing { user-select: none; }
+            #tm-chat-panel.is-resizing { user-select: none; cursor: nwse-resize; }
+            #tm-chat-composer-wrap {
+                position: relative;
+                z-index: 1;
+                border-top: 1px solid var(--tm-chat-line);
+                background: #fff;
+                padding: 6px 22px 10px 8px;
+                flex-shrink: 0;
+            }
             #tm-chat-resize {
                 position: absolute;
                 right: 0; bottom: 0;
-                width: 18px; height: 18px;
+                width: 28px; height: 28px;
                 cursor: nwse-resize;
-                z-index: 6;
+                z-index: 30;
+                touch-action: none;
+                background:
+                    linear-gradient(135deg, transparent 46%, #94a3b8 46%, #94a3b8 52%, transparent 52%),
+                    linear-gradient(135deg, transparent 60%, #94a3b8 60%, #94a3b8 66%, transparent 66%),
+                    linear-gradient(135deg, transparent 74%, #94a3b8 74%, #94a3b8 80%, transparent 80%);
+                background-repeat: no-repeat;
+                background-position: right 5px bottom 5px;
+                background-size: 14px 14px;
+                border-radius: 0 0 12px 0;
             }
-            #tm-chat-resize::before {
-                content: "";
-                position: absolute;
-                right: 4px; bottom: 4px;
-                width: 9px; height: 9px;
-                border-right: 2px solid #94a3b8;
-                border-bottom: 2px solid #94a3b8;
-                border-radius: 0 0 1px 0;
-                opacity: 0.85;
-                pointer-events: none;
+            #tm-chat-resize:hover,
+            #tm-chat-panel.is-resizing #tm-chat-resize {
+                background-color: color-mix(in srgb, var(--tm-chat-accent, #2563eb) 12%, transparent);
             }
-            #tm-chat-resize:hover::before { border-color: var(--tm-chat-accent, #2563eb); }
+            #tm-chat-resize::before { display: none; }
             #tm-chat-header {
                 display: flex; align-items: center; gap: 6px;
                 padding: 6px 8px;
@@ -1996,13 +2006,6 @@
             #tm-chat-panel.is-drop-target #tm-chat-messages {
                 outline: 2px dashed color-mix(in srgb, var(--tm-chat-accent) 55%, #fff);
                 outline-offset: -4px;
-            }
-            #tm-chat-composer-wrap {
-                position: relative;
-                border-top: 1px solid var(--tm-chat-line);
-                background: #fff;
-                padding: 6px 8px 8px;
-                flex-shrink: 0;
             }
             #tm-chat-emoji-picker {
                 display: none;
@@ -2402,13 +2405,13 @@
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '6';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '7';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '6');
+            panel.setAttribute('data-tm-chat-ui', '7');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);
@@ -2573,28 +2576,13 @@
         let startY = 0;
         let startW = 0;
         let startH = 0;
+        let pointerId = null;
 
-        handle.addEventListener('mousedown', (e) => {
-            if (e.button !== 0) return;
-            e.preventDefault();
-            e.stopPropagation();
-            ensureChatPanelTopLeft(panel);
-            const rect = panel.getBoundingClientRect();
-            resizing = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startW = rect.width;
-            startH = rect.height;
-            panel.classList.add('is-resizing');
-            document.body.style.userSelect = 'none';
-            document.body.style.cursor = 'nwse-resize';
-        });
-
-        document.addEventListener('mousemove', (e) => {
+        const onMove = (clientX, clientY) => {
             if (!resizing) return;
             const size = clampChatPanelSize(
-                startW + (e.clientX - startX),
-                startH + (e.clientY - startY)
+                startW + (clientX - startX),
+                startH + (clientY - startY)
             );
             panel.style.width = `${size.width}px`;
             panel.style.height = `${size.height}px`;
@@ -2602,15 +2590,75 @@
             const pos = clampChatPanelPosition(panel, rect.left, rect.top);
             panel.style.left = `${pos.left}px`;
             panel.style.top = `${pos.top}px`;
-        });
+        };
 
-        document.addEventListener('mouseup', () => {
+        const stopResize = () => {
             if (!resizing) return;
             resizing = false;
+            pointerId = null;
             panel.classList.remove('is-resizing');
             document.body.style.userSelect = '';
             document.body.style.cursor = '';
             saveChatPanelGeometry(panel, STORAGE_KEYS);
+        };
+
+        const startResize = (clientX, clientY, id) => {
+            ensureChatPanelTopLeft(panel);
+            // Lock current CSS size into inline px so resize isn't fighting min()/vh values
+            const rect = panel.getBoundingClientRect();
+            const size = clampChatPanelSize(rect.width, rect.height);
+            panel.style.width = `${size.width}px`;
+            panel.style.height = `${size.height}px`;
+            resizing = true;
+            pointerId = id != null ? id : null;
+            startX = clientX;
+            startY = clientY;
+            startW = size.width;
+            startH = size.height;
+            panel.classList.add('is-resizing');
+            document.body.style.userSelect = 'none';
+            document.body.style.cursor = 'nwse-resize';
+        };
+
+        handle.addEventListener('pointerdown', (e) => {
+            if (e.button != null && e.button !== 0) return;
+            e.preventDefault();
+            e.stopPropagation();
+            startResize(e.clientX, e.clientY, e.pointerId);
+            try { handle.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+        });
+
+        handle.addEventListener('pointermove', (e) => {
+            if (!resizing) return;
+            if (pointerId != null && e.pointerId !== pointerId) return;
+            e.preventDefault();
+            onMove(e.clientX, e.clientY);
+        });
+
+        const endPointer = (e) => {
+            if (!resizing) return;
+            if (pointerId != null && e.pointerId !== pointerId) return;
+            try { handle.releasePointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+            stopResize();
+        };
+        handle.addEventListener('pointerup', endPointer);
+        handle.addEventListener('pointercancel', endPointer);
+
+        // Fallback for environments without PointerEvent
+        handle.addEventListener('mousedown', (e) => {
+            if (window.PointerEvent) return;
+            if (e.button !== 0) return;
+            e.preventDefault();
+            e.stopPropagation();
+            startResize(e.clientX, e.clientY, null);
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (window.PointerEvent || !resizing) return;
+            onMove(e.clientX, e.clientY);
+        });
+        document.addEventListener('mouseup', () => {
+            if (window.PointerEvent || !resizing) return;
+            stopResize();
         });
     }
 

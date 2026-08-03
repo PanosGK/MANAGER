@@ -1,11 +1,11 @@
 {
-  "version": "366",
+  "version": "367",
   "loaderVersion": "41",
-  "silentVersion": "10",
-  "displayVersion": "41.10",
+  "silentVersion": "11",
+  "displayVersion": "41.11",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Make office chat panel resizable with saved size",
+  "releaseNotes": "Fix chat panel resize handle hit target and pointer capture",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
