@@ -792,7 +792,7 @@
         return null;
     }
 
-    function chatRequest({ method, url, headers, data, timeout, responseType }) {
+    function chatRequest({ method, url, headers, data, timeout, responseType, fetch: useFetch }) {
         const xhr = getXhr();
         if (!xhr) {
             return Promise.reject(new Error('GM_xmlhttpRequest unavailable — ενημέρωσε τον loader / δώσε δικαίωμα δικτύου'));
@@ -838,6 +838,8 @@
                     },
                 };
                 if (responseType) opts.responseType = responseType;
+                // Tampermonkey: FormData/multipart is unreliable unless fetch mode is on
+                if (useFetch || isForm) opts.fetch = true;
                 xhr(opts);
             } catch (err) {
                 finish(reject, err instanceof Error ? err : new Error(String(err)));
@@ -848,12 +850,64 @@
     async function chatRequestJson(opts) {
         const res = await chatRequest(opts);
         let body = null;
+        const rawText = res.responseText != null
+            ? String(res.responseText)
+            : (typeof res.response === 'string' ? res.response : '');
         try {
-            body = res.responseText ? JSON.parse(res.responseText) : null;
+            body = rawText ? JSON.parse(rawText) : null;
         } catch (_) {
             body = null;
         }
-        return { status: res.status, body, raw: res.responseText || '' };
+        return { status: res.status, body, raw: rawText || '' };
+    }
+
+    /** Build multipart body manually — reliable with GM_xmlhttpRequest (FormData often breaks). */
+    async function buildChatMultipartBody(fields, file) {
+        const boundary = `----tmChat${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+        const encoder = new TextEncoder();
+        const parts = [];
+
+        const pushBytes = (bytes) => {
+            parts.push(bytes instanceof Uint8Array ? bytes : encoder.encode(String(bytes)));
+        };
+        const pushLine = (text) => pushBytes(encoder.encode(text));
+
+        Object.keys(fields).forEach((key) => {
+            const value = fields[key];
+            if (value == null) return;
+            pushLine(`--${boundary}\r\n`);
+            pushLine(`Content-Disposition: form-data; name="${key}"\r\n\r\n`);
+            pushLine(`${String(value)}\r\n`);
+        });
+
+        if (file) {
+            const filename = String(file.name || 'file').replace(/[\r\n"]/g, '_');
+            const mime = String(file.type || 'application/octet-stream');
+            pushLine(`--${boundary}\r\n`);
+            pushLine(`Content-Disposition: form-data; name="attachment"; filename="${filename}"\r\n`);
+            pushLine(`Content-Type: ${mime}\r\n\r\n`);
+            const buf = file instanceof Blob
+                ? new Uint8Array(await file.arrayBuffer())
+                : encoder.encode('');
+            pushBytes(buf);
+            pushLine(`\r\n`);
+        }
+
+        pushLine(`--${boundary}--\r\n`);
+
+        let total = 0;
+        parts.forEach((p) => { total += p.length; });
+        const body = new Uint8Array(total);
+        let offset = 0;
+        parts.forEach((p) => {
+            body.set(p, offset);
+            offset += p.length;
+        });
+
+        return {
+            data: new Blob([body]),
+            contentType: `multipart/form-data; boundary=${boundary}`,
+        };
     }
 
     function loadCachedToken(STORAGE_KEYS) {
@@ -1194,71 +1248,70 @@
         const storeName = getChatStoreName(STORAGE_KEYS);
         const displayName = getDisplayName();
 
-        const buildJsonPayload = (textValue, includeStore) => {
-            const payload = {
+        const buildFields = (textValue, includeStore) => {
+            const fields = {
                 text: textValue,
                 displayName,
                 room: CHAT_ROOM,
             };
-            if (profileId) payload.profileId = profileId;
-            if (includeStore && storeName && !chatStoreFieldUnsupported) payload.store = storeName;
-            return payload;
+            if (profileId) fields.profileId = profileId;
+            if (includeStore && storeName && !chatStoreFieldUnsupported) fields.store = storeName;
+            return fields;
         };
 
-        const buildFormPayload = (textValue, includeStore, includeAttachment) => {
-            const fd = new FormData();
-            fd.append('text', textValue);
-            fd.append('displayName', displayName);
-            fd.append('room', CHAT_ROOM);
-            if (profileId) fd.append('profileId', profileId);
-            if (includeStore && storeName && !chatStoreFieldUnsupported) fd.append('store', storeName);
-            if (includeAttachment && attachFile) {
-                fd.append('attachment', attachFile, attachFile.name || 'file');
-            }
-            return fd;
-        };
+        const postJson = async (authHeader, fields) => chatRequestJson({
+            method: 'POST',
+            url,
+            headers: {
+                Authorization: authHeader,
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify(fields),
+        });
 
-        const postOnce = async (authHeader, bodyPayload) => {
-            const isForm = typeof FormData !== 'undefined' && bodyPayload instanceof FormData;
-            const headers = { Authorization: authHeader };
-            if (!isForm) headers['Content-Type'] = 'application/json';
+        const postMultipart = async (authHeader, fields, filePart) => {
+            const built = await buildChatMultipartBody(fields, filePart || null);
             return chatRequestJson({
                 method: 'POST',
                 url,
-                headers,
-                data: isForm ? bodyPayload : JSON.stringify(bodyPayload),
-                timeout: isForm ? 60000 : 15000,
+                headers: {
+                    Authorization: authHeader,
+                    'Content-Type': built.contentType,
+                },
+                data: built.data,
+                timeout: 60000,
+                fetch: true,
             });
         };
 
-        let textValue = clean;
-        // File-only: empty text preferred; fallback "(αρχείο)" if PB still requires text
-        if (!textValue && attachFile) textValue = '';
+        // Prefer non-empty text so older PB schemas with required text still accept file sends
+        let textValue = clean || (attachFile ? '(αρχείο)' : '');
+        let includeStore = true;
+        let useMultipart = !!(attachFile && !chatAttachmentFieldUnsupported);
 
-        const useMultipart = !!(attachFile && !chatAttachmentFieldUnsupported);
-        let payload = useMultipart
-            ? buildFormPayload(textValue, true, true)
-            : buildJsonPayload(textValue || (attachFile ? '(αρχείο)' : clean), true);
+        const postOnce = async (authHeader) => {
+            const fields = buildFields(textValue, includeStore);
+            if (useMultipart) return postMultipart(authHeader, fields, attachFile);
+            return postJson(authHeader, fields);
+        };
 
-        let { status, body } = await postOnce(token, payload);
+        let { status, body, raw } = await postOnce(token);
         if ((status === 401 || status === 403) && token && !String(token).startsWith('Bearer ')) {
-            ({ status, body } = await postOnce(`Bearer ${token}`, payload));
+            ({ status, body, raw } = await postOnce(`Bearer ${token}`));
         }
         if (status === 401) {
             clearCachedToken(STORAGE_KEYS);
             const token2 = await ensureAuth(STORAGE_KEYS, { force: true });
-            ({ status, body } = await postOnce(token2, payload));
+            ({ status, body, raw } = await postOnce(token2));
         }
 
-        const errBlob = () => JSON.stringify(body || {});
+        const errBlob = () => `${JSON.stringify(body || {})}\n${raw || ''}`;
 
         // PocketBase may not have `store` field yet — retry without it
-        if (status >= 400 && storeName && !chatStoreFieldUnsupported && /store/i.test(errBlob())) {
+        if (status >= 400 && storeName && !chatStoreFieldUnsupported && /[".]store[".]|store:/i.test(errBlob())) {
             chatStoreFieldUnsupported = true;
-            payload = useMultipart
-                ? buildFormPayload(textValue, false, true)
-                : buildJsonPayload(textValue || '(αρχείο)', false);
-            ({ status, body } = await postOnce(chatAuthToken || token, payload));
+            includeStore = false;
+            ({ status, body, raw } = await postOnce(chatAuthToken || token));
             if (status >= 400 && /store/i.test(errBlob())) {
                 setChatStatus('error', 'Πρόσθεσε πεδίο store στο messages (PocketBase)');
             }
@@ -1271,17 +1324,15 @@
             return { ok: false, reason: 'unsupported' };
         }
 
-        // text still required on server — retry with placeholder
-        if (status >= 400 && attachFile && !clean && /text/i.test(errBlob())) {
+        // text still required / validation failed with empty — already using placeholder; try again if empty slipped through
+        if (status >= 400 && attachFile && !clean && /text/i.test(errBlob()) && textValue !== '(αρχείο)') {
             textValue = '(αρχείο)';
-            payload = useMultipart && !chatAttachmentFieldUnsupported
-                ? buildFormPayload(textValue, !chatStoreFieldUnsupported, true)
-                : buildJsonPayload(textValue, !chatStoreFieldUnsupported);
-            ({ status, body } = await postOnce(chatAuthToken || token, payload));
+            ({ status, body, raw } = await postOnce(chatAuthToken || token));
         }
 
         if (status < 200 || status >= 300) {
-            let msg = formatPbError(body, `Send failed (${status})`);
+            let msg = formatPbError(body, `Send failed (${status || 0})`);
+            if (!body && raw) msg = `${msg} — ${String(raw).slice(0, 160)}`;
             if (/failed to create record/i.test(msg) && !/text:|displayName|room|profileId|store|attachment/i.test(msg)) {
                 msg += ' — PocketBase Admin → Collections → messages → API Rules: ξεκλείδωσε το Create (όχι Admins only) και βάλε ακριβώς: @request.auth.id != ""';
             }

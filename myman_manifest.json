@@ -1,11 +1,11 @@
 {
-  "version": "360",
+  "version": "361",
   "loaderVersion": "41",
-  "silentVersion": "4",
-  "displayVersion": "41.4",
+  "silentVersion": "5",
+  "displayVersion": "41.5",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Add chat file attachments (images and docs) via PocketBase",
+  "releaseNotes": "Fix chat file upload multipart for Tampermonkey",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
