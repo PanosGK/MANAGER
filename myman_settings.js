@@ -1909,45 +1909,69 @@
                 const passEl = document.getElementById('tm-setting-chat-pass');
                 const pass2El = document.getElementById('tm-setting-chat-pass2');
                 const userEl = document.getElementById('tm-setting-chat-user');
+                const btn = document.getElementById('tm-setting-chat-register-btn');
                 persistChatFormToStorage();
                 if (statusEl) {
                     statusEl.textContent = 'Δημιουργία λογαριασμού…';
                     statusEl.style.color = '#0d6efd';
                 }
+                if (btn) btn.disabled = true;
                 if (typeof window.registerOfficeChatUser !== 'function') {
                     if (statusEl) {
                         statusEl.textContent = 'Το module chat δεν φορτώθηκε.';
                         statusEl.style.color = '#dc3545';
                     }
+                    if (btn) btn.disabled = false;
                     return;
                 }
-                const result = await window.registerOfficeChatUser(STORAGE_KEYS, {
-                    email: userEl?.value?.trim(),
-                    password: passEl?.value || '',
-                    passwordConfirm: pass2El?.value || passEl?.value || '',
-                });
-                if (userEl && result?.email) userEl.value = result.email;
-                if (statusEl) {
-                    statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
-                    statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
-                }
-                if (result?.ok) {
-                    const en = document.getElementById('tm-setting-chat-enabled');
-                    if (en) en.checked = true;
+                try {
+                    const result = await window.registerOfficeChatUser(STORAGE_KEYS, {
+                        email: userEl?.value?.trim(),
+                        password: passEl?.value || '',
+                        passwordConfirm: pass2El?.value || passEl?.value || '',
+                    });
+                    if (userEl && result?.email) userEl.value = result.email;
+                    if (statusEl) {
+                        statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
+                        statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
+                    }
+                    if (result?.ok) {
+                        const en = document.getElementById('tm-setting-chat-enabled');
+                        if (en) en.checked = true;
+                    }
+                } catch (err) {
+                    if (statusEl) {
+                        statusEl.textContent = err?.message || 'Σφάλμα εγγραφής';
+                        statusEl.style.color = '#dc3545';
+                    }
+                } finally {
+                    if (btn) btn.disabled = false;
                 }
             });
             overlay.querySelector('#tm-setting-chat-test-btn')?.addEventListener('click', async () => {
                 const statusEl = document.getElementById('tm-setting-chat-test-status');
+                const btn = document.getElementById('tm-setting-chat-test-btn');
                 persistChatFormToStorage();
                 if (statusEl) statusEl.textContent = 'Έλεγχος…';
+                if (btn) btn.disabled = true;
                 if (typeof window.testOfficeChatConnection !== 'function') {
                     if (statusEl) statusEl.textContent = 'Το module chat δεν φορτώθηκε.';
+                    if (btn) btn.disabled = false;
                     return;
                 }
-                const result = await window.testOfficeChatConnection(STORAGE_KEYS);
-                if (statusEl) {
-                    statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
-                    statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
+                try {
+                    const result = await window.testOfficeChatConnection(STORAGE_KEYS);
+                    if (statusEl) {
+                        statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
+                        statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
+                    }
+                } catch (err) {
+                    if (statusEl) {
+                        statusEl.textContent = err?.message || 'Σφάλμα ελέγχου';
+                        statusEl.style.color = '#dc3545';
+                    }
+                } finally {
+                    if (btn) btn.disabled = false;
                 }
             });
             populateCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');

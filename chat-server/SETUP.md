@@ -68,31 +68,36 @@ Admin → Collections → New collection → name: `messages`
 
 **API rules (v1 — one shared room):**
 
+Important: each rule has a **lock**. If Create is locked (“Admins / Superusers only”), regular tech accounts get `Failed to create record` even with a correct rule. **Unlock** Create / List / View.
+
+Then set:
+
 - List / Search: `@request.auth.id != ""`
 - View: `@request.auth.id != ""`
 - Create: `@request.auth.id != ""`
 - Update: *(empty — deny)*
 - Delete: *(empty — deny; delete only in Admin UI)*
 
-Use exactly those. Do **not** add `text:length` or `room = "office"` in Create (those often cause “Failed to create record”). The script always sends `room: "office"`. Max length stays on the Text field (max 500).
-
-If Create still fails, open Admin → **Logs** (or the request response) for the field error.
+Do **not** add `text:length` or `room = "office"` in Create. Save, then retry send in MyManager.
 
 Enable **Realtime** for the `messages` collection if your PocketBase UI shows that toggle (SSE still works when subscribed via API).
 
-## 5. Create tech users (optional manual)
+## 5. Create tech users (self-register)
 
-Techs can self-register from suite **Settings → Chat → Δημιουργία λογαριασμού** (auto email + their password).
+Techs use suite **Settings → Chat → Δημιουργία λογαριασμού**.
 
-For that to work, set the **users** collection **Create** API rule to:
+For that to work, **users** collection:
+
+1. **API Rules → Create**: unlock (not Admins only) and set:
 
 ```
 @request.auth.id = ""
 ```
 
-Also turn **off** “Require email verification” / similar options on the `users` auth collection (fake `@myman.chat` addresses won’t verify).
+2. Turn **off** email verification / confirm email requirements.
+3. Optional: List/View can stay authenticated-only.
 
-You can still create users manually in Admin if you prefer.
+If Create stays locked, the suite shows «Δημιουργία…» then an error — or used to hang; v38.7+ always times out with a message.
 
 ## 6. Backups
 

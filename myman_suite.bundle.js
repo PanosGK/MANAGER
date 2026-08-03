@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v342 / Custom Ver. 38.6 — generated, do not edit */
+/* MyManager Suite bundle v343 / Custom Ver. 38.7 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '342',
+        version: '343',
         loaderVersion: '38',
-        silentVersion: '6',
-        displayVersion: '38.6',
+        silentVersion: '7',
+        displayVersion: '38.7',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -17765,45 +17765,69 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 const passEl = document.getElementById('tm-setting-chat-pass');
                 const pass2El = document.getElementById('tm-setting-chat-pass2');
                 const userEl = document.getElementById('tm-setting-chat-user');
+                const btn = document.getElementById('tm-setting-chat-register-btn');
                 persistChatFormToStorage();
                 if (statusEl) {
                     statusEl.textContent = 'Δημιουργία λογαριασμού…';
                     statusEl.style.color = '#0d6efd';
                 }
+                if (btn) btn.disabled = true;
                 if (typeof window.registerOfficeChatUser !== 'function') {
                     if (statusEl) {
                         statusEl.textContent = 'Το module chat δεν φορτώθηκε.';
                         statusEl.style.color = '#dc3545';
                     }
+                    if (btn) btn.disabled = false;
                     return;
                 }
-                const result = await window.registerOfficeChatUser(STORAGE_KEYS, {
-                    email: userEl?.value?.trim(),
-                    password: passEl?.value || '',
-                    passwordConfirm: pass2El?.value || passEl?.value || '',
-                });
-                if (userEl && result?.email) userEl.value = result.email;
-                if (statusEl) {
-                    statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
-                    statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
-                }
-                if (result?.ok) {
-                    const en = document.getElementById('tm-setting-chat-enabled');
-                    if (en) en.checked = true;
+                try {
+                    const result = await window.registerOfficeChatUser(STORAGE_KEYS, {
+                        email: userEl?.value?.trim(),
+                        password: passEl?.value || '',
+                        passwordConfirm: pass2El?.value || passEl?.value || '',
+                    });
+                    if (userEl && result?.email) userEl.value = result.email;
+                    if (statusEl) {
+                        statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
+                        statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
+                    }
+                    if (result?.ok) {
+                        const en = document.getElementById('tm-setting-chat-enabled');
+                        if (en) en.checked = true;
+                    }
+                } catch (err) {
+                    if (statusEl) {
+                        statusEl.textContent = err?.message || 'Σφάλμα εγγραφής';
+                        statusEl.style.color = '#dc3545';
+                    }
+                } finally {
+                    if (btn) btn.disabled = false;
                 }
             });
             overlay.querySelector('#tm-setting-chat-test-btn')?.addEventListener('click', async () => {
                 const statusEl = document.getElementById('tm-setting-chat-test-status');
+                const btn = document.getElementById('tm-setting-chat-test-btn');
                 persistChatFormToStorage();
                 if (statusEl) statusEl.textContent = 'Έλεγχος…';
+                if (btn) btn.disabled = true;
                 if (typeof window.testOfficeChatConnection !== 'function') {
                     if (statusEl) statusEl.textContent = 'Το module chat δεν φορτώθηκε.';
+                    if (btn) btn.disabled = false;
                     return;
                 }
-                const result = await window.testOfficeChatConnection(STORAGE_KEYS);
-                if (statusEl) {
-                    statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
-                    statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
+                try {
+                    const result = await window.testOfficeChatConnection(STORAGE_KEYS);
+                    if (statusEl) {
+                        statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
+                        statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
+                    }
+                } catch (err) {
+                    if (statusEl) {
+                        statusEl.textContent = err?.message || 'Σφάλμα ελέγχου';
+                        statusEl.style.color = '#dc3545';
+                    }
+                } finally {
+                    if (btn) btn.disabled = false;
                 }
             });
             populateCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
@@ -21786,84 +21810,96 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     async function registerOfficeChatUser(STORAGE_KEYS, { email, password, passwordConfirm } = {}) {
-        const settings = getChatSettings(STORAGE_KEYS);
-        const baseUrl = OFFICE_CHAT_BASE_URL;
-        const displayName = getDisplayName();
-        const loginSlug = getLoginNameSlug();
-        // Always use login-derived email (ignore stale/custom values)
-        const mail = suggestOfficeChatEmail();
-        const pass = String(password || '');
-        const pass2 = passwordConfirm != null ? String(passwordConfirm) : pass;
+        try {
+            const baseUrl = OFFICE_CHAT_BASE_URL;
+            const displayName = getDisplayName();
+            const mail = suggestOfficeChatEmail();
+            const pass = String(password || '');
+            const pass2 = passwordConfirm != null ? String(passwordConfirm) : pass;
 
-        if (!mail || !mail.includes('@')) return { ok: false, message: 'Μη έγκυρο email από το όνομα login.' };
-        if (pass.length < 8) return { ok: false, message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.' };
-        if (pass !== pass2) return { ok: false, message: 'Οι κωδικοί δεν ταιριάζουν.' };
+            if (!mail || !mail.includes('@')) {
+                return { ok: false, message: 'Μη έγκυρο email από το όνομα login.' };
+            }
+            if (pass.length < 8) {
+                return { ok: false, message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.' };
+            }
+            if (pass !== pass2) {
+                return { ok: false, message: 'Οι κωδικοί δεν ταιριάζουν.' };
+            }
 
-        const url = `${baseUrl}/api/collections/users/records`;
-        const payload = {
-            email: mail,
-            password: pass,
-            passwordConfirm: pass2,
-            username: loginSlug,
-            // PocketBase "name" = MyManager login_block1 short name (e.g. Γκορόγιας)
-            name: displayName,
-            emailVisibility: false,
-        };
-        let { status, body } = await chatRequestJson({
-            method: 'POST',
-            url,
-            headers: { 'Content-Type': 'application/json' },
-            data: JSON.stringify(payload),
-        });
-        // Some PocketBase setups have no username field — retry without it
-        if (status >= 400 && /username/i.test(JSON.stringify(body || {}))) {
-            delete payload.username;
-            ({ status, body } = await chatRequestJson({
-                method: 'POST',
-                url,
-                headers: { 'Content-Type': 'application/json' },
-                data: JSON.stringify(payload),
-            }));
-        }
+            const url = `${baseUrl}/api/collections/users/records`;
+            // Minimal payload — username/emailVisibility often break create on locked schemas
+            const payload = {
+                email: mail,
+                password: pass,
+                passwordConfirm: pass2,
+            };
+            if (displayName && displayName !== 'Τεχνικός') {
+                payload.name = displayName;
+            }
 
-        // Already registered → treat as OK if they can auth with this password
-        if (status === 400 && /already|unique|exists|taken/i.test(JSON.stringify(body || {}))) {
+            let status;
+            let body;
+            try {
+                ({ status, body } = await chatRequestJson({
+                    method: 'POST',
+                    url,
+                    headers: { 'Content-Type': 'application/json' },
+                    data: JSON.stringify(payload),
+                    timeout: 12000,
+                }));
+            } catch (err) {
+                return {
+                    ok: false,
+                    email: mail,
+                    message: err?.message || 'Αποτυχία δικτύου κατά την εγγραφή',
+                };
+            }
+
+            // Already registered → try login with this password
+            if (status === 400 && /already|unique|exists|taken/i.test(JSON.stringify(body || {}))) {
+                const keys = chatKeys(STORAGE_KEYS);
+                GM_setValue(keys.user, mail);
+                GM_setValue(keys.pass, pass);
+                GM_setValue(keys.tokenCache, '');
+                try {
+                    await ensureAuth(STORAGE_KEYS, { force: true });
+                    return { ok: true, email: mail, message: 'Ο λογαριασμός υπάρχει ήδη — σύνδεση OK.', existed: true };
+                } catch (_) {
+                    return {
+                        ok: false,
+                        email: mail,
+                        message: 'Το email υπάρχει ήδη. Βάλε τον σωστό κωδικό και πάτα Έλεγχος σύνδεσης.',
+                    };
+                }
+            }
+
+            if (status < 200 || status >= 300) {
+                let msg = formatPbError(body, `Εγγραφή απέτυχε (${status})`);
+                if (/failed to create record/i.test(msg)) {
+                    msg += ' — Admin → users → API Rules → Create: ξεκλείδωσε και βάλε @request.auth.id = "" · απενεργοποίησε email verification';
+                }
+                return { ok: false, email: mail, message: msg };
+            }
+
             const keys = chatKeys(STORAGE_KEYS);
             GM_setValue(keys.user, mail);
             GM_setValue(keys.pass, pass);
             GM_setValue(keys.tokenCache, '');
             try {
                 await ensureAuth(STORAGE_KEYS, { force: true });
-                return { ok: true, email: mail, message: 'Ο λογαριασμός υπάρχει ήδη — σύνδεση OK.', existed: true };
             } catch (err) {
                 return {
-                    ok: false,
+                    ok: true,
                     email: mail,
-                    message: 'Το email υπάρχει ήδη. Αν είναι δικό σου, βάλε τον σωστό κωδικό και πάτα Έλεγχος σύνδεσης.',
-                    error: err,
+                    message: `Λογαριασμός OK, σύνδεση απέτυχε: ${err?.message || err}. Δοκίμασε Έλεγχος σύνδεσης.`,
+                    authFailed: true,
                 };
             }
-        }
-
-        if (status < 200 || status >= 300) {
-            return { ok: false, email: mail, message: formatPbError(body, `Εγγραφή απέτυχε (${status})`) };
-        }
-
-        const keys = chatKeys(STORAGE_KEYS);
-        GM_setValue(keys.user, mail);
-        GM_setValue(keys.pass, pass);
-        GM_setValue(keys.tokenCache, '');
-        try {
-            await ensureAuth(STORAGE_KEYS, { force: true });
+            return { ok: true, email: mail, message: 'Λογαριασμός δημιουργήθηκε και συνδέθηκε.' };
         } catch (err) {
-            return {
-                ok: true,
-                email: mail,
-                message: `Λογαριασμός δημιουργήθηκε, αλλά η σύνδεση απέτυχε: ${err?.message || err}. Δοκίμασε Έλεγχος σύνδεσης.`,
-                authFailed: true,
-            };
+            return { ok: false, message: err?.message || 'Άγνωστο σφάλμα εγγραφής' };
         }
-        return { ok: true, email: mail, message: 'Λογαριασμός δημιουργήθηκε και συνδέθηκε.' };
     }
 
     function getXhr() {
@@ -21881,25 +21917,45 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     function chatRequest({ method, url, headers, data, timeout }) {
         const xhr = getXhr();
         if (!xhr) {
-            return Promise.reject(new Error('GM_xmlhttpRequest unavailable'));
+            return Promise.reject(new Error('GM_xmlhttpRequest unavailable — ενημέρωσε τον loader / δώσε δικαίωμα δικτύου'));
         }
+        const ms = timeout || 15000;
         return new Promise((resolve, reject) => {
-            xhr({
-                method: method || 'GET',
-                url,
-                headers: headers || {},
-                data: data != null ? data : undefined,
-                timeout: timeout || 20000,
-                onload(res) {
-                    resolve(res);
-                },
-                onerror() {
-                    reject(new Error('Network error'));
-                },
-                ontimeout() {
-                    reject(new Error('Timeout'));
-                },
-            });
+            let settled = false;
+            const finish = (fn, arg) => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(watchdog);
+                fn(arg);
+            };
+            // Hard watchdog: some TM builds never fire ontimeout when @connect blocks
+            const watchdog = setTimeout(() => {
+                finish(reject, new Error('Timeout — έλεγχος @connect / δικτύου προς mngerchat.littlejol.mywire.org'));
+            }, ms + 2000);
+            try {
+                xhr({
+                    method: method || 'GET',
+                    url,
+                    headers: headers || {},
+                    data: data != null ? data : undefined,
+                    timeout: ms,
+                    anonymous: false,
+                    onload(res) {
+                        finish(resolve, res);
+                    },
+                    onerror() {
+                        finish(reject, new Error('Network error προς chat server'));
+                    },
+                    ontimeout() {
+                        finish(reject, new Error('Timeout προς chat server'));
+                    },
+                    onabort() {
+                        finish(reject, new Error('Request aborted'));
+                    },
+                });
+            } catch (err) {
+                finish(reject, err instanceof Error ? err : new Error(String(err)));
+            }
         });
     }
 
@@ -22178,7 +22234,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (status < 200 || status >= 300) {
             let msg = formatPbError(body, `Send failed (${status})`);
             if (/failed to create record/i.test(msg) && !/text:|displayName|room|profileId/i.test(msg)) {
-                msg += ' — Στο PocketBase: messages → API Rules → Create = @request.auth.id != "" (χωρίς text:length / room=)';
+                msg += ' — PocketBase Admin → Collections → messages → API Rules: ξεκλείδωσε το Create (όχι Admins only) και βάλε ακριβώς: @request.auth.id != ""';
             }
             throw new Error(msg);
         }
