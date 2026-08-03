@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v331 / Custom Ver. 36.23 — generated, do not edit */
+/* MyManager Suite bundle v332 / Custom Ver. 36.24 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '331',
+        version: '332',
         loaderVersion: '36',
-        silentVersion: '23',
-        displayVersion: '36.23',
+        silentVersion: '24',
+        displayVersion: '36.24',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -25663,6 +25663,88 @@ const MASCOT_STAGE_GR = {
     egg: 'Αυγό', evo1: 'Εξέλιξη 1', evo2: 'Εξέλιξη 2', evo3: 'Εξέλιξη 3',
 };
 
+/** Per-character evolution display names (egg + evo1–evo3). */
+const MASCOT_EVOLUTION_NAMES = {
+    dragon: {
+        egg: 'Egg',
+        evo1: 'Emberling',
+        evo2: 'Drakeflare',
+        evo3: 'Ember Sovereign',
+    },
+    robot: {
+        egg: 'Egg',
+        evo1: 'Cubebit',
+        evo2: 'Neon Colossus',
+        evo3: 'Scarframe',
+    },
+    slime: {
+        egg: 'Egg',
+        evo1: 'Goopling',
+        evo2: 'Jellord',
+        evo3: 'Abyssal Ooze',
+    },
+    plant: {
+        egg: 'Egg',
+        evo1: 'Seedling',
+        evo2: 'Bloomkin',
+        evo3: 'Grovekin',
+    },
+    ghost: {
+        egg: 'Egg',
+        evo1: 'Wispuff',
+        evo2: 'Hauntling',
+        evo3: 'Spectrex',
+    },
+    cat: {
+        egg: 'Egg',
+        evo1: 'Moonkit',
+        evo2: 'Moonfang Oracle',
+        evo3: 'Omenlord',
+    },
+    phoenix: {
+        egg: 'Egg',
+        evo1: 'Ember Chick',
+        evo2: 'Ashborn Phoenix',
+        evo3: 'Cinder Warlord',
+    },
+    crystal: {
+        egg: 'Egg',
+        evo1: 'Gemling',
+        evo2: 'Prism Titan',
+        evo3: 'Veined Colossus',
+    },
+    aether: {
+        egg: 'Egg',
+        evo1: 'Voidseed',
+        evo2: 'Starveil Sovereign',
+        evo3: 'Eclipse Sovereign',
+    },
+    leviathan: {
+        egg: 'Egg',
+        evo1: 'Tide Serpentling',
+        evo2: 'Storm Leviathan',
+        evo3: 'Tempest Sovereign',
+    },
+};
+
+/**
+ * Evolution display name for a character + stage.
+ * @param {string|null} characterType
+ * @param {string} stage
+ * @param {{ locked?: boolean, revealLocked?: boolean }} [opts]
+ *   locked + !revealLocked → "???" (hide spoilers)
+ */
+function getMascotEvolutionDisplayName(characterType, stage, opts = {}) {
+    const locked = !!opts.locked;
+    const revealLocked = !!opts.revealLocked;
+    if (locked && !revealLocked) return '???';
+    if (stage === 'egg') return MASCOT_EVOLUTION_NAMES[characterType]?.egg || MASCOT_STAGE_GR.egg || 'Egg';
+    const named = characterType && MASCOT_EVOLUTION_NAMES[characterType]
+        ? MASCOT_EVOLUTION_NAMES[characterType][stage]
+        : null;
+    return named || MASCOT_STAGE_GR[stage] || stage;
+}
+
 function mascotMsg(key) {
     const pool = MASCOT_MESSAGES[key];
     if (Array.isArray(pool)) return pool[Math.floor(Math.random() * pool.length)];
@@ -27153,7 +27235,7 @@ function initMascotRepairPriceComments(config) {
 function formatTamagotchiStatsBubble() {
     const daysAlive = Math.floor((Date.now() - tamagotchiBirthday) / (1000 * 60 * 60 * 24));
     const sickNames = { cold: 'Κρύωμα', fever: 'Πυρετός', upset_stomach: 'Αναστάτωση στομάχου' };
-    const stageGr = MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage;
+    const stageGr = getMascotEvolutionDisplayName(tamagotchiCharacterType, tamagotchiStage);
     const personalityGr = MASCOT_PERSONALITY_GR[tamagotchiPersonality] || tamagotchiPersonality;
     const sickLine = tamagotchiIsSick
         ? `🤒 Άρρωστος: ${sickNames[tamagotchiSickType] || 'Άρρωστος'}`
@@ -28980,7 +29062,7 @@ function updateTamagotchiStats(container) {
     
     if (healthFill) healthFill.style.width = `${tamagotchiHealth}%`;
     if (disciplineFill) disciplineFill.style.width = `${Math.min(100, tamagotchiDiscipline)}%`;
-    if (ageDisplay) ageDisplay.textContent = `ΕΞΕΛΙΞΗ: ${MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage}`;
+    if (ageDisplay) ageDisplay.textContent = `ΕΞΕΛΙΞΗ: ${getMascotEvolutionDisplayName(tamagotchiCharacterType, tamagotchiStage)}`;
     
     // Update stage display
     const stageNames = {
@@ -31669,7 +31751,7 @@ function showTamagotchiDeathScreen(STORAGE_KEYS, skipCinematic = false) {
                 <div class="tm-tama-lcd-title" style="color:#888">● Μνημόσυνο ●</div>
                 <h2 class="tm-tama-cinematic-title" style="color:#e8a0a0;text-shadow:none">Σε ανάμνηση του ${charName}</h2>
                 <div class="tm-tama-death-options visible">
-                    <p class="tm-tama-death-stat">Εξέλιξη: ${MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage}</p>
+                    <p class="tm-tama-death-stat">Εξέλιξη: ${getMascotEvolutionDisplayName(tamagotchiCharacterType, tamagotchiStage)}</p>
                     <p class="tm-tama-death-stat">Χαρακτήρας: ${MASCOT_PERSONALITY_GR[tamagotchiPersonality] || tamagotchiPersonality}</p>
                     <p class="tm-tama-death-stat">Λάθη φροντίδας: ${tamagotchiCareMistakes}</p>
                     <p class="tm-tama-death-stat">${formatMascotDeathCountersLine()}</p>
@@ -32103,12 +32185,39 @@ function ensureMascotAgePreviewStyles() {
         #tm-mascot-age-preview-overlay .tm-age-prev-hero-stage svg {
             width: 100%; height: 100%; overflow: visible; display: block;
         }
-        #tm-mascot-age-preview-overlay .tm-age-prev-hero-stage.is-locked svg {
-            filter: brightness(0) blur(2.5px);
-            opacity: 0.78;
+        #tm-mascot-age-preview-overlay .tm-age-prev-hero-stage.is-locked,
+        #tm-mascot-age-preview-overlay .tm-age-prev-thumb.is-locked {
+            overflow: hidden;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 45%, #334155 0%, #0f172a 72%);
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-mystery {
+            width: 72%; height: 72%;
+            border-radius: 46% 54% 50% 50% / 42% 48% 52% 58%;
+            background: linear-gradient(145deg, #64748b 0%, #1e293b 55%, #0f172a 100%);
+            filter: blur(10px) brightness(0.55);
+            opacity: 0.85;
+            transform: scale(1.15);
+            pointer-events: none;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-hero-stage.is-locked .tm-age-prev-mystery {
+            filter: blur(14px) brightness(0.5);
+            width: 78%; height: 78%;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-hero-stage.is-locked svg,
+        #tm-mascot-age-preview-overlay .tm-age-prev-cell.is-locked .tm-age-prev-thumb svg {
+            display: none !important;
         }
         #tm-mascot-age-preview-overlay .tm-age-prev-hero-meta {
             font-size: 13px; font-weight: 650; text-align: center;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-hero-meta .tm-age-evo-name {
+            display: block; font-size: 15px; font-weight: 750; margin-bottom: 2px;
+            color: var(--tm-shop-item-text, #0f172a);
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-hero-meta .tm-age-evo-stage {
+            display: block; font-size: 11px; font-weight: 600;
+            color: var(--tm-subtle-text, #64748b);
         }
         #tm-mascot-age-preview-overlay .tm-age-prev-hero-meta .tm-age-locked-label {
             color: var(--tm-subtle-text, #64748b);
@@ -32164,15 +32273,17 @@ function ensureMascotAgePreviewStyles() {
         #tm-mascot-age-preview-overlay .tm-age-prev-thumb svg {
             width: 100%; height: 100%; overflow: visible; display: block;
         }
-        #tm-mascot-age-preview-overlay .tm-age-prev-cell.is-locked .tm-age-prev-thumb svg {
-            filter: brightness(0) blur(2.2px);
-            opacity: 0.72;
+        #tm-mascot-age-preview-overlay .tm-age-prev-cell.is-locked .tm-age-prev-thumb {
+            overflow: hidden;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 45%, #334155 0%, #0f172a 72%);
         }
         #tm-mascot-age-preview-overlay .tm-age-prev-cell.is-locked .tm-age-prev-thumb::after {
             content: '🔒';
             position: absolute; right: -2px; bottom: -2px;
             font-size: 12px; line-height: 1;
             filter: none; opacity: 1;
+            z-index: 1;
         }
         #tm-mascot-age-preview-overlay .tm-age-prev-cell.is-placeholder .tm-age-prev-thumb {
             border-radius: 50%;
@@ -32233,7 +32344,7 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
                 <div>
                     <h2 id="tm-age-prev-title">Evolution Preview</h2>
                     <p>${characterType
-                        ? `${displayName} · ξεκλείδωτο έως <strong>${MASCOT_STAGE_GR[maxReached] || maxReached}</strong>`
+                        ? `${displayName} · ξεκλείδωτο έως <strong>${getMascotEvolutionDisplayName(characterType, maxReached)}</strong>`
                         : 'Αυγό — οι εξελίξεις ξεκλειδώνουν καθώς προχωρά.'}</p>
                 </div>
                 <button type="button" class="tm-age-prev-close" data-age-prev-close aria-label="Κλείσιμο">✕</button>
@@ -32247,7 +32358,7 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
                 </div>
             </div>
             <div class="tm-age-prev-rail" id="tm-age-prev-rail"></div>
-            <p class="tm-age-prev-footnote">Τα στάδια που έχεις φτάσει εμφανίζονται καθαρά. Τα μελλοντικά μένουν σκιά για να μην χαλάσει η ανακάλυψη.</p>
+            <p class="tm-age-prev-footnote">Τα στάδια που έχεις φτάσει εμφανίζονται καθαρά με το όνομά τους. Τα κλειδωμένα μένουν θολά — χωρίς μορφή και χωρίς όνομα — για να μην χαλάσει η ανακάλυψη.</p>
         </div>
     `;
     document.body.appendChild(overlay);
@@ -32298,6 +32409,16 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
             return;
         }
 
+        // Locked evolutions must not reveal real art — blurred mystery blob only.
+        if (locked && stage !== 'egg') {
+            host.classList.add('is-locked');
+            const mystery = document.createElement('div');
+            mystery.className = 'tm-age-prev-mystery';
+            mystery.setAttribute('aria-hidden', 'true');
+            host.appendChild(mystery);
+            return;
+        }
+
         const prefix = `tm-age-${stage}-${Math.random().toString(36).slice(2, 7)}-`;
         const built = cloneMascotSvgForUiPreview(prefix, {
             stage,
@@ -32306,7 +32427,7 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
             prune: true,
         });
         if (!built) {
-            host.textContent = MASCOT_STAGE_GR[stage] || stage;
+            host.textContent = getMascotEvolutionDisplayName(characterType, stage);
             return;
         }
         host.appendChild(built.clone);
@@ -32319,10 +32440,11 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
         hero.classList.toggle('is-locked', !unlocked);
         mountStageSprite(hero, selectedStage, { locked: !unlocked, size: 120 });
         if (heroMeta) {
-            const label = MASCOT_STAGE_GR[selectedStage] || selectedStage;
+            const evoName = getMascotEvolutionDisplayName(characterType, selectedStage, { locked: !unlocked });
+            const stageGr = MASCOT_STAGE_GR[selectedStage] || selectedStage;
             heroMeta.innerHTML = unlocked
-                ? `<span>${label}</span>`
-                : `<span class="tm-age-locked-label">🔒 ${label} · κλειδωμένο</span>`;
+                ? `<span class="tm-age-evo-name">${evoName}</span><span class="tm-age-evo-stage">${stageGr}</span>`
+                : `<span class="tm-age-locked-label">🔒 ${evoName} · κλειδωμένο</span>`;
         }
         rail?.querySelectorAll('.tm-age-prev-cell').forEach((cell) => {
             cell.classList.toggle('is-selected', cell.dataset.stage === selectedStage);
@@ -32350,12 +32472,13 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
             + (stage === tamagotchiStage ? ' is-current' : '')
             + (!characterType && stage !== 'egg' ? ' is-placeholder' : '');
         cell.dataset.stage = stage;
+        const evoLabel = getMascotEvolutionDisplayName(characterType, stage, { locked: !unlocked });
         cell.title = unlocked
-            ? (MASCOT_STAGE_GR[stage] || stage)
+            ? evoLabel
             : `${MASCOT_STAGE_GR[stage] || stage} (κλειδωμένο)`;
         cell.innerHTML = `
             <div class="tm-age-prev-thumb" data-thumb></div>
-            <span class="tm-age-prev-label">${unlocked ? (MASCOT_STAGE_GR[stage] || stage) : '???'}</span>
+            <span class="tm-age-prev-label">${evoLabel}</span>
         `;
         cell.addEventListener('click', () => selectStage(stage));
         rail.appendChild(cell);
@@ -37561,7 +37684,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         const isEgg = tamagotchiStage === 'egg';
         const hatchProgress = Math.round(getEggHatchProgress());
         const minutesToHatch = getMinutesUntilHatch();
-        const stageGr = MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage;
+        const stageGr = getMascotEvolutionDisplayName(tamagotchiCharacterType, tamagotchiStage);
         const charMeta = !isEgg && tamagotchiCharacterType ? MASCOT_CHARACTERS[tamagotchiCharacterType] : null;
         const characterName = typeof getMascotDisplayName === 'function'
             ? getMascotDisplayName()
@@ -37672,7 +37795,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <h2 class="tm-mascot-name" id="tm-mascot-care-title">${characterName}</h2>
                             <p class="tm-mascot-meta">
                                 <span class="tm-mascot-stage-pill">${stageGr}</span>
-                                <span id="tm-mascot-meta-age">${isEgg ? `Εκκόλαψη ~${minutesToHatch} λεπτά` : `Εξέλιξη: ${MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage}`}</span>
+                                <span id="tm-mascot-meta-age">${isEgg ? `Εκκόλαψη ~${minutesToHatch} λεπτά` : `Εξέλιξη: ${stageGr}`}</span>
                                 ${isEgg ? '' : `<span>·</span><span id="tm-mascot-meta-weight">${formatTamagotchiWeightKg()}</span>`}
                             </p>
                         </div>
@@ -38348,9 +38471,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             const metaWeight = modal.querySelector('#tm-mascot-meta-weight');
             if (metaWeight) metaWeight.textContent = formatTamagotchiWeightKg();
             const metaAge = modal.querySelector('#tm-mascot-meta-age');
-            if (metaAge) metaAge.textContent = `Εξέλιξη: ${MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage}`;
+            if (metaAge) metaAge.textContent = `Εξέλιξη: ${getMascotEvolutionDisplayName(tamagotchiCharacterType, tamagotchiStage)}`;
             const stagePill = modal.querySelector('.tm-mascot-stage-pill');
-            if (stagePill) stagePill.textContent = MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage;
+            if (stagePill) stagePill.textContent = getMascotEvolutionDisplayName(tamagotchiCharacterType, tamagotchiStage);
 
             const chips = modal.querySelector('#tm-mascot-status-chips');
             if (chips) {
@@ -40354,6 +40477,8 @@ window.confirmMascotKillRestart = confirmMascotKillRestart;
 window.previewMascotStage = previewMascotStage;
 window.clearMascotStagePreview = clearMascotStagePreview;
 window.showMascotAgePreviewModal = showMascotAgePreviewModal;
+window.getMascotEvolutionDisplayName = getMascotEvolutionDisplayName;
+window.MASCOT_EVOLUTION_NAMES = MASCOT_EVOLUTION_NAMES;
 window.getMaxReachedEvolution = getMaxReachedEvolution;
 window.isMascotStageUnlockedForPreview = isMascotStageUnlockedForPreview;
 window.noteMascotEvolutionReached = noteMascotEvolutionReached;

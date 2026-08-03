@@ -1,11 +1,11 @@
 {
-  "version": "331",
+  "version": "332",
   "loaderVersion": "36",
-  "silentVersion": "23",
-  "displayVersion": "36.23",
+  "silentVersion": "24",
+  "displayVersion": "36.24",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix coinshop notifications: show -coins for spends, +coins for rewards",
+  "releaseNotes": "Mascot evolution names for all stages; hide locked forms behind blur",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
