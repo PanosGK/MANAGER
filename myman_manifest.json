@@ -1,11 +1,11 @@
 {
-  "version": "345",
+  "version": "346",
   "loaderVersion": "39",
-  "silentVersion": "1",
-  "displayVersion": "39.1",
+  "silentVersion": "2",
+  "displayVersion": "39.2",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Force loader update: passwordless chat UI (no Settings password fields)",
+  "releaseNotes": "Fix chat register: minimal payload, clearer PB field errors, skip Greek name on create",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

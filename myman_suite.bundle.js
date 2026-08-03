@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v345 / Custom Ver. 39.1 — generated, do not edit */
+/* MyManager Suite bundle v346 / Custom Ver. 39.2 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '345',
+        version: '346',
         loaderVersion: '39',
-        silentVersion: '1',
-        displayVersion: '39.1',
+        silentVersion: '2',
+        displayVersion: '39.2',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -21849,10 +21849,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     async function registerOfficeChatUser(STORAGE_KEYS, { email, password, passwordConfirm } = {}) {
         try {
             const baseUrl = OFFICE_CHAT_BASE_URL;
-            const displayName = getDisplayName();
             const mail = String(email || suggestOfficeChatEmail()).trim().toLowerCase() || suggestOfficeChatEmail();
             const pass = String(password || getOfficeChatAutoPassword(mail));
             const pass2 = passwordConfirm != null ? String(passwordConfirm) : pass;
+            const local = mail.split('@')[0] || 'tech';
 
             if (!mail || !mail.includes('@')) {
                 return { ok: false, message: 'Μη έγκυρο email από το όνομα login.' };
@@ -21862,14 +21862,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
 
             const url = `${baseUrl}/api/collections/users/records`;
+            // Minimal payload only — do NOT send Greek `name` (custom field patterns often reject it).
+            // Chat display name comes from MyManager login on each message, not from PB profile.
             const payload = {
                 email: mail,
                 password: pass,
                 passwordConfirm: pass2,
+                username: local,
             };
-            if (displayName && displayName !== 'Τεχνικός') {
-                payload.name = displayName;
-            }
 
             let status;
             let body;
@@ -21889,7 +21889,32 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 };
             }
 
-            if (status === 400 && /already|unique|exists|taken/i.test(JSON.stringify(body || {}))) {
+            // Retry without username if that field is locked / unused on this PB schema
+            if (status >= 400 && body?.data?.username) {
+                const payload2 = {
+                    email: mail,
+                    password: pass,
+                    passwordConfirm: pass2,
+                };
+                try {
+                    ({ status, body } = await chatRequestJson({
+                        method: 'POST',
+                        url,
+                        headers: { 'Content-Type': 'application/json' },
+                        data: JSON.stringify(payload2),
+                        timeout: 12000,
+                    }));
+                } catch (err) {
+                    return {
+                        ok: false,
+                        email: mail,
+                        message: err?.message || 'Αποτυχία δικτύου κατά την εγγραφή',
+                    };
+                }
+            }
+
+            const bodyJson = JSON.stringify(body || {});
+            if (status === 400 && /already|unique|exists|taken|validation_not_unique/i.test(bodyJson)) {
                 const keys = chatKeys(STORAGE_KEYS);
                 GM_setValue(keys.user, mail);
                 GM_setValue(keys.pass, pass);
@@ -21901,15 +21926,23 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     return {
                         ok: false,
                         email: mail,
-                        message: 'Ο λογαριασμός υπάρχει με άλλον κωδικό. Διέγραψέ τον από PocketBase Admin → users και ξαναδοκίμασε.',
+                        message: `Ο λογαριασμός ${mail} υπάρχει με άλλον κωδικό. PocketBase Admin → users → διέγραψέ τον και ξαναδοκίμασε.`,
                     };
                 }
             }
 
             if (status < 200 || status >= 300) {
                 let msg = formatPbError(body, `Εγγραφή απέτυχε (${status})`);
-                if (/failed to create record/i.test(msg)) {
-                    msg += ' — Admin → users → Create: ξεκλείδωσε + @request.auth.id = "" · off email verification';
+                // Always append raw field errors so Admin mismatches are visible
+                if (body?.data && typeof body.data === 'object') {
+                    const fields = Object.keys(body.data).map((k) => {
+                        const d = body.data[k];
+                        return `${k}:${d?.code || d?.message || JSON.stringify(d)}`;
+                    }).join(' · ');
+                    if (fields && !msg.includes(fields)) msg += ` [${fields}]`;
+                }
+                if (/failed to create record/i.test(msg) && !body?.data) {
+                    msg += ` — email δοκιμής: ${mail}. Admin → Logs · ή διέγραψε παλιό user με αυτό το email. Create rule κενό ή @request.auth.id = "" · verification OFF.`;
                 }
                 return { ok: false, email: mail, message: msg };
             }
