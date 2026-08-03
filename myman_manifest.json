@@ -1,11 +1,11 @@
 {
-  "version": "380",
+  "version": "381",
   "loaderVersion": "41",
-  "silentVersion": "24",
-  "displayVersion": "41.24",
+  "silentVersion": "25",
+  "displayVersion": "41.25",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Server-first order history compact UI with local view cache",
+  "releaseNotes": "Order history: full table columns from server, fix service/parts kind split",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

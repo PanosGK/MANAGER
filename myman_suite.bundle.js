@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v380 / Custom Ver. 41.24 — generated, do not edit */
+/* MyManager Suite bundle v381 / Custom Ver. 41.25 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '380',
+        version: '381',
         loaderVersion: '41',
-        silentVersion: '24',
-        displayVersion: '41.24',
+        silentVersion: '25',
+        displayVersion: '41.25',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -65811,10 +65811,24 @@ if (document.body) {
             .slice(0, 64) || 'store';
     }
 
-    function ohOrderKind(order) {
+    function ohOrderKind(order, explicitKind) {
+        const forced = String(explicitKind || '').toLowerCase().trim();
+        if (forced === 'parts' || forced === 'service') return forced;
+
+        const url = String(order?.url || '').toLowerCase();
+        if (/sparepartstoorder|partsorders|ανταλλακ/.test(url)) return 'parts';
+        if (/srvorders|service_?order/.test(url)) return 'service';
+
+        const stored = String(order?._kind || '').toLowerCase().trim();
+        if (stored === 'parts' || stored === 'service') return stored;
+
         const t = String(order?.type || '').toLowerCase();
         if (t.includes('part') || t.includes('ανταλλακ')) return 'parts';
+        if (t.includes('service') || t.includes('υπηρεσ')) return 'service';
+
+        // Last resort: current page (only when extracting live on that page)
         if (isPartsOrdersPage) return 'parts';
+        if (isServiceOrdersPage) return 'service';
         return 'service';
     }
 
@@ -65847,6 +65861,8 @@ if (document.body) {
     }
 
     function ohOrderFingerprint(order) {
+        let cols = '';
+        try { cols = JSON.stringify(order?.allColumns || {}); } catch (_) { cols = ''; }
         return [
             ohExtractOrderId(order),
             order?.phone || '',
@@ -65855,7 +65871,41 @@ if (document.body) {
             order?.url || '',
             order?.repairNumber || '',
             ohPickStatus(order),
+            cols,
         ].join('\u0001');
+    }
+
+    /** Collect MyManager table column headers present on these orders (stable first-seen order). */
+    function ohCollectTableColumns(orders) {
+        const seen = new Set();
+        const cols = [];
+        (orders || []).forEach((order) => {
+            const map = order?.allColumns;
+            if (!map || typeof map !== 'object') return;
+            Object.keys(map).forEach((key) => {
+                const label = String(key || '').trim();
+                if (!label || seen.has(label)) return;
+                // Skip empty-only noise later; still register header if any row has it
+                seen.add(label);
+                cols.push(label);
+            });
+        });
+        return cols;
+    }
+
+    function ohColumnCellValue(order, columnKey) {
+        const cols = order?.allColumns;
+        if (cols && Object.prototype.hasOwnProperty.call(cols, columnKey)) {
+            return String(cols[columnKey] ?? '').trim();
+        }
+        // Fallbacks for older rows missing payload
+        const lower = String(columnKey || '').toLowerCase();
+        if (/τηλέφων|phone/.test(lower)) return String(order?.phone || '').trim();
+        if (/πελάτ|customer|όνομα|onoma/.test(lower)) return String(order?.customer || '').trim();
+        if (/επισκευ|repair/.test(lower)) return String(order?.repairNumber || '').trim();
+        if (/ημερομην|date/.test(lower)) return String(order?.date || '').trim();
+        if (/κατάσταση|status/.test(lower)) return String(order?.status || '').trim();
+        return '';
     }
 
     function ohLoadFingerprints() {
@@ -66089,8 +66139,8 @@ if (document.body) {
         } catch (_) { /* ignore */ }
     }
 
-    function ohRecordFromLocal(order, store, storeKey) {
-        const kind = ohOrderKind(order);
+    function ohRecordFromLocal(order, store, storeKey, explicitKind) {
+        const kind = ohOrderKind(order, explicitKind);
         const orderId = ohExtractOrderId(order);
         if (!orderId || !storeKey) return null;
         const nowIso = new Date().toISOString();
@@ -66133,12 +66183,13 @@ if (document.body) {
             } catch (_) { /* ignore */ }
         }
         const ts = rec?.capturedAt ? new Date(rec.capturedAt).getTime() : Date.now();
+        const kind = String(rec.kind || '').toLowerCase() === 'parts' ? 'parts' : 'service';
         return {
             id: rec.orderId,
             phone: rec.phone || '',
             customer: rec.customer || '',
             repairNumber: rec.repairNumber || '',
-            type: rec.kind === 'parts' ? 'Parts Order' : 'Service Order',
+            type: kind === 'parts' ? 'Parts Order' : 'Service Order',
             url: rec.url || '',
             timestamp: Number.isFinite(ts) ? ts : Date.now(),
             date: rec.date || '',
@@ -66147,6 +66198,7 @@ if (document.body) {
             _fromServer: true,
             _pbId: rec.id || '',
             _storeKey: rec.storeKey || '',
+            _kind: kind,
         };
     }
 
@@ -66353,7 +66405,7 @@ if (document.body) {
         }, delayMs == null ? OH_SYNC_FLUSH_MS : delayMs);
     }
 
-    function queueOrdersForServerSync(orders, { force = false } = {}) {
+    function queueOrdersForServerSync(orders, { force = false, kind = null } = {}) {
         if (ohServerUnsupported || !orders?.length) return 0;
         // Refresh connected store if possible before deciding
         try { window.captureConnectedStoreFromPage?.(document); } catch (_) { /* ignore */ }
@@ -66367,7 +66419,7 @@ if (document.body) {
         let queued = 0;
         let skippedNoId = 0;
         orders.forEach((order) => {
-            const record = ohRecordFromLocal(order, store, storeKey);
+            const record = ohRecordFromLocal(order, store, storeKey, kind);
             if (!record) {
                 skippedNoId += 1;
                 return;
@@ -66388,9 +66440,14 @@ if (document.body) {
             console.warn(`[MMS Order History] ${skippedNoId} local row(s) skipped (no orderId)`);
         }
         if (queued) {
-            console.log(`[MMS Order History] queued ${queued} row(s) for store ${storeKey}`);
+            console.log(`[MMS Order History] queued ${queued} row(s) for store ${storeKey}${kind ? ` kind=${kind}` : ''}`);
         }
         return queued;
+    }
+
+    function ohFilterOrdersByPageKind(orders, kind = ohPageKind()) {
+        const want = kind === 'parts' ? 'parts' : 'service';
+        return (orders || []).filter((o) => ohOrderKind(o) === want);
     }
 
     function ohViewCacheSlot(storeKey, kind) {
@@ -66585,17 +66642,17 @@ if (document.body) {
             try {
                 const service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]'));
                 const parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]'));
-                const leftover = [
-                    ...(Array.isArray(service) ? service : []),
-                    ...(Array.isArray(parts) ? parts : []),
-                ];
-                if (leftover.length) {
-                    queueOrdersForServerSync(leftover, { force: true });
-                    scheduleOhSyncFlush(400);
-                    ohClearLegacyLocalHistory();
-                    console.log(`[MMS Order History] flushed leftover local rows for ${storeKey}: ${leftover.length}`);
-                } else {
-                    ohClearLegacyLocalHistory();
+                let flushed = 0;
+                if (Array.isArray(service) && service.length) {
+                    flushed += queueOrdersForServerSync(service, { force: true, kind: 'service' });
+                }
+                if (Array.isArray(parts) && parts.length) {
+                    flushed += queueOrdersForServerSync(parts, { force: true, kind: 'parts' });
+                }
+                if (flushed) scheduleOhSyncFlush(400);
+                ohClearLegacyLocalHistory();
+                if (flushed) {
+                    console.log(`[MMS Order History] flushed leftover local rows for ${storeKey}: ${flushed}`);
                 }
             } catch (_) { /* ignore */ }
             // Drain pending write buffer
@@ -66613,11 +66670,9 @@ if (document.body) {
             const service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]'));
             const parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]'));
             const pending = ohLoadPendingBuffer();
-            const all = [
-                ...(Array.isArray(service) ? service : []),
-                ...(Array.isArray(parts) ? parts : []),
-                ...pending,
-            ];
+            const serviceList = Array.isArray(service) ? service : [];
+            const partsList = Array.isArray(parts) ? parts : [];
+            const all = [...serviceList, ...partsList, ...pending];
             if (!all.length) {
                 migrated[storeKey] = Date.now();
                 GM_setValue(OH_MIGRATED_KEY, JSON.stringify(migrated));
@@ -66626,13 +66681,23 @@ if (document.body) {
                 return { ok: true, queued: 0 };
             }
             const fps = ohLoadFingerprints();
-            all.forEach((order) => {
+            serviceList.forEach((order) => {
+                const record = ohRecordFromLocal(order, store, storeKey, 'service');
+                if (record) delete fps[record.dedupeKey];
+            });
+            partsList.forEach((order) => {
+                const record = ohRecordFromLocal(order, store, storeKey, 'parts');
+                if (record) delete fps[record.dedupeKey];
+            });
+            pending.forEach((order) => {
                 const record = ohRecordFromLocal(order, store, storeKey);
-                if (!record) return;
-                delete fps[record.dedupeKey];
+                if (record) delete fps[record.dedupeKey];
             });
             ohSaveFingerprints(fps);
-            const queued = queueOrdersForServerSync(all, { force: true });
+            let queued = 0;
+            queued += queueOrdersForServerSync(serviceList, { force: true, kind: 'service' });
+            queued += queueOrdersForServerSync(partsList, { force: true, kind: 'parts' });
+            queued += queueOrdersForServerSync(pending, { force: true });
             scheduleOhSyncFlush(400);
             migrated[storeKey] = Date.now();
             GM_setValue(OH_MIGRATED_KEY, JSON.stringify(migrated));
@@ -67140,10 +67205,12 @@ if (document.body) {
     // Write-through to PocketBase (server is durable source). Pending buffer only until ack.
     function saveOrdersToHistory(newOrders) {
         if (!newOrders || newOrders.length === 0) return;
-        ohAddPendingOrders(newOrders);
+        const kind = ohPageKind();
+        const tagged = newOrders.map((o) => ({ ...o, _kind: kind }));
+        ohAddPendingOrders(tagged);
         try {
-            const queued = queueOrdersForServerSync(newOrders, { force: false });
-            console.log(`[MMS Order History] write-through ${newOrders.length} order(s), queued ${queued}`);
+            const queued = queueOrdersForServerSync(tagged, { force: false, kind });
+            console.log(`[MMS Order History] write-through ${tagged.length} order(s), queued ${queued}, kind=${kind}`);
         } catch (err) {
             console.warn('[MMS Order History] queue sync failed', err);
         }
@@ -67257,12 +67324,14 @@ if (document.body) {
     }
 
     // Background / write-through (same as saveOrdersToHistory)
-    function saveOrdersToSpecificHistory(newOrders, historyKey, pageLabel) {
+    function saveOrdersToSpecificHistory(newOrders, historyKey, pageLabel, pageType) {
         if (!newOrders || newOrders.length === 0) return;
-        ohAddPendingOrders(newOrders);
+        const kind = pageType === 'parts' ? 'parts' : (pageType === 'service' ? 'service' : null);
+        const tagged = newOrders.map((o) => ({ ...o, _kind: kind || o._kind || ohOrderKind(o) }));
+        ohAddPendingOrders(tagged);
         try {
-            const queued = queueOrdersForServerSync(newOrders, { force: false });
-            console.log(`[MMS Order History] [Background] ${pageLabel}: write-through ${newOrders.length}, queued ${queued}`);
+            const queued = queueOrdersForServerSync(tagged, { force: false, kind });
+            console.log(`[MMS Order History] [Background] ${pageLabel}: write-through ${tagged.length}, queued ${queued}, kind=${kind || 'auto'}`);
         } catch (_) { /* ignore */ }
     }
 
@@ -67293,7 +67362,7 @@ if (document.body) {
                 : 'tm_partsorders_page_history';
             const label = (pageType === 'service') ? 'Service Orders' : 'Parts Orders';
             
-            saveOrdersToSpecificHistory(orders, historyKey, label);
+            saveOrdersToSpecificHistory(orders, historyKey, label, pageType);
         } catch (e) {
             console.error('[MMS Order History] [Background] Error processing order list HTML for', pageType, e);
         }
@@ -67818,8 +67887,8 @@ if (document.body) {
                 z-index: 10050 !important;
             }
             .tm-oh-shell {
-                width: min(92vw, 980px) !important;
-                max-width: 980px !important;
+                width: min(96vw, 1280px) !important;
+                max-width: 1280px !important;
                 height: min(88vh, 820px) !important;
                 padding: 0 !important;
                 border-radius: 10px !important;
@@ -67956,9 +68025,13 @@ if (document.body) {
                 padding: 0;
                 background: var(--tm-shop-item-bg);
             }
-            .tm-oh-table-wrap { width: 100%; }
-            table.tm-oh-table {
+            .tm-oh-table-wrap {
                 width: 100%;
+                overflow-x: auto;
+            }
+            table.tm-oh-table {
+                width: max-content;
+                min-width: 100%;
                 border-collapse: collapse;
                 font-size: 12px;
             }
@@ -67986,6 +68059,14 @@ if (document.body) {
                 border-bottom: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
                 vertical-align: middle;
                 color: var(--tm-shop-item-text, var(--tm-primary-color));
+                max-width: 280px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .tm-oh-table tbody td.tm-oh-cell-phone {
+                max-width: 200px;
+                white-space: normal;
             }
             .tm-oh-table tbody tr {
                 cursor: pointer;
@@ -68054,7 +68135,6 @@ if (document.body) {
         ensureOrderHistoryStyles();
 
         const pageName = isServiceOrdersPage ? 'Υπηρεσίες' : 'Ανταλλακτικά';
-        const idColLabel = isServiceOrdersPage ? 'Επισκευή' : 'Παραγγελία';
         const storeLabel = ohGetStoreName() || '—';
 
         const overlay = document.createElement('div');
@@ -68078,7 +68158,7 @@ if (document.body) {
                     </div>
                 </div>
                 <div class="tm-oh-toolbar">
-                    <input type="search" id="tm-order-history-search" class="tm-oh-input tm-oh-search" placeholder="Αναζήτηση πελάτη, τηλ., επισκευής…" />
+                    <input type="search" id="tm-order-history-search" class="tm-oh-input tm-oh-search" placeholder="Αναζήτηση σε όλες τις στήλες…" />
                     <select id="tm-order-status-filter" class="tm-oh-select">
                         <option value="all">Όλες</option>
                         <option value="active">Ενεργές</option>
@@ -68154,11 +68234,14 @@ if (document.body) {
             if (fromVal) fromVal.setHours(0, 0, 0, 0);
             if (toVal) toVal.setHours(23, 59, 59, 999);
 
-            let list = ohViewOrders.slice();
+            let list = ohFilterOrdersByPageKind(ohViewOrders.slice(), ohPageKind());
             if (q) {
                 list = list.filter((o) => {
+                    const colBlob = o.allColumns
+                        ? Object.values(o.allColumns).join(' ')
+                        : '';
                     const blob = [
-                        o.customer, o.phone, o.repairNumber, o.id, o.date, o.status, ohExtractOrderId(o),
+                        o.customer, o.phone, o.repairNumber, o.date, o.status, colBlob,
                     ].join(' ').toLowerCase();
                     return blob.includes(q);
                 });
@@ -68196,15 +68279,16 @@ if (document.body) {
                     bv = String(b.phone || '').replace(/\D/g, '');
                     return av.localeCompare(bv) * dir;
                 }
-                if (sortKey === 'repair') {
-                    av = String(a.repairNumber || ohExtractOrderId(a) || '');
-                    bv = String(b.repairNumber || ohExtractOrderId(b) || '');
-                    return av.localeCompare(bv, 'el', { numeric: true }) * dir;
-                }
-                if (sortKey === 'date') {
-                    av = orderDayStart(a);
-                    bv = orderDayStart(b);
+                if (sortKey === 'timestamp') {
+                    av = Number(a.timestamp) || 0;
+                    bv = Number(b.timestamp) || 0;
                     return (av - bv) * dir;
+                }
+                if (sortKey.startsWith('col:')) {
+                    const colKey = sortKey.slice(4);
+                    av = ohColumnCellValue(a, colKey);
+                    bv = ohColumnCellValue(b, colKey);
+                    return av.localeCompare(bv, 'el', { numeric: true }) * dir;
                 }
                 av = Number(a.timestamp) || 0;
                 bv = Number(b.timestamp) || 0;
@@ -68244,33 +68328,35 @@ if (document.body) {
                 return;
             }
 
+            const tableCols = ohCollectTableColumns(filtered);
             const th = (key, label) => {
                 const cls = sortKey === key ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : '';
-                return `<th data-sort="${key}" class="${cls}">${label}</th>`;
+                return `<th data-sort="${escapeHtml(key)}" class="${cls}" title="${escapeHtml(label)}">${escapeHtml(label)}</th>`;
             };
 
             const rows = filtered.map((order) => {
                 const phone = String(order.phone || '');
-                const phoneDisp = formatPhoneDisplay(phone) || '—';
-                const repair = isServiceOrdersPage
-                    ? (order.repairNumber || ohExtractOrderId(order) || '—')
-                    : (ohExtractOrderId(order) || order.repairNumber || '—');
-                const dateDisp = order.date || (order.timestamp
-                    ? new Date(order.timestamp).toLocaleDateString('el-GR')
-                    : '—');
                 const added = order.timestamp ? formatDateTime(order.timestamp) : '—';
+                const dynCells = tableCols.map((col) => {
+                    const raw = ohColumnCellValue(order, col);
+                    const lower = col.toLowerCase();
+                    const isPhone = /τηλέφων|phone/.test(lower);
+                    if (isPhone) {
+                        const disp = formatPhoneDisplay(raw || phone) || raw || '—';
+                        const copyVal = raw || phone;
+                        return `<td class="tm-oh-cell-phone" title="${escapeHtml(disp)}">
+                            <span class="tm-oh-phone-cell">
+                                <span>${escapeHtml(disp)}</span>
+                                ${copyVal ? `<button type="button" class="tm-copy-phone-btn" data-phone="${escapeHtml(copyVal)}" title="Αντιγραφή">⧉</button>` : ''}
+                            </span>
+                        </td>`;
+                    }
+                    return `<td title="${escapeHtml(raw)}">${escapeHtml(raw || '—')}</td>`;
+                }).join('');
                 return `
                     <tr data-url="${escapeHtml(order.url || '')}">
-                        <td>${escapeHtml(dateDisp)}</td>
                         <td class="tm-oh-muted">${escapeHtml(added)}</td>
-                        <td>${escapeHtml(order.customer || '—')}</td>
-                        <td>
-                            <span class="tm-oh-phone-cell">
-                                <span>${escapeHtml(phoneDisp)}</span>
-                                ${phone ? `<button type="button" class="tm-copy-phone-btn" data-phone="${escapeHtml(phone)}" title="Αντιγραφή">⧉</button>` : ''}
-                            </span>
-                        </td>
-                        <td>${escapeHtml(String(repair))}</td>
+                        ${dynCells}
                         <td>${statusBadgeHtml(order)}</td>
                     </tr>`;
             }).join('');
@@ -68280,11 +68366,8 @@ if (document.body) {
                     <table class="tm-oh-table">
                         <thead>
                             <tr>
-                                ${th('date', 'Ημερομηνία')}
                                 ${th('timestamp', 'Προστέθηκε')}
-                                ${th('customer', 'Πελάτης')}
-                                ${th('phone', 'Τηλέφωνο')}
-                                ${th('repair', idColLabel)}
+                                ${tableCols.map((col) => th(`col:${col}`, col)).join('')}
                                 <th>Κατάσταση</th>
                             </tr>
                         </thead>
@@ -68325,7 +68408,9 @@ if (document.body) {
             if (!remote.ok) {
                 const cache = ohLoadViewCache(ohStoreKey(), kind);
                 if (cache?.orders?.length) {
-                    ohViewOrders = cache.orders.slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                    ohViewOrders = ohFilterOrdersByPageKind(cache.orders, kind)
+                        .slice()
+                        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                     ohViewCapped = !!cache.capped;
                     const storeEl = overlay.querySelector('#tm-oh-store-label');
                     if (storeEl) storeEl.textContent = cache.store || ohGetStoreName() || '—';
@@ -68359,11 +68444,13 @@ if (document.body) {
                 }
                 return false;
             }
-            ohViewOrders = (remote.orders || []).slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            ohViewOrders = ohFilterOrdersByPageKind(remote.orders || [], kind)
+                .slice()
+                .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
             ohViewCapped = !!remote.capped;
             const storeEl = overlay.querySelector('#tm-oh-store-label');
             if (storeEl) storeEl.textContent = remote.store || ohGetStoreName() || '—';
-            setSyncStatus(`server · ${remote.storeKey || 'store'}`);
+            setSyncStatus(`server · ${remote.storeKey || 'store'} · ${kind}`);
             statusesChecked = false;
             statusResultsMap.clear();
             renderOrders();
@@ -68378,7 +68465,9 @@ if (document.body) {
             const kind = ohPageKind();
             const cache = ohLoadViewCache(ohStoreKey(), kind);
             if (cache?.orders?.length) {
-                ohViewOrders = cache.orders.slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                ohViewOrders = ohFilterOrdersByPageKind(cache.orders, kind)
+                    .slice()
+                    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                 ohViewCapped = !!cache.capped;
                 const storeEl = overlay.querySelector('#tm-oh-store-label');
                 if (storeEl) storeEl.textContent = cache.store || ohGetStoreName() || '—';
@@ -68466,16 +68555,18 @@ if (document.body) {
 
         exportBtn?.addEventListener('click', () => {
             const rows = getFilteredOrders();
-            const headers = ['date', 'added', 'customer', 'phone', 'id', 'status', 'url'];
-            const lines = [headers.join(',')];
+            const tableCols = ohCollectTableColumns(rows);
+            const headers = ['added', ...tableCols, 'live_status', 'url'];
+            const lines = [headers.map((h) => `"${String(h).replace(/"/g, '""')}"`).join(',')];
             rows.forEach((o) => {
+                const liveKey = String(o.id || ohExtractOrderId(o));
+                const st = statusResultsMap.get(liveKey);
+                let live = '';
+                if (st && !st.checking && !st.error) live = st.exists ? 'active' : 'removed';
                 const cols = [
-                    o.date || '',
                     o.timestamp ? new Date(o.timestamp).toISOString() : '',
-                    o.customer || '',
-                    o.phone || '',
-                    isServiceOrdersPage ? (o.repairNumber || ohExtractOrderId(o) || '') : (ohExtractOrderId(o) || ''),
-                    o.status || '',
+                    ...tableCols.map((c) => ohColumnCellValue(o, c)),
+                    live,
                     o.url || '',
                 ].map((v) => `"${String(v).replace(/"/g, '""')}"`);
                 lines.push(cols.join(','));

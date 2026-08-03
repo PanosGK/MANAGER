@@ -164,7 +164,7 @@ Admin → New collection → name: `order_history` (Base)
 | `capturedAt`   | Date | required |
 | `updatedAt`    | Date | optional |
 | `updatedBy`    | Text | optional, max 64 |
-| `payload`      | Text | optional, max 5000 (JSON of extra columns) |
+| `payload`      | Text | optional, max 5000 (JSON of **all MyManager table columns** → shown in the suite table) |
 
 ### API rules
 
