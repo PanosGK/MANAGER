@@ -28,6 +28,8 @@
         'tm_mms_last_profile_id',
         // Captured on login.php by the loader (suite UI skipped there) — must stay unscoped
         'tm_login_store_v1',
+        // Captured from footer store button before suite rebuilds the footer
+        'tm_connected_store_v1',
     ]);
 
     const PROFILE_PREFIX = 'tm:p:';

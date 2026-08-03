@@ -1628,9 +1628,20 @@
         return 'Τεχνικός';
     }
 
-    /** Store chosen on MyManager login (global tm_login_store_v1) or live #iProfileID. */
+    /** Connected store button (primary), then login capture / #iProfileID. */
     function detectLoginStoreName() {
-        // 1) Global key written by loader on login.php (survives profile scoping)
+        // 1) Connected store from footer button (survives footer wipe via GM)
+        try {
+            if (typeof window.captureConnectedStoreFromPage === 'function') {
+                const live = String(window.captureConnectedStoreFromPage(document) || '').trim();
+                if (live) return live.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        try {
+            const connected = String(GM_getValue('tm_connected_store_v1', '') || '').trim();
+            if (connected) return connected.slice(0, 64);
+        } catch (_) { /* ignore */ }
+        // 2) Global key written by loader on login.php
         try {
             const fromLogin = String(GM_getValue('tm_login_store_v1', '') || '').trim();
             if (fromLogin) return fromLogin.slice(0, 64);
@@ -1645,6 +1656,12 @@
                 if (name && !/^(select|επιλέξ|επιλεξ|choose|—|-|κατάστημα)$/i.test(name)) {
                     return name.slice(0, 64);
                 }
+            }
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof window.getCurrentStoreName === 'function') {
+                const n = String(window.getCurrentStoreName() || '').trim();
+                if (n) return n.slice(0, 64);
             }
         } catch (_) { /* ignore */ }
         try {
@@ -1766,7 +1783,7 @@
             if (locked && current) {
                 chip.hidden = false;
                 chip.textContent = current.length > 18 ? `${current.slice(0, 16)}…` : current;
-                chip.title = `Κατάστημα (από login): ${current}`;
+                chip.title = `Κατάστημα (από σελίδα/login): ${current}`;
             } else {
                 chip.hidden = true;
                 chip.textContent = '';
@@ -5691,6 +5708,16 @@
     window.connectOfficeChat = connectChat;
     window.ensureOfficeChatAccount = ensureOfficeChatAccount;
     window.getOfficeChatSettings = getChatSettings;
+    window.ensureOfficeChatAuthToken = async function ensureOfficeChatAuthToken(STORAGE_KEYS) {
+        const keys = STORAGE_KEYS || window.STORAGE_KEYS || {};
+        const ensured = await ensureOfficeChatAccount(keys);
+        if (!ensured?.ok) throw new Error(ensured?.message || 'Chat auth failed');
+        return ensureAuth(keys);
+    };
+    window.getOfficeChatStoreName = function getOfficeChatStoreName(STORAGE_KEYS) {
+        return getChatStoreName(STORAGE_KEYS || window.STORAGE_KEYS) || detectLoginStoreName() || '';
+    };
+    window.greekToLatinSlug = greekToLatinSlug;
     window.suggestOfficeChatEmail = suggestOfficeChatEmail;
     window.registerOfficeChatUser = registerOfficeChatUser;
     window.getOfficeChatAvatarInfo = getOfficeChatAvatarInfo;

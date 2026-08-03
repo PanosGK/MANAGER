@@ -1,11 +1,11 @@
 {
-  "version": "377",
+  "version": "378",
   "loaderVersion": "41",
-  "silentVersion": "21",
-  "displayVersion": "41.21",
+  "silentVersion": "22",
+  "displayVersion": "41.22",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Typing indicator, @mentions filter, online avatars, repair cards, and presence write fixes",
+  "releaseNotes": "Capture store from page footer button; shared order history sync across store techs",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

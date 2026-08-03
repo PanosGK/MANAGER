@@ -430,10 +430,13 @@
         if (existing) existing.remove();
 
         const options = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
+        const connectedStore = window.getConnectedStoreCached?.() || window.captureConnectedStoreFromPage?.(document) || '';
         const loginStore = window.getLoginCapturedStore?.() || '';
-        const currentPick = window.getUserStorePick?.() || loginStore || '';
-        const detected = loginStore || window.getAutoDetectedStoreName?.() || '';
-        const locked = !!loginStore;
+        const autoStore = connectedStore || loginStore;
+        const currentPick = window.getUserStorePick?.() || autoStore || '';
+        const detected = autoStore || window.getAutoDetectedStoreName?.() || '';
+        const locked = !!autoStore;
+        const lockLabel = connectedStore ? 'σελίδα' : 'login';
         const modal = document.createElement('div');
         modal.id = 'tm-phone-mystore-modal';
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -459,11 +462,11 @@
             </select>
             <div id="tm-my-store-detected" style="font-size:11px;opacity:0.7;margin-bottom:14px;">
                 ${locked
-                    ? `${t('Auto-detected store')} (login): <strong>${loginStore}</strong>`
+                    ? `${t('Auto-detected store')} (${lockLabel}): <strong>${autoStore}</strong>`
                     : (detected ? `${t('Auto-detected store')}: <strong>${detected}</strong>` : t('No store detected'))}
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button id="tm-save-my-store" type="button" style="padding:8px 14px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;" ${locked ? 'disabled' : ''}>${locked ? '🔒 Login' : t('Save')}</button>
+                <button id="tm-save-my-store" type="button" style="padding:8px 14px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;" ${locked ? 'disabled' : ''}>${locked ? '🔒 Auto' : t('Save')}</button>
             </div>
         `;
 
@@ -499,10 +502,13 @@
 
         const rules = window.loadPhoneStoreRules?.() || window.getDefaultPhoneStoreRules?.() || { buybackPatterns: [], regularPatterns: [], overrides: {} };
         const storeOptions = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
+        const connectedStore = window.getConnectedStoreCached?.() || window.captureConnectedStoreFromPage?.(document) || '';
         const loginStore = window.getLoginCapturedStore?.() || '';
-        const currentPick = window.getUserStorePick?.() || loginStore || '';
-        const detected = loginStore || window.getAutoDetectedStoreName?.() || '';
-        const locked = !!loginStore;
+        const autoStore = connectedStore || loginStore;
+        const currentPick = window.getUserStorePick?.() || autoStore || '';
+        const detected = autoStore || window.getAutoDetectedStoreName?.() || '';
+        const locked = !!autoStore;
+        const lockLabel = connectedStore ? 'σελίδα' : 'login';
         const modal = document.createElement('div');
         modal.id = 'tm-phone-stores-modal';
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -521,7 +527,7 @@
                     <option value="">${t('Auto-detect store')}${detected ? ` (${detected})` : ''}</option>
                     ${storeOptions.map((name) => `<option value="${name.replace(/"/g, '&quot;')}"${currentPick === name ? ' selected' : ''}>${name}</option>`).join('')}
                 </select>
-                <div style="font-size:11px;opacity:0.7;line-height:1.4;">${locked ? `${t('Auto-detected store')} (login): <strong>${loginStore}</strong>` : t('My store location hint')}</div>
+                <div style="font-size:11px;opacity:0.7;line-height:1.4;">${locked ? `${t('Auto-detected store')} (${lockLabel}): <strong>${autoStore}</strong>` : t('My store location hint')}</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">

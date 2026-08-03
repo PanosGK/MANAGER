@@ -5203,6 +5203,31 @@
             return false;
         }
 
+        // Capture connected store from native footer button BEFORE wiping the cell
+        // e.g. <button class="btn" style="cursors:default">ΒΡΙΛΗΣΣΙΑ (IKE)</button>
+        try {
+            let captured = '';
+            if (typeof window.captureConnectedStoreFromPage === 'function') {
+                captured = window.captureConnectedStoreFromPage(document) || '';
+            } else {
+                // Fallback if phonelist helpers are not ready yet
+                const btn = footerCenterCell.querySelector('button.btn, button');
+                const text = String(btn?.textContent || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+                if (text && text.length >= 3 && text.length <= 80) {
+                    captured = text;
+                    try {
+                        GM_setValue('tm_connected_store_v1', text);
+                        GM_setValue('tm_phone_my_store_name_v1', text);
+                    } catch (_) { /* ignore */ }
+                }
+            }
+            if (captured) {
+                console.log('[MMS] Connected store captured before footer rebuild:', captured);
+            }
+        } catch (err) {
+            console.warn('[MMS] Failed to capture connected store before footer wipe', err);
+        }
+
         const wrapper = document.createElement('div');
         wrapper.id = 'tm-footer-controls-container';
 

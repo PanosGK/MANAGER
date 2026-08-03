@@ -32,7 +32,7 @@ Optional: **Settings → Chat** — enable/disable, profile photo, sound, connec
 | @mentions | `@` button filters / jumps to messages that tagged you |
 | Repair cards | `#12345` in a message loads status / tech / store mini-card |
 | Read receipts | ✓✓ on your messages when peers opened chat |
-| Avatars sync | `users.avatar` + message fields + presence; directory refresh on heartbeat |
+| Shared order history | PocketBase `order_history` per store; panel Server button |
 
 ## Troubleshooting
 

@@ -1212,6 +1212,8 @@ function normalizeStoreDisplayName(name) {
 const MY_STORE_NAME_KEY = 'tm_phone_my_store_name_v1';
 const MY_STORE_PICK_KEY = 'tm_phone_my_store_pick_v1';
 const LOGIN_STORE_KEY = 'tm_login_store_v1';
+/** Connected store from page footer button (primary). Global — not profile-scoped. */
+const CONNECTED_STORE_KEY = 'tm_connected_store_v1';
 const STORE_ADDRESSES_KEY = 'tm_phone_store_addresses_v1';
 
 const DEFAULT_PROFILE_STORES = [
@@ -1296,6 +1298,10 @@ function matchStoreNameInText(text, candidates) {
 function parseCurrentStoreFromDocument(doc = document) {
     if (!doc) return '';
 
+    // Primary: footer / page store label button (e.g. "ΒΡΙΛΗΣΣΙΑ (IKE)")
+    const fromBtn = parseConnectedStoreButton(doc);
+    if (fromBtn) return fromBtn;
+
     const sel = doc.querySelector('#iProfileID, select[name="iProfileID"]');
     if (sel && sel.selectedIndex >= 0) {
         const name = normalizeStoreDisplayName(sel.options[sel.selectedIndex].text);
@@ -1325,13 +1331,88 @@ function parseCurrentStoreFromDocument(doc = document) {
     return '';
 }
 
+/**
+ * MyManager shows the connected store as a non-interactive footer button, e.g.
+ * <button type="button" class="btn" style="cursors:default">ΒΡΙΛΗΣΣΙΑ (IKE)</button>
+ * The suite deletes footer center children when building its footer — capture first.
+ */
+function parseConnectedStoreButton(doc = document) {
+    if (!doc) return '';
+    const footerCell = doc.querySelector('#footer-outterwrap table td[width="60%"]')
+        || doc.querySelector('#footer-outterwrap table td:nth-child(2)')
+        || doc.querySelector('#footer-outterwrap td');
+    const buttons = [];
+    if (footerCell) {
+        footerCell.querySelectorAll('button.btn, button').forEach((btn) => buttons.push(btn));
+    }
+    doc.querySelectorAll('button.btn').forEach((btn) => {
+        if (!buttons.includes(btn)) buttons.push(btn);
+    });
+
+    const scoreButton = (btn) => {
+        const text = normalizeStoreDisplayName(btn.textContent);
+        if (!text || text.length < 3 || text.length > 80) return null;
+        if (isDeprecatedStoreName(text)) return null;
+        if (/^(ok|cancel|αποθήκ|save|login|είσοδος|search|αναζήτ)/i.test(text)) return null;
+        const style = String(btn.getAttribute('style') || '');
+        const looksDefaultCursor = /cursors?\s*:\s*default/i.test(style);
+        const inFooter = !!(footerCell && footerCell.contains(btn));
+        const looksLikeStore = /\((?:IKE|ΙΚΕ|ΕΕ|EE)\)/i.test(text)
+            || !!matchStoreNameInText(text, DEFAULT_PROFILE_STORES);
+        if (!looksLikeStore && !(inFooter && looksDefaultCursor && /[Α-ΩA-Z]/u.test(text))) {
+            return null;
+        }
+        let score = 0;
+        if (inFooter) score += 5;
+        if (looksDefaultCursor) score += 3;
+        if (/\((?:IKE|ΙΚΕ|ΕΕ|EE)\)/i.test(text)) score += 4;
+        if (btn.classList.contains('btn')) score += 1;
+        return { text, score };
+    };
+
+    let best = null;
+    buttons.forEach((btn) => {
+        const hit = scoreButton(btn);
+        if (!hit) return;
+        if (!best || hit.score > best.score) best = hit;
+    });
+    return best?.text || '';
+}
+
+function getConnectedStoreCached() {
+    try {
+        const name = normalizeStoreDisplayName(GM_getValue(CONNECTED_STORE_KEY, '') || '');
+        if (name && !isDeprecatedStoreName(name)) return name;
+    } catch (_) { /* ignore */ }
+    return '';
+}
+
+/** Capture + persist connected store from the page button. Safe to call before footer wipe. */
+function captureConnectedStoreFromPage(doc = document) {
+    const name = parseConnectedStoreButton(doc);
+    if (!name) return getConnectedStoreCached();
+    try {
+        GM_setValue(CONNECTED_STORE_KEY, name);
+        GM_setValue(MY_STORE_NAME_KEY, name);
+        const pick = normalizeStoreDisplayName(GM_getValue(MY_STORE_PICK_KEY, '') || '');
+        if (!pick || normalizeStoreLookupKey(pick) !== normalizeStoreLookupKey(name)) {
+            GM_setValue(MY_STORE_PICK_KEY, name);
+        }
+    } catch (_) { /* ignore */ }
+    return name;
+}
+
 function detectAndCacheCurrentStoreName(doc = document) {
+    // Prefer live connected-store button whenever present
+    const connected = captureConnectedStoreFromPage(doc);
+    if (connected) return connected;
+
     const parsed = parseCurrentStoreFromDocument(doc);
     if (parsed) {
         GM_setValue(MY_STORE_NAME_KEY, parsed);
         return parsed;
     }
-    return GM_getValue(MY_STORE_NAME_KEY, '') || '';
+    return GM_getValue(MY_STORE_NAME_KEY, '') || getConnectedStoreCached() || '';
 }
 
 function getLoginCapturedStore() {
@@ -1342,8 +1423,19 @@ function getLoginCapturedStore() {
     return '';
 }
 
-/** Prefer login-captured store for "my store"; keeps pick/cache in sync. */
+/** Prefer connected-page store, then login capture, for "my store". */
 function syncMyStoreFromLoginCapture() {
+    const connected = getConnectedStoreCached() || captureConnectedStoreFromPage(document);
+    if (connected) {
+        try { GM_setValue(MY_STORE_NAME_KEY, connected); } catch (_) { /* ignore */ }
+        try {
+            const pick = normalizeStoreDisplayName(GM_getValue(MY_STORE_PICK_KEY, '') || '');
+            if (!pick || normalizeStoreLookupKey(pick) !== normalizeStoreLookupKey(connected)) {
+                GM_setValue(MY_STORE_PICK_KEY, connected);
+            }
+        } catch (_) { /* ignore */ }
+        return connected;
+    }
     const login = getLoginCapturedStore();
     if (!login) return '';
     try {
@@ -1363,17 +1455,22 @@ function getAutoDetectedStoreName(doc = document) {
 }
 
 function getUserStorePick() {
-    const login = syncMyStoreFromLoginCapture();
-    if (login) return login;
+    const connected = getConnectedStoreCached() || captureConnectedStoreFromPage(document);
+    if (connected) return connected;
+    const login = getLoginCapturedStore();
+    if (login) {
+        syncMyStoreFromLoginCapture();
+        return login;
+    }
     return GM_getValue(MY_STORE_PICK_KEY, '') || '';
 }
 
 function setUserStorePick(name) {
-    // Login auto-store locks "my store" (same as chat)
-    const login = getLoginCapturedStore();
-    if (login) {
-        try { GM_setValue(MY_STORE_PICK_KEY, login); } catch (_) { /* ignore */ }
-        return login;
+    // Connected page store or login auto-store locks "my store" (same as chat)
+    const locked = getConnectedStoreCached() || getLoginCapturedStore();
+    if (locked) {
+        try { GM_setValue(MY_STORE_PICK_KEY, locked); } catch (_) { /* ignore */ }
+        return locked;
     }
     const clean = normalizeStoreDisplayName(name);
     if (clean) {
@@ -1398,6 +1495,8 @@ function getStorePickerOptions(...phoneLists) {
     (collectKnownStoreNames(...phoneLists) || []).forEach(add);
     const detected = GM_getValue(MY_STORE_NAME_KEY, '');
     if (detected) add(detected);
+    const connected = getConnectedStoreCached();
+    if (connected) add(connected);
     const login = getLoginCapturedStore();
     if (login) add(login);
     const pick = GM_getValue(MY_STORE_PICK_KEY, '') || '';
@@ -1407,8 +1506,16 @@ function getStorePickerOptions(...phoneLists) {
 }
 
 function getCurrentStoreName() {
-    const login = syncMyStoreFromLoginCapture();
-    if (login) return login;
+    // 1) Connected store button on the page (primary)
+    const connected = captureConnectedStoreFromPage(document) || getConnectedStoreCached();
+    if (connected) return connected;
+    // 2) Login-page capture (fallback)
+    const login = getLoginCapturedStore();
+    if (login) {
+        try { GM_setValue(MY_STORE_NAME_KEY, login); } catch (_) { /* ignore */ }
+        return login;
+    }
+    // 3) Manual pick / auto text match
     const pick = GM_getValue(MY_STORE_PICK_KEY, '') || '';
     if (pick) return pick;
     return getAutoDetectedStoreName(document);
@@ -3392,6 +3499,9 @@ window.parseStorePatternCsv = parseStorePatternCsv;
 window.storeNameMatchesPatterns = storeNameMatchesPatterns;
 window.collectKnownStoreNames = collectKnownStoreNames;
 window.getCurrentStoreName = getCurrentStoreName;
+window.captureConnectedStoreFromPage = captureConnectedStoreFromPage;
+window.parseConnectedStoreButton = parseConnectedStoreButton;
+window.getConnectedStoreCached = getConnectedStoreCached;
 window.getAutoDetectedStoreName = getAutoDetectedStoreName;
 window.getUserStorePick = getUserStorePick;
 window.setUserStorePick = setUserStorePick;
@@ -3431,10 +3541,12 @@ window.collectSuggestedCanonicalModels = collectSuggestedCanonicalModels;
 window.rebuildCanonModelTokens = rebuildCanonModelTokens;
 
 if (document.body) {
+    captureConnectedStoreFromPage(document);
     syncMyStoreFromLoginCapture();
     detectAndCacheCurrentStoreName(document);
 } else {
     document.addEventListener('DOMContentLoaded', () => {
+        captureConnectedStoreFromPage(document);
         syncMyStoreFromLoginCapture();
         detectAndCacheCurrentStoreName(document);
     }, { once: true });

@@ -41,7 +41,521 @@
         ? 'tm_srvorders_page_history' 
         : 'tm_partsorders_page_history';
     
-    const MAX_HISTORY_ITEMS = 100; // Keep last 100 orders per page
+    const MAX_HISTORY_ITEMS = 100; // Keep last 100 orders per page (local cache)
+    const OH_PB_BASE = 'https://mngerchat.littlejol.mywire.org';
+    const OH_SYNC_FP_KEY = 'tm_oh_sync_fp_v1';
+    const OH_MIGRATED_KEY = 'tm_oh_migrated_stores_v1';
+    const OH_SYNC_QUEUE_MAX = 40;
+    const OH_SYNC_FLUSH_MS = 2500;
+    let ohServerUnsupported = false;
+    let ohServerHintShown = false;
+    let ohSyncQueue = [];
+    let ohSyncFlushTimer = null;
+    let ohSyncBusy = false;
+
+    function ohGetStoreName() {
+        try {
+            if (typeof window.getCurrentStoreName === 'function') {
+                const n = String(window.getCurrentStoreName() || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof window.getOfficeChatStoreName === 'function') {
+                const n = String(window.getOfficeChatStoreName(window.STORAGE_KEYS) || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        try {
+            const login = String(GM_getValue('tm_login_store_v1', '') || '').trim();
+            if (login) return login.slice(0, 64);
+        } catch (_) { /* ignore */ }
+        try {
+            const cached = String(GM_getValue('tm_phone_my_store_name_v1', '') || '').trim();
+            if (cached) return cached.slice(0, 64);
+        } catch (_) { /* ignore */ }
+        return '';
+    }
+
+    function ohStoreKey(storeName) {
+        const raw = String(storeName || ohGetStoreName() || '').trim();
+        if (!raw) return '';
+        if (typeof window.greekToLatinSlug === 'function') {
+            const slug = window.greekToLatinSlug(raw);
+            if (slug) return slug.slice(0, 64);
+        }
+        return raw
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '')
+            .slice(0, 64) || 'store';
+    }
+
+    function ohOrderKind(order) {
+        const t = String(order?.type || '').toLowerCase();
+        if (t.includes('part') || t.includes('ανταλλακ')) return 'parts';
+        if (isPartsOrdersPage) return 'parts';
+        return 'service';
+    }
+
+    function ohPageKind() {
+        return isPartsOrdersPage ? 'parts' : 'service';
+    }
+
+    function ohExtractOrderId(order) {
+        const url = String(order?.url || '');
+        try {
+            const u = new URL(url, 'https://thefixers.mymanager.gr');
+            const fromUrl = u.searchParams.get('editid1')
+                || u.searchParams.get('id')
+                || u.searchParams.get('orderid');
+            if (fromUrl) return String(fromUrl).trim().slice(0, 64);
+        } catch (_) { /* ignore */ }
+        const id = String(order?.id || '').trim();
+        // Prefer left side of composite id (orderNumber__code)
+        if (id.includes('__')) return id.split('__')[0].slice(0, 64);
+        return id.slice(0, 64);
+    }
+
+    function ohPickStatus(order) {
+        if (order?.status) return String(order.status).slice(0, 64);
+        const cols = order?.allColumns || {};
+        for (const [k, v] of Object.entries(cols)) {
+            if (/κατάσταση|status/i.test(String(k))) return String(v || '').slice(0, 64);
+        }
+        return '';
+    }
+
+    function ohOrderFingerprint(order) {
+        return [
+            ohExtractOrderId(order),
+            order?.phone || '',
+            order?.customer || '',
+            order?.date || '',
+            order?.url || '',
+            order?.repairNumber || '',
+            ohPickStatus(order),
+        ].join('\u0001');
+    }
+
+    function ohLoadFingerprints() {
+        try {
+            const raw = GM_getValue(OH_SYNC_FP_KEY, '{}');
+            const obj = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            return (obj && typeof obj === 'object') ? obj : {};
+        } catch (_) {
+            return {};
+        }
+    }
+
+    function ohSaveFingerprints(map) {
+        try {
+            const keys = Object.keys(map || {});
+            if (keys.length > 800) {
+                keys.slice(0, keys.length - 600).forEach((k) => { delete map[k]; });
+            }
+            GM_setValue(OH_SYNC_FP_KEY, JSON.stringify(map));
+        } catch (_) { /* ignore */ }
+    }
+
+    function ohDisplayName() {
+        try {
+            if (typeof window.MMS_PROFILES?.parseLoginBlockDisplayName === 'function') {
+                const n = String(window.MMS_PROFILES.parseLoginBlockDisplayName() || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        const el = document.querySelector('#login_block1 b, .rnr-b-loggedas b');
+        if (el) return String(el.textContent || '').replace(/^.*ως\s+/i, '').trim().slice(0, 64);
+        return 'Τεχνικός';
+    }
+
+    function ohRequestJson({ method, url, headers, data, timeout }) {
+        return new Promise((resolve) => {
+            const xhr = (typeof GM_xmlhttpRequest === 'function')
+                ? GM_xmlhttpRequest
+                : (typeof GM !== 'undefined' && GM.xmlHttpRequest ? GM.xmlHttpRequest : null);
+            if (!xhr) {
+                resolve({ status: 0, body: null, raw: 'no xhr' });
+                return;
+            }
+            xhr({
+                method: method || 'GET',
+                url,
+                headers: headers || {},
+                data: data || undefined,
+                timeout: timeout || 20000,
+                onload(res) {
+                    let body = null;
+                    const raw = String(res.responseText || '');
+                    try { body = raw ? JSON.parse(raw) : null; } catch (_) { body = null; }
+                    resolve({ status: res.status, body, raw });
+                },
+                onerror() { resolve({ status: 0, body: null, raw: 'network' }); },
+                ontimeout() { resolve({ status: 0, body: null, raw: 'timeout' }); },
+            });
+        });
+    }
+
+    async function ohEnsureAuthToken() {
+        if (typeof window.ensureOfficeChatAuthToken === 'function') {
+            return window.ensureOfficeChatAuthToken(window.STORAGE_KEYS);
+        }
+        if (typeof window.ensureOfficeChatAccount === 'function') {
+            const ensured = await window.ensureOfficeChatAccount(window.STORAGE_KEYS);
+            if (!ensured?.ok) throw new Error(ensured?.message || 'Chat account failed');
+        }
+        throw new Error('Office chat auth unavailable');
+    }
+
+    function ohHint(msg) {
+        if (ohServerHintShown) return;
+        ohServerHintShown = true;
+        console.warn('[MMS Order History]', msg);
+        try {
+            if (typeof window.showNegativeMessage === 'function') {
+                window.showNegativeMessage(msg);
+            }
+        } catch (_) { /* ignore */ }
+    }
+
+    function ohRecordFromLocal(order, store, storeKey) {
+        const kind = ohOrderKind(order);
+        const orderId = ohExtractOrderId(order);
+        if (!orderId || !storeKey) return null;
+        const nowIso = new Date().toISOString();
+        const captured = order.timestamp ? new Date(order.timestamp).toISOString() : nowIso;
+        let payload = '';
+        try {
+            payload = JSON.stringify(order.allColumns || {}).slice(0, 5000);
+        } catch (_) {
+            payload = '';
+        }
+        return {
+            store: String(store || '').slice(0, 64),
+            storeKey: String(storeKey).slice(0, 64),
+            kind,
+            orderId: String(orderId).slice(0, 64),
+            dedupeKey: `${storeKey}|${kind}|${orderId}`.slice(0, 128),
+            repairNumber: String(order.repairNumber || '').slice(0, 64),
+            customer: String(order.customer || '').slice(0, 128),
+            phone: String(order.phone || '').slice(0, 64),
+            url: String(order.url || '').slice(0, 500),
+            status: ohPickStatus(order),
+            date: String(order.date || '').slice(0, 64),
+            capturedAt: captured,
+            updatedAt: nowIso,
+            updatedBy: ohDisplayName(),
+            payload,
+        };
+    }
+
+    function ohLocalFromRecord(rec) {
+        let allColumns = {};
+        if (rec?.payload) {
+            try {
+                const parsed = typeof rec.payload === 'string' ? JSON.parse(rec.payload) : rec.payload;
+                if (parsed && typeof parsed === 'object') allColumns = parsed;
+            } catch (_) { /* ignore */ }
+        }
+        const ts = rec?.capturedAt ? new Date(rec.capturedAt).getTime() : Date.now();
+        return {
+            id: rec.orderId,
+            phone: rec.phone || '',
+            customer: rec.customer || '',
+            repairNumber: rec.repairNumber || '',
+            type: rec.kind === 'parts' ? 'Parts Order' : 'Service Order',
+            url: rec.url || '',
+            timestamp: Number.isFinite(ts) ? ts : Date.now(),
+            date: rec.date || '',
+            status: rec.status || '',
+            allColumns,
+            _fromServer: true,
+            _pbId: rec.id || '',
+            _storeKey: rec.storeKey || '',
+        };
+    }
+
+    async function ohUpsertRecord(token, record) {
+        const base = OH_PB_BASE.replace(/\/$/, '');
+        const headers = {
+            Authorization: token,
+            'Content-Type': 'application/json',
+        };
+        const filter = encodeURIComponent(`dedupeKey="${record.dedupeKey}"`);
+        const listed = await ohRequestJson({
+            method: 'GET',
+            url: `${base}/api/collections/order_history/records?page=1&perPage=1&filter=${filter}`,
+            headers: { Authorization: token },
+            timeout: 15000,
+        });
+        const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
+        if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
+            ohServerUnsupported = true;
+            ohHint('Order history: δημιούργησε collection order_history στο PocketBase (SETUP)');
+            return { ok: false, unsupported: true };
+        }
+        if (listed.status === 403 || listed.status === 401) {
+            ohHint('Order history: ξεκλείδωσε List/Create/Update στο order_history');
+            return { ok: false, status: listed.status };
+        }
+
+        const existingId = listed.body?.items?.[0]?.id;
+        if (existingId) {
+            const patch = { ...record };
+            // Keep original capturedAt if server has one
+            if (listed.body.items[0].capturedAt) delete patch.capturedAt;
+            const updated = await ohRequestJson({
+                method: 'PATCH',
+                url: `${base}/api/collections/order_history/records/${encodeURIComponent(existingId)}`,
+                headers,
+                data: JSON.stringify(patch),
+                timeout: 15000,
+            });
+            if (updated.status >= 200 && updated.status < 300) return { ok: true, id: existingId, body: updated.body };
+            // Retry without optional payload if field missing
+            if (/payload|unknown field/i.test(JSON.stringify(updated.body || {}))) {
+                delete patch.payload;
+                const again = await ohRequestJson({
+                    method: 'PATCH',
+                    url: `${base}/api/collections/order_history/records/${encodeURIComponent(existingId)}`,
+                    headers,
+                    data: JSON.stringify(patch),
+                    timeout: 15000,
+                });
+                if (again.status >= 200 && again.status < 300) return { ok: true, id: existingId, body: again.body };
+            }
+            return { ok: false, status: updated.status, body: updated.body };
+        }
+
+        let created = await ohRequestJson({
+            method: 'POST',
+            url: `${base}/api/collections/order_history/records`,
+            headers,
+            data: JSON.stringify(record),
+            timeout: 15000,
+        });
+        if (created.status >= 200 && created.status < 300) {
+            return { ok: true, id: created.body?.id, body: created.body };
+        }
+        // Unique race → patch
+        if (/unique|duplicate/i.test(JSON.stringify(created.body || {}))) {
+            const againList = await ohRequestJson({
+                method: 'GET',
+                url: `${base}/api/collections/order_history/records?page=1&perPage=1&filter=${filter}`,
+                headers: { Authorization: token },
+                timeout: 15000,
+            });
+            const id = againList.body?.items?.[0]?.id;
+            if (id) {
+                const patch = { ...record };
+                delete patch.capturedAt;
+                created = await ohRequestJson({
+                    method: 'PATCH',
+                    url: `${base}/api/collections/order_history/records/${encodeURIComponent(id)}`,
+                    headers,
+                    data: JSON.stringify(patch),
+                    timeout: 15000,
+                });
+                if (created.status >= 200 && created.status < 300) return { ok: true, id, body: created.body };
+            }
+        }
+        if (/payload|unknown field/i.test(JSON.stringify(created.body || {}))) {
+            const slim = { ...record };
+            delete slim.payload;
+            created = await ohRequestJson({
+                method: 'POST',
+                url: `${base}/api/collections/order_history/records`,
+                headers,
+                data: JSON.stringify(slim),
+                timeout: 15000,
+            });
+            if (created.status >= 200 && created.status < 300) return { ok: true, id: created.body?.id, body: created.body };
+        }
+        if (created.status === 403 || created.status === 401) {
+            ohHint('Order history: ξεκλείδωσε Create/Update στο order_history');
+        }
+        return { ok: false, status: created.status, body: created.body };
+    }
+
+    async function ohFlushSyncQueue() {
+        if (ohSyncBusy || ohServerUnsupported || !ohSyncQueue.length) return;
+        ohSyncBusy = true;
+        const batch = ohSyncQueue.splice(0, OH_SYNC_QUEUE_MAX);
+        try {
+            const token = await ohEnsureAuthToken();
+            const fps = ohLoadFingerprints();
+            for (const item of batch) {
+                if (ohServerUnsupported) break;
+                const result = await ohUpsertRecord(token, item.record);
+                if (result.unsupported) break;
+                if (result.ok && item.fpKey) {
+                    fps[item.fpKey] = item.fingerprint;
+                }
+            }
+            ohSaveFingerprints(fps);
+        } catch (err) {
+            console.warn('[MMS Order History] sync flush failed', err);
+            // re-queue a bit
+            ohSyncQueue = batch.concat(ohSyncQueue).slice(0, 120);
+        } finally {
+            ohSyncBusy = false;
+            if (ohSyncQueue.length) scheduleOhSyncFlush(800);
+        }
+    }
+
+    function scheduleOhSyncFlush(delayMs) {
+        window.clearTimeout(ohSyncFlushTimer);
+        ohSyncFlushTimer = window.setTimeout(() => {
+            ohFlushSyncQueue().catch(() => {});
+        }, delayMs == null ? OH_SYNC_FLUSH_MS : delayMs);
+    }
+
+    function queueOrdersForServerSync(orders) {
+        if (ohServerUnsupported || !orders?.length) return;
+        const store = ohGetStoreName();
+        const storeKey = ohStoreKey(store);
+        if (!storeKey) {
+            console.log('[MMS Order History] skip server sync — no store');
+            return;
+        }
+        const fps = ohLoadFingerprints();
+        let queued = 0;
+        orders.forEach((order) => {
+            const record = ohRecordFromLocal(order, store, storeKey);
+            if (!record) return;
+            const fingerprint = ohOrderFingerprint(order);
+            const fpKey = record.dedupeKey;
+            if (fps[fpKey] === fingerprint) return; // unchanged
+            // Replace existing queue item with same key
+            ohSyncQueue = ohSyncQueue.filter((q) => q.fpKey !== fpKey);
+            ohSyncQueue.push({ record, fingerprint, fpKey });
+            queued += 1;
+        });
+        if (ohSyncQueue.length > 120) ohSyncQueue = ohSyncQueue.slice(-120);
+        if (queued) scheduleOhSyncFlush();
+    }
+
+    async function fetchStoreOrderHistoryFromServer(kind) {
+        if (ohServerUnsupported) return { ok: false, orders: [], unsupported: true };
+        const store = ohGetStoreName();
+        const storeKey = ohStoreKey(store);
+        if (!storeKey) return { ok: false, orders: [], reason: 'no-store' };
+        try {
+            const token = await ohEnsureAuthToken();
+            const base = OH_PB_BASE.replace(/\/$/, '');
+            const filter = encodeURIComponent(`storeKey="${storeKey}" && kind="${kind}"`);
+            const result = await ohRequestJson({
+                method: 'GET',
+                url: `${base}/api/collections/order_history/records?page=1&perPage=200&sort=-capturedAt&filter=${filter}`,
+                headers: { Authorization: token },
+                timeout: 20000,
+            });
+            const blob = `${JSON.stringify(result.body || {})}\n${result.raw || ''}`;
+            if (result.status === 404 || /missing collection|unknown collection/i.test(blob)) {
+                ohServerUnsupported = true;
+                ohHint('Order history: δημιούργησε collection order_history στο PocketBase');
+                return { ok: false, orders: [], unsupported: true };
+            }
+            if (result.status < 200 || result.status >= 300) {
+                if (result.status === 403 || result.status === 401) {
+                    ohHint('Order history: ξεκλείδωσε List στο order_history');
+                }
+                return { ok: false, orders: [], status: result.status };
+            }
+            const items = Array.isArray(result.body?.items) ? result.body.items : [];
+            return {
+                ok: true,
+                store,
+                storeKey,
+                orders: items.map(ohLocalFromRecord),
+            };
+        } catch (err) {
+            console.warn('[MMS Order History] fetch failed', err);
+            return { ok: false, orders: [], error: err };
+        }
+    }
+
+    function mergeServerOrdersIntoLocal(kind, serverOrders) {
+        if (!serverOrders?.length) return 0;
+        const historyKey = kind === 'parts' ? 'tm_partsorders_page_history' : 'tm_srvorders_page_history';
+        let pageHistory = [];
+        try {
+            pageHistory = JSON.parse(GM_getValue(historyKey, '[]'));
+            if (!Array.isArray(pageHistory)) pageHistory = [];
+        } catch (_) {
+            pageHistory = [];
+        }
+        let added = 0;
+        serverOrders.forEach((remote) => {
+            const exists = pageHistory.some((existing) => isDuplicateOrder(existing, remote)
+                || (ohExtractOrderId(existing) && ohExtractOrderId(existing) === ohExtractOrderId(remote)));
+            if (!exists) {
+                pageHistory.unshift(remote);
+                added += 1;
+            } else {
+                // Refresh richer fields on match
+                const idx = pageHistory.findIndex((existing) => isDuplicateOrder(existing, remote)
+                    || (ohExtractOrderId(existing) && ohExtractOrderId(existing) === ohExtractOrderId(remote)));
+                if (idx >= 0) {
+                    pageHistory[idx] = {
+                        ...pageHistory[idx],
+                        ...remote,
+                        allColumns: {
+                            ...(pageHistory[idx].allColumns || {}),
+                            ...(remote.allColumns || {}),
+                        },
+                        timestamp: Math.max(pageHistory[idx].timestamp || 0, remote.timestamp || 0),
+                    };
+                }
+            }
+        });
+        if (pageHistory.length > MAX_HISTORY_ITEMS) {
+            pageHistory = pageHistory.slice(0, MAX_HISTORY_ITEMS);
+        }
+        GM_setValue(historyKey, JSON.stringify(pageHistory));
+        return added;
+    }
+
+    async function migrateLocalOrderHistoryOnce() {
+        const store = ohGetStoreName();
+        const storeKey = ohStoreKey(store);
+        if (!storeKey || ohServerUnsupported) return;
+        let migrated = {};
+        try {
+            const raw = GM_getValue(OH_MIGRATED_KEY, '{}');
+            migrated = typeof raw === 'string' ? JSON.parse(raw) : (raw || {});
+        } catch (_) {
+            migrated = {};
+        }
+        if (migrated[storeKey]) return;
+        try {
+            const service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]'));
+            const parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]'));
+            const all = [
+                ...(Array.isArray(service) ? service : []),
+                ...(Array.isArray(parts) ? parts : []),
+            ];
+            if (all.length) {
+                // Force upload by clearing fps for these keys temporarily via queue without fp skip
+                const fps = ohLoadFingerprints();
+                all.forEach((order) => {
+                    const record = ohRecordFromLocal(order, store, storeKey);
+                    if (!record) return;
+                    delete fps[record.dedupeKey];
+                });
+                ohSaveFingerprints(fps);
+                queueOrdersForServerSync(all);
+                scheduleOhSyncFlush(500);
+            }
+            migrated[storeKey] = Date.now();
+            GM_setValue(OH_MIGRATED_KEY, JSON.stringify(migrated));
+            console.log(`[MMS Order History] queued local migration for store ${storeKey} (${all.length} rows)`);
+        } catch (err) {
+            console.warn('[MMS Order History] migration failed', err);
+        }
+    }
 
     // Helper function to extract order URL from a table row
     function extractOrderUrl(row, rowIndex) {
@@ -560,6 +1074,12 @@
         GM_setValue(CURRENT_PAGE_HISTORY_KEY, JSON.stringify(pageHistory));
         const pageType = isServiceOrdersPage ? 'Service Orders' : 'Parts Orders';
         console.log(`[MMS Order History] ${pageType}: ${addedCount} added, ${duplicateCount} duplicates skipped. Total: ${pageHistory.length}`);
+        // Shared store sync (delta upsert to PocketBase)
+        try {
+            queueOrdersForServerSync(newOrders);
+        } catch (err) {
+            console.warn('[MMS Order History] queue sync failed', err);
+        }
     }
 
     // Function to monitor page for order acceptance
@@ -715,6 +1235,9 @@
         
         GM_setValue(historyKey, JSON.stringify(pageHistory));
         console.log(`[MMS Order History] [Background] ${pageLabel}: ${addedCount} added, ${duplicateCount} duplicates skipped. Total: ${pageHistory.length}`);
+        try {
+            queueOrdersForServerSync(newOrders);
+        } catch (_) { /* ignore */ }
     }
 
     // Process fetched HTML from an orders list page and merge into history
@@ -1640,7 +2163,7 @@
 
         ensureOrderHistoryStyles();
         
-        // Load history from current page only
+        // Load history from current page only (local cache first)
         const pageHistory = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
         
         // Sort by timestamp (newest first)
@@ -1649,6 +2172,7 @@
         // Determine page name for display
         const pageName = isServiceOrdersPage ? 'Παραγγελίες Υπηρεσιών' : 'Παραγγελίες Ανταλλακτικών';
         const pageBadge = isServiceOrdersPage ? 'Υπηρεσίες' : 'Ανταλλακτικά';
+        const storeLabel = ohGetStoreName() || '—';
         const totalCount = sortedPageHistory.length;
         
         const overlay = document.createElement('div');
@@ -1663,7 +2187,7 @@
                                 📦 Ιστορικό Παραγγελιών
                                 <span class="tm-oh-page-badge">${pageBadge}</span>
                             </h2>
-                            <p class="tm-oh-subtitle">${pageName} · Κλικ σε γραμμή για άνοιγμα παραγγελίας</p>
+                            <p class="tm-oh-subtitle">${pageName} · Κατάστημα: <strong id="tm-oh-store-label">${storeLabel.replace(/</g, '&lt;')}</strong> · <span id="tm-oh-sync-status">τοπικό cache</span></p>
                         </div>
                         <div class="tm-oh-hero-actions">
                             <button type="button" class="tm-oh-close tm-modal-close" title="Κλείσιμο" aria-label="Κλείσιμο">&times;</button>
@@ -1679,6 +2203,9 @@
                             <span class="tm-oh-stat-label">Εμφανίζονται</span>
                         </div>
                         <div class="tm-oh-toolbar">
+                            <button type="button" id="tm-order-sync-btn" class="tm-oh-tool-btn" title="Ανανέωση από server καταστήματος">
+                                <span>☁</span><span>Server</span>
+                            </button>
                             <button type="button" id="tm-order-rescan-btn" class="tm-oh-tool-btn" title="Ανασάρωση τρέχουσας σελίδας">
                                 <span>🔄</span><span>Ανασάρωση</span>
                             </button>
@@ -1688,7 +2215,7 @@
                             <button type="button" id="tm-order-export-btn" class="tm-oh-tool-btn" title="Εξαγωγή CSV">
                                 <span>📥</span><span>Εξαγωγή</span>
                             </button>
-                            <button type="button" id="tm-order-history-clear" class="tm-oh-tool-btn tm-oh-tool-btn--danger" title="Εκκαθάριση ιστορικού">
+                            <button type="button" id="tm-order-history-clear" class="tm-oh-tool-btn tm-oh-tool-btn--danger" title="Εκκαθάριση τοπικού cache (όχι του server)">
                                 <span>🗑️</span><span>Εκκαθάριση</span>
                             </button>
                         </div>
@@ -2121,9 +2648,69 @@
             // Final visible counter after all row-level changes
             updateVisibleCounter();
         };
+
+        const setSyncStatus = (text) => {
+            const el = overlay.querySelector('#tm-oh-sync-status');
+            if (el) el.textContent = text;
+        };
+
+        const refreshFromServer = async ({ silent } = {}) => {
+            const kind = ohPageKind();
+            setSyncStatus('συγχρονισμός…');
+            const remote = await fetchStoreOrderHistoryFromServer(kind);
+            if (!remote.ok) {
+                setSyncStatus(remote.unsupported
+                    ? 'server μη διαθέσιμος'
+                    : (remote.reason === 'no-store' ? 'δεν βρέθηκε κατάστημα' : 'τοπικό cache'));
+                if (!silent && window.showNegativeMessage) {
+                    window.showNegativeMessage(remote.unsupported
+                        ? 'Λείπει collection order_history στο PocketBase'
+                        : (remote.reason === 'no-store'
+                            ? 'Δεν βρέθηκε κατάστημα login — δεν φορτώνει κοινό ιστορικό'
+                            : 'Αποτυχία φόρτωσης από server'));
+                }
+                return false;
+            }
+            mergeServerOrdersIntoLocal(kind, remote.orders);
+            // Also push any local-only rows (delta)
+            try {
+                const localNow = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
+                queueOrdersForServerSync(Array.isArray(localNow) ? localNow : []);
+            } catch (_) { /* ignore */ }
+            const newPageHistory = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
+            sortedPageHistory.length = 0;
+            sortedPageHistory.push(...newPageHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
+            const statsEl = overlay.querySelector('#tm-order-history-stats');
+            if (statsEl) statsEl.textContent = String(sortedPageHistory.length);
+            const storeEl = overlay.querySelector('#tm-oh-store-label');
+            if (storeEl) storeEl.textContent = remote.store || ohGetStoreName() || '—';
+            statusesChecked = false;
+            statusResultsMap.clear();
+            renderOrders();
+            setSyncStatus(`κοινό · ${remote.storeKey || 'store'} · ${remote.orders.length} από server`);
+            if (!silent && window.showPositiveMessage) {
+                window.showPositiveMessage(`Ιστορικό καταστήματος: ${remote.orders.length} εγγραφές`);
+            }
+            return true;
+        };
         
-        // Initial render
+        // Initial render (local), then pull shared store history
         renderOrders();
+        refreshFromServer({ silent: true }).catch(() => {});
+
+        const syncBtn = overlay.querySelector('#tm-order-sync-btn');
+        if (syncBtn) {
+            syncBtn.addEventListener('click', async () => {
+                syncBtn.disabled = true;
+                syncBtn.innerHTML = '<span>⏳</span><span>Server…</span>';
+                try {
+                    await refreshFromServer({ silent: false });
+                } finally {
+                    syncBtn.disabled = false;
+                    syncBtn.innerHTML = '<span>☁</span><span>Server</span>';
+                }
+            });
+        }
         
         // Search functionality
         const searchInput = overlay.querySelector('#tm-order-history-search');
@@ -2419,10 +3006,10 @@
             });
         }
         
-        // Clear history button
+        // Clear history button (local cache only — does not wipe store server history)
         const clearBtn = overlay.querySelector('#tm-order-history-clear');
         clearBtn.addEventListener('click', (e) => {
-            const clearMessage = `Εκκαθάριση όλου του ιστορικού (${pageName})?\n\nΘα διαγραφούν όλες οι αποθηκευμένες παραγγελίες για αυτή τη σελίδα.`;
+            const clearMessage = `Εκκαθάριση τοπικού cache (${pageName})?\n\nΤο κοινό ιστορικό καταστήματος στον server ΔΕΝ διαγράφεται.`;
             
             if (confirm(clearMessage)) {
                 // Clear current page's history
@@ -2439,9 +3026,10 @@
                 
                 // Re-render
                 renderOrders();
+                setSyncStatus('τοπικό cache άδειο');
                 
                 if (window.showPositiveMessage) {
-                    window.showPositiveMessage(`Το ιστορικό εκκαθαρίστηκε (${pageName})`);
+                    window.showPositiveMessage(`Τοπικό cache εκκαθαρίστηκε (${pageName})`);
                 }
             }
         });
@@ -2475,6 +3063,11 @@
         // Always start background fetcher (runs on all pages)
         initOrderHistoryBackgroundFetcher();
 
+        // One-time push of local histories into the current store bucket
+        setTimeout(() => {
+            migrateLocalOrderHistoryOnce().catch(() => {});
+        }, 2500);
+
         // The rest of the logic only applies when we're actually on an orders list page
         if (!onOrdersPage) {
             return;
@@ -2498,6 +3091,18 @@
     // Make functions globally accessible
     window.showOrderHistoryModal = showOrderHistoryModal;
     window.initOrderHistory = initOrderHistory;
+    window.syncOrderHistoryToServer = () => {
+        try {
+            const service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]'));
+            const parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]'));
+            queueOrdersForServerSync([...(service || []), ...(parts || [])]);
+            scheduleOhSyncFlush(300);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    };
+    window.refreshOrderHistoryFromServer = fetchStoreOrderHistoryFromServer;
     
     // Auto-initialize
     if (document.readyState === 'loading') {

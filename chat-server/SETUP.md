@@ -144,24 +144,60 @@ Enable **Realtime** for `presence` if available.
 
 The suite heartbeats every ~25s while chat is connected and updates `lastReadAt` when the panel is open. It also refreshes the users avatar directory so profile photos stay in sync for everyone.
 
-## 7. Backups
+## 7. Create `order_history` collection (shared per-store order history)
+
+Admin → New collection → name: `order_history` (Base)
+
+| Field          | Type | Options |
+| -------------- | ---- | ------- |
+| `store`        | Text | required, max 64 |
+| `storeKey`     | Text | required, max 64 |
+| `kind`         | Text | required, max 16 (`service` or `parts`) |
+| `orderId`      | Text | required, max 64 |
+| `dedupeKey`    | Text | **required**, max 128, **Unique** (`storeKey\|kind\|orderId`) |
+| `repairNumber` | Text | optional, max 64 |
+| `customer`     | Text | optional, max 128 |
+| `phone`        | Text | optional, max 64 |
+| `url`          | Text | optional, max 500 |
+| `status`       | Text | optional, max 64 |
+| `date`         | Text | optional, max 64 |
+| `capturedAt`   | Date | required |
+| `updatedAt`    | Date | optional |
+| `updatedBy`    | Text | optional, max 64 |
+| `payload`      | Text | optional, max 5000 (JSON of extra columns) |
+
+### API rules
+
+Unlock **List / View / Create / Update** and set each to:
+
+```txt
+@request.auth.id != ""
+```
+
+Leave **Delete** empty.
+
+The suite upserts only changed rows (fingerprint delta), filters by login `storeKey`, and merges into the Order History panel. Clear in the UI wipes **local cache only**, not the store server history.
+
+## 8. Backups
 
 Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots.
 
-## 8. Server checklist
+## 9. Server checklist
 
 - [ ] Admin UI loads
 - [ ] `messages` + attachment + avatar/pbUserId + reply/deleted/edited + **reactions** fields
 - [ ] `users.avatar` + Update/List/View rules
 - [ ] `presence` collection + rules (+ optional `avatar`, `typingUntil`)
+- [ ] `order_history` collection + unique `dedupeKey` + List/Create/Update rules
 - [ ] Realtime enabled for messages (and presence)
 - [ ] Snapshot covers chat DB dataset
 
-## 9. Suite (each tech)
+## 10. Suite (each tech)
 
 1. Update Tampermonkey loader if needed (`@connect` includes chat host).
 2. Chat is **on by default** — footer **💬 Chat**.
 3. Features in the panel: search, reply, reactions (👍/❤️), copy, @mentions, edit/delete own, presence, draft autosave, quiet hours, optional sound (Settings → Chat).
 4. Profile photo: **Settings → Chat** (synced via `users.avatar` + message `pbUserId`/`avatar` + presence).
+5. Order History panel loads shared per-store rows from `order_history` (same chat auth + login store).
 
 Display names come from the MyManager login name.

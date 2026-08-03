@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v377 / Custom Ver. 41.21 — generated, do not edit */
+/* MyManager Suite bundle v378 / Custom Ver. 41.22 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '377',
+        version: '378',
         loaderVersion: '41',
-        silentVersion: '21',
-        displayVersion: '41.21',
+        silentVersion: '22',
+        displayVersion: '41.22',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -3561,6 +3561,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         'tm_mms_last_profile_id',
         // Captured on login.php by the loader (suite UI skipped there) — must stay unscoped
         'tm_login_store_v1',
+        // Captured from footer store button before suite rebuilds the footer
+        'tm_connected_store_v1',
     ]);
 
     const PROFILE_PREFIX = 'tm:p:';
@@ -23330,9 +23332,20 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return 'Τεχνικός';
     }
 
-    /** Store chosen on MyManager login (global tm_login_store_v1) or live #iProfileID. */
+    /** Connected store button (primary), then login capture / #iProfileID. */
     function detectLoginStoreName() {
-        // 1) Global key written by loader on login.php (survives profile scoping)
+        // 1) Connected store from footer button (survives footer wipe via GM)
+        try {
+            if (typeof window.captureConnectedStoreFromPage === 'function') {
+                const live = String(window.captureConnectedStoreFromPage(document) || '').trim();
+                if (live) return live.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        try {
+            const connected = String(GM_getValue('tm_connected_store_v1', '') || '').trim();
+            if (connected) return connected.slice(0, 64);
+        } catch (_) { /* ignore */ }
+        // 2) Global key written by loader on login.php
         try {
             const fromLogin = String(GM_getValue('tm_login_store_v1', '') || '').trim();
             if (fromLogin) return fromLogin.slice(0, 64);
@@ -23347,6 +23360,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 if (name && !/^(select|επιλέξ|επιλεξ|choose|—|-|κατάστημα)$/i.test(name)) {
                     return name.slice(0, 64);
                 }
+            }
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof window.getCurrentStoreName === 'function') {
+                const n = String(window.getCurrentStoreName() || '').trim();
+                if (n) return n.slice(0, 64);
             }
         } catch (_) { /* ignore */ }
         try {
@@ -23468,7 +23487,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             if (locked && current) {
                 chip.hidden = false;
                 chip.textContent = current.length > 18 ? `${current.slice(0, 16)}…` : current;
-                chip.title = `Κατάστημα (από login): ${current}`;
+                chip.title = `Κατάστημα (από σελίδα/login): ${current}`;
             } else {
                 chip.hidden = true;
                 chip.textContent = '';
@@ -27393,6 +27412,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     window.connectOfficeChat = connectChat;
     window.ensureOfficeChatAccount = ensureOfficeChatAccount;
     window.getOfficeChatSettings = getChatSettings;
+    window.ensureOfficeChatAuthToken = async function ensureOfficeChatAuthToken(STORAGE_KEYS) {
+        const keys = STORAGE_KEYS || window.STORAGE_KEYS || {};
+        const ensured = await ensureOfficeChatAccount(keys);
+        if (!ensured?.ok) throw new Error(ensured?.message || 'Chat auth failed');
+        return ensureAuth(keys);
+    };
+    window.getOfficeChatStoreName = function getOfficeChatStoreName(STORAGE_KEYS) {
+        return getChatStoreName(STORAGE_KEYS || window.STORAGE_KEYS) || detectLoginStoreName() || '';
+    };
+    window.greekToLatinSlug = greekToLatinSlug;
     window.suggestOfficeChatEmail = suggestOfficeChatEmail;
     window.registerOfficeChatUser = registerOfficeChatUser;
     window.getOfficeChatAvatarInfo = getOfficeChatAvatarInfo;
@@ -59727,6 +59756,8 @@ function normalizeStoreDisplayName(name) {
 const MY_STORE_NAME_KEY = 'tm_phone_my_store_name_v1';
 const MY_STORE_PICK_KEY = 'tm_phone_my_store_pick_v1';
 const LOGIN_STORE_KEY = 'tm_login_store_v1';
+/** Connected store from page footer button (primary). Global — not profile-scoped. */
+const CONNECTED_STORE_KEY = 'tm_connected_store_v1';
 const STORE_ADDRESSES_KEY = 'tm_phone_store_addresses_v1';
 
 const DEFAULT_PROFILE_STORES = [
@@ -59811,6 +59842,10 @@ function matchStoreNameInText(text, candidates) {
 function parseCurrentStoreFromDocument(doc = document) {
     if (!doc) return '';
 
+    // Primary: footer / page store label button (e.g. "ΒΡΙΛΗΣΣΙΑ (IKE)")
+    const fromBtn = parseConnectedStoreButton(doc);
+    if (fromBtn) return fromBtn;
+
     const sel = doc.querySelector('#iProfileID, select[name="iProfileID"]');
     if (sel && sel.selectedIndex >= 0) {
         const name = normalizeStoreDisplayName(sel.options[sel.selectedIndex].text);
@@ -59840,13 +59875,88 @@ function parseCurrentStoreFromDocument(doc = document) {
     return '';
 }
 
+/**
+ * MyManager shows the connected store as a non-interactive footer button, e.g.
+ * <button type="button" class="btn" style="cursors:default">ΒΡΙΛΗΣΣΙΑ (IKE)</button>
+ * The suite deletes footer center children when building its footer — capture first.
+ */
+function parseConnectedStoreButton(doc = document) {
+    if (!doc) return '';
+    const footerCell = doc.querySelector('#footer-outterwrap table td[width="60%"]')
+        || doc.querySelector('#footer-outterwrap table td:nth-child(2)')
+        || doc.querySelector('#footer-outterwrap td');
+    const buttons = [];
+    if (footerCell) {
+        footerCell.querySelectorAll('button.btn, button').forEach((btn) => buttons.push(btn));
+    }
+    doc.querySelectorAll('button.btn').forEach((btn) => {
+        if (!buttons.includes(btn)) buttons.push(btn);
+    });
+
+    const scoreButton = (btn) => {
+        const text = normalizeStoreDisplayName(btn.textContent);
+        if (!text || text.length < 3 || text.length > 80) return null;
+        if (isDeprecatedStoreName(text)) return null;
+        if (/^(ok|cancel|αποθήκ|save|login|είσοδος|search|αναζήτ)/i.test(text)) return null;
+        const style = String(btn.getAttribute('style') || '');
+        const looksDefaultCursor = /cursors?\s*:\s*default/i.test(style);
+        const inFooter = !!(footerCell && footerCell.contains(btn));
+        const looksLikeStore = /\((?:IKE|ΙΚΕ|ΕΕ|EE)\)/i.test(text)
+            || !!matchStoreNameInText(text, DEFAULT_PROFILE_STORES);
+        if (!looksLikeStore && !(inFooter && looksDefaultCursor && /[Α-ΩA-Z]/u.test(text))) {
+            return null;
+        }
+        let score = 0;
+        if (inFooter) score += 5;
+        if (looksDefaultCursor) score += 3;
+        if (/\((?:IKE|ΙΚΕ|ΕΕ|EE)\)/i.test(text)) score += 4;
+        if (btn.classList.contains('btn')) score += 1;
+        return { text, score };
+    };
+
+    let best = null;
+    buttons.forEach((btn) => {
+        const hit = scoreButton(btn);
+        if (!hit) return;
+        if (!best || hit.score > best.score) best = hit;
+    });
+    return best?.text || '';
+}
+
+function getConnectedStoreCached() {
+    try {
+        const name = normalizeStoreDisplayName(GM_getValue(CONNECTED_STORE_KEY, '') || '');
+        if (name && !isDeprecatedStoreName(name)) return name;
+    } catch (_) { /* ignore */ }
+    return '';
+}
+
+/** Capture + persist connected store from the page button. Safe to call before footer wipe. */
+function captureConnectedStoreFromPage(doc = document) {
+    const name = parseConnectedStoreButton(doc);
+    if (!name) return getConnectedStoreCached();
+    try {
+        GM_setValue(CONNECTED_STORE_KEY, name);
+        GM_setValue(MY_STORE_NAME_KEY, name);
+        const pick = normalizeStoreDisplayName(GM_getValue(MY_STORE_PICK_KEY, '') || '');
+        if (!pick || normalizeStoreLookupKey(pick) !== normalizeStoreLookupKey(name)) {
+            GM_setValue(MY_STORE_PICK_KEY, name);
+        }
+    } catch (_) { /* ignore */ }
+    return name;
+}
+
 function detectAndCacheCurrentStoreName(doc = document) {
+    // Prefer live connected-store button whenever present
+    const connected = captureConnectedStoreFromPage(doc);
+    if (connected) return connected;
+
     const parsed = parseCurrentStoreFromDocument(doc);
     if (parsed) {
         GM_setValue(MY_STORE_NAME_KEY, parsed);
         return parsed;
     }
-    return GM_getValue(MY_STORE_NAME_KEY, '') || '';
+    return GM_getValue(MY_STORE_NAME_KEY, '') || getConnectedStoreCached() || '';
 }
 
 function getLoginCapturedStore() {
@@ -59857,8 +59967,19 @@ function getLoginCapturedStore() {
     return '';
 }
 
-/** Prefer login-captured store for "my store"; keeps pick/cache in sync. */
+/** Prefer connected-page store, then login capture, for "my store". */
 function syncMyStoreFromLoginCapture() {
+    const connected = getConnectedStoreCached() || captureConnectedStoreFromPage(document);
+    if (connected) {
+        try { GM_setValue(MY_STORE_NAME_KEY, connected); } catch (_) { /* ignore */ }
+        try {
+            const pick = normalizeStoreDisplayName(GM_getValue(MY_STORE_PICK_KEY, '') || '');
+            if (!pick || normalizeStoreLookupKey(pick) !== normalizeStoreLookupKey(connected)) {
+                GM_setValue(MY_STORE_PICK_KEY, connected);
+            }
+        } catch (_) { /* ignore */ }
+        return connected;
+    }
     const login = getLoginCapturedStore();
     if (!login) return '';
     try {
@@ -59878,17 +59999,22 @@ function getAutoDetectedStoreName(doc = document) {
 }
 
 function getUserStorePick() {
-    const login = syncMyStoreFromLoginCapture();
-    if (login) return login;
+    const connected = getConnectedStoreCached() || captureConnectedStoreFromPage(document);
+    if (connected) return connected;
+    const login = getLoginCapturedStore();
+    if (login) {
+        syncMyStoreFromLoginCapture();
+        return login;
+    }
     return GM_getValue(MY_STORE_PICK_KEY, '') || '';
 }
 
 function setUserStorePick(name) {
-    // Login auto-store locks "my store" (same as chat)
-    const login = getLoginCapturedStore();
-    if (login) {
-        try { GM_setValue(MY_STORE_PICK_KEY, login); } catch (_) { /* ignore */ }
-        return login;
+    // Connected page store or login auto-store locks "my store" (same as chat)
+    const locked = getConnectedStoreCached() || getLoginCapturedStore();
+    if (locked) {
+        try { GM_setValue(MY_STORE_PICK_KEY, locked); } catch (_) { /* ignore */ }
+        return locked;
     }
     const clean = normalizeStoreDisplayName(name);
     if (clean) {
@@ -59913,6 +60039,8 @@ function getStorePickerOptions(...phoneLists) {
     (collectKnownStoreNames(...phoneLists) || []).forEach(add);
     const detected = GM_getValue(MY_STORE_NAME_KEY, '');
     if (detected) add(detected);
+    const connected = getConnectedStoreCached();
+    if (connected) add(connected);
     const login = getLoginCapturedStore();
     if (login) add(login);
     const pick = GM_getValue(MY_STORE_PICK_KEY, '') || '';
@@ -59922,8 +60050,16 @@ function getStorePickerOptions(...phoneLists) {
 }
 
 function getCurrentStoreName() {
-    const login = syncMyStoreFromLoginCapture();
-    if (login) return login;
+    // 1) Connected store button on the page (primary)
+    const connected = captureConnectedStoreFromPage(document) || getConnectedStoreCached();
+    if (connected) return connected;
+    // 2) Login-page capture (fallback)
+    const login = getLoginCapturedStore();
+    if (login) {
+        try { GM_setValue(MY_STORE_NAME_KEY, login); } catch (_) { /* ignore */ }
+        return login;
+    }
+    // 3) Manual pick / auto text match
     const pick = GM_getValue(MY_STORE_PICK_KEY, '') || '';
     if (pick) return pick;
     return getAutoDetectedStoreName(document);
@@ -61907,6 +62043,9 @@ window.parseStorePatternCsv = parseStorePatternCsv;
 window.storeNameMatchesPatterns = storeNameMatchesPatterns;
 window.collectKnownStoreNames = collectKnownStoreNames;
 window.getCurrentStoreName = getCurrentStoreName;
+window.captureConnectedStoreFromPage = captureConnectedStoreFromPage;
+window.parseConnectedStoreButton = parseConnectedStoreButton;
+window.getConnectedStoreCached = getConnectedStoreCached;
 window.getAutoDetectedStoreName = getAutoDetectedStoreName;
 window.getUserStorePick = getUserStorePick;
 window.setUserStorePick = setUserStorePick;
@@ -61946,10 +62085,12 @@ window.collectSuggestedCanonicalModels = collectSuggestedCanonicalModels;
 window.rebuildCanonModelTokens = rebuildCanonModelTokens;
 
 if (document.body) {
+    captureConnectedStoreFromPage(document);
     syncMyStoreFromLoginCapture();
     detectAndCacheCurrentStoreName(document);
 } else {
     document.addEventListener('DOMContentLoaded', () => {
+        captureConnectedStoreFromPage(document);
         syncMyStoreFromLoginCapture();
         detectAndCacheCurrentStoreName(document);
     }, { once: true });
@@ -62381,10 +62522,13 @@ if (document.body) {
         if (existing) existing.remove();
 
         const options = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
+        const connectedStore = window.getConnectedStoreCached?.() || window.captureConnectedStoreFromPage?.(document) || '';
         const loginStore = window.getLoginCapturedStore?.() || '';
-        const currentPick = window.getUserStorePick?.() || loginStore || '';
-        const detected = loginStore || window.getAutoDetectedStoreName?.() || '';
-        const locked = !!loginStore;
+        const autoStore = connectedStore || loginStore;
+        const currentPick = window.getUserStorePick?.() || autoStore || '';
+        const detected = autoStore || window.getAutoDetectedStoreName?.() || '';
+        const locked = !!autoStore;
+        const lockLabel = connectedStore ? 'σελίδα' : 'login';
         const modal = document.createElement('div');
         modal.id = 'tm-phone-mystore-modal';
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -62410,11 +62554,11 @@ if (document.body) {
             </select>
             <div id="tm-my-store-detected" style="font-size:11px;opacity:0.7;margin-bottom:14px;">
                 ${locked
-                    ? `${t('Auto-detected store')} (login): <strong>${loginStore}</strong>`
+                    ? `${t('Auto-detected store')} (${lockLabel}): <strong>${autoStore}</strong>`
                     : (detected ? `${t('Auto-detected store')}: <strong>${detected}</strong>` : t('No store detected'))}
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button id="tm-save-my-store" type="button" style="padding:8px 14px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;" ${locked ? 'disabled' : ''}>${locked ? '🔒 Login' : t('Save')}</button>
+                <button id="tm-save-my-store" type="button" style="padding:8px 14px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;" ${locked ? 'disabled' : ''}>${locked ? '🔒 Auto' : t('Save')}</button>
             </div>
         `;
 
@@ -62450,10 +62594,13 @@ if (document.body) {
 
         const rules = window.loadPhoneStoreRules?.() || window.getDefaultPhoneStoreRules?.() || { buybackPatterns: [], regularPatterns: [], overrides: {} };
         const storeOptions = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
+        const connectedStore = window.getConnectedStoreCached?.() || window.captureConnectedStoreFromPage?.(document) || '';
         const loginStore = window.getLoginCapturedStore?.() || '';
-        const currentPick = window.getUserStorePick?.() || loginStore || '';
-        const detected = loginStore || window.getAutoDetectedStoreName?.() || '';
-        const locked = !!loginStore;
+        const autoStore = connectedStore || loginStore;
+        const currentPick = window.getUserStorePick?.() || autoStore || '';
+        const detected = autoStore || window.getAutoDetectedStoreName?.() || '';
+        const locked = !!autoStore;
+        const lockLabel = connectedStore ? 'σελίδα' : 'login';
         const modal = document.createElement('div');
         modal.id = 'tm-phone-stores-modal';
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -62472,7 +62619,7 @@ if (document.body) {
                     <option value="">${t('Auto-detect store')}${detected ? ` (${detected})` : ''}</option>
                     ${storeOptions.map((name) => `<option value="${name.replace(/"/g, '&quot;')}"${currentPick === name ? ' selected' : ''}>${name}</option>`).join('')}
                 </select>
-                <div style="font-size:11px;opacity:0.7;line-height:1.4;">${locked ? `${t('Auto-detected store')} (login): <strong>${loginStore}</strong>` : t('My store location hint')}</div>
+                <div style="font-size:11px;opacity:0.7;line-height:1.4;">${locked ? `${t('Auto-detected store')} (${lockLabel}): <strong>${autoStore}</strong>` : t('My store location hint')}</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -65596,7 +65743,521 @@ if (document.body) {
         ? 'tm_srvorders_page_history' 
         : 'tm_partsorders_page_history';
     
-    const MAX_HISTORY_ITEMS = 100; // Keep last 100 orders per page
+    const MAX_HISTORY_ITEMS = 100; // Keep last 100 orders per page (local cache)
+    const OH_PB_BASE = 'https://mngerchat.littlejol.mywire.org';
+    const OH_SYNC_FP_KEY = 'tm_oh_sync_fp_v1';
+    const OH_MIGRATED_KEY = 'tm_oh_migrated_stores_v1';
+    const OH_SYNC_QUEUE_MAX = 40;
+    const OH_SYNC_FLUSH_MS = 2500;
+    let ohServerUnsupported = false;
+    let ohServerHintShown = false;
+    let ohSyncQueue = [];
+    let ohSyncFlushTimer = null;
+    let ohSyncBusy = false;
+
+    function ohGetStoreName() {
+        try {
+            if (typeof window.getCurrentStoreName === 'function') {
+                const n = String(window.getCurrentStoreName() || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof window.getOfficeChatStoreName === 'function') {
+                const n = String(window.getOfficeChatStoreName(window.STORAGE_KEYS) || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        try {
+            const login = String(GM_getValue('tm_login_store_v1', '') || '').trim();
+            if (login) return login.slice(0, 64);
+        } catch (_) { /* ignore */ }
+        try {
+            const cached = String(GM_getValue('tm_phone_my_store_name_v1', '') || '').trim();
+            if (cached) return cached.slice(0, 64);
+        } catch (_) { /* ignore */ }
+        return '';
+    }
+
+    function ohStoreKey(storeName) {
+        const raw = String(storeName || ohGetStoreName() || '').trim();
+        if (!raw) return '';
+        if (typeof window.greekToLatinSlug === 'function') {
+            const slug = window.greekToLatinSlug(raw);
+            if (slug) return slug.slice(0, 64);
+        }
+        return raw
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '')
+            .slice(0, 64) || 'store';
+    }
+
+    function ohOrderKind(order) {
+        const t = String(order?.type || '').toLowerCase();
+        if (t.includes('part') || t.includes('ανταλλακ')) return 'parts';
+        if (isPartsOrdersPage) return 'parts';
+        return 'service';
+    }
+
+    function ohPageKind() {
+        return isPartsOrdersPage ? 'parts' : 'service';
+    }
+
+    function ohExtractOrderId(order) {
+        const url = String(order?.url || '');
+        try {
+            const u = new URL(url, 'https://thefixers.mymanager.gr');
+            const fromUrl = u.searchParams.get('editid1')
+                || u.searchParams.get('id')
+                || u.searchParams.get('orderid');
+            if (fromUrl) return String(fromUrl).trim().slice(0, 64);
+        } catch (_) { /* ignore */ }
+        const id = String(order?.id || '').trim();
+        // Prefer left side of composite id (orderNumber__code)
+        if (id.includes('__')) return id.split('__')[0].slice(0, 64);
+        return id.slice(0, 64);
+    }
+
+    function ohPickStatus(order) {
+        if (order?.status) return String(order.status).slice(0, 64);
+        const cols = order?.allColumns || {};
+        for (const [k, v] of Object.entries(cols)) {
+            if (/κατάσταση|status/i.test(String(k))) return String(v || '').slice(0, 64);
+        }
+        return '';
+    }
+
+    function ohOrderFingerprint(order) {
+        return [
+            ohExtractOrderId(order),
+            order?.phone || '',
+            order?.customer || '',
+            order?.date || '',
+            order?.url || '',
+            order?.repairNumber || '',
+            ohPickStatus(order),
+        ].join('\u0001');
+    }
+
+    function ohLoadFingerprints() {
+        try {
+            const raw = GM_getValue(OH_SYNC_FP_KEY, '{}');
+            const obj = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            return (obj && typeof obj === 'object') ? obj : {};
+        } catch (_) {
+            return {};
+        }
+    }
+
+    function ohSaveFingerprints(map) {
+        try {
+            const keys = Object.keys(map || {});
+            if (keys.length > 800) {
+                keys.slice(0, keys.length - 600).forEach((k) => { delete map[k]; });
+            }
+            GM_setValue(OH_SYNC_FP_KEY, JSON.stringify(map));
+        } catch (_) { /* ignore */ }
+    }
+
+    function ohDisplayName() {
+        try {
+            if (typeof window.MMS_PROFILES?.parseLoginBlockDisplayName === 'function') {
+                const n = String(window.MMS_PROFILES.parseLoginBlockDisplayName() || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        const el = document.querySelector('#login_block1 b, .rnr-b-loggedas b');
+        if (el) return String(el.textContent || '').replace(/^.*ως\s+/i, '').trim().slice(0, 64);
+        return 'Τεχνικός';
+    }
+
+    function ohRequestJson({ method, url, headers, data, timeout }) {
+        return new Promise((resolve) => {
+            const xhr = (typeof GM_xmlhttpRequest === 'function')
+                ? GM_xmlhttpRequest
+                : (typeof GM !== 'undefined' && GM.xmlHttpRequest ? GM.xmlHttpRequest : null);
+            if (!xhr) {
+                resolve({ status: 0, body: null, raw: 'no xhr' });
+                return;
+            }
+            xhr({
+                method: method || 'GET',
+                url,
+                headers: headers || {},
+                data: data || undefined,
+                timeout: timeout || 20000,
+                onload(res) {
+                    let body = null;
+                    const raw = String(res.responseText || '');
+                    try { body = raw ? JSON.parse(raw) : null; } catch (_) { body = null; }
+                    resolve({ status: res.status, body, raw });
+                },
+                onerror() { resolve({ status: 0, body: null, raw: 'network' }); },
+                ontimeout() { resolve({ status: 0, body: null, raw: 'timeout' }); },
+            });
+        });
+    }
+
+    async function ohEnsureAuthToken() {
+        if (typeof window.ensureOfficeChatAuthToken === 'function') {
+            return window.ensureOfficeChatAuthToken(window.STORAGE_KEYS);
+        }
+        if (typeof window.ensureOfficeChatAccount === 'function') {
+            const ensured = await window.ensureOfficeChatAccount(window.STORAGE_KEYS);
+            if (!ensured?.ok) throw new Error(ensured?.message || 'Chat account failed');
+        }
+        throw new Error('Office chat auth unavailable');
+    }
+
+    function ohHint(msg) {
+        if (ohServerHintShown) return;
+        ohServerHintShown = true;
+        console.warn('[MMS Order History]', msg);
+        try {
+            if (typeof window.showNegativeMessage === 'function') {
+                window.showNegativeMessage(msg);
+            }
+        } catch (_) { /* ignore */ }
+    }
+
+    function ohRecordFromLocal(order, store, storeKey) {
+        const kind = ohOrderKind(order);
+        const orderId = ohExtractOrderId(order);
+        if (!orderId || !storeKey) return null;
+        const nowIso = new Date().toISOString();
+        const captured = order.timestamp ? new Date(order.timestamp).toISOString() : nowIso;
+        let payload = '';
+        try {
+            payload = JSON.stringify(order.allColumns || {}).slice(0, 5000);
+        } catch (_) {
+            payload = '';
+        }
+        return {
+            store: String(store || '').slice(0, 64),
+            storeKey: String(storeKey).slice(0, 64),
+            kind,
+            orderId: String(orderId).slice(0, 64),
+            dedupeKey: `${storeKey}|${kind}|${orderId}`.slice(0, 128),
+            repairNumber: String(order.repairNumber || '').slice(0, 64),
+            customer: String(order.customer || '').slice(0, 128),
+            phone: String(order.phone || '').slice(0, 64),
+            url: String(order.url || '').slice(0, 500),
+            status: ohPickStatus(order),
+            date: String(order.date || '').slice(0, 64),
+            capturedAt: captured,
+            updatedAt: nowIso,
+            updatedBy: ohDisplayName(),
+            payload,
+        };
+    }
+
+    function ohLocalFromRecord(rec) {
+        let allColumns = {};
+        if (rec?.payload) {
+            try {
+                const parsed = typeof rec.payload === 'string' ? JSON.parse(rec.payload) : rec.payload;
+                if (parsed && typeof parsed === 'object') allColumns = parsed;
+            } catch (_) { /* ignore */ }
+        }
+        const ts = rec?.capturedAt ? new Date(rec.capturedAt).getTime() : Date.now();
+        return {
+            id: rec.orderId,
+            phone: rec.phone || '',
+            customer: rec.customer || '',
+            repairNumber: rec.repairNumber || '',
+            type: rec.kind === 'parts' ? 'Parts Order' : 'Service Order',
+            url: rec.url || '',
+            timestamp: Number.isFinite(ts) ? ts : Date.now(),
+            date: rec.date || '',
+            status: rec.status || '',
+            allColumns,
+            _fromServer: true,
+            _pbId: rec.id || '',
+            _storeKey: rec.storeKey || '',
+        };
+    }
+
+    async function ohUpsertRecord(token, record) {
+        const base = OH_PB_BASE.replace(/\/$/, '');
+        const headers = {
+            Authorization: token,
+            'Content-Type': 'application/json',
+        };
+        const filter = encodeURIComponent(`dedupeKey="${record.dedupeKey}"`);
+        const listed = await ohRequestJson({
+            method: 'GET',
+            url: `${base}/api/collections/order_history/records?page=1&perPage=1&filter=${filter}`,
+            headers: { Authorization: token },
+            timeout: 15000,
+        });
+        const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
+        if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
+            ohServerUnsupported = true;
+            ohHint('Order history: δημιούργησε collection order_history στο PocketBase (SETUP)');
+            return { ok: false, unsupported: true };
+        }
+        if (listed.status === 403 || listed.status === 401) {
+            ohHint('Order history: ξεκλείδωσε List/Create/Update στο order_history');
+            return { ok: false, status: listed.status };
+        }
+
+        const existingId = listed.body?.items?.[0]?.id;
+        if (existingId) {
+            const patch = { ...record };
+            // Keep original capturedAt if server has one
+            if (listed.body.items[0].capturedAt) delete patch.capturedAt;
+            const updated = await ohRequestJson({
+                method: 'PATCH',
+                url: `${base}/api/collections/order_history/records/${encodeURIComponent(existingId)}`,
+                headers,
+                data: JSON.stringify(patch),
+                timeout: 15000,
+            });
+            if (updated.status >= 200 && updated.status < 300) return { ok: true, id: existingId, body: updated.body };
+            // Retry without optional payload if field missing
+            if (/payload|unknown field/i.test(JSON.stringify(updated.body || {}))) {
+                delete patch.payload;
+                const again = await ohRequestJson({
+                    method: 'PATCH',
+                    url: `${base}/api/collections/order_history/records/${encodeURIComponent(existingId)}`,
+                    headers,
+                    data: JSON.stringify(patch),
+                    timeout: 15000,
+                });
+                if (again.status >= 200 && again.status < 300) return { ok: true, id: existingId, body: again.body };
+            }
+            return { ok: false, status: updated.status, body: updated.body };
+        }
+
+        let created = await ohRequestJson({
+            method: 'POST',
+            url: `${base}/api/collections/order_history/records`,
+            headers,
+            data: JSON.stringify(record),
+            timeout: 15000,
+        });
+        if (created.status >= 200 && created.status < 300) {
+            return { ok: true, id: created.body?.id, body: created.body };
+        }
+        // Unique race → patch
+        if (/unique|duplicate/i.test(JSON.stringify(created.body || {}))) {
+            const againList = await ohRequestJson({
+                method: 'GET',
+                url: `${base}/api/collections/order_history/records?page=1&perPage=1&filter=${filter}`,
+                headers: { Authorization: token },
+                timeout: 15000,
+            });
+            const id = againList.body?.items?.[0]?.id;
+            if (id) {
+                const patch = { ...record };
+                delete patch.capturedAt;
+                created = await ohRequestJson({
+                    method: 'PATCH',
+                    url: `${base}/api/collections/order_history/records/${encodeURIComponent(id)}`,
+                    headers,
+                    data: JSON.stringify(patch),
+                    timeout: 15000,
+                });
+                if (created.status >= 200 && created.status < 300) return { ok: true, id, body: created.body };
+            }
+        }
+        if (/payload|unknown field/i.test(JSON.stringify(created.body || {}))) {
+            const slim = { ...record };
+            delete slim.payload;
+            created = await ohRequestJson({
+                method: 'POST',
+                url: `${base}/api/collections/order_history/records`,
+                headers,
+                data: JSON.stringify(slim),
+                timeout: 15000,
+            });
+            if (created.status >= 200 && created.status < 300) return { ok: true, id: created.body?.id, body: created.body };
+        }
+        if (created.status === 403 || created.status === 401) {
+            ohHint('Order history: ξεκλείδωσε Create/Update στο order_history');
+        }
+        return { ok: false, status: created.status, body: created.body };
+    }
+
+    async function ohFlushSyncQueue() {
+        if (ohSyncBusy || ohServerUnsupported || !ohSyncQueue.length) return;
+        ohSyncBusy = true;
+        const batch = ohSyncQueue.splice(0, OH_SYNC_QUEUE_MAX);
+        try {
+            const token = await ohEnsureAuthToken();
+            const fps = ohLoadFingerprints();
+            for (const item of batch) {
+                if (ohServerUnsupported) break;
+                const result = await ohUpsertRecord(token, item.record);
+                if (result.unsupported) break;
+                if (result.ok && item.fpKey) {
+                    fps[item.fpKey] = item.fingerprint;
+                }
+            }
+            ohSaveFingerprints(fps);
+        } catch (err) {
+            console.warn('[MMS Order History] sync flush failed', err);
+            // re-queue a bit
+            ohSyncQueue = batch.concat(ohSyncQueue).slice(0, 120);
+        } finally {
+            ohSyncBusy = false;
+            if (ohSyncQueue.length) scheduleOhSyncFlush(800);
+        }
+    }
+
+    function scheduleOhSyncFlush(delayMs) {
+        window.clearTimeout(ohSyncFlushTimer);
+        ohSyncFlushTimer = window.setTimeout(() => {
+            ohFlushSyncQueue().catch(() => {});
+        }, delayMs == null ? OH_SYNC_FLUSH_MS : delayMs);
+    }
+
+    function queueOrdersForServerSync(orders) {
+        if (ohServerUnsupported || !orders?.length) return;
+        const store = ohGetStoreName();
+        const storeKey = ohStoreKey(store);
+        if (!storeKey) {
+            console.log('[MMS Order History] skip server sync — no store');
+            return;
+        }
+        const fps = ohLoadFingerprints();
+        let queued = 0;
+        orders.forEach((order) => {
+            const record = ohRecordFromLocal(order, store, storeKey);
+            if (!record) return;
+            const fingerprint = ohOrderFingerprint(order);
+            const fpKey = record.dedupeKey;
+            if (fps[fpKey] === fingerprint) return; // unchanged
+            // Replace existing queue item with same key
+            ohSyncQueue = ohSyncQueue.filter((q) => q.fpKey !== fpKey);
+            ohSyncQueue.push({ record, fingerprint, fpKey });
+            queued += 1;
+        });
+        if (ohSyncQueue.length > 120) ohSyncQueue = ohSyncQueue.slice(-120);
+        if (queued) scheduleOhSyncFlush();
+    }
+
+    async function fetchStoreOrderHistoryFromServer(kind) {
+        if (ohServerUnsupported) return { ok: false, orders: [], unsupported: true };
+        const store = ohGetStoreName();
+        const storeKey = ohStoreKey(store);
+        if (!storeKey) return { ok: false, orders: [], reason: 'no-store' };
+        try {
+            const token = await ohEnsureAuthToken();
+            const base = OH_PB_BASE.replace(/\/$/, '');
+            const filter = encodeURIComponent(`storeKey="${storeKey}" && kind="${kind}"`);
+            const result = await ohRequestJson({
+                method: 'GET',
+                url: `${base}/api/collections/order_history/records?page=1&perPage=200&sort=-capturedAt&filter=${filter}`,
+                headers: { Authorization: token },
+                timeout: 20000,
+            });
+            const blob = `${JSON.stringify(result.body || {})}\n${result.raw || ''}`;
+            if (result.status === 404 || /missing collection|unknown collection/i.test(blob)) {
+                ohServerUnsupported = true;
+                ohHint('Order history: δημιούργησε collection order_history στο PocketBase');
+                return { ok: false, orders: [], unsupported: true };
+            }
+            if (result.status < 200 || result.status >= 300) {
+                if (result.status === 403 || result.status === 401) {
+                    ohHint('Order history: ξεκλείδωσε List στο order_history');
+                }
+                return { ok: false, orders: [], status: result.status };
+            }
+            const items = Array.isArray(result.body?.items) ? result.body.items : [];
+            return {
+                ok: true,
+                store,
+                storeKey,
+                orders: items.map(ohLocalFromRecord),
+            };
+        } catch (err) {
+            console.warn('[MMS Order History] fetch failed', err);
+            return { ok: false, orders: [], error: err };
+        }
+    }
+
+    function mergeServerOrdersIntoLocal(kind, serverOrders) {
+        if (!serverOrders?.length) return 0;
+        const historyKey = kind === 'parts' ? 'tm_partsorders_page_history' : 'tm_srvorders_page_history';
+        let pageHistory = [];
+        try {
+            pageHistory = JSON.parse(GM_getValue(historyKey, '[]'));
+            if (!Array.isArray(pageHistory)) pageHistory = [];
+        } catch (_) {
+            pageHistory = [];
+        }
+        let added = 0;
+        serverOrders.forEach((remote) => {
+            const exists = pageHistory.some((existing) => isDuplicateOrder(existing, remote)
+                || (ohExtractOrderId(existing) && ohExtractOrderId(existing) === ohExtractOrderId(remote)));
+            if (!exists) {
+                pageHistory.unshift(remote);
+                added += 1;
+            } else {
+                // Refresh richer fields on match
+                const idx = pageHistory.findIndex((existing) => isDuplicateOrder(existing, remote)
+                    || (ohExtractOrderId(existing) && ohExtractOrderId(existing) === ohExtractOrderId(remote)));
+                if (idx >= 0) {
+                    pageHistory[idx] = {
+                        ...pageHistory[idx],
+                        ...remote,
+                        allColumns: {
+                            ...(pageHistory[idx].allColumns || {}),
+                            ...(remote.allColumns || {}),
+                        },
+                        timestamp: Math.max(pageHistory[idx].timestamp || 0, remote.timestamp || 0),
+                    };
+                }
+            }
+        });
+        if (pageHistory.length > MAX_HISTORY_ITEMS) {
+            pageHistory = pageHistory.slice(0, MAX_HISTORY_ITEMS);
+        }
+        GM_setValue(historyKey, JSON.stringify(pageHistory));
+        return added;
+    }
+
+    async function migrateLocalOrderHistoryOnce() {
+        const store = ohGetStoreName();
+        const storeKey = ohStoreKey(store);
+        if (!storeKey || ohServerUnsupported) return;
+        let migrated = {};
+        try {
+            const raw = GM_getValue(OH_MIGRATED_KEY, '{}');
+            migrated = typeof raw === 'string' ? JSON.parse(raw) : (raw || {});
+        } catch (_) {
+            migrated = {};
+        }
+        if (migrated[storeKey]) return;
+        try {
+            const service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]'));
+            const parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]'));
+            const all = [
+                ...(Array.isArray(service) ? service : []),
+                ...(Array.isArray(parts) ? parts : []),
+            ];
+            if (all.length) {
+                // Force upload by clearing fps for these keys temporarily via queue without fp skip
+                const fps = ohLoadFingerprints();
+                all.forEach((order) => {
+                    const record = ohRecordFromLocal(order, store, storeKey);
+                    if (!record) return;
+                    delete fps[record.dedupeKey];
+                });
+                ohSaveFingerprints(fps);
+                queueOrdersForServerSync(all);
+                scheduleOhSyncFlush(500);
+            }
+            migrated[storeKey] = Date.now();
+            GM_setValue(OH_MIGRATED_KEY, JSON.stringify(migrated));
+            console.log(`[MMS Order History] queued local migration for store ${storeKey} (${all.length} rows)`);
+        } catch (err) {
+            console.warn('[MMS Order History] migration failed', err);
+        }
+    }
 
     // Helper function to extract order URL from a table row
     function extractOrderUrl(row, rowIndex) {
@@ -66115,6 +66776,12 @@ if (document.body) {
         GM_setValue(CURRENT_PAGE_HISTORY_KEY, JSON.stringify(pageHistory));
         const pageType = isServiceOrdersPage ? 'Service Orders' : 'Parts Orders';
         console.log(`[MMS Order History] ${pageType}: ${addedCount} added, ${duplicateCount} duplicates skipped. Total: ${pageHistory.length}`);
+        // Shared store sync (delta upsert to PocketBase)
+        try {
+            queueOrdersForServerSync(newOrders);
+        } catch (err) {
+            console.warn('[MMS Order History] queue sync failed', err);
+        }
     }
 
     // Function to monitor page for order acceptance
@@ -66270,6 +66937,9 @@ if (document.body) {
         
         GM_setValue(historyKey, JSON.stringify(pageHistory));
         console.log(`[MMS Order History] [Background] ${pageLabel}: ${addedCount} added, ${duplicateCount} duplicates skipped. Total: ${pageHistory.length}`);
+        try {
+            queueOrdersForServerSync(newOrders);
+        } catch (_) { /* ignore */ }
     }
 
     // Process fetched HTML from an orders list page and merge into history
@@ -67195,7 +67865,7 @@ if (document.body) {
 
         ensureOrderHistoryStyles();
         
-        // Load history from current page only
+        // Load history from current page only (local cache first)
         const pageHistory = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
         
         // Sort by timestamp (newest first)
@@ -67204,6 +67874,7 @@ if (document.body) {
         // Determine page name for display
         const pageName = isServiceOrdersPage ? 'Παραγγελίες Υπηρεσιών' : 'Παραγγελίες Ανταλλακτικών';
         const pageBadge = isServiceOrdersPage ? 'Υπηρεσίες' : 'Ανταλλακτικά';
+        const storeLabel = ohGetStoreName() || '—';
         const totalCount = sortedPageHistory.length;
         
         const overlay = document.createElement('div');
@@ -67218,7 +67889,7 @@ if (document.body) {
                                 📦 Ιστορικό Παραγγελιών
                                 <span class="tm-oh-page-badge">${pageBadge}</span>
                             </h2>
-                            <p class="tm-oh-subtitle">${pageName} · Κλικ σε γραμμή για άνοιγμα παραγγελίας</p>
+                            <p class="tm-oh-subtitle">${pageName} · Κατάστημα: <strong id="tm-oh-store-label">${storeLabel.replace(/</g, '&lt;')}</strong> · <span id="tm-oh-sync-status">τοπικό cache</span></p>
                         </div>
                         <div class="tm-oh-hero-actions">
                             <button type="button" class="tm-oh-close tm-modal-close" title="Κλείσιμο" aria-label="Κλείσιμο">&times;</button>
@@ -67234,6 +67905,9 @@ if (document.body) {
                             <span class="tm-oh-stat-label">Εμφανίζονται</span>
                         </div>
                         <div class="tm-oh-toolbar">
+                            <button type="button" id="tm-order-sync-btn" class="tm-oh-tool-btn" title="Ανανέωση από server καταστήματος">
+                                <span>☁</span><span>Server</span>
+                            </button>
                             <button type="button" id="tm-order-rescan-btn" class="tm-oh-tool-btn" title="Ανασάρωση τρέχουσας σελίδας">
                                 <span>🔄</span><span>Ανασάρωση</span>
                             </button>
@@ -67243,7 +67917,7 @@ if (document.body) {
                             <button type="button" id="tm-order-export-btn" class="tm-oh-tool-btn" title="Εξαγωγή CSV">
                                 <span>📥</span><span>Εξαγωγή</span>
                             </button>
-                            <button type="button" id="tm-order-history-clear" class="tm-oh-tool-btn tm-oh-tool-btn--danger" title="Εκκαθάριση ιστορικού">
+                            <button type="button" id="tm-order-history-clear" class="tm-oh-tool-btn tm-oh-tool-btn--danger" title="Εκκαθάριση τοπικού cache (όχι του server)">
                                 <span>🗑️</span><span>Εκκαθάριση</span>
                             </button>
                         </div>
@@ -67676,9 +68350,69 @@ if (document.body) {
             // Final visible counter after all row-level changes
             updateVisibleCounter();
         };
+
+        const setSyncStatus = (text) => {
+            const el = overlay.querySelector('#tm-oh-sync-status');
+            if (el) el.textContent = text;
+        };
+
+        const refreshFromServer = async ({ silent } = {}) => {
+            const kind = ohPageKind();
+            setSyncStatus('συγχρονισμός…');
+            const remote = await fetchStoreOrderHistoryFromServer(kind);
+            if (!remote.ok) {
+                setSyncStatus(remote.unsupported
+                    ? 'server μη διαθέσιμος'
+                    : (remote.reason === 'no-store' ? 'δεν βρέθηκε κατάστημα' : 'τοπικό cache'));
+                if (!silent && window.showNegativeMessage) {
+                    window.showNegativeMessage(remote.unsupported
+                        ? 'Λείπει collection order_history στο PocketBase'
+                        : (remote.reason === 'no-store'
+                            ? 'Δεν βρέθηκε κατάστημα login — δεν φορτώνει κοινό ιστορικό'
+                            : 'Αποτυχία φόρτωσης από server'));
+                }
+                return false;
+            }
+            mergeServerOrdersIntoLocal(kind, remote.orders);
+            // Also push any local-only rows (delta)
+            try {
+                const localNow = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
+                queueOrdersForServerSync(Array.isArray(localNow) ? localNow : []);
+            } catch (_) { /* ignore */ }
+            const newPageHistory = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
+            sortedPageHistory.length = 0;
+            sortedPageHistory.push(...newPageHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
+            const statsEl = overlay.querySelector('#tm-order-history-stats');
+            if (statsEl) statsEl.textContent = String(sortedPageHistory.length);
+            const storeEl = overlay.querySelector('#tm-oh-store-label');
+            if (storeEl) storeEl.textContent = remote.store || ohGetStoreName() || '—';
+            statusesChecked = false;
+            statusResultsMap.clear();
+            renderOrders();
+            setSyncStatus(`κοινό · ${remote.storeKey || 'store'} · ${remote.orders.length} από server`);
+            if (!silent && window.showPositiveMessage) {
+                window.showPositiveMessage(`Ιστορικό καταστήματος: ${remote.orders.length} εγγραφές`);
+            }
+            return true;
+        };
         
-        // Initial render
+        // Initial render (local), then pull shared store history
         renderOrders();
+        refreshFromServer({ silent: true }).catch(() => {});
+
+        const syncBtn = overlay.querySelector('#tm-order-sync-btn');
+        if (syncBtn) {
+            syncBtn.addEventListener('click', async () => {
+                syncBtn.disabled = true;
+                syncBtn.innerHTML = '<span>⏳</span><span>Server…</span>';
+                try {
+                    await refreshFromServer({ silent: false });
+                } finally {
+                    syncBtn.disabled = false;
+                    syncBtn.innerHTML = '<span>☁</span><span>Server</span>';
+                }
+            });
+        }
         
         // Search functionality
         const searchInput = overlay.querySelector('#tm-order-history-search');
@@ -67974,10 +68708,10 @@ if (document.body) {
             });
         }
         
-        // Clear history button
+        // Clear history button (local cache only — does not wipe store server history)
         const clearBtn = overlay.querySelector('#tm-order-history-clear');
         clearBtn.addEventListener('click', (e) => {
-            const clearMessage = `Εκκαθάριση όλου του ιστορικού (${pageName})?\n\nΘα διαγραφούν όλες οι αποθηκευμένες παραγγελίες για αυτή τη σελίδα.`;
+            const clearMessage = `Εκκαθάριση τοπικού cache (${pageName})?\n\nΤο κοινό ιστορικό καταστήματος στον server ΔΕΝ διαγράφεται.`;
             
             if (confirm(clearMessage)) {
                 // Clear current page's history
@@ -67994,9 +68728,10 @@ if (document.body) {
                 
                 // Re-render
                 renderOrders();
+                setSyncStatus('τοπικό cache άδειο');
                 
                 if (window.showPositiveMessage) {
-                    window.showPositiveMessage(`Το ιστορικό εκκαθαρίστηκε (${pageName})`);
+                    window.showPositiveMessage(`Τοπικό cache εκκαθαρίστηκε (${pageName})`);
                 }
             }
         });
@@ -68030,6 +68765,11 @@ if (document.body) {
         // Always start background fetcher (runs on all pages)
         initOrderHistoryBackgroundFetcher();
 
+        // One-time push of local histories into the current store bucket
+        setTimeout(() => {
+            migrateLocalOrderHistoryOnce().catch(() => {});
+        }, 2500);
+
         // The rest of the logic only applies when we're actually on an orders list page
         if (!onOrdersPage) {
             return;
@@ -68053,6 +68793,18 @@ if (document.body) {
     // Make functions globally accessible
     window.showOrderHistoryModal = showOrderHistoryModal;
     window.initOrderHistory = initOrderHistory;
+    window.syncOrderHistoryToServer = () => {
+        try {
+            const service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]'));
+            const parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]'));
+            queueOrdersForServerSync([...(service || []), ...(parts || [])]);
+            scheduleOhSyncFlush(300);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    };
+    window.refreshOrderHistoryFromServer = fetchStoreOrderHistoryFromServer;
     
     // Auto-initialize
     if (document.readyState === 'loading') {
@@ -77570,6 +78322,31 @@ if (typeof window !== 'undefined') {
             || document.querySelector('#footer-outterwrap table td:nth-child(2)');
         if (!footerCenterCell) {
             return false;
+        }
+
+        // Capture connected store from native footer button BEFORE wiping the cell
+        // e.g. <button class="btn" style="cursors:default">ΒΡΙΛΗΣΣΙΑ (IKE)</button>
+        try {
+            let captured = '';
+            if (typeof window.captureConnectedStoreFromPage === 'function') {
+                captured = window.captureConnectedStoreFromPage(document) || '';
+            } else {
+                // Fallback if phonelist helpers are not ready yet
+                const btn = footerCenterCell.querySelector('button.btn, button');
+                const text = String(btn?.textContent || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+                if (text && text.length >= 3 && text.length <= 80) {
+                    captured = text;
+                    try {
+                        GM_setValue('tm_connected_store_v1', text);
+                        GM_setValue('tm_phone_my_store_name_v1', text);
+                    } catch (_) { /* ignore */ }
+                }
+            }
+            if (captured) {
+                console.log('[MMS] Connected store captured before footer rebuild:', captured);
+            }
+        } catch (err) {
+            console.warn('[MMS] Failed to capture connected store before footer wipe', err);
         }
 
         const wrapper = document.createElement('div');
