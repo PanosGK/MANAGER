@@ -11,8 +11,9 @@ After PocketBase is running (see [SETUP.md](SETUP.md)) and **users Create** rule
 ## 2. Use chat (no Settings password)
 
 1. Open MyManager as usual
-2. Click **💬 Chat** on the right slide-out
+2. Click **💬 Chat** in the footer
 3. First open auto-creates the PocketBase user from the login name (e.g. `gkorogias@myman.chat`) with a silent password — nothing to type
+4. New messages remind you on the footer Chat button (badge + pulse) — not the notification center
 
 Optional: **Settings → Chat** has enable/disable + connection test only.
 

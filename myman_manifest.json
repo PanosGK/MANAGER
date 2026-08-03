@@ -1,11 +1,11 @@
 {
-  "version": "347",
+  "version": "351",
   "loaderVersion": "39",
-  "silentVersion": "3",
-  "displayVersion": "39.3",
+  "silentVersion": "7",
+  "displayVersion": "39.7",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Make office chat panel draggable by header; remember position",
+  "releaseNotes": "Footer chat button + unread pulse reminder (no notification center)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

@@ -179,8 +179,8 @@
         },
         office_chat: {
             title: 'Office Chat',
-            what: 'Κοινό chat γραφείου μέσω https://mngerchat.littlejol.mywire.org. Λογαριασμός δημιουργείται αυτόματα από το όνομα login — χωρίς κωδικό στις ρυθμίσεις.',
-            where: 'Κουμπί «Chat» στο δεξί slide-out · πάνελ μηνυμάτων.',
+            what: 'Κοινό chat γραφείου μέσω https://mngerchat.littlejol.mywire.org. Λογαριασμός δημιουργείται αυτόματα από το όνομα login — χωρίς κωδικό στις ρυθμίσεις. Νέα μηνύματα υπενθυμίζονται στο κουμπί του footer (όχι στο notification center).',
+            where: 'Κουμπί «💬 Chat» στο footer · πάνελ μηνυμάτων.',
             when: 'Μόλις φορτώσει το MyManager (αν το chat είναι ενεργό).',
         },
         office_chat_user: {

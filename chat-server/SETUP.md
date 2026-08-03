@@ -63,8 +63,11 @@ Admin → Collections → New collection → name: `messages`
 | ------------- | ---- | -------------------------------- |
 | `text`        | Text | required, max 500                |
 | `displayName` | Text | required, max 64                 |
+| `store`       | Text | optional, max 64                 |
 | `profileId`   | Text | optional, max 64                 |
 | `room`        | Text | required, max 32, default `office` |
+
+If `messages` already exists, add field **`store`** (Text, optional, max 64) so each message can show the technician’s store.
 
 **API rules (v1 — one shared room):**
 
@@ -116,7 +119,8 @@ Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots. Sn
 
 1. Tampermonkey → update the **loader** once if needed (`@connect` includes this host).
 2. Open MyManager — chat is **on by default**.
-3. Click **💬 Chat** (right slide-out). First use auto-registers from the login name (no password in Settings).
-4. Optional: **Settings → Chat** → enable/disable or **Έλεγχος σύνδεσης**.
+3. Click **💬 Chat** in the footer. First use auto-registers from the login name (no password in Settings).
+4. New messages show a badge / pulse on the footer Chat button (not the suite notification center).
+5. Optional: **Settings → Chat** → enable/disable or **Έλεγχος σύνδεσης**.
 
 Display names in chat come from the MyManager login name, not from typing an account.

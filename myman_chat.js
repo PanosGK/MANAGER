@@ -39,6 +39,10 @@
     let chatStatusDetail = '';
     let chatInitDone = false;
     let chatHydrated = false;
+    let chatStorageKeys = null;
+    const chatNotifiedIds = new Set();
+    /** Once PB rejects unknown `store` field, stop sending it until reload. */
+    let chatStoreFieldUnsupported = false;
 
     function chatKeys(STORAGE_KEYS) {
         const k = STORAGE_KEYS || window.STORAGE_KEYS || {};
@@ -153,6 +157,22 @@
         const cleaned = extractLoginDisplayName(name);
         if (cleaned) return cleaned.slice(0, 64);
         return 'Τεχνικός';
+    }
+
+    function getChatStoreName() {
+        try {
+            if (typeof window.getCurrentStoreName === 'function') {
+                const name = String(window.getCurrentStoreName() || '').trim();
+                if (name) return name.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof window.getUserStorePick === 'function') {
+                const pick = String(window.getUserStorePick() || '').trim();
+                if (pick) return pick.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        return '';
     }
 
     function getProfileId() {
@@ -596,7 +616,8 @@
         const btn = document.getElementById('tm-chat-toggle-btn');
         if (!btn) return;
         let badge = btn.querySelector('.tm-chat-unread');
-        if (chatUnread > 0 && !chatPanelOpen) {
+        const show = chatUnread > 0 && !chatPanelOpen;
+        if (show) {
             if (!badge) {
                 badge = document.createElement('span');
                 badge.className = 'tm-chat-unread';
@@ -604,9 +625,58 @@
             }
             badge.textContent = chatUnread > 99 ? '99+' : String(chatUnread);
             badge.hidden = false;
+            btn.setAttribute('aria-label', `Office Chat, ${chatUnread} νέα μηνύματα`);
+            btn.title = `Office Chat — ${chatUnread} νέα`;
         } else if (badge) {
             badge.hidden = true;
+            btn.setAttribute('aria-label', 'Office Chat');
+            btn.title = 'Office Chat';
         }
+        btn.classList.toggle('tm-chat-has-unread', show && !chatMuted);
+        if (!show) btn.classList.remove('tm-chat-ping');
+    }
+
+    function isOwnChatMessage(msg) {
+        const me = getDisplayName();
+        const meProfile = getProfileId();
+        if (meProfile && msg?.profileId && String(msg.profileId) === String(meProfile)) return true;
+        if (me && String(msg?.displayName || '') === me) return true;
+        return false;
+    }
+
+    /** Footer-button reminder only — never desktop / notification-center alerts. */
+    function notifyNewChatMessages(newMessages) {
+        if (chatMuted || !Array.isArray(newMessages) || !newMessages.length) return;
+        if (chatPanelOpen && !document.hidden) return;
+
+        const incoming = newMessages.filter((m) => {
+            if (!m?.id || isOwnChatMessage(m)) return false;
+            if (chatNotifiedIds.has(m.id)) return false;
+            return true;
+        });
+        if (!incoming.length) return;
+
+        incoming.forEach((m) => {
+            chatNotifiedIds.add(m.id);
+            if (chatNotifiedIds.size > 300) {
+                const drop = [...chatNotifiedIds].slice(0, chatNotifiedIds.size - 200);
+                drop.forEach((id) => chatNotifiedIds.delete(id));
+            }
+        });
+
+        const btn = document.getElementById('tm-chat-toggle-btn');
+        if (!btn) return;
+        const latest = incoming[incoming.length - 1];
+        const storeBit = latest.store ? ` · ${latest.store}` : '';
+        const preview = incoming.length === 1
+            ? `${latest.displayName || 'Chat'}${storeBit}: ${String(latest.text || '').slice(0, 80)}`
+            : `${incoming.length} νέα μηνύματα`;
+        btn.title = `Office Chat — ${preview}`;
+        btn.classList.add('tm-chat-has-unread', 'tm-chat-ping');
+        window.clearTimeout(notifyNewChatMessages._pingTimer);
+        notifyNewChatMessages._pingTimer = window.setTimeout(() => {
+            btn.classList.remove('tm-chat-ping');
+        }, 2400);
     }
 
     function formatMsgTime(iso) {
@@ -631,9 +701,15 @@
         const me = getDisplayName();
         list.innerHTML = sorted.map((m) => {
             const mine = String(m.displayName || '') === me;
+            const storeHtml = m.store
+                ? `<span class="tm-chat-msg-store">${escapeHtml(m.store)}</span>`
+                : '';
             return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}" data-id="${escapeHtml(m.id)}">
                 <div class="tm-chat-msg-meta">
-                    <span class="tm-chat-msg-name">${escapeHtml(m.displayName || '?')}</span>
+                    <span class="tm-chat-msg-who">
+                        <span class="tm-chat-msg-name">${escapeHtml(m.displayName || '?')}</span>
+                        ${storeHtml}
+                    </span>
                     <span class="tm-chat-msg-time">${escapeHtml(formatMsgTime(m.created))}</span>
                 </div>
                 <div class="tm-chat-msg-text">${escapeHtml(m.text || '')}</div>
@@ -646,19 +722,25 @@
         if (!Array.isArray(records) || !records.length) return;
         const byId = new Map(chatMessages.map((m) => [m.id, m]));
         let added = 0;
+        const newlyAdded = [];
         records.forEach((rec) => {
             if (!rec?.id) return;
             if (String(rec.room || CHAT_ROOM) !== CHAT_ROOM) return;
             const prev = byId.get(rec.id);
-            if (!prev) added += 1;
-            byId.set(rec.id, {
+            const mapped = {
                 id: rec.id,
                 text: rec.text,
                 displayName: rec.displayName,
+                store: String(rec.store || '').trim(),
                 profileId: rec.profileId || '',
                 room: rec.room || CHAT_ROOM,
                 created: rec.created,
-            });
+            };
+            if (!prev) {
+                added += 1;
+                newlyAdded.push(mapped);
+            }
+            byId.set(rec.id, mapped);
         });
         chatMessages = Array.from(byId.values());
         if (chatMessages.length > 200) {
@@ -668,9 +750,12 @@
                 .slice(-200);
         }
         renderMessages();
-        if (chatHydrated && fromPollOrRealtime && added > 0 && !chatPanelOpen) {
-            chatUnread += added;
-            updateUnreadBadge();
+        if (chatHydrated && fromPollOrRealtime && added > 0) {
+            if (!chatPanelOpen) {
+                chatUnread += added;
+                updateUnreadBadge();
+            }
+            notifyNewChatMessages(newlyAdded);
         }
     }
 
@@ -771,41 +856,56 @@
         const token = await ensureAuth(STORAGE_KEYS);
         const url = `${settings.baseUrl}/api/collections/messages/records`;
         const profileId = getProfileId();
+        const storeName = getChatStoreName();
         const payload = {
             text: clean,
             displayName: getDisplayName(),
             room: CHAT_ROOM,
         };
         if (profileId) payload.profileId = profileId;
+        if (storeName && !chatStoreFieldUnsupported) payload.store = storeName;
 
-        const postOnce = async (authHeader) => chatRequestJson({
+        const postOnce = async (authHeader, bodyPayload) => chatRequestJson({
             method: 'POST',
             url,
             headers: {
                 Authorization: authHeader,
                 'Content-Type': 'application/json',
             },
-            data: JSON.stringify(payload),
+            data: JSON.stringify(bodyPayload),
         });
 
-        let { status, body } = await postOnce(token);
+        let { status, body } = await postOnce(token, payload);
         // Some proxies/PB builds prefer Bearer
         if ((status === 401 || status === 403) && token && !String(token).startsWith('Bearer ')) {
-            ({ status, body } = await postOnce(`Bearer ${token}`));
+            ({ status, body } = await postOnce(`Bearer ${token}`, payload));
         }
         if (status === 401) {
             clearCachedToken(STORAGE_KEYS);
             const token2 = await ensureAuth(STORAGE_KEYS, { force: true });
-            ({ status, body } = await postOnce(token2));
+            ({ status, body } = await postOnce(token2, payload));
+        }
+        // PocketBase may not have `store` field yet — retry without it
+        if (status >= 400 && payload.store && /store/i.test(JSON.stringify(body || {}))) {
+            chatStoreFieldUnsupported = true;
+            const { store, ...withoutStore } = payload;
+            void store;
+            ({ status, body } = await postOnce(chatAuthToken || token, withoutStore));
+            if (status >= 400) {
+                setChatStatus('error', 'Πρόσθεσε πεδίο store στο messages (PocketBase)');
+            }
         }
         if (status < 200 || status >= 300) {
             let msg = formatPbError(body, `Send failed (${status})`);
-            if (/failed to create record/i.test(msg) && !/text:|displayName|room|profileId/i.test(msg)) {
+            if (/failed to create record/i.test(msg) && !/text:|displayName|room|profileId|store/i.test(msg)) {
                 msg += ' — PocketBase Admin → Collections → messages → API Rules: ξεκλείδωσε το Create (όχι Admins only) και βάλε ακριβώς: @request.auth.id != ""';
             }
             throw new Error(msg);
         }
-        upsertMessages([body]);
+        // Prefer returned record; ensure store shows even if PB stripped unknown field
+        const saved = body && typeof body === 'object' ? { ...body } : body;
+        if (saved && storeName && !saved.store) saved.store = storeName;
+        upsertMessages([saved]);
         return { ok: true };
     }
 
@@ -948,13 +1048,33 @@
         const style = document.createElement('style');
         style.id = 'tm-chat-styles';
         style.textContent = `
-            #tm-chat-toggle-btn { position: relative; background-color: var(--tm-info-color, #0d6efd); }
-            #tm-chat-toggle-btn:hover { background-color: var(--tm-info-hover, #0b5ed7); }
+            #tm-chat-toggle-btn {
+                position: relative;
+                overflow: visible;
+            }
             #tm-chat-toggle-btn .tm-chat-unread {
                 position: absolute; top: -6px; right: -6px;
                 min-width: 18px; height: 18px; padding: 0 5px;
                 border-radius: 999px; background: #dc3545; color: #fff;
                 font-size: 10px; font-weight: 700; line-height: 18px; text-align: center;
+                box-shadow: 0 0 0 2px rgba(255,255,255,0.85);
+                pointer-events: none;
+            }
+            #tm-chat-toggle-btn.tm-chat-has-unread {
+                box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.55);
+                animation: tm-chat-unread-glow 1.6s ease-in-out infinite;
+            }
+            #tm-chat-toggle-btn.tm-chat-ping {
+                animation: tm-chat-unread-ping 0.7s ease-out 0s 3;
+            }
+            @keyframes tm-chat-unread-glow {
+                0%, 100% { box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.35); }
+                50% { box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.7); }
+            }
+            @keyframes tm-chat-unread-ping {
+                0% { transform: scale(1); }
+                40% { transform: scale(1.08); }
+                100% { transform: scale(1); }
             }
             #tm-chat-panel {
                 position: fixed; bottom: 60px; right: 20px; z-index: 9997;
@@ -1001,7 +1121,19 @@
                 display: flex; justify-content: space-between; gap: 8px;
                 font-size: 10px; color: #6c757d; margin-bottom: 2px;
             }
+            .tm-chat-msg-who {
+                display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px;
+                min-width: 0;
+            }
             .tm-chat-msg-name { font-weight: 700; color: #495057; }
+            .tm-chat-msg-store {
+                font-weight: 600; color: #0d6efd; background: #e7f1ff;
+                border-radius: 999px; padding: 0 6px; line-height: 1.5;
+                max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            }
+            .tm-chat-msg.is-mine .tm-chat-msg-store {
+                color: #084298; background: #cfe2ff;
+            }
             .tm-chat-msg-text {
                 font-size: 13px; color: #212529; white-space: pre-wrap; word-break: break-word;
             }
@@ -1024,14 +1156,54 @@
         document.head.appendChild(style);
     }
 
-    function ensureRightSideContainer() {
-        let rightSideContainer = document.getElementById('tm-search-container');
-        if (!rightSideContainer) {
-            rightSideContainer = document.createElement('div');
-            rightSideContainer.id = 'tm-search-container';
-            document.body.appendChild(rightSideContainer);
+    function ensureChatFooterHost() {
+        return document.getElementById('tm-footer-controls-right')
+            || document.getElementById('tm-footer-controls-left')
+            || document.getElementById('tm-footer-controls-middle')
+            || null;
+    }
+
+    function removeLegacyChatSlideOutButton() {
+        const btn = document.getElementById('tm-chat-toggle-btn');
+        if (!btn) return;
+        const inFooter = !!btn.closest('#tm-footer-controls-container');
+        if (!inFooter) btn.remove();
+    }
+
+    function ensureChatToggleButton(STORAGE_KEYS) {
+        removeLegacyChatSlideOutButton();
+        let toggleButton = document.getElementById('tm-chat-toggle-btn');
+        if (toggleButton && (toggleButton.getAttribute('data-tm-ui-shell') === '1'
+            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(toggleButton)))) {
+            toggleButton.remove();
+            toggleButton = null;
         }
-        return rightSideContainer;
+
+        const host = ensureChatFooterHost();
+        if (!host) return null;
+
+        if (!toggleButton) {
+            toggleButton = document.createElement('button');
+            toggleButton.id = 'tm-chat-toggle-btn';
+            toggleButton.type = 'button';
+            toggleButton.className = 'tm-footer-widget tm-footer-icon-btn';
+            toggleButton.textContent = '💬 Chat';
+            toggleButton.title = 'Office Chat';
+            toggleButton.setAttribute('aria-label', 'Office Chat');
+            const settingsBtn = host.querySelector('#tm-settings-btn, [id*="settings"]');
+            if (settingsBtn) host.insertBefore(toggleButton, settingsBtn);
+            else host.appendChild(toggleButton);
+        } else if (!host.contains(toggleButton)) {
+            host.appendChild(toggleButton);
+        }
+
+        toggleButton.classList.remove('tm-slide-out-btn');
+        toggleButton.classList.add('tm-footer-widget', 'tm-footer-icon-btn');
+        if (!toggleButton.dataset.tmChatClickWired) {
+            toggleButton.dataset.tmChatClickWired = '1';
+            toggleButton.addEventListener('click', () => toggleChatPanel(STORAGE_KEYS));
+        }
+        return toggleButton;
     }
 
     function clampChatPanelPosition(panel, left, top) {
@@ -1200,25 +1372,24 @@
         if (!enabled) return;
 
         chatInitDone = true;
+        chatStorageKeys = STORAGE_KEYS;
         chatMuted = settings.muted;
         injectChatStyles();
 
-        const right = ensureRightSideContainer();
-        let toggleButton = document.getElementById('tm-chat-toggle-btn');
-        if (toggleButton && (toggleButton.getAttribute('data-tm-ui-shell') === '1'
-            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(toggleButton)))) {
-            toggleButton.remove();
-            toggleButton = null;
+        const mount = () => {
+            const btn = ensureChatToggleButton(STORAGE_KEYS);
+            if (!btn) return false;
+            updateUnreadBadge();
+            return true;
+        };
+
+        if (!mount()) {
+            let tries = 0;
+            const timer = setInterval(() => {
+                tries += 1;
+                if (mount() || tries > 20) clearInterval(timer);
+            }, 250);
         }
-        if (!toggleButton) {
-            toggleButton = document.createElement('button');
-            toggleButton.id = 'tm-chat-toggle-btn';
-            toggleButton.className = 'tm-slide-out-btn';
-            toggleButton.type = 'button';
-            toggleButton.textContent = '💬 Chat';
-            right.appendChild(toggleButton);
-        }
-        toggleButton.addEventListener('click', () => toggleChatPanel(STORAGE_KEYS));
 
         if (!document.getElementById('tm-chat-panel')) {
             const panel = document.createElement('div');
@@ -1226,7 +1397,7 @@
             panel.innerHTML = `
                 <div id="tm-chat-header">
                     <span id="tm-chat-title">Office Chat</span>
-                    <button type="button" id="tm-chat-mute-btn" title="Σίγαση">🔔</button>
+                    <button type="button" id="tm-chat-mute-btn" title="Σίγαση υπενθύμισης">🔔</button>
                     <button type="button" id="tm-chat-refresh-btn" title="Ανανέωση">↻</button>
                     <button type="button" id="tm-chat-close-btn" title="Κλείσιμο">&times;</button>
                 </div>
@@ -1248,7 +1419,8 @@
                 const syncMute = () => {
                     muteBtn.textContent = chatMuted ? '🔕' : '🔔';
                     muteBtn.classList.toggle('is-muted', chatMuted);
-                    muteBtn.title = chatMuted ? 'Άρση σίγασης' : 'Σίγαση';
+                    muteBtn.title = chatMuted ? 'Άρση σίγασης υπενθύμισης' : 'Σίγαση υπενθύμισης';
+                    updateUnreadBadge();
                 };
                 syncMute();
                 muteBtn.addEventListener('click', () => {
