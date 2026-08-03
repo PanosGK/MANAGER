@@ -13,9 +13,21 @@ After PocketBase is running (see [SETUP.md](SETUP.md)) and **users Create** rule
 1. Open MyManager as usual
 2. Click **💬 Chat** in the footer
 3. First open auto-creates the PocketBase user from the login name (e.g. `gkorogias@myman.chat`) with a silent password — nothing to type
-4. New messages remind you on the footer Chat button (badge + pulse) — not the notification center
+4. New messages remind you on the footer Chat button (badge + pulse + optional sound) — not the notification center
 
-Optional: **Settings → Chat** has enable/disable, **profile photo**, and connection test.
+Optional: **Settings → Chat** — enable/disable, profile photo, sound, connection test.
+
+### Panel features
+
+| Feature | How |
+| --- | --- |
+| Rooms | **Όλοι** (office) / **Κατάστημα** (store channel) |
+| Search | Top search box |
+| @mentions | Type `@` — autocomplete; stronger ping when mentioned |
+| Reply / pin / edit / delete | Hover message actions |
+| Repair links | `#12345` or 5–8 digit numbers → service search |
+| Presence | “Online: …” under rooms (needs `presence` collection) |
+| Read receipts | ✓✓ on your messages when peers opened chat |
 
 ## Troubleshooting
 
@@ -23,11 +35,13 @@ Optional: **Settings → Chat** has enable/disable, **profile photo**, and conne
 | --- | --- |
 | Εγγραφή απέτυχε / create rule | Admin → users → Create rule = `@request.auth.id = ""` |
 | Failed to create record (messages) | messages Create = `@request.auth.id != ""` (no `text:length`) |
-| File attach fails / “attachment” | Admin → messages → add File field `attachment` (1 file, 5 MB), make `text` optional, and set **Update** rule to `@request.auth.id != ""` — see [SETUP.md](SETUP.md) |
-| Chat shows only “(αρχείο)” / no preview | Same as above — Update rule was deny, so the file never saved; unlock Update and retry |
-| Profile photo upload fails | Admin → users → File field `avatar` (1 MB, images) + Update = `@request.auth.id = id`; View/List so others can see avatars (`@request.auth.id != ""`) |
-| Initials only (no photo in chat) | Add `messages.pbUserId` + `messages.avatar` text fields; photo applies to **new** messages after upload |
-| Auth failed / old manual password | Open Chat once on a PC that still has the old password (auto-migrates), **or** delete that user in PocketBase Admin → users |
-| Auth failed after create | Disable email verification on users collection |
+| File attach fails / “attachment” | Admin → messages → File `attachment` + Update `@request.auth.id != ""` |
+| Chat shows only “(αρχείο)” / no preview | Unlock messages Update rule |
+| Profile photo upload fails | users `avatar` File + Update `@request.auth.id = id`; View/List `@request.auth.id != ""` |
+| Initials only (no photo) | users List/View unlocked; photo applies after upload |
+| Reply / pin / delete / edit ignored | Add `replyTo`, `replyPreview`, `pinned`, `deleted`, `edited` on messages (see SETUP) |
+| No Online line | Create `presence` collection (SETUP §6) |
+| Auth failed / old manual password | Open Chat once on a PC that still has the old password, or delete user in Admin |
+| Auth failed after create | Disable email verification on users |
 | Network denied | Update loader / allow `@connect` |
-| Chat button missing | Settings → Chat → enable (default is on) |
+| Chat button missing | Settings → Chat → enable |

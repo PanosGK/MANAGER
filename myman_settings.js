@@ -195,6 +195,12 @@
             where: 'Ρυθμίσεις → Chat · εμφανίζεται στα bubbles του chat.',
             when: 'Μετά το ανέβασμα, στα νέα μηνύματα. Χρειάζεται πεδίο avatar στο PocketBase users.',
         },
+        office_chat_sound: {
+            title: 'Ήχος υπενθύμισης',
+            what: 'Παίζει σύντομο ήχο όταν έρχεται νέο μήνυμα (και πιο έντονο σε @mention). Το κουδούνι 🔕 μέσα στο chat τα απενεργοποιεί προσωρινά.',
+            where: 'Ρυθμίσεις → Chat.',
+            when: 'Όταν το πάνελ είναι κλειστό ή σε άλλο tab.',
+        },
         quick_search_editor: {
             title: 'Επεξεργαστής γρήγορης αναζήτησης',
             what: 'Ορίζετε ετικέτα κουμπιού και όρο αναζήτησης για τα κουμπιά γρήγορης αναζήτησης.',
@@ -716,6 +722,10 @@
                 const chatOn = !!chatEnabledEl.checked;
                 GM_setValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', chatOn);
                 config.officeChatEnabled = chatOn;
+            }
+            const chatSoundEl = document.getElementById('tm-setting-chat-sound');
+            if (chatSoundEl) {
+                GM_setValue(STORAGE_KEYS.CHAT_SOUND || 'tm_chat_sound', !!chatSoundEl.checked);
             }
             try {
                 const mail = (typeof window.suggestOfficeChatEmail === 'function')
@@ -1391,6 +1401,16 @@
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-sound">Ήχος υπενθύμισης</label>
+                                ${info('office_chat_sound')}
+                            </div>
+                            <p class="tm-setting-description">Μικρός ήχος σε νέα μηνύματα / mentions (το 🔕 στο chat τα σιγάει όλα).</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-chat-sound"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
                             <label>Κατάσταση</label>
                             <p class="tm-setting-description" id="tm-setting-chat-test-status">—</p>
                         </div>
@@ -1854,6 +1874,10 @@
             if (chatEnabledBox) {
                 const stored = GM_getValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', true);
                 chatEnabledBox.checked = stored !== false;
+            }
+            const chatSoundBox = document.getElementById('tm-setting-chat-sound');
+            if (chatSoundBox) {
+                chatSoundBox.checked = GM_getValue(STORAGE_KEYS.CHAT_SOUND || 'tm_chat_sound', true) !== false;
             }
             const chatUserInput = document.getElementById('tm-setting-chat-user');
             if (chatUserInput) {

@@ -59,88 +59,93 @@ Note: `https://mngerchat.littlejol.mywire.org/` (no `/_/`) returns `{"message":"
 
 Admin → Collections → New collection → name: `messages`
 
-| Field         | Type | Options                          |
-| ------------- | ---- | -------------------------------- |
-| `text`        | Text | **optional**, max 500            |
-| `displayName` | Text | required, max 64                 |
-| `store`       | Text | optional, max 64                 |
-| `profileId`   | Text | optional, max 64                 |
-| `room`        | Text | required, max 32, default `office` |
-| `attachment`  | File | single file, max **5 MB** (see below) |
-| `pbUserId`    | Text | optional, max 32 (PocketBase user id for avatar) |
-| `avatar`      | Text | optional, max 255 (avatar filename on `users`) |
+| Field          | Type | Options |
+| -------------- | ---- | ------- |
+| `text`         | Text | **optional**, max 500 |
+| `displayName`  | Text | required, max 64 |
+| `store`        | Text | optional, max 64 |
+| `profileId`    | Text | optional, max 64 |
+| `room`         | Text | required, max 32, default `office` (`office` = all stores; `store_<slug>` = store channel) |
+| `attachment`   | File | single file, max **5 MB** (see below) |
+| `pbUserId`     | Text | optional, max 32 (PocketBase user id for avatar) |
+| `avatar`       | Text | optional, max 255 (avatar filename on `users`) |
+| `replyTo`      | Text | optional, max 32 (parent message id) |
+| `replyPreview` | Text | optional, max 120 (short quote text) |
+| `pinned`       | Bool | optional, default false |
+| `deleted`      | Bool | optional, default false (soft-delete; hard Delete rule stays deny) |
+| `deletedBy`    | Text | optional, max 64 (display name of who deleted the message) |
+| `edited`       | Bool | optional, default false |
 
-If `messages` already exists:
+If `messages` already exists, add any missing fields from the table above.
 
-1. Add field **`store`** (Text, optional, max 64) so each message can show the technician’s store.
-2. Make **`text` optional** (uncheck Required) so file-only messages work.
-3. Add field **`attachment`** (File):
-   - Max select: **1**
-   - Max size: **5 MB**
-   - MIME / types allow-list:
-     - `image/jpeg`, `image/png`, `image/webp`, `image/gif`
-     - `application/pdf`
-     - `application/msword`
-     - `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
-     - `application/vnd.ms-excel`
-     - `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
-4. Add text fields **`pbUserId`** (optional, max 32) and **`avatar`** (optional, max 255) for profile photos in chat.
+**Attachment File field** (if missing):
 
-Uploads are stored on the TrueNAS dataset under `/pb_data` (same volume as the database).
+- Max select: **1**
+- Max size: **5 MB**
+- MIME allow-list: `image/jpeg`, `image/png`, `image/webp`, `image/gif`, `application/pdf`, Word/Excel MIME types as before
 
-**API rules (v1 — one shared room):**
+**API rules:**
 
-Important: each rule has a **lock**. If Create is locked (“Admins / Superusers only”), regular tech accounts get `Failed to create record` even with a correct rule. **Unlock** Create / List / View.
-
-Then set:
+Important: each rule has a **lock**. Unlock Create / List / View / Update.
 
 - List / Search: `@request.auth.id != ""`
 - View: `@request.auth.id != ""`
 - Create: `@request.auth.id != ""`
-- Update: `@request.auth.id != ""` *(needed so the suite can attach files after creating the message)*
-- Delete: *(empty — deny; delete only in Admin UI)*
+- Update: `@request.auth.id != ""` *(attach files, pin, edit, soft-delete)*
+- Delete: *(empty — deny; use soft `deleted` from the suite)*
 
-Do **not** add `text:length` or `room = "office"` in Create. Save, then retry send in MyManager.
+Do **not** add `text:length` or `room = "office"` in Create (store rooms must be allowed).
 
-Enable **Realtime** for the `messages` collection if your PocketBase UI shows that toggle (SSE still works when subscribed via API).
+Enable **Realtime** for `messages`.
 
 ## 5. Users collection (accounts + profile photo)
 
-Techs auto-register from the MyManager login name. Configure **users**:
+1. **API Rules → Create**: `@request.auth.id = ""`
+2. **API Rules → Update**: `@request.auth.id = id`
+3. **API Rules → View / List**: `@request.auth.id != ""`
+4. Turn **off** email verification.
+5. File field **`avatar`**: 1 file, **1 MB**, images only.
 
-1. **API Rules → Create**: unlock and set `@request.auth.id = ""`
-2. **API Rules → Update**: unlock and set `@request.auth.id = id` (so each tech can upload their own avatar)
-3. **API Rules → View / List**: `@request.auth.id != ""` (or keep as needed)
-4. Turn **off** email verification / confirm email requirements.
-5. Add File field **`avatar`**:
-   - Max select: **1**
-   - Max size: **1 MB**
-   - MIME allow-list: `image/jpeg`, `image/png`, `image/webp`, `image/gif`
+## 6. Create `presence` collection (online + read receipts)
 
-Techs set the photo in suite **Settings → Chat → Φωτογραφία προφίλ**.
+Admin → New collection → name: `presence`
 
-## 6. Backups
+| Field         | Type | Options |
+| ------------- | ---- | ------- |
+| `userId`      | Text | required, max 32 (PocketBase users id) |
+| `displayName` | Text | required, max 64 |
+| `profileId`   | Text | optional, max 64 |
+| `store`       | Text | optional, max 64 |
+| `lastSeen`    | Date | required |
+| `lastReadAt`  | Date | optional (panel open → mark messages seen) |
 
-Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots. Snapshot once after first successful setup before inviting everyone.
+API rules (all unlocked for auth users):
 
-## 7. Server checklist
+- List / View / Create / Update: `@request.auth.id != ""`
+- Delete: empty (deny)
 
-- [ ] `https://mngerchat.littlejol.mywire.org/_/` loads
-- [ ] Admin login works
-- [ ] `messages` collection + rules exist
-- [ ] `messages.attachment` File field exists (5 MB, MIME allow-list) and `text` is optional
-- [ ] `messages.pbUserId` + `messages.avatar` text fields exist (profile photos)
-- [ ] `users.avatar` File field exists (1 MB, images) and users **Update** = `@request.auth.id = id`
-- [ ] At least one non-admin test user exists
-- [ ] Page loads from off-LAN (proxy + DNS OK)
-- [ ] Snapshot covers `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB`
+Enable **Realtime** for `presence` if available.
 
-## 8. Suite (each tech)
+The suite heartbeats every ~25s while chat is connected and updates `lastReadAt` when the panel is open.
 
-1. Tampermonkey → update the **loader** once if needed (`@connect` includes this host).
-2. Open MyManager — chat is **on by default**.
-3. Click **💬 Chat** in the footer. First use auto-registers from the login name (no password in Settings).
-4. New messages show a badge / pulse on the footer Chat button (not the suite notification center).
-5. Optional: **Settings → Chat** → enable/disable, **profile photo**, or **Έλεγχος σύνδεσης**.
+## 7. Backups
 
-Display names in chat come from the MyManager login name, not from typing an account.
+Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots.
+
+## 8. Server checklist
+
+- [ ] Admin UI loads
+- [ ] `messages` + attachment + avatar/pbUserId + reply/pin/deleted/edited fields
+- [ ] `users.avatar` + Update/List/View rules
+- [ ] `presence` collection + rules
+- [ ] Realtime enabled for messages (and presence)
+- [ ] Snapshot covers chat DB dataset
+
+## 9. Suite (each tech)
+
+1. Update Tampermonkey loader if needed (`@connect` includes chat host).
+2. Chat is **on by default** — footer **💬 Chat**.
+3. Features in the panel: rooms (Όλοι / Κατάστημα), search, pin, reply, @mentions, edit/delete own, presence, optional sound (Settings → Chat).
+4. Profile photo: **Settings → Chat**.
+
+Display names come from the MyManager login name.

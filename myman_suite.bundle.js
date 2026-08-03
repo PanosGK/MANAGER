@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v369 / Custom Ver. 41.13 — generated, do not edit */
+/* MyManager Suite bundle v370 / Custom Ver. 41.14 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '369',
+        version: '370',
         loaderVersion: '41',
-        silentVersion: '13',
-        displayVersion: '41.13',
+        silentVersion: '14',
+        displayVersion: '41.14',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -16056,6 +16056,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             where: 'Ρυθμίσεις → Chat · εμφανίζεται στα bubbles του chat.',
             when: 'Μετά το ανέβασμα, στα νέα μηνύματα. Χρειάζεται πεδίο avatar στο PocketBase users.',
         },
+        office_chat_sound: {
+            title: 'Ήχος υπενθύμισης',
+            what: 'Παίζει σύντομο ήχο όταν έρχεται νέο μήνυμα (και πιο έντονο σε @mention). Το κουδούνι 🔕 μέσα στο chat τα απενεργοποιεί προσωρινά.',
+            where: 'Ρυθμίσεις → Chat.',
+            when: 'Όταν το πάνελ είναι κλειστό ή σε άλλο tab.',
+        },
         quick_search_editor: {
             title: 'Επεξεργαστής γρήγορης αναζήτησης',
             what: 'Ορίζετε ετικέτα κουμπιού και όρο αναζήτησης για τα κουμπιά γρήγορης αναζήτησης.',
@@ -16577,6 +16583,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 const chatOn = !!chatEnabledEl.checked;
                 GM_setValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', chatOn);
                 config.officeChatEnabled = chatOn;
+            }
+            const chatSoundEl = document.getElementById('tm-setting-chat-sound');
+            if (chatSoundEl) {
+                GM_setValue(STORAGE_KEYS.CHAT_SOUND || 'tm_chat_sound', !!chatSoundEl.checked);
             }
             try {
                 const mail = (typeof window.suggestOfficeChatEmail === 'function')
@@ -17252,6 +17262,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-sound">Ήχος υπενθύμισης</label>
+                                ${info('office_chat_sound')}
+                            </div>
+                            <p class="tm-setting-description">Μικρός ήχος σε νέα μηνύματα / mentions (το 🔕 στο chat τα σιγάει όλα).</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-chat-sound"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
                             <label>Κατάσταση</label>
                             <p class="tm-setting-description" id="tm-setting-chat-test-status">—</p>
                         </div>
@@ -17715,6 +17735,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             if (chatEnabledBox) {
                 const stored = GM_getValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', true);
                 chatEnabledBox.checked = stored !== false;
+            }
+            const chatSoundBox = document.getElementById('tm-setting-chat-sound');
+            if (chatSoundBox) {
+                chatSoundBox.checked = GM_getValue(STORAGE_KEYS.CHAT_SOUND || 'tm_chat_sound', true) !== false;
             }
             const chatUserInput = document.getElementById('tm-setting-chat-user');
             if (chatUserInput) {
@@ -21635,7 +21659,21 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 (function () {
     'use strict';
 
-    const CHAT_ROOM = 'office';
+    const CHAT_ROOM_OFFICE = 'office';
+    const CHAT_ROOM = CHAT_ROOM_OFFICE;
+    let chatActiveRoom = CHAT_ROOM_OFFICE;
+    let chatReplyTarget = null;
+    let chatSearchQuery = '';
+    let chatPresenceList = [];
+    let chatPresenceTimer = null;
+    let chatPresenceUnsupported = false;
+    let chatReplyFieldsUnsupported = false;
+    let chatPinFieldUnsupported = false;
+    let chatSoftDeleteUnsupported = false;
+    let chatEditFieldUnsupported = false;
+    let chatSoundEnabled = true;
+    const CHAT_PRESENCE_MS = 25000;
+    const CHAT_REPAIR_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=';
     const CHAT_MAX_LEN = 500;
     const CHAT_SEND_COOLDOWN_MS = 1500;
     const CHAT_POLL_MS = 5000;
@@ -21710,10 +21748,240 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             pass: k.CHAT_PASS || 'tm_chat_pass',
             tokenCache: k.CHAT_TOKEN_CACHE || 'tm_chat_token_cache',
             muted: k.CHAT_MUTED || 'tm_chat_muted',
+            sound: k.CHAT_SOUND || 'tm_chat_sound',
             geometry: k.CHAT_GEOMETRY || 'tm_chat_geometry',
             store: k.CHAT_STORE || 'tm_chat_store',
             storeManual: k.CHAT_STORE_MANUAL || 'tm_chat_store_manual',
+            room: k.CHAT_ROOM || 'tm_chat_room',
         };
+    }
+
+    function getChatRoom() {
+        return chatActiveRoom || CHAT_ROOM_OFFICE;
+    }
+
+    function getStoreChatRoom(STORAGE_KEYS) {
+        const store = getChatStoreName(STORAGE_KEYS) || detectLoginStoreName() || '';
+        const slug = greekToLatinSlug(store) || 'store';
+        return `store_${slug}`.slice(0, 32);
+    }
+
+    function loadChatRoomPreference(STORAGE_KEYS) {
+        const keys = chatKeys(STORAGE_KEYS);
+        const saved = String(GM_getValue(keys.room, CHAT_ROOM_OFFICE) || CHAT_ROOM_OFFICE);
+        chatActiveRoom = saved === 'store' ? getStoreChatRoom(STORAGE_KEYS) : CHAT_ROOM_OFFICE;
+        return chatActiveRoom;
+    }
+
+    function setChatRoomMode(STORAGE_KEYS, mode) {
+        const keys = chatKeys(STORAGE_KEYS);
+        const next = mode === 'store' ? 'store' : 'office';
+        GM_setValue(keys.room, next);
+        chatActiveRoom = next === 'store' ? getStoreChatRoom(STORAGE_KEYS) : CHAT_ROOM_OFFICE;
+        chatMessages = [];
+        chatMessagesRenderKey = '';
+        chatHydrated = false;
+        updateChatRoomTabsUi();
+        renderPinnedStrip();
+        renderPresenceUi();
+        renderMessages({ force: true });
+        const sk = STORAGE_KEYS || chatStorageKeys;
+        if (sk) fetchMessages(sk).catch(() => {});
+    }
+
+    function messageMentionsMe(text) {
+        const me = getDisplayName();
+        if (!me || !text) return false;
+        const escaped = me.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (new RegExp(`@${escaped}\\b`, 'i').test(text)) return true;
+        const slug = greekToLatinSlug(me);
+        if (slug && slug.length >= 2 && new RegExp(`@${slug}\\b`, 'i').test(text)) return true;
+        return false;
+    }
+
+    function playChatNotifySound({ mention } = {}) {
+        if (chatMuted || !chatSoundEnabled) return;
+        try {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return;
+            const ctx = playChatNotifySound._ctx || (playChatNotifySound._ctx = new Ctx());
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = mention ? 920 : 640;
+            gain.gain.value = 0.035;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            const t0 = ctx.currentTime;
+            osc.start(t0);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t0 + (mention ? 0.22 : 0.12));
+            osc.stop(t0 + (mention ? 0.24 : 0.14));
+        } catch (_) { /* ignore */ }
+    }
+
+    function collectChatMentionNames() {
+        const names = new Set();
+        chatMessages.forEach((m) => {
+            const n = String(m?.displayName || '').trim();
+            if (n) names.add(n);
+        });
+        chatPresenceList.forEach((p) => {
+            const n = String(p?.displayName || '').trim();
+            if (n) names.add(n);
+        });
+        const me = getDisplayName();
+        if (me) names.delete(me);
+        return Array.from(names).sort((a, b) => a.localeCompare(b, 'el'));
+    }
+
+    function findChatMessageById(id) {
+        return chatMessages.find((m) => String(m.id) === String(id)) || null;
+    }
+
+    function setChatReplyTarget(msg) {
+        if (!msg?.id || msg.deleted) chatReplyTarget = null;
+        else {
+            chatReplyTarget = {
+                id: msg.id,
+                displayName: msg.displayName || '',
+                preview: chatMessagePreviewText(msg).slice(0, 100),
+            };
+        }
+        updateChatReplyBarUi();
+        document.getElementById('tm-chat-input')?.focus();
+    }
+
+    function updateChatReplyBarUi() {
+        const bar = document.getElementById('tm-chat-reply-bar');
+        if (!bar) return;
+        if (!chatReplyTarget) {
+            bar.hidden = true;
+            bar.innerHTML = '';
+            return;
+        }
+        bar.hidden = false;
+        bar.innerHTML = `<div class="tm-chat-reply-bar-inner">
+            <div class="tm-chat-reply-bar-text">
+                <strong>Απάντηση σε ${escapeHtml(chatReplyTarget.displayName || '?')}</strong>
+                <span>${escapeHtml(chatReplyTarget.preview || '')}</span>
+            </div>
+            <button type="button" id="tm-chat-reply-clear" title="Ακύρωση">&times;</button>
+        </div>`;
+        bar.querySelector('#tm-chat-reply-clear')?.addEventListener('click', () => setChatReplyTarget(null));
+    }
+
+    function updateChatRoomTabsUi() {
+        const officeBtn = document.getElementById('tm-chat-room-office');
+        const storeBtn = document.getElementById('tm-chat-room-store');
+        if (!officeBtn || !storeBtn) return;
+        const isStore = String(getChatRoom()).startsWith('store_');
+        officeBtn.classList.toggle('is-active', !isStore);
+        storeBtn.classList.toggle('is-active', isStore);
+        const storeName = getChatStoreName(chatStorageKeys) || 'Κατάστημα';
+        storeBtn.title = `Κανάλι: ${storeName}`;
+        storeBtn.textContent = storeName.length > 14 ? `${storeName.slice(0, 12)}…` : storeName;
+    }
+
+    function renderPinnedStrip() {
+        const strip = document.getElementById('tm-chat-pinned');
+        if (!strip) return;
+        const room = getChatRoom();
+        const pinned = chatMessages
+            .filter((m) => m.pinned && !isChatMessageDeleted(m) && String(m.room || room) === room)
+            .sort((a, b) => new Date(b.created || 0) - new Date(a.created || 0));
+        if (!pinned.length) {
+            strip.hidden = true;
+            strip.innerHTML = '';
+            return;
+        }
+        const top = pinned[0];
+        strip.hidden = false;
+        strip.innerHTML = `<div class="tm-chat-pinned-inner" data-id="${escapeHtml(top.id)}">
+            <span class="tm-chat-pinned-icon" aria-hidden="true">📌</span>
+            <span class="tm-chat-pinned-body">
+                <strong>${escapeHtml(top.displayName || '?')}</strong>
+                ${escapeHtml(chatMessagePreviewText(top))}
+            </span>
+            <button type="button" class="tm-chat-pinned-jump" data-id="${escapeHtml(top.id)}" title="Μετάβαση">↓</button>
+        </div>`;
+    }
+
+    function renderPresenceUi() {
+        const el = document.getElementById('tm-chat-presence');
+        if (!el) return;
+        const cutoff = Date.now() - 90 * 1000;
+        const online = (chatPresenceList || []).filter((p) => {
+            const t = new Date(p.lastSeen || 0).getTime();
+            return t >= cutoff && p.displayName;
+        });
+        if (!online.length) {
+            el.hidden = true;
+            el.textContent = '';
+            return;
+        }
+        el.hidden = false;
+        const names = online.slice(0, 8).map((p) => p.displayName).join(', ');
+        const more = online.length > 8 ? ` +${online.length - 8}` : '';
+        el.innerHTML = `<span class="tm-chat-presence-dot" aria-hidden="true"></span>Online: ${escapeHtml(names)}${escapeHtml(more)}`;
+    }
+
+    function peersHaveReadMessage(m) {
+        if (!m?.created) return false;
+        const created = new Date(m.created).getTime();
+        if (!created) return false;
+        const me = getDisplayName();
+        return (chatPresenceList || []).some((p) => {
+            if (!p?.lastReadAt) return false;
+            if (me && String(p.displayName || '') === me) return false;
+            return new Date(p.lastReadAt).getTime() >= created;
+        });
+    }
+
+    function mapChatRecord(rec) {
+        return {
+            id: rec.id,
+            text: rec.text,
+            displayName: rec.displayName,
+            store: String(rec.store || '').trim(),
+            profileId: rec.profileId || '',
+            room: rec.room || getChatRoom(),
+            created: rec.created,
+            updated: rec.updated || '',
+            attachment: normalizeChatAttachmentName(rec),
+            pbUserId: String(rec.pbUserId || '').trim(),
+            avatar: normalizePbFileName(rec.avatar),
+            replyTo: String(rec.replyTo || '').trim(),
+            replyPreview: String(rec.replyPreview || '').trim(),
+            pinned: !!rec.pinned,
+            deleted: !!rec.deleted || isChatDeletedTombstoneText(rec.text),
+            deletedBy: String(rec.deletedBy || '').trim(),
+            edited: !!rec.edited,
+        };
+    }
+
+    function isChatDeletedTombstoneText(text) {
+        return /^message deleted by\s+.+/i.test(String(text || '').trim());
+    }
+
+    function parseChatDeletedByFromText(text) {
+        const m = String(text || '').trim().match(/^message deleted by\s+(.+)$/i);
+        return m?.[1] ? String(m[1]).trim() : '';
+    }
+
+    function getChatDeletedByName(m) {
+        if (!m) return '?';
+        return String(m.deletedBy || '').trim()
+            || parseChatDeletedByFromText(m.text)
+            || String(m.displayName || '').trim()
+            || '?';
+    }
+
+    function formatChatDeletedLabel(m) {
+        return `message deleted by ${getChatDeletedByName(m)}`;
+    }
+
+    function isChatMessageDeleted(m) {
+        return !!(m && (m.deleted || isChatDeletedTombstoneText(m.text)));
     }
 
     /** Deterministic password from login email — same on every PC, never shown to user. */
@@ -21750,24 +22018,38 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .replace(/"/g, '&quot;');
     }
 
-    /** Turn http(s)/www URLs into safe clickable links; everything else stays escaped. */
+    /** Links, @mentions, and repair numbers → clickable HTML. */
     function formatChatMessageHtml(text) {
         const raw = String(text || '');
         if (!raw) return '';
-        const urlRe = /(?:https?:\/\/|www\.)[^\s<>"']+/gi;
+        const tokenRe = /(?:https?:\/\/|www\.)[^\s<>"']+|@[\p{L}\p{N}_.-]{2,40}|#\d{4,10}\b|\b\d{5,8}\b/giu;
         let out = '';
         let last = 0;
         let match;
-        while ((match = urlRe.exec(raw)) !== null) {
+        const me = getDisplayName();
+        const meSlug = greekToLatinSlug(me);
+        while ((match = tokenRe.exec(raw)) !== null) {
             out += escapeHtml(raw.slice(last, match.index));
-            let url = match[0];
-            let trailing = '';
-            while (/[).,;:!?\]]$/.test(url)) {
-                trailing = url.slice(-1) + trailing;
-                url = url.slice(0, -1);
+            const token = match[0];
+            if (/^(?:https?:\/\/|www\.)/i.test(token)) {
+                let url = token;
+                let trailing = '';
+                while (/[).,;:!?\]]$/.test(url)) {
+                    trailing = url.slice(-1) + trailing;
+                    url = url.slice(0, -1);
+                }
+                const href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+                out += `<a class="tm-chat-msg-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>${escapeHtml(trailing)}`;
+            } else if (token.startsWith('@')) {
+                const name = token.slice(1);
+                const isMe = (me && name.toLowerCase() === me.toLowerCase())
+                    || (meSlug && greekToLatinSlug(name) === meSlug);
+                out += `<span class="tm-chat-mention${isMe ? ' is-me' : ''}">${escapeHtml(token)}</span>`;
+            } else {
+                const num = token.replace(/^#/, '');
+                const href = `${CHAT_REPAIR_SEARCH_URL}${encodeURIComponent(num)}`;
+                out += `<a class="tm-chat-msg-link tm-chat-repair-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" title="Αναζήτηση επισκευής">${escapeHtml(token)}</a>`;
             }
-            const href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
-            out += `<a class="tm-chat-msg-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>${escapeHtml(trailing)}`;
             last = match.index + match[0].length;
         }
         out += escapeHtml(raw.slice(last));
@@ -22035,6 +22317,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function chatMessagePreviewText(m) {
+        if (isChatMessageDeleted(m)) return formatChatDeletedLabel(m).slice(0, 80);
         const t = String(m?.text || '').trim();
         if (t && t !== '(αρχείο)') return t.slice(0, 80);
         if (m?.attachment) {
@@ -22098,6 +22381,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             user: mail,
             pass,
             muted: !!GM_getValue(keys.muted, false),
+            sound: GM_getValue(keys.sound, true) !== false,
         };
     }
 
@@ -23024,6 +23308,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     m.attachment || '',
                     m.pbUserId || '',
                     m.avatar || '',
+                    m.replyTo || '',
+                    m.pinned ? '1' : '0',
+                    m.deleted ? '1' : '0',
+                    m.edited ? '1' : '0',
                     av ? `${av.userId}:${av.filename}` : '',
                     chatSelfAvatarFile || '',
                     m.created || '',
@@ -23041,13 +23329,25 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     function renderMessages({ force, newIds } = {}) {
         const list = document.getElementById('tm-chat-messages');
         if (!list) return;
-        const sorted = chatMessages.slice().sort((a, b) => {
-            const ta = new Date(a.created || 0).getTime();
-            const tb = new Date(b.created || 0).getTime();
-            return ta - tb;
-        });
-        const nextKey = chatMessagesFingerprint(sorted);
+        const room = getChatRoom();
+        const q = String(chatSearchQuery || '').trim().toLowerCase();
+        let sorted = chatMessages
+            .filter((m) => String(m.room || room) === room)
+            .slice()
+            .sort((a, b) => {
+                const ta = new Date(a.created || 0).getTime();
+                const tb = new Date(b.created || 0).getTime();
+                return ta - tb;
+            });
+        if (q) {
+            sorted = sorted.filter((m) => {
+                const blob = `${m.displayName || ''} ${m.text || ''} ${m.store || ''} ${m.replyPreview || ''}`.toLowerCase();
+                return blob.includes(q);
+            });
+        }
+        const nextKey = chatMessagesFingerprint(sorted) + `\u0003${q}\u0003${room}\u0003${chatPresenceList.map((p) => p.lastReadAt || '').join(',')}`;
         if (!force && nextKey === chatMessagesRenderKey && list.childElementCount > 0) {
+            renderPinnedStrip();
             return;
         }
         const stickToBottom = force || isChatMessagesNearBottom(list) || !chatMessagesRenderKey;
@@ -23055,11 +23355,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         chatMessagesRenderKey = nextKey;
 
         const me = getDisplayName();
+        renderPinnedStrip();
         if (!sorted.length) {
             list.innerHTML = `<div class="tm-chat-empty">
                 <div class="tm-chat-empty-icon">💬</div>
-                <div class="tm-chat-empty-title">Δεν υπάρχουν μηνύματα ακόμα</div>
-                <div class="tm-chat-empty-sub">Γράψε κάτι για να ξεκινήσει η συζήτηση</div>
+                <div class="tm-chat-empty-title">${q ? 'Κανένα αποτέλεσμα' : 'Δεν υπάρχουν μηνύματα ακόμα'}</div>
+                <div class="tm-chat-empty-sub">${q ? 'Δοκίμασε άλλο όρο αναζήτησης' : 'Γράψε κάτι για να ξεκινήσει η συζήτηση'}</div>
             </div>`;
             return;
         }
@@ -23071,6 +23372,21 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 ? `<span class="tm-chat-msg-store">${escapeHtml(m.store)}</span>`
                 : '';
             const name = m.displayName || '?';
+            if (isChatMessageDeleted(m)) {
+                return `<div class="tm-chat-msg is-deleted${mine ? ' is-mine' : ''}" data-id="${escapeHtml(m.id)}">
+                    ${formatChatAvatarHtml(m)}
+                    <div class="tm-chat-msg-bubble">
+                        <div class="tm-chat-msg-meta">
+                            <span class="tm-chat-msg-who">
+                                <span class="tm-chat-msg-name">${escapeHtml(name)}</span>
+                                ${storeHtml}
+                            </span>
+                            <span class="tm-chat-msg-time">${escapeHtml(formatMsgTime(m.created))}</span>
+                        </div>
+                        <div class="tm-chat-msg-text tm-chat-msg-deleted">${escapeHtml(formatChatDeletedLabel(m))}</div>
+                    </div>
+                </div>`;
+            }
             const rawText = String(m.text || '').trim();
             const hasAttach = !!normalizeChatAttachmentName(m);
             const isFilePlaceholder = rawText === '(αρχείο)' || (!hasAttach && /^📎\s/.test(rawText));
@@ -23079,21 +23395,42 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const attachHtml = formatChatAttachmentHtml(m);
             const bodyHtml = [attachHtml, textHtml].filter(Boolean).join('')
                 || (isFilePlaceholder ? '' : escapeHtml(rawText));
-            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}${isNew ? ' is-new' : ''}" data-id="${escapeHtml(m.id)}">
+            const replyHtml = m.replyTo
+                ? `<button type="button" class="tm-chat-msg-reply" data-jump="${escapeHtml(m.replyTo)}">
+                    <strong>${escapeHtml((findChatMessageById(m.replyTo)?.displayName) || 'Μήνυμα')}</strong>
+                    <span>${escapeHtml(m.replyPreview || '…')}</span>
+                </button>`
+                : '';
+            const editedHtml = m.edited ? `<span class="tm-chat-msg-edited">επεξεργ.</span>` : '';
+            const pinMark = m.pinned ? `<span class="tm-chat-msg-pinmark" title="Καρφιτσωμένο">📌</span>` : '';
+            const seenHtml = mine && peersHaveReadMessage(m)
+                ? `<span class="tm-chat-msg-seen" title="Διαβάστηκε">✓✓</span>`
+                : (mine ? `<span class="tm-chat-msg-seen is-sent" title="Στάλθηκε">✓</span>` : '');
+            const canManage = isOwnChatMessage(m);
+            const actions = `<div class="tm-chat-msg-actions">
+                <button type="button" class="tm-chat-act" data-act="reply" data-id="${escapeHtml(m.id)}" title="Απάντηση">↩</button>
+                <button type="button" class="tm-chat-act" data-act="pin" data-id="${escapeHtml(m.id)}" title="${m.pinned ? 'Ξεκαρφίτσωμα' : 'Καρφίτσωμα'}">📌</button>
+                ${canManage ? `<button type="button" class="tm-chat-act" data-act="edit" data-id="${escapeHtml(m.id)}" title="Επεξεργασία">✎</button>
+                <button type="button" class="tm-chat-act" data-act="delete" data-id="${escapeHtml(m.id)}" title="Διαγραφή δικού σου μηνύματος">🗑</button>` : ''}
+            </div>`;
+            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}${isNew ? ' is-new' : ''}${m.pinned ? ' is-pinned' : ''}" data-id="${escapeHtml(m.id)}">
                 ${formatChatAvatarHtml(m)}
                 <div class="tm-chat-msg-bubble">
                     <div class="tm-chat-msg-meta">
                         <span class="tm-chat-msg-who">
                             <span class="tm-chat-msg-name">${escapeHtml(name)}</span>
                             ${storeHtml}
+                            ${pinMark}
                         </span>
-                        <span class="tm-chat-msg-time">${escapeHtml(formatMsgTime(m.created))}</span>
+                        <span class="tm-chat-msg-time">${escapeHtml(formatMsgTime(m.created))}${editedHtml}${seenHtml}</span>
                     </div>
+                    ${replyHtml}
                     <div class="tm-chat-msg-text">${bodyHtml}</div>
+                    ${actions}
                 </div>
             </div>`;
         }).join('');
-        if (stickToBottom) list.scrollTop = list.scrollHeight;
+        if (stickToBottom && !q) list.scrollTop = list.scrollHeight;
         else list.scrollTop = prevScrollTop;
     }
 
@@ -23129,13 +23466,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return false;
     }
 
-    /** Footer-button reminder only — never desktop / notification-center alerts. */
+    /** Footer-button reminder (+ optional sound). Mentions get a stronger ping. */
     function notifyNewChatMessages(newMessages) {
         if (chatMuted || !Array.isArray(newMessages) || !newMessages.length) return;
         if (chatPanelOpen && !document.hidden) return;
 
         const incoming = newMessages.filter((m) => {
-            if (!m?.id || isOwnChatMessage(m)) return false;
+            if (!m?.id || isOwnChatMessage(m) || m.deleted) return false;
             if (chatNotifiedIds.has(m.id)) return false;
             return true;
         });
@@ -23149,19 +23486,25 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
         });
 
+        const mentioned = incoming.some((m) => messageMentionsMe(m.text));
+        playChatNotifySound({ mention: mentioned });
+
         const btn = document.getElementById('tm-chat-toggle-btn');
         if (!btn) return;
         const latest = incoming[incoming.length - 1];
         const storeBit = latest.store ? ` · ${latest.store}` : '';
-        const preview = incoming.length === 1
-            ? `${latest.displayName || 'Chat'}${storeBit}: ${chatMessagePreviewText(latest)}`
-            : `${incoming.length} νέα μηνύματα`;
+        const preview = mentioned
+            ? `Σε ανέφεραν — ${latest.displayName || 'Chat'}: ${chatMessagePreviewText(latest)}`
+            : (incoming.length === 1
+                ? `${latest.displayName || 'Chat'}${storeBit}: ${chatMessagePreviewText(latest)}`
+                : `${incoming.length} νέα μηνύματα`);
         btn.title = `Office Chat — ${preview}`;
         btn.classList.add('tm-chat-has-unread', 'tm-chat-ping');
+        if (mentioned) btn.classList.add('tm-chat-mention-ping');
         window.clearTimeout(notifyNewChatMessages._pingTimer);
         notifyNewChatMessages._pingTimer = window.setTimeout(() => {
-            btn.classList.remove('tm-chat-ping');
-        }, 2400);
+            btn.classList.remove('tm-chat-ping', 'tm-chat-mention-ping');
+        }, mentioned ? 3600 : 2400);
     }
 
     function formatMsgTime(iso) {
@@ -23181,22 +23524,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         let added = 0;
         let changed = false;
         const newlyAdded = [];
+        const activeRoom = getChatRoom();
         records.forEach((rec) => {
             if (!rec?.id) return;
-            if (String(rec.room || CHAT_ROOM) !== CHAT_ROOM) return;
+            if (String(rec.room || CHAT_ROOM_OFFICE) !== activeRoom) return;
             const prev = byId.get(rec.id);
-            const mapped = {
-                id: rec.id,
-                text: rec.text,
-                displayName: rec.displayName,
-                store: String(rec.store || '').trim(),
-                profileId: rec.profileId || '',
-                room: rec.room || CHAT_ROOM,
-                created: rec.created,
-                attachment: normalizeChatAttachmentName(rec),
-                pbUserId: String(rec.pbUserId || '').trim(),
-                avatar: normalizePbFileName(rec.avatar),
-            };
+            const mapped = mapChatRecord(rec);
             if (mapped.pbUserId && mapped.avatar) {
                 rememberChatAvatarEntry({
                     userId: mapped.pbUserId,
@@ -23217,6 +23550,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 || String(prev.pbUserId || '') !== String(mapped.pbUserId || '')
                 || String(prev.avatar || '') !== String(mapped.avatar || '')
                 || String(prev.created || '') !== String(mapped.created || '')
+                || String(prev.replyTo || '') !== String(mapped.replyTo || '')
+                || String(prev.replyPreview || '') !== String(mapped.replyPreview || '')
+                || !!prev.pinned !== !!mapped.pinned
+                || !!prev.deleted !== !!mapped.deleted
+                || String(prev.deletedBy || '') !== String(mapped.deletedBy || '')
+                || !!prev.edited !== !!mapped.edited
             ) {
                 changed = true;
             }
@@ -23235,7 +23574,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
         if (chatHydrated && fromPollOrRealtime && added > 0) {
             if (!chatPanelOpen) {
-                chatUnread += added;
+                chatUnread += newlyAdded.filter((m) => !m.deleted).length;
                 updateUnreadBadge();
             }
             notifyNewChatMessages(newlyAdded);
@@ -23298,7 +23637,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     async function fetchMessages(STORAGE_KEYS) {
         const settings = getChatSettings(STORAGE_KEYS);
         const token = await ensureAuth(STORAGE_KEYS);
-        const filter = encodeURIComponent(`room="${CHAT_ROOM}"`);
+        const room = getChatRoom();
+        const filter = encodeURIComponent(`room="${room}"`);
         const url = `${settings.baseUrl}/api/collections/messages/records?page=1&perPage=${CHAT_PAGE_SIZE}&sort=-created&filter=${filter}`;
         const { status, body } = await chatRequestJson({
             method: 'GET',
@@ -23356,17 +23696,21 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         const storeName = getChatStoreName(STORAGE_KEYS);
         const displayName = getDisplayName();
 
-        const buildFields = (textValue, includeStore, includeAvatar) => {
+        const buildFields = (textValue, includeStore, includeAvatar, includeReply) => {
             const fields = {
                 text: textValue,
                 displayName,
-                room: CHAT_ROOM,
+                room: getChatRoom(),
             };
             if (profileId) fields.profileId = profileId;
             if (includeStore && storeName && !chatStoreFieldUnsupported) fields.store = storeName;
             if (includeAvatar && !chatMsgAvatarFieldsUnsupported && chatSelfPbUserId && chatSelfAvatarFile) {
                 fields.pbUserId = chatSelfPbUserId;
                 fields.avatar = chatSelfAvatarFile;
+            }
+            if (includeReply && !chatReplyFieldsUnsupported && chatReplyTarget?.id) {
+                fields.replyTo = chatReplyTarget.id;
+                fields.replyPreview = String(chatReplyTarget.preview || '').slice(0, 120);
             }
             return fields;
         };
@@ -23441,7 +23785,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
         let includeStore = true;
         let includeAvatar = !chatMsgAvatarFieldsUnsupported;
-        let fields = buildFields(textValue, includeStore, includeAvatar);
+        let includeReply = !chatReplyFieldsUnsupported && !!chatReplyTarget?.id;
+        let fields = buildFields(textValue, includeStore, includeAvatar, includeReply);
 
         let { status, body, raw } = await postJson(fields);
         const errBlob = () => `${JSON.stringify(body || {})}\n${raw || ''}`;
@@ -23449,7 +23794,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (status >= 400 && storeName && !chatStoreFieldUnsupported && /store/i.test(errBlob())) {
             chatStoreFieldUnsupported = true;
             includeStore = false;
-            fields = buildFields(textValue, includeStore, includeAvatar);
+            fields = buildFields(textValue, includeStore, includeAvatar, includeReply);
             ({ status, body, raw } = await postJson(fields));
             if (status >= 400 && /store/i.test(errBlob())) {
                 setChatStatus('error', 'Πρόσθεσε πεδίο store στο messages (PocketBase)');
@@ -23459,30 +23804,44 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (status >= 400 && includeAvatar && /pbUserId|avatar/i.test(errBlob())) {
             chatMsgAvatarFieldsUnsupported = true;
             includeAvatar = false;
-            fields = buildFields(textValue, includeStore, false);
+            fields = buildFields(textValue, includeStore, false, includeReply);
+            ({ status, body, raw } = await postJson(fields));
+        }
+
+        if (status >= 400 && includeReply && /replyTo|replyPreview/i.test(errBlob())) {
+            chatReplyFieldsUnsupported = true;
+            includeReply = false;
+            fields = buildFields(textValue, includeStore, includeAvatar, false);
             ({ status, body, raw } = await postJson(fields));
         }
 
         if (status >= 400 && attachFile && !clean && /text/i.test(errBlob())) {
             textValue = '(αρχείο)';
-            fields = buildFields(textValue, includeStore, includeAvatar);
+            fields = buildFields(textValue, includeStore, includeAvatar, includeReply);
             ({ status, body, raw } = await postJson(fields));
         }
 
         if (status < 200 || status >= 300) {
             let msg = formatPbError(body, `Send failed (${status || 0})`);
             if (!body && raw) msg = `${msg} — ${String(raw).slice(0, 160)}`;
-            if (/failed to create record/i.test(msg) && !/text:|displayName|room|profileId|store|attachment|pbUserId|avatar/i.test(msg)) {
+            if (/failed to create record/i.test(msg) && !/text:|displayName|room|profileId|store|attachment|pbUserId|avatar|replyTo|replyPreview/i.test(msg)) {
                 msg += ' — PocketBase Admin → Collections → messages → API Rules: ξεκλείδωσε το Create';
             }
             throw new Error(msg);
         }
 
         let saved = body && typeof body === 'object' ? { ...body } : body;
+        if (!saved?.id) {
+            throw new Error('Send failed — κενή απάντηση από server');
+        }
         if (saved && storeName && !saved.store) saved.store = storeName;
         if (saved && chatSelfPbUserId && chatSelfAvatarFile) {
             if (!saved.pbUserId) saved.pbUserId = chatSelfPbUserId;
             if (!saved.avatar) saved.avatar = chatSelfAvatarFile;
+        }
+        if (saved && includeReply && chatReplyTarget?.id) {
+            if (!saved.replyTo) saved.replyTo = chatReplyTarget.id;
+            if (!saved.replyPreview) saved.replyPreview = chatReplyTarget.preview;
         }
 
         if (attachFile && saved && saved.id) {
@@ -23522,7 +23881,243 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         upsertMessages([saved]);
+        setChatReplyTarget(null);
         return { ok: true };
+    }
+
+    async function patchChatMessage(STORAGE_KEYS, messageId, patchFields) {
+        if (!messageId || !patchFields) return { ok: false };
+        const settings = getChatSettings(STORAGE_KEYS);
+        let authHeader = await ensureAuth(STORAGE_KEYS);
+        const url = `${String(settings.baseUrl || '').replace(/\/$/, '')}/api/collections/messages/records/${encodeURIComponent(messageId)}`;
+        const run = (header) => chatRequestJson({
+            method: 'PATCH',
+            url,
+            headers: {
+                Authorization: header,
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify(patchFields),
+        });
+        let result = await run(authHeader);
+        if ((result.status === 401 || result.status === 403) && !String(authHeader).startsWith('Bearer ')) {
+            result = await run(`Bearer ${authHeader}`);
+        }
+        if (result.status === 401) {
+            clearCachedToken(STORAGE_KEYS);
+            authHeader = await ensureAuth(STORAGE_KEYS, { force: true });
+            result = await run(authHeader);
+        }
+        if (result.status < 200 || result.status >= 300) {
+            return { ok: false, status: result.status, body: result.body, message: formatPbError(result.body, 'Ενημέρωση απέτυχε') };
+        }
+        upsertMessages([mapChatRecord(result.body || { id: messageId, ...patchFields })]);
+        return { ok: true, body: result.body };
+    }
+
+    async function togglePinChatMessage(STORAGE_KEYS, messageId) {
+        const msg = findChatMessageById(messageId);
+        if (!msg || chatPinFieldUnsupported) {
+            setChatStatus('error', 'Πρόσθεσε πεδίο pinned στο messages (PocketBase)');
+            return { ok: false };
+        }
+        const next = !msg.pinned;
+        const result = await patchChatMessage(STORAGE_KEYS, messageId, { pinned: next });
+        if (!result.ok && /pinned/i.test(JSON.stringify(result.body || {}) + (result.message || ''))) {
+            chatPinFieldUnsupported = true;
+            setChatStatus('error', 'Πρόσθεσε πεδίο pinned (Bool) στο messages');
+        }
+        return result;
+    }
+
+    async function softDeleteChatMessage(STORAGE_KEYS, messageId) {
+        const msg = findChatMessageById(messageId);
+        if (!msg) return { ok: false, reason: 'missing' };
+        if (!isOwnChatMessage(msg)) {
+            setChatStatus('error', 'Μπορείς να διαγράψεις μόνο τα δικά σου μηνύματα');
+            return { ok: false, reason: 'forbidden' };
+        }
+        if (isChatMessageDeleted(msg)) return { ok: true };
+
+        const who = getDisplayName() || msg.displayName || '?';
+        const tombstone = `message deleted by ${who}`.slice(0, CHAT_MAX_LEN);
+        const patch = {
+            text: tombstone,
+            deleted: true,
+            deletedBy: who.slice(0, 64),
+            pinned: false,
+            replyTo: '',
+            replyPreview: '',
+        };
+
+        let result = await patchChatMessage(STORAGE_KEYS, messageId, patch);
+        const errText = `${JSON.stringify(result.body || {})}\n${result.message || ''}`;
+
+        // Drop optional fields PocketBase may not have yet
+        if (!result.ok && /deletedBy/i.test(errText)) {
+            delete patch.deletedBy;
+            result = await patchChatMessage(STORAGE_KEYS, messageId, patch);
+        }
+        if (!result.ok && /deleted/i.test(`${JSON.stringify(result.body || {})}\n${result.message || ''}`)) {
+            chatSoftDeleteUnsupported = true;
+            result = await patchChatMessage(STORAGE_KEYS, messageId, {
+                text: tombstone,
+                pinned: false,
+            });
+        }
+        if (!result.ok && /replyTo|replyPreview|pinned/i.test(`${JSON.stringify(result.body || {})}\n${result.message || ''}`)) {
+            result = await patchChatMessage(STORAGE_KEYS, messageId, { text: tombstone, deleted: !chatSoftDeleteUnsupported });
+            if (!result.ok && chatSoftDeleteUnsupported === false && /deleted/i.test(`${JSON.stringify(result.body || {})}\n${result.message || ''}`)) {
+                chatSoftDeleteUnsupported = true;
+                result = await patchChatMessage(STORAGE_KEYS, messageId, { text: tombstone });
+            }
+        }
+
+        if (result.ok) {
+            // Ensure local UI shows tombstone even if server omitted flags
+            const local = {
+                ...msg,
+                text: tombstone,
+                deleted: true,
+                deletedBy: who,
+                pinned: false,
+                replyTo: '',
+                replyPreview: '',
+                attachment: '',
+            };
+            upsertMessages([local]);
+            return { ok: true };
+        }
+
+        setChatStatus('error', result.message || 'Η διαγραφή απέτυχε');
+        return result;
+    }
+
+    async function editChatMessage(STORAGE_KEYS, messageId, newText) {
+        const msg = findChatMessageById(messageId);
+        if (!msg || !isOwnChatMessage(msg) || isChatMessageDeleted(msg)) return { ok: false };
+        const clean = String(newText || '').trim().slice(0, CHAT_MAX_LEN);
+        if (!clean) return { ok: false, reason: 'empty' };
+        const patch = { text: clean };
+        if (!chatEditFieldUnsupported) patch.edited = true;
+        const result = await patchChatMessage(STORAGE_KEYS, messageId, patch);
+        if (!result.ok && /edited/i.test(JSON.stringify(result.body || {}) + (result.message || ''))) {
+            chatEditFieldUnsupported = true;
+            return patchChatMessage(STORAGE_KEYS, messageId, { text: clean });
+        }
+        return result;
+    }
+
+    async function upsertOwnPresence(STORAGE_KEYS, { markRead } = {}) {
+        if (chatPresenceUnsupported) return false;
+        try {
+            const token = await ensureAuth(STORAGE_KEYS);
+            const base = OFFICE_CHAT_BASE_URL.replace(/\/$/, '');
+            loadCachedSelfAvatar();
+            if (!chatSelfPbUserId) {
+                try { await fetchOwnChatUserRecord(STORAGE_KEYS); } catch (_) { /* optional */ }
+            }
+            if (!chatSelfPbUserId) return false;
+            const nowIso = new Date().toISOString();
+            const payload = {
+                userId: chatSelfPbUserId,
+                displayName: getDisplayName(),
+                profileId: getProfileId() || '',
+                store: getChatStoreName(STORAGE_KEYS) || '',
+                lastSeen: nowIso,
+            };
+            if (markRead || chatPanelOpen) payload.lastReadAt = nowIso;
+
+            const listUrl = `${base}/api/collections/presence/records?page=1&perPage=1&filter=${encodeURIComponent(`userId="${chatSelfPbUserId}"`)}`;
+            const listed = await chatRequestJson({
+                method: 'GET',
+                url: listUrl,
+                headers: { Authorization: token },
+                timeout: 10000,
+            });
+            if (listed.status === 404 || (listed.status >= 400 && /collection|presence/i.test(JSON.stringify(listed.body || {})))) {
+                chatPresenceUnsupported = true;
+                return false;
+            }
+            let result;
+            const existingId = listed.body?.items?.[0]?.id;
+            if (existingId) {
+                result = await chatRequestJson({
+                    method: 'PATCH',
+                    url: `${base}/api/collections/presence/records/${encodeURIComponent(existingId)}`,
+                    headers: { Authorization: token, 'Content-Type': 'application/json' },
+                    data: JSON.stringify(payload),
+                    timeout: 10000,
+                });
+            } else {
+                result = await chatRequestJson({
+                    method: 'POST',
+                    url: `${base}/api/collections/presence/records`,
+                    headers: { Authorization: token, 'Content-Type': 'application/json' },
+                    data: JSON.stringify(payload),
+                    timeout: 10000,
+                });
+            }
+            if (result.status >= 400) {
+                if (/presence|collection|unknown/i.test(JSON.stringify(result.body || {}))) {
+                    chatPresenceUnsupported = true;
+                }
+                return false;
+            }
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    async function refreshChatPresence(STORAGE_KEYS) {
+        if (chatPresenceUnsupported) {
+            chatPresenceList = [];
+            renderPresenceUi();
+            return false;
+        }
+        try {
+            const token = await ensureAuth(STORAGE_KEYS);
+            const base = OFFICE_CHAT_BASE_URL.replace(/\/$/, '');
+            const since = new Date(Date.now() - 3 * 60 * 1000).toISOString();
+            const filter = encodeURIComponent(`lastSeen>="${since}"`);
+            const { status, body } = await chatRequestJson({
+                method: 'GET',
+                url: `${base}/api/collections/presence/records?page=1&perPage=100&sort=-lastSeen&filter=${filter}`,
+                headers: { Authorization: token },
+                timeout: 10000,
+            });
+            if (status === 404 || (status >= 400 && /collection|presence/i.test(JSON.stringify(body || {})))) {
+                chatPresenceUnsupported = true;
+                chatPresenceList = [];
+                renderPresenceUi();
+                return false;
+            }
+            if (status < 200 || status >= 300) return false;
+            chatPresenceList = Array.isArray(body?.items) ? body.items : [];
+            renderPresenceUi();
+            renderMessages({ force: true });
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function startPresenceHeartbeat(STORAGE_KEYS) {
+        stopPresenceHeartbeat();
+        const tick = () => {
+            upsertOwnPresence(STORAGE_KEYS, { markRead: chatPanelOpen }).catch(() => {});
+            refreshChatPresence(STORAGE_KEYS).catch(() => {});
+        };
+        tick();
+        chatPresenceTimer = window.setInterval(tick, CHAT_PRESENCE_MS);
+    }
+
+    function stopPresenceHeartbeat() {
+        if (chatPresenceTimer) {
+            window.clearInterval(chatPresenceTimer);
+            chatPresenceTimer = null;
+        }
     }
 
     function stopRealtime() {
@@ -23636,12 +24231,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 return { ok: false, reason: 'account', error: ensured };
             }
             loadCachedSelfAvatar();
+            loadChatRoomPreference(STORAGE_KEYS);
+            chatSoundEnabled = getChatSettings(STORAGE_KEYS).sound !== false;
             try { await fetchOwnChatUserRecord(STORAGE_KEYS); } catch (_) { /* optional */ }
             try { await refreshChatAvatarDirectory(STORAGE_KEYS); } catch (_) { /* optional */ }
             await fetchMessages(STORAGE_KEYS);
             refreshChatMessagesAvatarUi();
+            updateChatRoomTabsUi();
             const realtimeOk = await tryStartRealtime(STORAGE_KEYS);
             startPolling(STORAGE_KEYS);
+            startPresenceHeartbeat(STORAGE_KEYS);
             setChatStatus('online');
             return { ok: true, realtime: realtimeOk };
         } catch (err) {
@@ -24142,6 +24741,89 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-chat-send:hover { filter: brightness(1.05); }
             #tm-chat-send:active { transform: scale(0.97); }
             #tm-chat-send:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+            #tm-chat-rooms {
+                display: flex; gap: 6px; padding: 6px 10px 0;
+                background: var(--tm-chat-surface);
+            }
+            .tm-chat-room-btn {
+                flex: 1; border: 1px solid var(--tm-chat-line); background: #f8fafc;
+                border-radius: 8px; padding: 5px 8px; font-size: 11px; font-weight: 600;
+                color: var(--tm-chat-muted); cursor: pointer;
+            }
+            .tm-chat-room-btn.is-active {
+                background: color-mix(in srgb, var(--tm-chat-accent) 14%, #fff);
+                color: var(--tm-chat-accent); border-color: color-mix(in srgb, var(--tm-chat-accent) 35%, #e2e8f0);
+            }
+            #tm-chat-presence {
+                padding: 4px 12px; font-size: 11px; color: var(--tm-chat-muted);
+                display: flex; align-items: center; gap: 6px;
+            }
+            .tm-chat-presence-dot {
+                width: 7px; height: 7px; border-radius: 50%; background: #22c55e;
+                box-shadow: 0 0 0 2px rgba(34,197,94,.2);
+            }
+            #tm-chat-search-row { padding: 4px 10px 6px; background: var(--tm-chat-surface); }
+            #tm-chat-search {
+                width: 100%; border: 1px solid var(--tm-chat-line); border-radius: 8px;
+                padding: 6px 10px; font-size: 12px; background: #f8fafc; color: var(--tm-chat-ink);
+            }
+            #tm-chat-pinned {
+                margin: 0 10px 6px; border: 1px solid #fde68a; background: #fffbeb;
+                border-radius: 10px; overflow: hidden;
+            }
+            .tm-chat-pinned-inner {
+                display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 12px;
+            }
+            .tm-chat-pinned-body { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .tm-chat-pinned-jump {
+                border: 0; background: transparent; cursor: pointer; font-size: 14px; color: #92400e;
+            }
+            .tm-chat-msg-reply {
+                display: block; width: 100%; text-align: left; border: 0; border-left: 3px solid var(--tm-chat-accent);
+                background: color-mix(in srgb, var(--tm-chat-accent) 8%, #fff); border-radius: 0 8px 8px 0;
+                padding: 4px 8px; margin: 0 0 6px; cursor: pointer; font-size: 11px; color: var(--tm-chat-muted);
+            }
+            .tm-chat-msg-reply strong { display: block; color: var(--tm-chat-ink); font-size: 11px; }
+            .tm-chat-msg-actions {
+                display: none; gap: 4px; margin-top: 4px; justify-content: flex-end;
+            }
+            .tm-chat-msg:hover .tm-chat-msg-actions { display: flex; }
+            .tm-chat-act {
+                border: 0; background: #f1f5f9; border-radius: 6px; width: 24px; height: 22px;
+                cursor: pointer; font-size: 11px; line-height: 1;
+            }
+            .tm-chat-act:hover { background: #e2e8f0; }
+            .tm-chat-mention {
+                color: var(--tm-chat-accent); font-weight: 700; background: color-mix(in srgb, var(--tm-chat-accent) 12%, transparent);
+                border-radius: 4px; padding: 0 2px;
+            }
+            .tm-chat-mention.is-me { background: #fef3c7; color: #92400e; }
+            .tm-chat-msg-edited { margin-left: 6px; opacity: .65; font-size: 10px; }
+            .tm-chat-msg-seen { margin-left: 6px; color: var(--tm-chat-accent); font-size: 11px; letter-spacing: -1px; }
+            .tm-chat-msg-seen.is-sent { color: var(--tm-chat-muted); }
+            .tm-chat-msg-pinmark { margin-left: 4px; font-size: 10px; }
+            .tm-chat-msg.is-deleted .tm-chat-msg-deleted { font-style: italic; color: var(--tm-chat-muted); }
+            #tm-chat-reply-bar {
+                margin: 0 8px 4px; border: 1px solid var(--tm-chat-line); border-radius: 10px; background: #f8fafc;
+            }
+            .tm-chat-reply-bar-inner { display: flex; align-items: center; gap: 8px; padding: 6px 8px; }
+            .tm-chat-reply-bar-text { flex: 1; min-width: 0; font-size: 11px; color: var(--tm-chat-muted); }
+            .tm-chat-reply-bar-text strong { display: block; color: var(--tm-chat-ink); }
+            #tm-chat-reply-clear { border: 0; background: transparent; cursor: pointer; font-size: 16px; color: var(--tm-chat-muted); }
+            #tm-chat-mention-menu {
+                position: absolute; left: 48px; right: 56px; bottom: 52px; z-index: 5;
+                background: #fff; border: 1px solid var(--tm-chat-line); border-radius: 10px;
+                box-shadow: 0 8px 24px rgba(15,23,42,.12); max-height: 140px; overflow: auto;
+            }
+            #tm-chat-composer-wrap { position: relative; }
+            .tm-chat-mention-item {
+                display: block; width: 100%; text-align: left; border: 0; background: transparent;
+                padding: 8px 10px; font-size: 12px; cursor: pointer; color: var(--tm-chat-ink);
+            }
+            .tm-chat-mention-item:hover, .tm-chat-mention-item.is-active { background: #f1f5f9; }
+            #tm-chat-toggle-btn.tm-chat-mention-ping {
+                box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.75);
+            }
             @media (max-width: 420px) {
                 #tm-chat-panel {
                     width: calc(100vw - 8px);
@@ -24179,15 +24861,26 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 <span class="tm-chat-status-dot" aria-hidden="true"></span>
                 <span class="tm-chat-status-text">Ανενεργό</span>
             </div>
+            <div id="tm-chat-rooms" role="tablist" aria-label="Κανάλια">
+                <button type="button" id="tm-chat-room-office" class="tm-chat-room-btn is-active" role="tab">Όλοι</button>
+                <button type="button" id="tm-chat-room-store" class="tm-chat-room-btn" role="tab">Κατάστημα</button>
+            </div>
+            <div id="tm-chat-presence" hidden></div>
             <div id="tm-chat-store-row">
                 <label for="tm-chat-store-select">Κατ.</label>
                 <select id="tm-chat-store-select" title="Από το κατάστημα/προφίλ του MyManager login"></select>
             </div>
+            <div id="tm-chat-search-row">
+                <input type="search" id="tm-chat-search" placeholder="Αναζήτηση… @όνομα · #επισκευή" autocomplete="off" spellcheck="false">
+            </div>
+            <div id="tm-chat-pinned" hidden></div>
             <div id="tm-chat-messages"></div>
             <div id="tm-chat-composer-wrap">
                 <div id="tm-chat-emoji-picker" role="dialog" aria-label="Emoji picker" hidden>
                     <div class="tm-chat-emoji-grid">${emojiButtons}</div>
                 </div>
+                <div id="tm-chat-mention-menu" hidden></div>
+                <div id="tm-chat-reply-bar" hidden></div>
                 <div id="tm-chat-pending-file" aria-live="polite">
                     <span class="tm-chat-pending-icon" aria-hidden="true">📎</span>
                     <span class="tm-chat-pending-name"></span>
@@ -24197,7 +24890,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 <div id="tm-chat-composer">
                     <button type="button" id="tm-chat-attach-btn" title="Επισύναψη αρχείου" aria-label="Επισύναψη αρχείου">📎</button>
                     <button type="button" id="tm-chat-emoji-toggle" title="Emoji" aria-label="Emoji" aria-expanded="false">😊</button>
-                    <textarea id="tm-chat-input" maxlength="${CHAT_MAX_LEN}" placeholder="Μήνυμα… Enter" rows="1"></textarea>
+                    <textarea id="tm-chat-input" maxlength="${CHAT_MAX_LEN}" placeholder="Μήνυμα… @όνομα · Enter" rows="1"></textarea>
                     <button type="button" id="tm-chat-send" title="Αποστολή" aria-label="Αποστολή">➤</button>
                 </div>
                 <input type="file" id="tm-chat-file-input" class="tm-chat-file-input" tabindex="-1" aria-hidden="true" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,image/jpeg,image/png,image/webp,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
@@ -24432,11 +25125,125 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         panel.addEventListener('drop', onDrop);
     }
 
+    function wireChatMessageActions(STORAGE_KEYS) {
+        const list = document.getElementById('tm-chat-messages');
+        const pinned = document.getElementById('tm-chat-pinned');
+        if (list && list.dataset.tmChatActionsWired !== '1') {
+            list.dataset.tmChatActionsWired = '1';
+            list.addEventListener('click', async (e) => {
+                const jump = e.target.closest('[data-jump]');
+                if (jump) {
+                    const id = jump.getAttribute('data-jump');
+                    const el = list.querySelector(`.tm-chat-msg[data-id="${CSS.escape(id)}"]`);
+                    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el?.classList.add('is-new');
+                    return;
+                }
+                const actBtn = e.target.closest('.tm-chat-act');
+                if (!actBtn) return;
+                const id = actBtn.getAttribute('data-id');
+                const act = actBtn.getAttribute('data-act');
+                const msg = findChatMessageById(id);
+                if (!msg) return;
+                if (act === 'reply') {
+                    setChatReplyTarget(msg);
+                    return;
+                }
+                if (act === 'pin') {
+                    await togglePinChatMessage(STORAGE_KEYS, id);
+                    return;
+                }
+                if (act === 'delete') {
+                    const target = findChatMessageById(id);
+                    if (!target || !isOwnChatMessage(target)) {
+                        setChatStatus('error', 'Μπορείς να διαγράψεις μόνο τα δικά σου μηνύματα');
+                        return;
+                    }
+                    if (!window.confirm('Διαγραφή του μηνύματός σου;')) return;
+                    await softDeleteChatMessage(STORAGE_KEYS, id);
+                    return;
+                }
+                if (act === 'edit') {
+                    const next = window.prompt('Επεξεργασία μηνύματος', String(msg.text || ''));
+                    if (next == null) return;
+                    await editChatMessage(STORAGE_KEYS, id, next);
+                }
+            });
+        }
+        if (pinned && pinned.dataset.tmChatPinnedWired !== '1') {
+            pinned.dataset.tmChatPinnedWired = '1';
+            pinned.addEventListener('click', (e) => {
+                const btn = e.target.closest('.tm-chat-pinned-jump, .tm-chat-pinned-inner');
+                const id = btn?.getAttribute('data-id');
+                if (!id) return;
+                const el = document.querySelector(`#tm-chat-messages .tm-chat-msg[data-id="${CSS.escape(id)}"]`);
+                el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        }
+    }
+
+    function wireChatRoomsAndSearch(STORAGE_KEYS) {
+        const panel = document.getElementById('tm-chat-panel');
+        if (!panel || panel.dataset.tmChatRoomsWired === '1') return;
+        panel.dataset.tmChatRoomsWired = '1';
+        panel.querySelector('#tm-chat-room-office')?.addEventListener('click', () => setChatRoomMode(STORAGE_KEYS, 'office'));
+        panel.querySelector('#tm-chat-room-store')?.addEventListener('click', () => setChatRoomMode(STORAGE_KEYS, 'store'));
+        const search = panel.querySelector('#tm-chat-search');
+        search?.addEventListener('input', () => {
+            chatSearchQuery = String(search.value || '');
+            renderMessages({ force: true });
+        });
+        updateChatRoomTabsUi();
+    }
+
+    function hideChatMentionMenu() {
+        const menu = document.getElementById('tm-chat-mention-menu');
+        if (!menu) return;
+        menu.hidden = true;
+        menu.innerHTML = '';
+    }
+
+    function updateChatMentionMenu(input) {
+        const menu = document.getElementById('tm-chat-mention-menu');
+        if (!menu || !input) return;
+        const val = input.value || '';
+        const caret = input.selectionStart ?? val.length;
+        const before = val.slice(0, caret);
+        const m = before.match(/@([\p{L}\p{N}_.-]{0,40})$/u);
+        if (!m) {
+            hideChatMentionMenu();
+            return;
+        }
+        const q = String(m[1] || '').toLowerCase();
+        const names = collectChatMentionNames().filter((n) => !q || n.toLowerCase().includes(q) || greekToLatinSlug(n).includes(q));
+        if (!names.length) {
+            hideChatMentionMenu();
+            return;
+        }
+        menu.hidden = false;
+        menu.innerHTML = names.slice(0, 8).map((n, i) => (
+            `<button type="button" class="tm-chat-mention-item${i === 0 ? ' is-active' : ''}" data-name="${escapeHtml(n)}">@${escapeHtml(n)}</button>`
+        )).join('');
+        menu.querySelectorAll('.tm-chat-mention-item').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const name = btn.getAttribute('data-name') || '';
+                const start = before.lastIndexOf('@');
+                const next = `${val.slice(0, start)}@${name} ${val.slice(caret)}`;
+                input.value = next.slice(0, CHAT_MAX_LEN);
+                const pos = start + name.length + 2;
+                input.focus();
+                try { input.setSelectionRange(pos, pos); } catch (_) { /* ignore */ }
+                hideChatMentionMenu();
+            });
+        });
+    }
+
     function wireChatPanelControls(panel, STORAGE_KEYS) {
         if (!panel || panel.dataset.tmChatControlsWired === '1') return;
         panel.dataset.tmChatControlsWired = '1';
         panel.querySelector('#tm-chat-close-btn')?.addEventListener('click', () => {
             setChatEmojiPickerOpen(false);
+            hideChatMentionMenu();
             closeChatPanel();
         });
         panel.querySelector('#tm-chat-refresh-btn')?.addEventListener('click', () => {
@@ -24463,22 +25270,28 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         wireChatFileAttach(STORAGE_KEYS);
         wireChatPasteDrop(STORAGE_KEYS);
         wireChatStoreSelect(STORAGE_KEYS);
+        wireChatRoomsAndSearch(STORAGE_KEYS);
+        wireChatMessageActions(STORAGE_KEYS);
         wireChatPanelDrag(panel, STORAGE_KEYS);
         wireChatPanelResize(panel, STORAGE_KEYS);
         applyChatPanelGeometry(panel, STORAGE_KEYS);
         updateChatPendingFileUi();
         updateChatStatusUi();
+        updateChatReplyBarUi();
+        updateChatRoomTabsUi();
+        renderPresenceUi();
+        renderPinnedStrip();
     }
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '8';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '9';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '8');
+            panel.setAttribute('data-tm-chat-ui', '9');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);
@@ -24791,12 +25604,15 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (!panel) return;
         applyChatPanelGeometry(panel, STORAGE_KEYS);
         refreshChatStoreSelect(STORAGE_KEYS);
+        updateChatRoomTabsUi();
         panel.classList.add('is-open');
         chatPanelOpen = true;
         chatUnread = 0;
         updateUnreadBadge();
-        renderMessages();
+        renderMessages({ force: true });
         document.getElementById('tm-chat-input')?.focus();
+        upsertOwnPresence(STORAGE_KEYS, { markRead: true }).catch(() => {});
+        refreshChatPresence(STORAGE_KEYS).catch(() => {});
         if (chatStatus !== 'online' && chatStatus !== 'connecting') {
             connectChat(STORAGE_KEYS);
         }
@@ -24806,6 +25622,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         const panel = document.getElementById('tm-chat-panel');
         if (!panel) return;
         setChatEmojiPickerOpen(false);
+        hideChatMentionMenu();
         panel.classList.remove('is-open');
         chatPanelOpen = false;
         updateUnreadBadge();
@@ -24826,6 +25643,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const text = input.value;
             const file = chatPendingFile;
             if (!String(text || '').trim() && !file) return;
+            hideChatMentionMenu();
             sendBtn.disabled = true;
             const prevLabel = sendBtn.textContent;
             sendBtn.textContent = '…';
@@ -24856,7 +25674,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             e.preventDefault();
             doSend();
         });
+        input.addEventListener('input', () => updateChatMentionMenu(input));
         input.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideChatMentionMenu();
+                if (chatReplyTarget) setChatReplyTarget(null);
+                return;
+            }
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 doSend();
@@ -24874,6 +25698,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         chatInitDone = true;
         chatStorageKeys = STORAGE_KEYS;
         chatMuted = settings.muted;
+        chatSoundEnabled = settings.sound !== false;
+        loadChatRoomPreference(STORAGE_KEYS);
         loadCachedSelfAvatar();
         injectChatStyles();
 

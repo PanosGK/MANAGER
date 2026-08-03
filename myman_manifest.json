@@ -1,11 +1,11 @@
 {
-  "version": "369",
+  "version": "370",
   "loaderVersion": "41",
-  "silentVersion": "13",
-  "displayVersion": "41.13",
+  "silentVersion": "14",
+  "displayVersion": "41.14",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Show Settings profile photo on chat message avatars",
+  "releaseNotes": "Office chat feature pack: rooms, mentions, reply, pin, search, presence, sound, repair links, receipts, own-message delete",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
