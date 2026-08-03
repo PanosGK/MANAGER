@@ -185,7 +185,7 @@
         },
         office_chat_user: {
             title: 'Chat email',
-            what: 'Δημιουργείται αυτόματα από το όνομα στο #login_block1 (π.χ. «Είσοδος ως Γκορόγιας» → gkorogias@myman.chat). Το όνομα στο chat παραμένει «Γκορόγιας».',
+            what: 'Πάντα από το όνομα login στο #login_block1 (π.χ. «Είσοδος ως Γκορόγιας» → gkorogias@myman.chat). Δεν αλλάζει χειροκίνητα.',
             where: 'Ρυθμίσεις → Chat.',
             when: 'Στην εγγραφή / σύνδεση στο chat.',
         },
@@ -726,7 +726,10 @@
             const chatUserEl = document.getElementById('tm-setting-chat-user');
             const chatPassEl = document.getElementById('tm-setting-chat-pass');
             if (chatUserEl) {
-                GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', chatUserEl.value.trim());
+                const mail = (typeof window.suggestOfficeChatEmail === 'function')
+                    ? window.suggestOfficeChatEmail()
+                    : chatUserEl.value.trim();
+                GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', mail);
             }
             if (chatPassEl) {
                 GM_setValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', chatPassEl.value);
@@ -1381,10 +1384,10 @@
                                 <label for="tm-setting-chat-user">Email (αυτόματο)</label>
                                 ${info('office_chat_user')}
                             </div>
-                            <p class="tm-setting-description">Από το login MyManager. Μπορείτε να το αλλάξετε αν χρειάζεται.</p>
+                            <p class="tm-setting-description">Σταθερό από το όνομα login (Γκορόγιας → gkorogias@myman.chat). Στο chat φαίνεται το ελληνικό όνομα.</p>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="email" id="tm-setting-chat-user" class="tm-settings-input" autocomplete="username" spellcheck="false" placeholder="${suggestedEmail || 'name@myman.chat'}">
+                            <input type="email" id="tm-setting-chat-user" class="tm-settings-input" autocomplete="username" spellcheck="false" readonly>
                         </div>
                     </div>
                     <div class="tm-setting-row">
@@ -1883,17 +1886,21 @@
             const chatUserInput = document.getElementById('tm-setting-chat-user');
             const chatPassInput = document.getElementById('tm-setting-chat-pass');
             if (chatUserInput) {
-                const savedUser = GM_getValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', '') || '';
-                chatUserInput.value = savedUser
-                    || (typeof window.suggestOfficeChatEmail === 'function' ? window.suggestOfficeChatEmail() : '');
+                // Always bind to current MyManager login name (not a stale saved value)
+                chatUserInput.value = (typeof window.suggestOfficeChatEmail === 'function')
+                    ? window.suggestOfficeChatEmail()
+                    : '';
+                chatUserInput.readOnly = true;
             }
             if (chatPassInput) {
                 chatPassInput.value = GM_getValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', '') || '';
             }
             const persistChatFormToStorage = () => {
-                const userEl = document.getElementById('tm-setting-chat-user');
                 const passEl = document.getElementById('tm-setting-chat-pass');
-                if (userEl) GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', userEl.value.trim());
+                const mail = (typeof window.suggestOfficeChatEmail === 'function')
+                    ? window.suggestOfficeChatEmail()
+                    : '';
+                if (mail) GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', mail);
                 if (passEl) GM_setValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', passEl.value);
                 try { GM_setValue(STORAGE_KEYS.CHAT_TOKEN_CACHE || 'tm_chat_token_cache', ''); } catch (_) { /* ignore */ }
             };

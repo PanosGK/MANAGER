@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v341 / Custom Ver. 38.5 — generated, do not edit */
+/* MyManager Suite bundle v342 / Custom Ver. 38.6 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '341',
+        version: '342',
         loaderVersion: '38',
-        silentVersion: '5',
-        displayVersion: '38.5',
+        silentVersion: '6',
+        displayVersion: '38.6',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -16041,7 +16041,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         },
         office_chat_user: {
             title: 'Chat email',
-            what: 'Δημιουργείται αυτόματα από το όνομα στο #login_block1 (π.χ. «Είσοδος ως Γκορόγιας» → gkorogias@myman.chat). Το όνομα στο chat παραμένει «Γκορόγιας».',
+            what: 'Πάντα από το όνομα login στο #login_block1 (π.χ. «Είσοδος ως Γκορόγιας» → gkorogias@myman.chat). Δεν αλλάζει χειροκίνητα.',
             where: 'Ρυθμίσεις → Chat.',
             when: 'Στην εγγραφή / σύνδεση στο chat.',
         },
@@ -16582,7 +16582,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const chatUserEl = document.getElementById('tm-setting-chat-user');
             const chatPassEl = document.getElementById('tm-setting-chat-pass');
             if (chatUserEl) {
-                GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', chatUserEl.value.trim());
+                const mail = (typeof window.suggestOfficeChatEmail === 'function')
+                    ? window.suggestOfficeChatEmail()
+                    : chatUserEl.value.trim();
+                GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', mail);
             }
             if (chatPassEl) {
                 GM_setValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', chatPassEl.value);
@@ -17237,10 +17240,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                                 <label for="tm-setting-chat-user">Email (αυτόματο)</label>
                                 ${info('office_chat_user')}
                             </div>
-                            <p class="tm-setting-description">Από το login MyManager. Μπορείτε να το αλλάξετε αν χρειάζεται.</p>
+                            <p class="tm-setting-description">Σταθερό από το όνομα login (Γκορόγιας → gkorogias@myman.chat). Στο chat φαίνεται το ελληνικό όνομα.</p>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="email" id="tm-setting-chat-user" class="tm-settings-input" autocomplete="username" spellcheck="false" placeholder="${suggestedEmail || 'name@myman.chat'}">
+                            <input type="email" id="tm-setting-chat-user" class="tm-settings-input" autocomplete="username" spellcheck="false" readonly>
                         </div>
                     </div>
                     <div class="tm-setting-row">
@@ -17739,17 +17742,21 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const chatUserInput = document.getElementById('tm-setting-chat-user');
             const chatPassInput = document.getElementById('tm-setting-chat-pass');
             if (chatUserInput) {
-                const savedUser = GM_getValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', '') || '';
-                chatUserInput.value = savedUser
-                    || (typeof window.suggestOfficeChatEmail === 'function' ? window.suggestOfficeChatEmail() : '');
+                // Always bind to current MyManager login name (not a stale saved value)
+                chatUserInput.value = (typeof window.suggestOfficeChatEmail === 'function')
+                    ? window.suggestOfficeChatEmail()
+                    : '';
+                chatUserInput.readOnly = true;
             }
             if (chatPassInput) {
                 chatPassInput.value = GM_getValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', '') || '';
             }
             const persistChatFormToStorage = () => {
-                const userEl = document.getElementById('tm-setting-chat-user');
                 const passEl = document.getElementById('tm-setting-chat-pass');
-                if (userEl) GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', userEl.value.trim());
+                const mail = (typeof window.suggestOfficeChatEmail === 'function')
+                    ? window.suggestOfficeChatEmail()
+                    : '';
+                if (mail) GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', mail);
                 if (passEl) GM_setValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', passEl.value);
                 try { GM_setValue(STORAGE_KEYS.CHAT_TOKEN_CACHE || 'tm_chat_token_cache', ''); } catch (_) { /* ignore */ }
             };
@@ -21753,51 +21760,71 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .slice(0, 32);
     }
 
-    /** Build email from login_block1 name: Γκορόγιας → gkorogias@myman.chat */
-    function suggestOfficeChatEmail() {
+    /** Login name from #login_block1 (e.g. Γκορόγιας) → latin slug for email local-part. */
+    function getLoginNameSlug() {
         const display = getDisplayName();
         let local = greekToLatinSlug(display);
         if (local.length < 2) {
-            local = greekToLatinSlug(getProfileId());
+            // Already-latin display / profile ids
+            local = String(display || getProfileId() || '')
+                .trim()
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, '')
+                .slice(0, 32);
         }
         if (local.length < 2) {
-            const raw = String(display || getProfileId() || 'tech');
-            let hex = '';
-            for (let i = 0; i < raw.length && hex.length < 20; i++) {
-                hex += raw.charCodeAt(i).toString(16);
-            }
-            local = `u${hex || Date.now().toString(36)}`;
+            local = `tech${Date.now().toString(36).slice(-6)}`;
         }
-        return `${local}@myman.chat`;
+        return local;
+    }
+
+    /** Always derived from MyManager login name: Γκορόγιας → gkorogias@myman.chat */
+    function suggestOfficeChatEmail() {
+        return `${getLoginNameSlug()}@myman.chat`;
     }
 
     async function registerOfficeChatUser(STORAGE_KEYS, { email, password, passwordConfirm } = {}) {
         const settings = getChatSettings(STORAGE_KEYS);
         const baseUrl = OFFICE_CHAT_BASE_URL;
-        const mail = String(email || suggestOfficeChatEmail()).trim().toLowerCase();
+        const displayName = getDisplayName();
+        const loginSlug = getLoginNameSlug();
+        // Always use login-derived email (ignore stale/custom values)
+        const mail = suggestOfficeChatEmail();
         const pass = String(password || '');
         const pass2 = passwordConfirm != null ? String(passwordConfirm) : pass;
 
-        if (!mail || !mail.includes('@')) return { ok: false, message: 'Μη έγκυρο email.' };
+        if (!mail || !mail.includes('@')) return { ok: false, message: 'Μη έγκυρο email από το όνομα login.' };
         if (pass.length < 8) return { ok: false, message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.' };
         if (pass !== pass2) return { ok: false, message: 'Οι κωδικοί δεν ταιριάζουν.' };
 
-        const displayName = getDisplayName();
         const url = `${baseUrl}/api/collections/users/records`;
         const payload = {
             email: mail,
             password: pass,
             passwordConfirm: pass2,
+            username: loginSlug,
             // PocketBase "name" = MyManager login_block1 short name (e.g. Γκορόγιας)
             name: displayName,
             emailVisibility: false,
         };
-        const { status, body } = await chatRequestJson({
+        let { status, body } = await chatRequestJson({
             method: 'POST',
             url,
             headers: { 'Content-Type': 'application/json' },
             data: JSON.stringify(payload),
         });
+        // Some PocketBase setups have no username field — retry without it
+        if (status >= 400 && /username/i.test(JSON.stringify(body || {}))) {
+            delete payload.username;
+            ({ status, body } = await chatRequestJson({
+                method: 'POST',
+                url,
+                headers: { 'Content-Type': 'application/json' },
+                data: JSON.stringify(payload),
+            }));
+        }
 
         // Already registered → treat as OK if they can auth with this password
         if (status === 400 && /already|unique|exists|taken/i.test(JSON.stringify(body || {}))) {

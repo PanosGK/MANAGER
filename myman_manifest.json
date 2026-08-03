@@ -1,11 +1,11 @@
 {
-  "version": "341",
+  "version": "342",
   "loaderVersion": "38",
-  "silentVersion": "5",
-  "displayVersion": "38.5",
+  "silentVersion": "6",
+  "displayVersion": "38.6",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Hardcode office chat server URL; remove URL settings field",
+  "releaseNotes": "Chat email locked to MyManager login_block name slug",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
