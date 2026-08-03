@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v346 / Custom Ver. 39.2 — generated, do not edit */
+/* MyManager Suite bundle v347 / Custom Ver. 39.3 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '346',
+        version: '347',
         loaderVersion: '39',
-        silentVersion: '2',
-        displayVersion: '39.2',
+        silentVersion: '3',
+        displayVersion: '39.3',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -3413,6 +3413,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         CHAT_PASS: 'tm_chat_pass',
         CHAT_TOKEN_CACHE: 'tm_chat_token_cache',
         CHAT_MUTED: 'tm_chat_muted',
+        CHAT_GEOMETRY: 'tm_chat_geometry',
         MASCOT_FEATHERS: 'tm_mascot_feather_set', // Phoenix molted feather collection (JSON per color)
         PHOENIX_LAST_REBIRTH: 'tm_phoenix_last_rebirth', // Timestamp of last phoenix rebirth event
         ENERGIZED_BUFF_COUNT: 'tm_energized_buff_count', // Number of energized buffs in inventory
@@ -21547,6 +21548,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             pass: k.CHAT_PASS || 'tm_chat_pass',
             tokenCache: k.CHAT_TOKEN_CACHE || 'tm_chat_token_cache',
             muted: k.CHAT_MUTED || 'tm_chat_muted',
+            geometry: k.CHAT_GEOMETRY || 'tm_chat_geometry',
         };
     }
 
@@ -22463,12 +22465,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
             }
             #tm-chat-panel.is-open { display: flex; }
+            #tm-chat-panel.is-dragging { opacity: 0.95; box-shadow: 0 12px 32px rgba(0,0,0,0.28); }
             #tm-chat-header {
                 display: flex; align-items: center; gap: 8px;
                 padding: 8px 10px; background: #e9ecef; border-bottom: 1px solid #ccc;
-                user-select: none;
+                user-select: none; cursor: move;
             }
-            #tm-chat-title { font-weight: 700; font-size: 13px; color: #333; flex: 1; }
+            #tm-chat-title { font-weight: 700; font-size: 13px; color: #333; flex: 1; cursor: move; }
             #tm-chat-header button {
                 background: none; border: none; cursor: pointer; color: #555;
                 font-size: 14px; padding: 2px 6px; border-radius: 4px;
@@ -22531,9 +22534,103 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return rightSideContainer;
     }
 
+    function clampChatPanelPosition(panel, left, top) {
+        const rect = panel.getBoundingClientRect();
+        const w = rect.width || 340;
+        const h = rect.height || 420;
+        const margin = 8;
+        const maxLeft = Math.max(margin, window.innerWidth - w - margin);
+        const maxTop = Math.max(margin, window.innerHeight - h - margin);
+        return {
+            left: Math.min(Math.max(margin, left), maxLeft),
+            top: Math.min(Math.max(margin, top), maxTop),
+        };
+    }
+
+    function applyChatPanelGeometry(panel, STORAGE_KEYS) {
+        if (!panel) return;
+        const keys = chatKeys(STORAGE_KEYS);
+        let geo = null;
+        try {
+            const raw = GM_getValue(keys.geometry, '');
+            if (raw) geo = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        } catch (_) { /* ignore */ }
+        if (!geo || geo.left == null || geo.top == null) return;
+        const left = parseFloat(geo.left);
+        const top = parseFloat(geo.top);
+        if (!Number.isFinite(left) || !Number.isFinite(top)) return;
+        const pos = clampChatPanelPosition(panel, left, top);
+        panel.style.left = `${pos.left}px`;
+        panel.style.top = `${pos.top}px`;
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+    }
+
+    function saveChatPanelGeometry(panel, STORAGE_KEYS) {
+        if (!panel) return;
+        const rect = panel.getBoundingClientRect();
+        const keys = chatKeys(STORAGE_KEYS);
+        const pos = clampChatPanelPosition(panel, rect.left, rect.top);
+        panel.style.left = `${pos.left}px`;
+        panel.style.top = `${pos.top}px`;
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+        try {
+            GM_setValue(keys.geometry, JSON.stringify({ left: pos.left, top: pos.top }));
+        } catch (_) { /* ignore */ }
+    }
+
+    function wireChatPanelDrag(panel, STORAGE_KEYS) {
+        if (!panel || panel.dataset.tmChatDragWired === '1') return;
+        panel.dataset.tmChatDragWired = '1';
+        const header = panel.querySelector('#tm-chat-header');
+        if (!header) return;
+
+        let dragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        header.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            if (e.target.closest('button, input, textarea, select, a')) return;
+            const rect = panel.getBoundingClientRect();
+            dragging = true;
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            panel.classList.add('is-dragging');
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!dragging) return;
+            const pos = clampChatPanelPosition(panel, e.clientX - offsetX, e.clientY - offsetY);
+            panel.style.left = `${pos.left}px`;
+            panel.style.top = `${pos.top}px`;
+            panel.style.right = 'auto';
+            panel.style.bottom = 'auto';
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!dragging) return;
+            dragging = false;
+            panel.classList.remove('is-dragging');
+            document.body.style.userSelect = '';
+            saveChatPanelGeometry(panel, STORAGE_KEYS);
+        });
+
+        window.addEventListener('resize', () => {
+            if (!panel.classList.contains('is-open')) return;
+            if (panel.style.left || panel.style.top) {
+                saveChatPanelGeometry(panel, STORAGE_KEYS);
+            }
+        });
+    }
+
     function openChatPanel(STORAGE_KEYS) {
         const panel = document.getElementById('tm-chat-panel');
         if (!panel) return;
+        applyChatPanelGeometry(panel, STORAGE_KEYS);
         panel.classList.add('is-open');
         chatPanelOpen = true;
         chatUnread = 0;
@@ -22662,6 +22759,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 });
             }
             wireComposer(STORAGE_KEYS);
+            wireChatPanelDrag(panel, STORAGE_KEYS);
+            applyChatPanelGeometry(panel, STORAGE_KEYS);
+        } else {
+            const existing = document.getElementById('tm-chat-panel');
+            wireChatPanelDrag(existing, STORAGE_KEYS);
+            applyChatPanelGeometry(existing, STORAGE_KEYS);
         }
 
         // Background connect so unread works with panel closed
