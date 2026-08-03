@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v333 / Custom Ver. 36.25 — generated, do not edit */
+/* MyManager Suite bundle v334 / Custom Ver. 36.26 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '333',
+        version: '334',
         loaderVersion: '36',
-        silentVersion: '25',
-        displayVersion: '36.25',
+        silentVersion: '26',
+        displayVersion: '36.26',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -37767,16 +37767,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             ? ` 🪶${getPhoenixFeatherUniqueCount(STORAGE_KEYS)}/5`
             : '';
         const weightBand = !isEgg ? getTamagotchiWeightBand() : null;
-        const dailyCoinsRowHtml = `
-                <div class="tm-mascot-daily-coins-row">
-                    <button type="button" class="tm-action-btn tm-action-daily-coins ${dailyCoinsState.claimed ? 'tm-daily-claimed' : 'tm-action-urgent'}" id="tm-action-daily-coins" title="${dailyCoinsState.title}" ${dailyCoinsState.claimed ? 'disabled' : ''}>
-                        <span class="tm-action-icon">🪙</span>
-                        <span class="tm-action-copy">
-                            <span class="tm-action-label">${dailyCoinsState.label}</span>
-                            <span class="tm-action-hint">${dailyCoinsState.hint}</span>
-                        </span>
-                    </button>
-                </div>`;
+        const nickValue = (typeof normalizeMascotNickname === 'function')
+            ? normalizeMascotNickname(typeof tamagotchiNickname !== 'undefined' ? tamagotchiNickname : '')
+            : String(typeof tamagotchiNickname !== 'undefined' ? tamagotchiNickname : '').trim().slice(0, 16);
+        const nickBtnLabel = nickValue ? `✏️ ${nickValue}` : '✏️ Παρατσούκλι';
+        const coinsBtnLabel = dailyCoinsState.claimed
+            ? '🪙 ✓'
+            : `🪙 +${dailyCoinsState.amount || 50}`;
 
         const modal = document.createElement('div');
         modal.id = 'tm-mascot-stats-modal';
@@ -37792,7 +37789,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             ${isEgg ? '' : `<span class="tm-mascot-meta-sep">·</span><span id="tm-mascot-meta-weight">${formatTamagotchiWeightKg()}</span>`}
                         </p>
                     </div>
-                    <button type="button" class="tm-mascot-close-btn" id="tm-modal-close" aria-label="Κλείσιμο">✕</button>
+                    <div class="tm-mascot-header-tools">
+                        <button type="button" class="tm-mascot-header-chip" id="tm-action-nickname" title="Άλλαξε παρατσούκλι">${nickBtnLabel}</button>
+                        <button type="button" class="tm-mascot-header-chip ${dailyCoinsState.claimed ? 'tm-daily-claimed' : 'tm-chip-claim'}" id="tm-action-daily-coins" title="${dailyCoinsState.title}" ${dailyCoinsState.claimed ? 'disabled' : ''}>${coinsBtnLabel}</button>
+                        <button type="button" class="tm-mascot-close-btn" id="tm-modal-close" aria-label="Κλείσιμο">✕</button>
+                    </div>
+                </div>
+
+                <div class="tm-mascot-nickname-editor" id="tm-mascot-nickname-editor" hidden>
+                    <input type="text" id="tm-mascot-nickname-input" class="tm-mascot-nickname-input" maxlength="16" placeholder="π.χ. Φλόγα" value="${String(nickValue).replace(/"/g, '&quot;')}">
+                    <button type="button" class="tm-mascot-header-chip tm-chip-save" id="tm-mascot-nickname-save">Αποθήκευση</button>
                 </div>
 
                 <div class="tm-mascot-care-preview" id="tm-mascot-care-preview-stage">
@@ -37806,8 +37812,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </button>
                     </div>
                 </div>
-
-                ${dailyCoinsRowHtml}
 
                 <div class="tm-mascot-tip tm-tip-${tip.level}" id="tm-mascot-care-tip"${showCareTip ? '' : ' hidden'}>
                     <span class="tm-tip-icon">${tip.icon}</span>
@@ -38030,9 +38034,60 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
             #tm-mascot-stats-modal .tm-mascot-modal-header {
                 display: flex; justify-content: space-between; align-items: flex-start;
-                gap: 12px; padding: 14px 16px 6px;
+                gap: 10px; padding: 14px 16px 6px;
             }
             #tm-mascot-stats-modal .tm-mascot-header-info { min-width: 0; flex: 1; }
+            #tm-mascot-stats-modal .tm-mascot-header-tools {
+                display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+            }
+            #tm-mascot-stats-modal .tm-mascot-header-chip {
+                appearance: none; border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: var(--tm-shop-item-bg, #f8fafc);
+                color: var(--tm-shop-item-text, #334155);
+                border-radius: 999px;
+                padding: 5px 10px;
+                font-size: 11px; font-weight: 700;
+                line-height: 1.2; cursor: pointer;
+                max-width: 118px;
+                overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            }
+            #tm-mascot-stats-modal .tm-mascot-header-chip:hover {
+                border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 40%, #cbd5e1);
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 8%, #fff);
+            }
+            #tm-mascot-stats-modal .tm-mascot-header-chip.tm-chip-claim {
+                border-color: color-mix(in srgb, #f59e0b 55%, #e2e8f0);
+                background: color-mix(in srgb, #f59e0b 14%, #ffffff);
+                color: #92400e;
+            }
+            #tm-mascot-stats-modal .tm-mascot-header-chip.tm-daily-claimed {
+                opacity: 0.7; cursor: default;
+            }
+            #tm-mascot-stats-modal .tm-mascot-header-chip:disabled {
+                pointer-events: none;
+            }
+            #tm-mascot-stats-modal .tm-mascot-nickname-editor {
+                display: flex; align-items: center; gap: 8px;
+                margin: 0 16px 8px; padding: 8px 10px;
+                border-radius: 12px;
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: var(--tm-shop-item-bg, #f8fafc);
+            }
+            #tm-mascot-stats-modal .tm-mascot-nickname-editor[hidden] { display: none !important; }
+            #tm-mascot-stats-modal .tm-mascot-nickname-input {
+                flex: 1; min-width: 0;
+                border: 1px solid var(--tm-shop-item-border, #cbd5e1);
+                border-radius: 8px;
+                padding: 6px 10px;
+                font-size: 13px;
+                background: #fff;
+                color: var(--tm-shop-item-text, #0f172a);
+            }
+            #tm-mascot-stats-modal .tm-chip-save {
+                max-width: none;
+                border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 40%, #cbd5e1);
+                color: var(--tm-primary-color, #1d4ed8);
+            }
             #tm-mascot-stats-modal .tm-mascot-name {
                 margin: 0 0 2px; font-size: 1.1rem; font-weight: 700;
                 color: var(--tm-shop-item-text, #0f172a); line-height: 1.25;
@@ -38156,41 +38211,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             #tm-mascot-stats-modal .tm-tip-danger {
                 background: color-mix(in srgb, #ef4444 12%, var(--tm-shop-item-bg, #fef2f2));
                 border: 1px solid color-mix(in srgb, #ef4444 30%, transparent); color: #991b1b;
-            }
-            #tm-mascot-stats-modal .tm-mascot-daily-coins-row {
-                margin: 0 16px 8px;
-            }
-            #tm-mascot-stats-modal .tm-action-daily-coins {
-                width: 100%;
-                flex-direction: row;
-                justify-content: flex-start;
-                gap: 10px;
-                padding: 8px 12px;
-                text-align: left;
-            }
-            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-icon { font-size: 18px; }
-            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-copy {
-                display: flex; flex-direction: row; align-items: baseline; gap: 8px; min-width: 0; flex-wrap: wrap;
-            }
-            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-label,
-            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-hint {
-                text-align: left;
-            }
-            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-hint { margin: 0; }
-            #tm-mascot-stats-modal .tm-action-daily-coins.tm-daily-claimed {
-                opacity: 0.72;
-                cursor: default;
-                box-shadow: none;
-                border-color: var(--tm-shop-item-border, #e2e8f0);
-                background: var(--tm-shop-item-bg, #f8fafc);
-            }
-            #tm-mascot-stats-modal .tm-action-daily-coins.tm-daily-claimed:hover {
-                border-color: var(--tm-shop-item-border, #e2e8f0);
-                background: var(--tm-shop-item-bg, #f8fafc);
-                box-shadow: none;
-            }
-            #tm-mascot-stats-modal .tm-action-daily-coins:disabled {
-                pointer-events: none;
             }
             #tm-mascot-stats-modal .tm-mascot-stats-block {
                 padding: 4px 16px 8px;
@@ -38352,6 +38372,35 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             showMascotAgePreviewModal(config, STORAGE_KEYS);
         });
 
+        modal.querySelector('#tm-action-nickname')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const editor = modal.querySelector('#tm-mascot-nickname-editor');
+            const input = modal.querySelector('#tm-mascot-nickname-input');
+            if (!editor) return;
+            editor.hidden = !editor.hidden;
+            if (!editor.hidden) {
+                input?.focus();
+                input?.select?.();
+            }
+        });
+
+        modal.querySelector('#tm-mascot-nickname-save')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            saveNicknameFromEditor();
+        });
+
+        modal.querySelector('#tm-mascot-nickname-input')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveNicknameFromEditor();
+            } else if (e.key === 'Escape') {
+                const editor = modal.querySelector('#tm-mascot-nickname-editor');
+                if (editor) editor.hidden = true;
+            }
+        });
+
         function refreshCareTip() {
             const tipEl = modal.querySelector('#tm-mascot-care-tip');
             if (!tipEl) return;
@@ -38367,15 +38416,38 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             if (!btn) return;
             const state = (typeof getDailyCareCoinsButtonState === 'function')
                 ? getDailyCareCoinsButtonState(STORAGE_KEYS)
-                : { claimed: false, label: 'Δωρεάν coins', hint: '+50 κάθε μέρα', title: 'Πάρε 50 δωρεάν coins (1×/μέρα)' };
+                : { claimed: false, amount: 50, label: 'Δωρεάν coins', hint: '+50 κάθε μέρα', title: 'Πάρε 50 δωρεάν coins (1×/μέρα)' };
             btn.classList.toggle('tm-daily-claimed', !!state.claimed);
-            btn.classList.toggle('tm-action-urgent', !state.claimed);
+            btn.classList.toggle('tm-chip-claim', !state.claimed);
             btn.disabled = !!state.claimed;
             btn.title = state.title || '';
-            const label = btn.querySelector('.tm-action-label');
-            const hint = btn.querySelector('.tm-action-hint');
-            if (label) label.textContent = state.label;
-            if (hint) hint.textContent = state.hint;
+            btn.textContent = state.claimed ? '🪙 ✓' : `🪙 +${state.amount || 50}`;
+        }
+
+        function refreshNicknameChip() {
+            const btn = modal.querySelector('#tm-action-nickname');
+            if (!btn) return;
+            const nick = (typeof normalizeMascotNickname === 'function')
+                ? normalizeMascotNickname(typeof tamagotchiNickname !== 'undefined' ? tamagotchiNickname : '')
+                : String(typeof tamagotchiNickname !== 'undefined' ? tamagotchiNickname : '').trim().slice(0, 16);
+            btn.textContent = nick ? `✏️ ${nick}` : '✏️ Παρατσούκλι';
+            btn.title = nick ? `Παρατσούκλι: ${nick}` : 'Άλλαξε παρατσούκλι';
+        }
+
+        function saveNicknameFromEditor() {
+            const input = modal.querySelector('#tm-mascot-nickname-input');
+            const editor = modal.querySelector('#tm-mascot-nickname-editor');
+            const next = (typeof setMascotNickname === 'function')
+                ? setMascotNickname(input?.value || '', STORAGE_KEYS)
+                : String(input?.value || '').trim().slice(0, 16);
+            const title = modal.querySelector('#tm-mascot-care-title');
+            if (title && typeof getMascotDisplayName === 'function') {
+                title.textContent = getMascotDisplayName();
+            }
+            if (input) input.value = next || '';
+            refreshNicknameChip();
+            if (editor) editor.hidden = true;
+            showMascotBubble(next ? `Με λένε ${next}!` : 'Χωρίς παρατσούκλι…', 1800);
         }
 
         function updateModalStats() {
@@ -41596,7 +41668,6 @@ function showMascotGymGame(config, STORAGE_KEYS) {
 
 // ── Care modal helpers ────────────────────────────────────────────
 function getMascotPlayCareSectionHTML(STORAGE_KEYS) {
-    const nick = normalizeMascotNickname(tamagotchiNickname) || '';
     const tricks = getAvailableTeachTricks();
     const taught = getTaughtTricksState();
     const trickChips = tricks.map((t) => {
@@ -41612,11 +41683,6 @@ function getMascotPlayCareSectionHTML(STORAGE_KEYS) {
 
     return `
         <div class="tm-mascot-play-extra-inner">
-            <div class="tm-mascot-nickname-row">
-                <label for="tm-mascot-nickname-input">Παρατσούκλι</label>
-                <input type="text" id="tm-mascot-nickname-input" class="tm-mascot-nickname-input" maxlength="16" placeholder="π.χ. Φλόγα" value="${nick.replace(/"/g, '&quot;')}">
-                <button type="button" class="tm-settings-ghost-btn" id="tm-mascot-nickname-save">Αποθήκευση</button>
-            </div>
             <div class="tm-mascot-actions tm-actions-secondary">
                 <button type="button" class="tm-action-btn" id="tm-action-hide-seek" title="Κρυφτό">
                     <span class="tm-action-icon">🙈</span>
@@ -41653,15 +41719,6 @@ function getMascotPlayCareSectionHTML(STORAGE_KEYS) {
 }
 
 function wireMascotPlayCareHandlers(modal, config, STORAGE_KEYS, { closeModal }) {
-    modal.querySelector('#tm-mascot-nickname-save')?.addEventListener('click', () => {
-        const input = modal.querySelector('#tm-mascot-nickname-input');
-        const next = setMascotNickname(input?.value || '', STORAGE_KEYS);
-        const title = modal.querySelector('#tm-mascot-care-title');
-        if (title) title.textContent = getMascotDisplayName();
-        showMascotBubble(next ? `Με λένε ${next}!` : 'Χωρίς παρατσούκλι…', 1800);
-        if (input) input.value = next;
-    });
-
     modal.querySelector('#tm-action-hide-seek')?.addEventListener('click', () => {
         closeModal?.();
         startMascotHideAndSeek(config, STORAGE_KEYS);

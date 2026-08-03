@@ -1080,7 +1080,6 @@ function showMascotGymGame(config, STORAGE_KEYS) {
 
 // ── Care modal helpers ────────────────────────────────────────────
 function getMascotPlayCareSectionHTML(STORAGE_KEYS) {
-    const nick = normalizeMascotNickname(tamagotchiNickname) || '';
     const tricks = getAvailableTeachTricks();
     const taught = getTaughtTricksState();
     const trickChips = tricks.map((t) => {
@@ -1096,11 +1095,6 @@ function getMascotPlayCareSectionHTML(STORAGE_KEYS) {
 
     return `
         <div class="tm-mascot-play-extra-inner">
-            <div class="tm-mascot-nickname-row">
-                <label for="tm-mascot-nickname-input">Παρατσούκλι</label>
-                <input type="text" id="tm-mascot-nickname-input" class="tm-mascot-nickname-input" maxlength="16" placeholder="π.χ. Φλόγα" value="${nick.replace(/"/g, '&quot;')}">
-                <button type="button" class="tm-settings-ghost-btn" id="tm-mascot-nickname-save">Αποθήκευση</button>
-            </div>
             <div class="tm-mascot-actions tm-actions-secondary">
                 <button type="button" class="tm-action-btn" id="tm-action-hide-seek" title="Κρυφτό">
                     <span class="tm-action-icon">🙈</span>
@@ -1137,15 +1131,6 @@ function getMascotPlayCareSectionHTML(STORAGE_KEYS) {
 }
 
 function wireMascotPlayCareHandlers(modal, config, STORAGE_KEYS, { closeModal }) {
-    modal.querySelector('#tm-mascot-nickname-save')?.addEventListener('click', () => {
-        const input = modal.querySelector('#tm-mascot-nickname-input');
-        const next = setMascotNickname(input?.value || '', STORAGE_KEYS);
-        const title = modal.querySelector('#tm-mascot-care-title');
-        if (title) title.textContent = getMascotDisplayName();
-        showMascotBubble(next ? `Με λένε ${next}!` : 'Χωρίς παρατσούκλι…', 1800);
-        if (input) input.value = next;
-    });
-
     modal.querySelector('#tm-action-hide-seek')?.addEventListener('click', () => {
         closeModal?.();
         startMascotHideAndSeek(config, STORAGE_KEYS);

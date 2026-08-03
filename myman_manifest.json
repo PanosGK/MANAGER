@@ -1,11 +1,11 @@
 {
-  "version": "333",
+  "version": "334",
   "loaderVersion": "36",
-  "silentVersion": "25",
-  "displayVersion": "36.25",
+  "silentVersion": "26",
+  "displayVersion": "36.26",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Care panel declutter: hero preview, compact vitals, progressive disclosure",
+  "releaseNotes": "Care panel: nickname and daily coins as header chips",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
