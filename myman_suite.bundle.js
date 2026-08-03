@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v365 / Custom Ver. 41.9 — generated, do not edit */
+/* MyManager Suite bundle v366 / Custom Ver. 41.10 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '365',
+        version: '366',
         loaderVersion: '41',
-        silentVersion: '9',
-        displayVersion: '41.9',
+        silentVersion: '10',
+        displayVersion: '41.10',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -23195,12 +23195,37 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 overflow: hidden;
                 font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
                 color: var(--tm-chat-ink);
+                min-width: 280px;
+                min-height: 300px;
+                max-width: calc(100vw - 8px);
+                max-height: calc(100vh - 8px);
             }
             #tm-chat-panel.is-open { display: flex; }
-            #tm-chat-panel.is-dragging {
+            #tm-chat-panel.is-dragging,
+            #tm-chat-panel.is-resizing {
                 opacity: 0.97;
                 box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
             }
+            #tm-chat-panel.is-resizing { user-select: none; }
+            #tm-chat-resize {
+                position: absolute;
+                right: 0; bottom: 0;
+                width: 18px; height: 18px;
+                cursor: nwse-resize;
+                z-index: 6;
+            }
+            #tm-chat-resize::before {
+                content: "";
+                position: absolute;
+                right: 4px; bottom: 4px;
+                width: 9px; height: 9px;
+                border-right: 2px solid #94a3b8;
+                border-bottom: 2px solid #94a3b8;
+                border-radius: 0 0 1px 0;
+                opacity: 0.85;
+                pointer-events: none;
+            }
+            #tm-chat-resize:hover::before { border-color: var(--tm-chat-accent, #2563eb); }
             #tm-chat-header {
                 display: flex; align-items: center; gap: 6px;
                 padding: 6px 8px;
@@ -23614,6 +23639,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 </div>
                 <input type="file" id="tm-chat-file-input" class="tm-chat-file-input" tabindex="-1" aria-hidden="true" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,image/jpeg,image/png,image/webp,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
             </div>
+            <div id="tm-chat-resize" title="Αλλαγή μεγέθους" aria-label="Αλλαγή μεγέθους" role="separator"></div>
         `;
     }
 
@@ -23872,6 +23898,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         wireChatPasteDrop(STORAGE_KEYS);
         wireChatStoreSelect(STORAGE_KEYS);
         wireChatPanelDrag(panel, STORAGE_KEYS);
+        wireChatPanelResize(panel, STORAGE_KEYS);
         applyChatPanelGeometry(panel, STORAGE_KEYS);
         updateChatPendingFileUi();
         updateChatStatusUi();
@@ -23879,13 +23906,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '5';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '6';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '5');
+            panel.setAttribute('data-tm-chat-ui', '6');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);
@@ -23955,6 +23982,26 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return toggleButton;
     }
 
+    function clampChatPanelSize(width, height) {
+        const minW = 280;
+        const minH = 300;
+        const maxW = Math.max(minW, window.innerWidth - 16);
+        const maxH = Math.max(minH, window.innerHeight - 16);
+        return {
+            width: Math.min(Math.max(minW, width), maxW),
+            height: Math.min(Math.max(minH, height), maxH),
+        };
+    }
+
+    function ensureChatPanelTopLeft(panel) {
+        if (!panel) return;
+        const rect = panel.getBoundingClientRect();
+        panel.style.left = `${rect.left}px`;
+        panel.style.top = `${rect.top}px`;
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+    }
+
     function clampChatPanelPosition(panel, left, top) {
         const rect = panel.getBoundingClientRect();
         const w = rect.width || 400;
@@ -23976,7 +24023,17 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const raw = GM_getValue(keys.geometry, '');
             if (raw) geo = typeof raw === 'string' ? JSON.parse(raw) : raw;
         } catch (_) { /* ignore */ }
-        if (!geo || geo.left == null || geo.top == null) return;
+        if (!geo) return;
+
+        const width = parseFloat(geo.width);
+        const height = parseFloat(geo.height);
+        if (Number.isFinite(width) && Number.isFinite(height)) {
+            const size = clampChatPanelSize(width, height);
+            panel.style.width = `${size.width}px`;
+            panel.style.height = `${size.height}px`;
+        }
+
+        if (geo.left == null || geo.top == null) return;
         const left = parseFloat(geo.left);
         const top = parseFloat(geo.top);
         if (!Number.isFinite(left) || !Number.isFinite(top)) return;
@@ -23991,14 +24048,74 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (!panel) return;
         const rect = panel.getBoundingClientRect();
         const keys = chatKeys(STORAGE_KEYS);
+        const size = clampChatPanelSize(rect.width, rect.height);
+        panel.style.width = `${size.width}px`;
+        panel.style.height = `${size.height}px`;
         const pos = clampChatPanelPosition(panel, rect.left, rect.top);
         panel.style.left = `${pos.left}px`;
         panel.style.top = `${pos.top}px`;
         panel.style.right = 'auto';
         panel.style.bottom = 'auto';
         try {
-            GM_setValue(keys.geometry, JSON.stringify({ left: pos.left, top: pos.top }));
+            GM_setValue(keys.geometry, JSON.stringify({
+                left: pos.left,
+                top: pos.top,
+                width: size.width,
+                height: size.height,
+            }));
         } catch (_) { /* ignore */ }
+    }
+
+    function wireChatPanelResize(panel, STORAGE_KEYS) {
+        if (!panel || panel.dataset.tmChatResizeWired === '1') return;
+        panel.dataset.tmChatResizeWired = '1';
+        const handle = panel.querySelector('#tm-chat-resize');
+        if (!handle) return;
+
+        let resizing = false;
+        let startX = 0;
+        let startY = 0;
+        let startW = 0;
+        let startH = 0;
+
+        handle.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            e.stopPropagation();
+            ensureChatPanelTopLeft(panel);
+            const rect = panel.getBoundingClientRect();
+            resizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startW = rect.width;
+            startH = rect.height;
+            panel.classList.add('is-resizing');
+            document.body.style.userSelect = 'none';
+            document.body.style.cursor = 'nwse-resize';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!resizing) return;
+            const size = clampChatPanelSize(
+                startW + (e.clientX - startX),
+                startH + (e.clientY - startY)
+            );
+            panel.style.width = `${size.width}px`;
+            panel.style.height = `${size.height}px`;
+            const rect = panel.getBoundingClientRect();
+            const pos = clampChatPanelPosition(panel, rect.left, rect.top);
+            panel.style.left = `${pos.left}px`;
+            panel.style.top = `${pos.top}px`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!resizing) return;
+            resizing = false;
+            panel.classList.remove('is-resizing');
+            document.body.style.userSelect = '';
+            document.body.style.cursor = '';
+            saveChatPanelGeometry(panel, STORAGE_KEYS);
+        });
     }
 
     function wireChatPanelDrag(panel, STORAGE_KEYS) {
