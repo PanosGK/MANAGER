@@ -61,13 +61,29 @@ Admin → Collections → New collection → name: `messages`
 
 | Field         | Type | Options                          |
 | ------------- | ---- | -------------------------------- |
-| `text`        | Text | required, max 500                |
+| `text`        | Text | **optional**, max 500            |
 | `displayName` | Text | required, max 64                 |
 | `store`       | Text | optional, max 64                 |
 | `profileId`   | Text | optional, max 64                 |
 | `room`        | Text | required, max 32, default `office` |
+| `attachment`  | File | single file, max **5 MB** (see below) |
 
-If `messages` already exists, add field **`store`** (Text, optional, max 64) so each message can show the technician’s store.
+If `messages` already exists:
+
+1. Add field **`store`** (Text, optional, max 64) so each message can show the technician’s store.
+2. Make **`text` optional** (uncheck Required) so file-only messages work.
+3. Add field **`attachment`** (File):
+   - Max select: **1**
+   - Max size: **5 MB**
+   - MIME / types allow-list:
+     - `image/jpeg`, `image/png`, `image/webp`, `image/gif`
+     - `application/pdf`
+     - `application/msword`
+     - `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+     - `application/vnd.ms-excel`
+     - `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+
+Uploads are stored on the TrueNAS dataset under `/pb_data` (same volume as the database).
 
 **API rules (v1 — one shared room):**
 
@@ -111,6 +127,7 @@ Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots. Sn
 - [ ] `https://mngerchat.littlejol.mywire.org/_/` loads
 - [ ] Admin login works
 - [ ] `messages` collection + rules exist
+- [ ] `messages.attachment` File field exists (5 MB, MIME allow-list) and `text` is optional
 - [ ] At least one non-admin test user exists
 - [ ] Page loads from off-LAN (proxy + DNS OK)
 - [ ] Snapshot covers `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB`

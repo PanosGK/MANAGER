@@ -20,6 +20,16 @@
     const CHAT_POLL_MS = 5000;
     const CHAT_PAGE_SIZE = 50;
     const CHAT_TOKEN_SKEW_MS = 60 * 1000;
+    const CHAT_FILE_MAX_BYTES = 5 * 1024 * 1024;
+    const CHAT_FILE_ACCEPT = [
+        'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ];
+    const CHAT_FILE_EXT_RE = /\.(jpe?g|png|webp|gif|pdf|docx?|xlsx?)$/i;
     const OFFICE_CHAT_BASE_URL = 'https://mngerchat.littlejol.mywire.org';
     /** Salt for silent per-login passwords (office chat only — not high security). */
     const OFFICE_CHAT_PASS_SECRET = 'myman-office-chat-v1';
@@ -43,6 +53,10 @@
     const chatNotifiedIds = new Set();
     /** Once PB rejects unknown `store` field, stop sending it until reload. */
     let chatStoreFieldUnsupported = false;
+    /** Once PB rejects unknown `attachment` field, stop uploading until reload. */
+    let chatAttachmentFieldUnsupported = false;
+    /** Pending File selected in composer (cleared after successful send). */
+    let chatPendingFile = null;
 
     const CHAT_EMOJI_LIST = [
         '😀','😁','😂','🤣','😊','😍','😘','😎','🤔','😅',
@@ -124,6 +138,73 @@
         }
         out += escapeHtml(raw.slice(last));
         return out;
+    }
+
+    function formatChatFileSize(bytes) {
+        const n = Number(bytes) || 0;
+        if (n < 1024) return `${n} B`;
+        if (n < 1024 * 1024) return `${(n / 1024).toFixed(n < 10 * 1024 ? 1 : 0)} KB`;
+        return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    function isChatImageFileName(name) {
+        return /\.(jpe?g|png|webp|gif)$/i.test(String(name || ''));
+    }
+
+    function isAllowedChatFile(file) {
+        if (!file) return { ok: false, reason: 'empty' };
+        if (file.size > CHAT_FILE_MAX_BYTES) {
+            return { ok: false, reason: 'size', message: `Μέγιστο μέγεθος ${formatChatFileSize(CHAT_FILE_MAX_BYTES)}` };
+        }
+        const type = String(file.type || '').toLowerCase();
+        const name = String(file.name || '');
+        const mimeOk = type && CHAT_FILE_ACCEPT.includes(type);
+        const extOk = CHAT_FILE_EXT_RE.test(name);
+        if (!mimeOk && !extOk) {
+            return { ok: false, reason: 'type', message: 'Επιτρέπονται εικόνες, PDF, Word, Excel' };
+        }
+        return { ok: true };
+    }
+
+    function chatMessagePreviewText(m) {
+        const t = String(m?.text || '').trim();
+        if (t && t !== '(αρχείο)') return t.slice(0, 80);
+        if (m?.attachment) {
+            return isChatImageFileName(m.attachment) ? '📷 εικόνα' : '📎 αρχείο';
+        }
+        return t.slice(0, 80);
+    }
+
+    function getChatFileUrl(recordId, filename, { thumb } = {}) {
+        if (!recordId || !filename) return '';
+        const base = OFFICE_CHAT_BASE_URL.replace(/\/$/, '');
+        let url = `${base}/api/files/messages/${encodeURIComponent(recordId)}/${encodeURIComponent(filename)}`;
+        const params = [];
+        if (thumb) params.push(`thumb=${encodeURIComponent(thumb)}`);
+        const token = chatAuthToken;
+        if (token) params.push(`token=${encodeURIComponent(token)}`);
+        if (params.length) url += `?${params.join('&')}`;
+        return url;
+    }
+
+    function formatChatAttachmentHtml(m) {
+        const filename = String(m?.attachment || '').trim();
+        if (!filename) return '';
+        const url = getChatFileUrl(m.id, filename);
+        const fullUrl = getChatFileUrl(m.id, filename);
+        if (isChatImageFileName(filename)) {
+            const thumbUrl = getChatFileUrl(m.id, filename, { thumb: '300x300' }) || url;
+            return `<a class="tm-chat-msg-image-link" href="${escapeHtml(fullUrl)}" target="_blank" rel="noopener noreferrer" data-chat-file="${escapeHtml(filename)}" data-chat-record="${escapeHtml(m.id)}">
+                <img class="tm-chat-msg-image" src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(filename)}" loading="lazy">
+            </a>`;
+        }
+        return `<a class="tm-chat-msg-file" href="${escapeHtml(fullUrl)}" target="_blank" rel="noopener noreferrer" data-chat-file="${escapeHtml(filename)}" data-chat-record="${escapeHtml(m.id)}">
+            <span class="tm-chat-msg-file-icon" aria-hidden="true">📎</span>
+            <span class="tm-chat-msg-file-meta">
+                <span class="tm-chat-msg-file-name">${escapeHtml(filename)}</span>
+                <span class="tm-chat-msg-file-hint">Άνοιγμα / λήψη</span>
+            </span>
+        </a>`;
     }
 
     function getChatSettings(STORAGE_KEYS) {
@@ -711,12 +792,18 @@
         return null;
     }
 
-    function chatRequest({ method, url, headers, data, timeout }) {
+    function chatRequest({ method, url, headers, data, timeout, responseType }) {
         const xhr = getXhr();
         if (!xhr) {
             return Promise.reject(new Error('GM_xmlhttpRequest unavailable — ενημέρωσε τον loader / δώσε δικαίωμα δικτύου'));
         }
         const ms = timeout || 15000;
+        const hdrs = { ...(headers || {}) };
+        const isForm = typeof FormData !== 'undefined' && data instanceof FormData;
+        if (isForm) {
+            delete hdrs['Content-Type'];
+            delete hdrs['content-type'];
+        }
         return new Promise((resolve, reject) => {
             let settled = false;
             const finish = (fn, arg) => {
@@ -730,10 +817,10 @@
                 finish(reject, new Error('Timeout — έλεγχος @connect / δικτύου προς mngerchat.littlejol.mywire.org'));
             }, ms + 2000);
             try {
-                xhr({
+                const opts = {
                     method: method || 'GET',
                     url,
-                    headers: headers || {},
+                    headers: hdrs,
                     data: data != null ? data : undefined,
                     timeout: ms,
                     anonymous: false,
@@ -749,7 +836,9 @@
                     onabort() {
                         finish(reject, new Error('Request aborted'));
                     },
-                });
+                };
+                if (responseType) opts.responseType = responseType;
+                xhr(opts);
             } catch (err) {
                 finish(reject, err instanceof Error ? err : new Error(String(err)));
             }
@@ -850,6 +939,12 @@
                 ? `<span class="tm-chat-msg-store">${escapeHtml(m.store)}</span>`
                 : '';
             const name = m.displayName || '?';
+            const rawText = String(m.text || '').trim();
+            const showText = rawText && !(m.attachment && rawText === '(αρχείο)');
+            const textHtml = showText ? formatChatMessageHtml(rawText) : '';
+            const attachHtml = formatChatAttachmentHtml(m);
+            const bodyHtml = [attachHtml, textHtml].filter(Boolean).join('')
+                || escapeHtml(rawText);
             return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}" data-id="${escapeHtml(m.id)}">
                 <div class="tm-chat-msg-avatar" aria-hidden="true">${escapeHtml(chatAvatarLetter(name))}</div>
                 <div class="tm-chat-msg-bubble">
@@ -860,7 +955,7 @@
                         </span>
                         <span class="tm-chat-msg-time">${escapeHtml(formatMsgTime(m.created))}</span>
                     </div>
-                    <div class="tm-chat-msg-text">${formatChatMessageHtml(m.text || '')}</div>
+                    <div class="tm-chat-msg-text">${bodyHtml}</div>
                 </div>
             </div>`;
         }).join('');
@@ -924,7 +1019,7 @@
         const latest = incoming[incoming.length - 1];
         const storeBit = latest.store ? ` · ${latest.store}` : '';
         const preview = incoming.length === 1
-            ? `${latest.displayName || 'Chat'}${storeBit}: ${String(latest.text || '').slice(0, 80)}`
+            ? `${latest.displayName || 'Chat'}${storeBit}: ${chatMessagePreviewText(latest)}`
             : `${incoming.length} νέα μηνύματα`;
         btn.title = `Office Chat — ${preview}`;
         btn.classList.add('tm-chat-has-unread', 'tm-chat-ping');
@@ -962,6 +1057,7 @@
                 profileId: rec.profileId || '',
                 room: rec.room || CHAT_ROOM,
                 created: rec.created,
+                attachment: String(rec.attachment || '').trim(),
             };
             if (!prev) {
                 added += 1;
@@ -1070,9 +1166,21 @@
         chatHydrated = true;
     }
 
-    async function sendChatMessage(STORAGE_KEYS, text) {
+    async function sendChatMessage(STORAGE_KEYS, text, file) {
         const clean = String(text || '').trim().slice(0, CHAT_MAX_LEN);
-        if (!clean) return { ok: false, reason: 'empty' };
+        const attachFile = file || null;
+        if (!clean && !attachFile) return { ok: false, reason: 'empty' };
+        if (attachFile) {
+            if (chatAttachmentFieldUnsupported) {
+                setChatStatus('error', 'Πρόσθεσε πεδίο attachment στο messages (PocketBase)');
+                return { ok: false, reason: 'unsupported' };
+            }
+            const check = isAllowedChatFile(attachFile);
+            if (!check.ok) {
+                setChatStatus('error', check.message || 'Μη έγκυρο αρχείο');
+                return { ok: false, reason: check.reason || 'file' };
+            }
+        }
         const now = Date.now();
         if (now - chatLastSendAt < CHAT_SEND_COOLDOWN_MS) {
             return { ok: false, reason: 'rate' };
@@ -1084,26 +1192,55 @@
         const url = `${settings.baseUrl}/api/collections/messages/records`;
         const profileId = getProfileId();
         const storeName = getChatStoreName(STORAGE_KEYS);
-        const payload = {
-            text: clean,
-            displayName: getDisplayName(),
-            room: CHAT_ROOM,
-        };
-        if (profileId) payload.profileId = profileId;
-        if (storeName && !chatStoreFieldUnsupported) payload.store = storeName;
+        const displayName = getDisplayName();
 
-        const postOnce = async (authHeader, bodyPayload) => chatRequestJson({
-            method: 'POST',
-            url,
-            headers: {
-                Authorization: authHeader,
-                'Content-Type': 'application/json',
-            },
-            data: JSON.stringify(bodyPayload),
-        });
+        const buildJsonPayload = (textValue, includeStore) => {
+            const payload = {
+                text: textValue,
+                displayName,
+                room: CHAT_ROOM,
+            };
+            if (profileId) payload.profileId = profileId;
+            if (includeStore && storeName && !chatStoreFieldUnsupported) payload.store = storeName;
+            return payload;
+        };
+
+        const buildFormPayload = (textValue, includeStore, includeAttachment) => {
+            const fd = new FormData();
+            fd.append('text', textValue);
+            fd.append('displayName', displayName);
+            fd.append('room', CHAT_ROOM);
+            if (profileId) fd.append('profileId', profileId);
+            if (includeStore && storeName && !chatStoreFieldUnsupported) fd.append('store', storeName);
+            if (includeAttachment && attachFile) {
+                fd.append('attachment', attachFile, attachFile.name || 'file');
+            }
+            return fd;
+        };
+
+        const postOnce = async (authHeader, bodyPayload) => {
+            const isForm = typeof FormData !== 'undefined' && bodyPayload instanceof FormData;
+            const headers = { Authorization: authHeader };
+            if (!isForm) headers['Content-Type'] = 'application/json';
+            return chatRequestJson({
+                method: 'POST',
+                url,
+                headers,
+                data: isForm ? bodyPayload : JSON.stringify(bodyPayload),
+                timeout: isForm ? 60000 : 15000,
+            });
+        };
+
+        let textValue = clean;
+        // File-only: empty text preferred; fallback "(αρχείο)" if PB still requires text
+        if (!textValue && attachFile) textValue = '';
+
+        const useMultipart = !!(attachFile && !chatAttachmentFieldUnsupported);
+        let payload = useMultipart
+            ? buildFormPayload(textValue, true, true)
+            : buildJsonPayload(textValue || (attachFile ? '(αρχείο)' : clean), true);
 
         let { status, body } = await postOnce(token, payload);
-        // Some proxies/PB builds prefer Bearer
         if ((status === 401 || status === 403) && token && !String(token).startsWith('Bearer ')) {
             ({ status, body } = await postOnce(`Bearer ${token}`, payload));
         }
@@ -1112,24 +1249,44 @@
             const token2 = await ensureAuth(STORAGE_KEYS, { force: true });
             ({ status, body } = await postOnce(token2, payload));
         }
+
+        const errBlob = () => JSON.stringify(body || {});
+
         // PocketBase may not have `store` field yet — retry without it
-        if (status >= 400 && payload.store && /store/i.test(JSON.stringify(body || {}))) {
+        if (status >= 400 && storeName && !chatStoreFieldUnsupported && /store/i.test(errBlob())) {
             chatStoreFieldUnsupported = true;
-            const { store, ...withoutStore } = payload;
-            void store;
-            ({ status, body } = await postOnce(chatAuthToken || token, withoutStore));
-            if (status >= 400) {
+            payload = useMultipart
+                ? buildFormPayload(textValue, false, true)
+                : buildJsonPayload(textValue || '(αρχείο)', false);
+            ({ status, body } = await postOnce(chatAuthToken || token, payload));
+            if (status >= 400 && /store/i.test(errBlob())) {
                 setChatStatus('error', 'Πρόσθεσε πεδίο store στο messages (PocketBase)');
             }
         }
+
+        // Attachment field missing
+        if (status >= 400 && attachFile && /attachment/i.test(errBlob())) {
+            chatAttachmentFieldUnsupported = true;
+            setChatStatus('error', 'Πρόσθεσε πεδίο attachment στο messages (PocketBase)');
+            return { ok: false, reason: 'unsupported' };
+        }
+
+        // text still required on server — retry with placeholder
+        if (status >= 400 && attachFile && !clean && /text/i.test(errBlob())) {
+            textValue = '(αρχείο)';
+            payload = useMultipart && !chatAttachmentFieldUnsupported
+                ? buildFormPayload(textValue, !chatStoreFieldUnsupported, true)
+                : buildJsonPayload(textValue, !chatStoreFieldUnsupported);
+            ({ status, body } = await postOnce(chatAuthToken || token, payload));
+        }
+
         if (status < 200 || status >= 300) {
             let msg = formatPbError(body, `Send failed (${status})`);
-            if (/failed to create record/i.test(msg) && !/text:|displayName|room|profileId|store/i.test(msg)) {
+            if (/failed to create record/i.test(msg) && !/text:|displayName|room|profileId|store|attachment/i.test(msg)) {
                 msg += ' — PocketBase Admin → Collections → messages → API Rules: ξεκλείδωσε το Create (όχι Admins only) και βάλε ακριβώς: @request.auth.id != ""';
             }
             throw new Error(msg);
         }
-        // Prefer returned record; ensure store shows even if PB stripped unknown field
         const saved = body && typeof body === 'object' ? { ...body } : body;
         if (saved && storeName && !saved.store) saved.store = storeName;
         upsertMessages([saved]);
@@ -1503,6 +1660,69 @@
             }
             .tm-chat-msg-link:hover { filter: brightness(0.9); }
             .tm-chat-msg.is-mine .tm-chat-msg-link { color: #1d4ed8; }
+            .tm-chat-msg-image-link {
+                display: block; margin: 2px 0 6px; border-radius: 12px; overflow: hidden;
+                max-width: 240px; border: 1px solid var(--tm-chat-line);
+            }
+            .tm-chat-msg-image {
+                display: block; width: 100%; max-height: 220px; object-fit: cover;
+                background: #e2e8f0;
+            }
+            .tm-chat-msg-file {
+                display: flex; align-items: center; gap: 8px;
+                margin: 2px 0 6px; padding: 8px 10px;
+                border-radius: 12px; border: 1px solid var(--tm-chat-line);
+                background: #f8fafc; text-decoration: none; color: inherit;
+                max-width: 260px;
+            }
+            .tm-chat-msg-file:hover { background: #eff6ff; border-color: color-mix(in srgb, var(--tm-chat-accent) 35%, #fff); }
+            .tm-chat-msg-file-icon { font-size: 18px; flex-shrink: 0; }
+            .tm-chat-msg-file-meta { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+            .tm-chat-msg-file-name {
+                font-size: 12px; font-weight: 650; color: var(--tm-chat-ink);
+                overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            }
+            .tm-chat-msg-file-hint { font-size: 10px; color: var(--tm-chat-muted); }
+            #tm-chat-pending-file {
+                display: none; align-items: center; gap: 8px;
+                margin-bottom: 8px; padding: 6px 8px;
+                border-radius: 10px; background: #f1f5f9; border: 1px solid var(--tm-chat-line);
+                font-size: 12px; color: var(--tm-chat-ink);
+            }
+            #tm-chat-pending-file.is-visible { display: flex; }
+            #tm-chat-pending-file .tm-chat-pending-icon { flex-shrink: 0; }
+            #tm-chat-pending-file .tm-chat-pending-name {
+                flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+                font-weight: 600;
+            }
+            #tm-chat-pending-file .tm-chat-pending-size { color: var(--tm-chat-muted); flex-shrink: 0; }
+            #tm-chat-pending-clear {
+                border: none; background: transparent; cursor: pointer;
+                color: var(--tm-chat-muted); font-size: 16px; line-height: 1;
+                width: 24px; height: 24px; border-radius: 8px;
+            }
+            #tm-chat-pending-clear:hover { background: #e2e8f0; color: #0f172a; }
+            #tm-chat-attach-btn {
+                width: 38px; height: 38px; flex-shrink: 0;
+                border: 1px solid var(--tm-chat-line);
+                border-radius: 12px;
+                background: #f8fafc;
+                cursor: pointer; font-size: 16px;
+                display: grid; place-items: center;
+                color: var(--tm-chat-muted);
+                transition: background 0.15s ease, border-color 0.15s ease;
+            }
+            #tm-chat-attach-btn:hover,
+            #tm-chat-attach-btn.has-file {
+                background: color-mix(in srgb, var(--tm-chat-accent) 10%, #fff);
+                border-color: color-mix(in srgb, var(--tm-chat-accent) 35%, #fff);
+                color: var(--tm-chat-accent);
+            }
+            #tm-chat-panel.is-drop-target #tm-chat-composer-wrap,
+            #tm-chat-panel.is-drop-target #tm-chat-messages {
+                outline: 2px dashed color-mix(in srgb, var(--tm-chat-accent) 55%, #fff);
+                outline-offset: -4px;
+            }
             #tm-chat-composer-wrap {
                 position: relative;
                 border-top: 1px solid var(--tm-chat-line);
@@ -1625,11 +1845,19 @@
                 <div id="tm-chat-emoji-picker" role="dialog" aria-label="Emoji picker" hidden>
                     <div class="tm-chat-emoji-grid">${emojiButtons}</div>
                 </div>
+                <div id="tm-chat-pending-file" aria-live="polite">
+                    <span class="tm-chat-pending-icon" aria-hidden="true">📎</span>
+                    <span class="tm-chat-pending-name"></span>
+                    <span class="tm-chat-pending-size"></span>
+                    <button type="button" id="tm-chat-pending-clear" title="Αφαίρεση αρχείου" aria-label="Αφαίρεση αρχείου">&times;</button>
+                </div>
                 <div id="tm-chat-composer">
+                    <button type="button" id="tm-chat-attach-btn" title="Επισύναψη αρχείου" aria-label="Επισύναψη αρχείου">📎</button>
                     <button type="button" id="tm-chat-emoji-toggle" title="Emoji" aria-label="Emoji" aria-expanded="false">😊</button>
                     <textarea id="tm-chat-input" maxlength="${CHAT_MAX_LEN}" placeholder="Γράψε μήνυμα… (Enter αποστολή)" rows="2"></textarea>
                     <button type="button" id="tm-chat-send" title="Αποστολή" aria-label="Αποστολή">➤</button>
                 </div>
+                <input type="file" id="tm-chat-file-input" hidden accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,image/jpeg,image/png,image/webp,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
             </div>
         `;
     }
@@ -1691,6 +1919,172 @@
         });
     }
 
+    function updateChatPendingFileUi() {
+        const row = document.getElementById('tm-chat-pending-file');
+        const nameEl = row?.querySelector('.tm-chat-pending-name');
+        const sizeEl = row?.querySelector('.tm-chat-pending-size');
+        const attachBtn = document.getElementById('tm-chat-attach-btn');
+        const file = chatPendingFile;
+        if (!row) return;
+        if (!file) {
+            row.classList.remove('is-visible');
+            if (nameEl) nameEl.textContent = '';
+            if (sizeEl) sizeEl.textContent = '';
+            attachBtn?.classList.remove('has-file');
+            return;
+        }
+        row.classList.add('is-visible');
+        if (nameEl) nameEl.textContent = file.name || 'αρχείο';
+        if (sizeEl) sizeEl.textContent = formatChatFileSize(file.size);
+        attachBtn?.classList.add('has-file');
+    }
+
+    function clearChatPendingFile() {
+        chatPendingFile = null;
+        const input = document.getElementById('tm-chat-file-input');
+        if (input) input.value = '';
+        updateChatPendingFileUi();
+    }
+
+    function setChatPendingFile(file) {
+        if (!file) {
+            clearChatPendingFile();
+            return false;
+        }
+        const check = isAllowedChatFile(file);
+        if (!check.ok) {
+            setChatStatus('error', check.message || 'Μη έγκυρο αρχείο');
+            setTimeout(() => {
+                if (chatStatus === 'error') setChatStatus('online');
+            }, 2500);
+            return false;
+        }
+        chatPendingFile = file;
+        updateChatPendingFileUi();
+        setChatEmojiPickerOpen(false);
+        return true;
+    }
+
+    async function openChatAttachmentSafely(recordId, filename) {
+        const url = getChatFileUrl(recordId, filename);
+        if (!url) return;
+        try {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } catch (_) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.click();
+        }
+    }
+
+    function wireChatFileAttach(STORAGE_KEYS) {
+        void STORAGE_KEYS;
+        const panel = document.getElementById('tm-chat-panel');
+        const attachBtn = document.getElementById('tm-chat-attach-btn');
+        const fileInput = document.getElementById('tm-chat-file-input');
+        const clearBtn = document.getElementById('tm-chat-pending-clear');
+        if (!panel || !attachBtn || !fileInput || panel.dataset.tmChatFileWired === '1') return;
+        panel.dataset.tmChatFileWired = '1';
+
+        attachBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (chatAttachmentFieldUnsupported) {
+                setChatStatus('error', 'Πρόσθεσε πεδίο attachment στο messages (PocketBase)');
+                return;
+            }
+            fileInput.click();
+        });
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files && fileInput.files[0];
+            if (file) setChatPendingFile(file);
+            else clearChatPendingFile();
+        });
+        clearBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            clearChatPendingFile();
+        });
+
+        panel.addEventListener('click', (e) => {
+            const link = e.target.closest('.tm-chat-msg-image-link, .tm-chat-msg-file');
+            if (!link || !panel.contains(link)) return;
+            const recordId = link.getAttribute('data-chat-record');
+            const filename = link.getAttribute('data-chat-file');
+            if (!recordId || !filename) return;
+            e.preventDefault();
+            openChatAttachmentSafely(recordId, filename);
+        });
+    }
+
+    function wireChatPasteDrop(STORAGE_KEYS) {
+        void STORAGE_KEYS;
+        const panel = document.getElementById('tm-chat-panel');
+        const input = document.getElementById('tm-chat-input');
+        if (!panel || panel.dataset.tmChatPasteDropWired === '1') return;
+        panel.dataset.tmChatPasteDropWired = '1';
+
+        const pickFileFromList = (list) => {
+            if (!list || !list.length) return null;
+            for (let i = 0; i < list.length; i++) {
+                const f = list[i];
+                if (f && isAllowedChatFile(f).ok) return f;
+            }
+            return list[0] || null;
+        };
+
+        input?.addEventListener('paste', (e) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (item.kind === 'file' && /^image\//i.test(item.type || '')) {
+                    const file = item.getAsFile();
+                    if (file) {
+                        e.preventDefault();
+                        const named = file.name && file.name !== 'image.png'
+                            ? file
+                            : new File([file], `screenshot-${Date.now()}.png`, { type: file.type || 'image/png' });
+                        setChatPendingFile(named);
+                    }
+                    return;
+                }
+            }
+        });
+
+        let dragDepth = 0;
+        const onDragEnter = (e) => {
+            if (!e.dataTransfer?.types?.includes('Files')) return;
+            e.preventDefault();
+            dragDepth += 1;
+            panel.classList.add('is-drop-target');
+        };
+        const onDragLeave = (e) => {
+            if (!e.dataTransfer?.types?.includes('Files')) return;
+            e.preventDefault();
+            dragDepth = Math.max(0, dragDepth - 1);
+            if (dragDepth === 0) panel.classList.remove('is-drop-target');
+        };
+        const onDragOver = (e) => {
+            if (!e.dataTransfer?.types?.includes('Files')) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        };
+        const onDrop = (e) => {
+            if (!e.dataTransfer?.files?.length) return;
+            e.preventDefault();
+            dragDepth = 0;
+            panel.classList.remove('is-drop-target');
+            const file = pickFileFromList(e.dataTransfer.files);
+            if (file) setChatPendingFile(file);
+        };
+
+        panel.addEventListener('dragenter', onDragEnter);
+        panel.addEventListener('dragleave', onDragLeave);
+        panel.addEventListener('dragover', onDragOver);
+        panel.addEventListener('drop', onDrop);
+    }
+
     function wireChatPanelControls(panel, STORAGE_KEYS) {
         if (!panel || panel.dataset.tmChatControlsWired === '1') return;
         panel.dataset.tmChatControlsWired = '1';
@@ -1719,21 +2113,24 @@
         }
         wireComposer(STORAGE_KEYS);
         wireChatEmojiPicker();
+        wireChatFileAttach(STORAGE_KEYS);
+        wireChatPasteDrop(STORAGE_KEYS);
         wireChatStoreSelect(STORAGE_KEYS);
         wireChatPanelDrag(panel, STORAGE_KEYS);
         applyChatPanelGeometry(panel, STORAGE_KEYS);
+        updateChatPendingFileUi();
         updateChatStatusUi();
     }
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '2';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '3';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '2');
+            panel.setAttribute('data-tm-chat-ui', '3');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);
@@ -1934,21 +2331,30 @@
 
         const doSend = async () => {
             const text = input.value;
-            if (!String(text || '').trim()) return;
+            const file = chatPendingFile;
+            if (!String(text || '').trim() && !file) return;
             sendBtn.disabled = true;
+            const prevLabel = sendBtn.textContent;
+            sendBtn.textContent = '…';
+            setChatStatus('online', file ? 'Αποστολή αρχείου…' : 'Αποστολή…');
             try {
-                const result = await sendChatMessage(STORAGE_KEYS, text);
+                const result = await sendChatMessage(STORAGE_KEYS, text, file);
                 if (result.ok) {
                     setChatEmojiPickerOpen(false);
                     input.value = '';
+                    clearChatPendingFile();
+                    setChatStatus('online');
                 } else if (result.reason === 'rate') {
                     setChatStatus('online', 'Περίμενε λίγο…');
                     setTimeout(() => setChatStatus('online'), 1200);
+                } else if (result.reason !== 'unsupported' && result.reason !== 'type' && result.reason !== 'size') {
+                    setChatStatus('online');
                 }
             } catch (err) {
                 setChatStatus('error', err?.message || 'Αποστολή απέτυχε');
             } finally {
                 sendBtn.disabled = false;
+                sendBtn.textContent = prevLabel || '➤';
                 input.focus();
             }
         };
