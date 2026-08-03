@@ -176,9 +176,9 @@ Unlock **List / View / Create / Update** and set each to:
 
 Leave **Delete** empty.
 
-The suite upserts only changed rows (fingerprint delta), filters by login `storeKey`, and merges into the Order History panel. Clear in the UI wipes **local cache only**, not the store server history.
+The suite upserts only changed rows (fingerprint delta), filters by login `storeKey`, and loads the Order History panel **from PocketBase** (newest 200). Successful fetches are kept in a local view cache for fast reopen and offline fallback. Local legacy GM history is migrated once then cleared; accept/scan write-through to the server.
 
-Shared order history auth uses the same silent PocketBase account as chat, but **does not require Chat to be enabled** in Settings — sync / Server button work with Chat off.
+Shared order history auth uses the same silent PocketBase account as chat, but **does not require Chat to be enabled** in Settings — sync / Refresh work with Chat off.
 
 ## 8. Backups
 
@@ -200,6 +200,6 @@ Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots.
 2. Chat is **on by default** — footer **💬 Chat**.
 3. Features in the panel: search, reply, reactions (👍/❤️), copy, @mentions, edit/delete own, presence, draft autosave, quiet hours, optional sound (Settings → Chat).
 4. Profile photo: **Settings → Chat** (synced via `users.avatar` + message `pbUserId`/`avatar` + presence).
-5. Order History panel loads shared per-store rows from `order_history` (same chat auth + login store).
+5. Order History panel loads **only** from `order_history` (newest 200 per kind). Accept/scan upserts to the server; leftover local history migrates once then is cleared.
 
 Display names come from the MyManager login name.

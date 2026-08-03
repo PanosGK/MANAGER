@@ -32,7 +32,7 @@ Optional: **Settings → Chat** — enable/disable, profile photo, sound, connec
 | @mentions | `@` button filters / jumps to messages that tagged you |
 | Repair cards | `#12345` in a message loads status / tech / store mini-card |
 | Read receipts | ✓✓ on your messages when peers opened chat |
-| Shared order history | PocketBase `order_history` per store; panel Server button (**works with Chat disabled**) |
+| Shared order history | PocketBase is source of truth; local view cache for fast/offline; compact table + Refresh (**works with Chat disabled**) |
 
 ## Troubleshooting
 

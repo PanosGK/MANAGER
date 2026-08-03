@@ -42,7 +42,8 @@
         ? 'tm_srvorders_page_history' 
         : 'tm_partsorders_page_history';
     
-    const MAX_HISTORY_ITEMS = 100; // Keep last 100 orders per page (local cache)
+    const MAX_HISTORY_ITEMS = 100; // Legacy local history cap (migration only)
+    const OH_PENDING_KEY = 'tm_oh_pending_upserts_v1'; // short write buffer until server ack
     const OH_PB_BASE = 'https://mngerchat.littlejol.mywire.org';
     // Same silent password salt as office chat — shared PB user, independent of chat UI toggle
     const OH_PB_PASS_SECRET = 'myman-office-chat-v1';
@@ -51,6 +52,7 @@
     const OH_PASS_KEY = 'tm_chat_pass';
     const OH_SYNC_FP_KEY = 'tm_oh_sync_fp_v1';
     const OH_MIGRATED_KEY = 'tm_oh_migrated_stores_v1';
+    const OH_VIEW_CACHE_KEY = 'tm_oh_view_cache_v1'; // last successful server fetch per storeKey|kind
     const OH_SYNC_QUEUE_MAX = 40;
     const OH_SYNC_FLUSH_MS = 2500;
     let ohServerUnsupported = false;
@@ -60,6 +62,9 @@
     let ohSyncQueue = [];
     let ohSyncFlushTimer = null;
     let ohSyncBusy = false;
+    /** In-memory list for the open Order History panel (server-sourced). */
+    let ohViewOrders = [];
+    let ohViewCapped = false;
 
     /** Store for shared history — never depends on chat being enabled. */
     function ohGetStoreName() {
@@ -576,6 +581,32 @@
                 if (result.ok && item.fpKey) {
                     fps[item.fpKey] = item.fingerprint;
                     okCount += 1;
+                    ohRemovePendingByDedupe(item.fpKey);
+                    try {
+                        const rec = item.record;
+                        if (rec?.storeKey && rec?.kind) {
+                            const cached = ohLoadViewCache(rec.storeKey, rec.kind) || {
+                                store: rec.store,
+                                storeKey: rec.storeKey,
+                                kind: rec.kind,
+                                orders: [],
+                                capped: false,
+                                totalItems: 0,
+                            };
+                            const local = ohLocalFromRecord({ ...rec, id: result.id || rec.orderId });
+                            const oid = ohExtractOrderId(local);
+                            const next = (cached.orders || []).filter((o) => ohExtractOrderId(o) !== oid);
+                            next.unshift(local);
+                            ohSaveViewCache({
+                                store: cached.store || rec.store,
+                                storeKey: rec.storeKey,
+                                kind: rec.kind,
+                                orders: next.slice(0, 200),
+                                capped: cached.capped || next.length >= 200,
+                                totalItems: Math.max(Number(cached.totalItems) || 0, next.length),
+                            });
+                        }
+                    } catch (_) { /* ignore */ }
                     continue;
                 }
                 failCount += 1;
@@ -667,6 +698,70 @@
         return queued;
     }
 
+    function ohViewCacheSlot(storeKey, kind) {
+        return `${String(storeKey || '')}|${String(kind || 'service')}`;
+    }
+
+    function ohLoadViewCache(storeKey, kind) {
+        if (!storeKey) return null;
+        try {
+            const raw = GM_getValue(OH_VIEW_CACHE_KEY, '{}');
+            const map = typeof raw === 'string' ? JSON.parse(raw || '{}') : (raw || {});
+            const slot = map[ohViewCacheSlot(storeKey, kind)];
+            if (!slot || !Array.isArray(slot.orders)) return null;
+            return {
+                store: String(slot.store || ''),
+                storeKey: String(slot.storeKey || storeKey),
+                kind: String(slot.kind || kind),
+                orders: slot.orders,
+                capped: !!slot.capped,
+                totalItems: Number(slot.totalItems) || slot.orders.length,
+                savedAt: Number(slot.savedAt) || 0,
+            };
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function ohSaveViewCache({ store, storeKey, kind, orders, capped, totalItems }) {
+        if (!storeKey || !kind) return;
+        try {
+            const raw = GM_getValue(OH_VIEW_CACHE_KEY, '{}');
+            const map = typeof raw === 'string' ? JSON.parse(raw || '{}') : (raw || {});
+            const key = ohViewCacheSlot(storeKey, kind);
+            map[key] = {
+                store: String(store || '').slice(0, 64),
+                storeKey: String(storeKey).slice(0, 64),
+                kind: String(kind).slice(0, 16),
+                orders: (orders || []).slice(0, 200),
+                capped: !!capped,
+                totalItems: Number(totalItems) || (orders || []).length,
+                savedAt: Date.now(),
+            };
+            // Bound map size (keep newest 12 slots)
+            const keys = Object.keys(map);
+            if (keys.length > 12) {
+                keys
+                    .map((k) => ({ k, t: Number(map[k]?.savedAt) || 0 }))
+                    .sort((a, b) => a.t - b.t)
+                    .slice(0, keys.length - 12)
+                    .forEach(({ k }) => { delete map[k]; });
+            }
+            GM_setValue(OH_VIEW_CACHE_KEY, JSON.stringify(map));
+        } catch (_) { /* ignore */ }
+    }
+
+    function ohFormatCacheAge(savedAt) {
+        const ts = Number(savedAt) || 0;
+        if (!ts) return '';
+        const mins = Math.max(0, Math.floor((Date.now() - ts) / 60000));
+        if (mins < 1) return 'μόλις τώρα';
+        if (mins < 60) return `${mins}λ πριν`;
+        const hours = Math.floor(mins / 60);
+        if (hours < 48) return `${hours}ω πριν`;
+        return `${Math.floor(hours / 24)}η πριν`;
+    }
+
     async function fetchStoreOrderHistoryFromServer(kind) {
         if (ohServerUnsupported) return { ok: false, orders: [], unsupported: true };
         const store = ohGetStoreName();
@@ -695,11 +790,25 @@
                 return { ok: false, orders: [], status: result.status };
             }
             const items = Array.isArray(result.body?.items) ? result.body.items : [];
+            const totalItems = Number(result.body?.totalItems) || items.length;
+            const orders = items.map(ohLocalFromRecord);
+            const capped = totalItems > items.length || items.length >= 200;
+            ohSaveViewCache({
+                store,
+                storeKey,
+                kind,
+                orders,
+                capped,
+                totalItems,
+            });
             return {
                 ok: true,
                 store,
                 storeKey,
-                orders: items.map(ohLocalFromRecord),
+                orders,
+                totalItems,
+                capped,
+                fromCache: false,
             };
         } catch (err) {
             console.warn('[MMS Order History] fetch failed', err);
@@ -707,45 +816,58 @@
         }
     }
 
-    function mergeServerOrdersIntoLocal(kind, serverOrders) {
-        if (!serverOrders?.length) return 0;
-        const historyKey = kind === 'parts' ? 'tm_partsorders_page_history' : 'tm_srvorders_page_history';
-        let pageHistory = [];
+    function ohLoadPendingBuffer() {
         try {
-            pageHistory = JSON.parse(GM_getValue(historyKey, '[]'));
-            if (!Array.isArray(pageHistory)) pageHistory = [];
+            const raw = GM_getValue(OH_PENDING_KEY, '[]');
+            const arr = typeof raw === 'string' ? JSON.parse(raw || '[]') : raw;
+            return Array.isArray(arr) ? arr : [];
         } catch (_) {
-            pageHistory = [];
+            return [];
         }
-        let added = 0;
-        serverOrders.forEach((remote) => {
-            const exists = pageHistory.some((existing) => isDuplicateOrder(existing, remote)
-                || (ohExtractOrderId(existing) && ohExtractOrderId(existing) === ohExtractOrderId(remote)));
-            if (!exists) {
-                pageHistory.unshift(remote);
-                added += 1;
-            } else {
-                // Refresh richer fields on match
-                const idx = pageHistory.findIndex((existing) => isDuplicateOrder(existing, remote)
-                    || (ohExtractOrderId(existing) && ohExtractOrderId(existing) === ohExtractOrderId(remote)));
-                if (idx >= 0) {
-                    pageHistory[idx] = {
-                        ...pageHistory[idx],
-                        ...remote,
-                        allColumns: {
-                            ...(pageHistory[idx].allColumns || {}),
-                            ...(remote.allColumns || {}),
-                        },
-                        timestamp: Math.max(pageHistory[idx].timestamp || 0, remote.timestamp || 0),
-                    };
-                }
-            }
+    }
+
+    function ohSavePendingBuffer(list) {
+        try {
+            const trimmed = (list || []).slice(0, 120);
+            GM_setValue(OH_PENDING_KEY, JSON.stringify(trimmed));
+        } catch (_) { /* ignore */ }
+    }
+
+    function ohAddPendingOrders(orders) {
+        if (!orders?.length) return;
+        const pending = ohLoadPendingBuffer();
+        orders.forEach((order) => {
+            const id = ohExtractOrderId(order);
+            if (!id) return;
+            const idx = pending.findIndex((p) => ohExtractOrderId(p) === id
+                && String(p.type || '') === String(order.type || ''));
+            if (idx >= 0) pending[idx] = order;
+            else pending.unshift(order);
         });
-        if (pageHistory.length > MAX_HISTORY_ITEMS) {
-            pageHistory = pageHistory.slice(0, MAX_HISTORY_ITEMS);
-        }
-        GM_setValue(historyKey, JSON.stringify(pageHistory));
-        return added;
+        ohSavePendingBuffer(pending);
+    }
+
+    function ohRemovePendingByDedupe(dedupeKey) {
+        if (!dedupeKey) return;
+        const pending = ohLoadPendingBuffer();
+        const store = ohGetStoreName();
+        const storeKey = ohStoreKey(store);
+        const next = pending.filter((order) => {
+            const rec = ohRecordFromLocal(order, store, storeKey);
+            return !rec || rec.dedupeKey !== dedupeKey;
+        });
+        if (next.length !== pending.length) ohSavePendingBuffer(next);
+    }
+
+    function ohClearLegacyLocalHistory() {
+        try { GM_setValue('tm_srvorders_page_history', '[]'); } catch (_) { /* ignore */ }
+        try { GM_setValue('tm_partsorders_page_history', '[]'); } catch (_) { /* ignore */ }
+        try { GM_setValue(CURRENT_PAGE_HISTORY_KEY, '[]'); } catch (_) { /* ignore */ }
+    }
+
+    function mergeServerOrdersIntoLocal() {
+        // Server is source of truth — do not merge into legacy GM history.
+        return 0;
     }
 
     async function migrateLocalOrderHistoryOnce({ force = false } = {}) {
@@ -763,18 +885,48 @@
         } catch (_) {
             migrated = {};
         }
-        if (!force && migrated[storeKey]) return { ok: true, skipped: true };
+        if (!force && migrated[storeKey]) {
+            // Still drain any leftover legacy GM rows once after server-source switch
+            try {
+                const service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]'));
+                const parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]'));
+                const leftover = [
+                    ...(Array.isArray(service) ? service : []),
+                    ...(Array.isArray(parts) ? parts : []),
+                ];
+                if (leftover.length) {
+                    queueOrdersForServerSync(leftover, { force: true });
+                    scheduleOhSyncFlush(400);
+                    ohClearLegacyLocalHistory();
+                    console.log(`[MMS Order History] flushed leftover local rows for ${storeKey}: ${leftover.length}`);
+                } else {
+                    ohClearLegacyLocalHistory();
+                }
+            } catch (_) { /* ignore */ }
+            // Drain pending write buffer
+            try {
+                const pending = ohLoadPendingBuffer();
+                if (pending.length) {
+                    queueOrdersForServerSync(pending, { force: false });
+                    scheduleOhSyncFlush(600);
+                }
+            } catch (_) { /* ignore */ }
+            return { ok: true, skipped: true };
+        }
 
         try {
             const service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]'));
             const parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]'));
+            const pending = ohLoadPendingBuffer();
             const all = [
                 ...(Array.isArray(service) ? service : []),
                 ...(Array.isArray(parts) ? parts : []),
+                ...pending,
             ];
             if (!all.length) {
                 migrated[storeKey] = Date.now();
                 GM_setValue(OH_MIGRATED_KEY, JSON.stringify(migrated));
+                ohClearLegacyLocalHistory();
                 console.log(`[MMS Order History] nothing local to migrate for ${storeKey}`);
                 return { ok: true, queued: 0 };
             }
@@ -787,10 +939,11 @@
             ohSaveFingerprints(fps);
             const queued = queueOrdersForServerSync(all, { force: true });
             scheduleOhSyncFlush(400);
-            // Mark only after we successfully queued something (or had zero usable rows)
             migrated[storeKey] = Date.now();
             GM_setValue(OH_MIGRATED_KEY, JSON.stringify(migrated));
-            console.log(`[MMS Order History] queued local migration for store ${storeKey} (${queued}/${all.length} rows)`);
+            // Local GM history is no longer a source — clear after queueing migration
+            ohClearLegacyLocalHistory();
+            console.log(`[MMS Order History] migrated local → server for ${storeKey} (${queued}/${all.length} rows); local history cleared`);
             return { ok: true, queued, total: all.length, store, storeKey };
         } catch (err) {
             console.warn('[MMS Order History] migration failed', err);
@@ -1289,35 +1442,13 @@
         return false;
     }
 
-    // Function to save orders to history (page-specific storage)
+    // Write-through to PocketBase (server is durable source). Pending buffer only until ack.
     function saveOrdersToHistory(newOrders) {
         if (!newOrders || newOrders.length === 0) return;
-        
-        let pageHistory = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
-        let addedCount = 0;
-        let duplicateCount = 0;
-        
-        newOrders.forEach(newOrder => {
-            const exists = pageHistory.some(existing => isDuplicateOrder(existing, newOrder));
-            
-            if (!exists) {
-                pageHistory.unshift(newOrder);
-                addedCount++;
-            } else {
-                duplicateCount++;
-            }
-        });
-        
-        if (pageHistory.length > MAX_HISTORY_ITEMS) {
-            pageHistory = pageHistory.slice(0, MAX_HISTORY_ITEMS);
-        }
-        
-        GM_setValue(CURRENT_PAGE_HISTORY_KEY, JSON.stringify(pageHistory));
-        const pageType = isServiceOrdersPage ? 'Service Orders' : 'Parts Orders';
-        console.log(`[MMS Order History] ${pageType}: ${addedCount} added, ${duplicateCount} duplicates skipped. Total: ${pageHistory.length}`);
-        // Shared store sync (delta upsert to PocketBase)
+        ohAddPendingOrders(newOrders);
         try {
-            queueOrdersForServerSync(newOrders);
+            const queued = queueOrdersForServerSync(newOrders, { force: false });
+            console.log(`[MMS Order History] write-through ${newOrders.length} order(s), queued ${queued}`);
         } catch (err) {
             console.warn('[MMS Order History] queue sync failed', err);
         }
@@ -1427,57 +1558,16 @@
 
     // Function to remove duplicates from existing history
     function removeDuplicatesFromHistory() {
-        // Clean current page's history
-        let pageHistory = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
-        const cleaned = [];
-        
-        pageHistory.forEach(order => {
-            // Check if this order is a duplicate of any already in cleaned using improved logic
-            const isDuplicate = cleaned.some(existing => isDuplicateOrder(existing, order));
-            if (!isDuplicate) {
-                cleaned.push(order);
-            }
-        });
-        
-        if (cleaned.length !== pageHistory.length) {
-            GM_setValue(CURRENT_PAGE_HISTORY_KEY, JSON.stringify(cleaned));
-            const pageType = isServiceOrdersPage ? 'service orders' : 'parts orders';
-            console.log(`[MMS Order History] Removed ${pageHistory.length - cleaned.length} duplicate ${pageType}`);
-        }
+        // Legacy local history is no longer used as a source — no-op.
     }
 
-    // Save orders to a specific history bucket (used by background fetcher)
+    // Background / write-through (same as saveOrdersToHistory)
     function saveOrdersToSpecificHistory(newOrders, historyKey, pageLabel) {
         if (!newOrders || newOrders.length === 0) return;
-        
-        let pageHistory;
+        ohAddPendingOrders(newOrders);
         try {
-            pageHistory = JSON.parse(GM_getValue(historyKey, '[]'));
-        } catch (e) {
-            pageHistory = [];
-        }
-        
-        let addedCount = 0;
-        let duplicateCount = 0;
-        
-        newOrders.forEach(newOrder => {
-            const exists = pageHistory.some(existing => isDuplicateOrder(existing, newOrder));
-            if (!exists) {
-                pageHistory.unshift(newOrder);
-                addedCount++;
-            } else {
-                duplicateCount++;
-            }
-        });
-        
-        if (pageHistory.length > MAX_HISTORY_ITEMS) {
-            pageHistory = pageHistory.slice(0, MAX_HISTORY_ITEMS);
-        }
-        
-        GM_setValue(historyKey, JSON.stringify(pageHistory));
-        console.log(`[MMS Order History] [Background] ${pageLabel}: ${addedCount} added, ${duplicateCount} duplicates skipped. Total: ${pageHistory.length}`);
-        try {
-            queueOrdersForServerSync(newOrders);
+            const queued = queueOrdersForServerSync(newOrders, { force: false });
+            console.log(`[MMS Order History] [Background] ${pageLabel}: write-through ${newOrders.length}, queued ${queued}`);
         } catch (_) { /* ignore */ }
     }
 
@@ -2023,1282 +2113,688 @@
     }
 
     function ensureOrderHistoryStyles() {
-        if (document.getElementById('tm-order-history-ui-styles')) return;
+        const existing = document.getElementById('tm-order-history-ui-styles');
+        if (existing) existing.remove();
         const style = document.createElement('style');
         style.id = 'tm-order-history-ui-styles';
         style.textContent = `
             .tm-oh-overlay {
-                background: var(--tm-overlay-dim, rgba(0,0,0,0.72)) !important;
-                backdrop-filter: blur(6px);
-                -webkit-backdrop-filter: blur(6px);
+                background: var(--tm-overlay-dim, rgba(0,0,0,0.55)) !important;
                 z-index: 10050 !important;
             }
             .tm-oh-shell {
-                width: min(96vw, 1480px) !important;
-                max-width: 1480px !important;
-                height: 94vh !important;
+                width: min(92vw, 980px) !important;
+                max-width: 980px !important;
+                height: min(88vh, 820px) !important;
                 padding: 0 !important;
-                border-radius: 18px !important;
+                border-radius: 10px !important;
                 overflow: hidden !important;
                 border: 1px solid var(--tm-shop-item-border) !important;
-                box-shadow: 0 28px 80px var(--tm-shadow-color, rgba(0,0,0,0.45)) !important;
+                box-shadow: 0 16px 48px var(--tm-shadow-color, rgba(0,0,0,0.28)) !important;
                 background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
                 color: var(--tm-primary-color) !important;
                 display: flex !important;
                 flex-direction: column !important;
             }
-            .tm-oh-hero {
-                padding: 20px 24px 16px;
-                background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 18%, transparent) 0%, transparent 70%);
-                border-bottom: 1px solid var(--tm-shop-item-border);
-                flex-shrink: 0;
-            }
-            .tm-oh-hero-top {
-                display: flex;
-                align-items: flex-start;
-                justify-content: space-between;
-                gap: 16px;
-                margin-bottom: 16px;
-            }
-            .tm-oh-title-wrap { min-width: 0; }
-            .tm-oh-title {
-                margin: 0;
-                font-size: 1.35rem;
-                font-weight: 800;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                letter-spacing: 0.01em;
+            .tm-oh-header {
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 12px 14px;
+                border-bottom: 1px solid var(--tm-shop-item-border);
+                flex-shrink: 0;
+                background: var(--tm-shop-item-bg);
+            }
+            .tm-oh-header-left { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+            .tm-oh-title {
+                margin: 0;
+                font-size: 15px;
+                font-weight: 700;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                display: flex;
+                align-items: center;
+                gap: 8px;
                 flex-wrap: wrap;
             }
             .tm-oh-page-badge {
                 display: inline-flex;
-                align-items: center;
-                padding: 4px 10px;
-                border-radius: 999px;
-                font-size: 11px;
+                padding: 2px 8px;
+                border-radius: 4px;
+                font-size: 10px;
                 font-weight: 700;
-                letter-spacing: 0.04em;
+                letter-spacing: 0.03em;
                 text-transform: uppercase;
-                background: color-mix(in srgb, var(--tm-info-color) 16%, transparent);
+                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent);
                 color: var(--tm-info-color);
-                border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent);
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 30%, transparent);
             }
-            .tm-oh-subtitle {
-                margin: 6px 0 0;
-                font-size: 12px;
+            .tm-oh-meta {
+                margin: 0;
+                font-size: 11px;
                 color: var(--tm-muted-text, var(--tm-secondary-color));
-            }
-            .tm-oh-hero-actions {
                 display: flex;
+                flex-wrap: wrap;
+                gap: 6px 10px;
                 align-items: center;
-                gap: 8px;
-                flex-shrink: 0;
             }
-            .tm-oh-close {
-                width: 38px;
-                height: 38px;
-                border-radius: 10px;
+            .tm-oh-store-chip {
+                display: inline-flex;
+                padding: 1px 7px;
+                border-radius: 4px;
+                border: 1px solid var(--tm-shop-item-border);
+                background: color-mix(in srgb, var(--tm-shop-item-border) 25%, transparent);
+                font-weight: 600;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+            }
+            .tm-oh-header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+            .tm-oh-tool-btn, .tm-oh-close {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 6px 10px;
+                border-radius: 6px;
                 border: 1px solid var(--tm-shop-item-border);
                 background: var(--tm-input-bg, var(--tm-shop-item-bg));
                 color: var(--tm-shop-item-text, var(--tm-primary-color));
-                font-size: 22px;
-                line-height: 1;
-                cursor: pointer;
-                transition: background 0.15s, transform 0.15s, border-color 0.15s;
-            }
-            .tm-oh-close:hover {
-                background: color-mix(in srgb, var(--tm-danger-color) 16%, transparent);
-                border-color: color-mix(in srgb, var(--tm-danger-color) 40%, transparent);
-                transform: scale(1.04);
-            }
-            .tm-oh-stats-row {
-                display: flex;
-                align-items: stretch;
-                gap: 10px;
-                flex-wrap: wrap;
-            }
-            .tm-oh-stat {
-                min-width: 88px;
-                padding: 10px 14px;
-                border-radius: 12px;
-                background: var(--tm-chip-bg, var(--tm-shop-item-hover-bg));
-                border: 1px solid var(--tm-chip-border, var(--tm-shop-item-border));
-            }
-            .tm-oh-stat-value {
-                display: block;
-                font-size: 1.35rem;
-                font-weight: 800;
-                color: var(--tm-accent-color, var(--tm-info-color));
-                line-height: 1.1;
-            }
-            .tm-oh-stat-label {
-                display: block;
-                margin-top: 2px;
-                font-size: 10px;
+                font-size: 12px;
                 font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.06em;
-                color: var(--tm-muted-text, var(--tm-secondary-color));
+                cursor: pointer;
+                line-height: 1.2;
+            }
+            .tm-oh-tool-btn:hover, .tm-oh-close:hover {
+                border-color: var(--tm-primary-color);
+            }
+            .tm-oh-tool-btn:disabled { opacity: 0.55; cursor: wait; }
+            .tm-oh-close {
+                width: 32px;
+                height: 32px;
+                padding: 0;
+                justify-content: center;
+                font-size: 18px;
             }
             .tm-oh-toolbar {
                 display: flex;
-                align-items: center;
-                gap: 8px;
-                margin-left: auto;
                 flex-wrap: wrap;
-            }
-            .tm-oh-tool-btn {
-                display: inline-flex;
+                gap: 8px;
                 align-items: center;
-                gap: 6px;
-                padding: 8px 12px;
-                border-radius: 10px;
-                border: 1px solid var(--tm-shop-item-border);
-                background: var(--tm-input-bg, var(--tm-shop-item-bg));
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                font-size: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: background 0.15s, border-color 0.15s, transform 0.12s;
-                white-space: nowrap;
-            }
-            .tm-oh-tool-btn:hover:not(:disabled) {
-                background: var(--tm-shop-item-hover-bg);
-                border-color: var(--tm-primary-color);
-                transform: translateY(-1px);
-            }
-            .tm-oh-tool-btn:disabled { opacity: 0.55; cursor: wait; }
-            .tm-oh-tool-btn--danger:hover:not(:disabled) {
-                background: color-mix(in srgb, var(--tm-danger-color) 14%, transparent);
-                border-color: color-mix(in srgb, var(--tm-danger-color) 40%, transparent);
-            }
-            .tm-oh-filters {
-                padding: 14px 24px;
+                padding: 10px 14px;
                 border-bottom: 1px solid var(--tm-shop-item-border);
-                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg));
+                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg, var(--tm-shop-item-bg)));
                 flex-shrink: 0;
             }
-            .tm-oh-filters-row {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-                align-items: center;
-            }
-            .tm-oh-search-wrap {
-                position: relative;
-                flex: 1 1 220px;
-                min-width: 180px;
-            }
-            .tm-oh-search-wrap::before {
-                content: '🔍';
-                position: absolute;
-                left: 12px;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 13px;
-                opacity: 0.55;
-                pointer-events: none;
-            }
             .tm-oh-input, .tm-oh-select {
-                width: 100%;
-                box-sizing: border-box;
-                border-radius: 10px;
+                padding: 6px 8px;
+                border-radius: 6px;
                 border: 1px solid var(--tm-input-border, var(--tm-shop-item-border));
                 background: var(--tm-input-bg, var(--tm-shop-item-bg));
                 color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color)));
-                font-size: 13px;
-                transition: border-color 0.15s, box-shadow 0.15s;
-            }
-            .tm-oh-search-wrap .tm-oh-input,
-            #tm-order-history-search {
-                padding: 0 12px 0 36px;
-            }
-            .tm-oh-select {
-                padding: 10px 12px;
-                padding-left: 12px;
-                cursor: pointer;
-                min-width: 130px;
-                width: auto;
-                flex: 0 0 auto;
-            }
-            .tm-oh-date-input {
-                padding: 9px 10px;
-                width: 132px;
-                flex: 0 0 auto;
+                font-size: 12px;
+                box-sizing: border-box;
             }
             .tm-oh-input:focus, .tm-oh-select:focus {
                 outline: none;
                 border-color: var(--tm-input-focus-border, var(--tm-primary-color));
-                box-shadow: 0 0 0 3px color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
             }
-            .tm-oh-preset-group { display: flex; gap: 6px; flex-wrap: wrap; }
+            .tm-oh-search { flex: 1 1 180px; min-width: 140px; }
+            .tm-oh-select { flex: 0 0 auto; }
+            .tm-oh-date { width: 128px; }
+            .tm-oh-presets { display: inline-flex; gap: 4px; flex-wrap: wrap; }
             .tm-oh-preset {
-                padding: 8px 12px;
-                border-radius: 999px;
+                padding: 5px 8px;
+                border-radius: 6px;
                 border: 1px solid var(--tm-shop-item-border);
-                background: var(--tm-input-bg, var(--tm-shop-item-bg));
+                background: transparent;
                 color: var(--tm-shop-item-text, var(--tm-primary-color));
                 font-size: 11px;
                 font-weight: 600;
                 cursor: pointer;
-                transition: all 0.15s;
             }
-            .tm-oh-preset:hover { background: var(--tm-shop-item-hover-bg); }
             .tm-oh-preset.is-active {
-                background: var(--tm-primary-color);
-                border-color: var(--tm-primary-color);
-                color: var(--tm-text-on-primary, #fff);
+                background: color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
+                border-color: color-mix(in srgb, var(--tm-primary-color) 40%, transparent);
             }
             .tm-oh-body {
-                flex: 1;
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
+                flex: 1 1 auto;
                 min-height: 0;
-                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg));
-            }
-            #tm-order-history-container {
-                flex: 1;
                 overflow: auto;
-                padding: 16px 20px 20px;
-            }
-            .tm-oh-empty {
-                text-align: center;
-                padding: 72px 24px;
-                color: var(--tm-muted-text, var(--tm-secondary-color));
-            }
-            .tm-oh-empty-icon { font-size: 56px; margin-bottom: 14px; opacity: 0.45; }
-            .tm-oh-empty-title {
-                font-size: 1.15rem;
-                font-weight: 700;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                margin-bottom: 6px;
-            }
-            .tm-oh-table-wrap {
-                overflow: auto;
-                width: 100%;
-                max-height: 100%;
-                border-radius: 14px;
-                border: 1px solid var(--tm-shop-item-border);
+                padding: 0;
                 background: var(--tm-shop-item-bg);
             }
-            .tm-order-history-table {
+            .tm-oh-table-wrap { width: 100%; }
+            table.tm-oh-table {
                 width: 100%;
                 border-collapse: collapse;
-                font-size: 13px;
+                font-size: 12px;
             }
-            .tm-order-history-table thead th {
+            .tm-oh-table thead th {
                 position: sticky;
                 top: 0;
                 z-index: 2;
-                padding: 12px 14px;
                 text-align: left;
-                font-size: 11px;
+                padding: 8px 10px;
+                font-size: 10px;
                 font-weight: 700;
+                letter-spacing: 0.04em;
                 text-transform: uppercase;
-                letter-spacing: 0.05em;
-                color: var(--tm-grid-header-text, var(--tm-primary-color));
-                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg));
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg, var(--tm-shop-item-bg)));
                 border-bottom: 1px solid var(--tm-shop-item-border);
+                white-space: nowrap;
                 cursor: pointer;
                 user-select: none;
-                white-space: nowrap;
             }
-            .tm-order-history-table thead th:hover { color: var(--tm-link-hover-color, var(--tm-info-color)); }
-            .tm-order-history-table thead th.sort-asc::after { content: ' ▲'; font-size: 9px; opacity: 0.7; }
-            .tm-order-history-table thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.7; }
-            .tm-order-history-table tbody tr.tm-order-history-row {
-                border-bottom: 1px solid var(--tm-shop-item-border);
-                transition: background 0.12s ease;
+            .tm-oh-table thead th.sort-asc::after { content: ' ↑'; }
+            .tm-oh-table thead th.sort-desc::after { content: ' ↓'; }
+            .tm-oh-table tbody td {
+                padding: 8px 10px;
+                border-bottom: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
+                vertical-align: middle;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+            }
+            .tm-oh-table tbody tr {
                 cursor: pointer;
             }
-            .tm-order-history-table tbody tr.tm-order-history-row:hover {
-                background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg));
+            .tm-oh-table tbody tr:hover td {
+                background: color-mix(in srgb, var(--tm-primary-color) 6%, transparent);
             }
-            .tm-order-history-table tbody tr.tm-order-history-row--service {
-                box-shadow: inset 3px 0 0 var(--tm-success-color);
+            .tm-oh-phone-cell {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
             }
-            .tm-order-history-table tbody tr.tm-order-history-row--parts {
-                box-shadow: inset 3px 0 0 var(--tm-info-color);
-            }
-            .tm-order-history-table td {
-                padding: 12px 14px;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                vertical-align: middle;
-                max-width: 220px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .tm-oh-phone {
-                font-weight: 700;
-                font-size: 14px;
-                letter-spacing: 0.04em;
-                white-space: nowrap;
-            }
-            .tm-oh-icon-btn {
-                margin-left: 6px;
-                padding: 3px 8px;
-                border-radius: 6px;
+            .tm-copy-phone-btn {
                 border: 1px solid var(--tm-shop-item-border);
-                background: var(--tm-chip-bg, var(--tm-shop-item-hover-bg));
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                font-size: 11px;
+                background: transparent;
+                border-radius: 4px;
+                padding: 2px 6px;
+                font-size: 10px;
                 cursor: pointer;
-                vertical-align: middle;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
             }
-            .tm-oh-icon-btn:hover { background: var(--tm-shop-item-hover-bg); border-color: var(--tm-primary-color); }
             .tm-oh-badge {
                 display: inline-flex;
                 align-items: center;
-                gap: 4px;
-                padding: 4px 10px;
+                padding: 2px 7px;
                 border-radius: 999px;
-                font-size: 11px;
+                font-size: 10px;
                 font-weight: 700;
-                white-space: nowrap;
+                border: 1px solid transparent;
             }
-            .tm-oh-badge--checking { background: var(--tm-chip-bg); color: var(--tm-muted-text); border: 1px solid var(--tm-chip-border); }
+            .tm-oh-badge--checking {
+                background: color-mix(in srgb, var(--tm-warning-color, #b78103) 12%, transparent);
+                color: var(--tm-warning-color, #b78103);
+                border-color: color-mix(in srgb, var(--tm-warning-color, #b78103) 35%, transparent);
+            }
             .tm-oh-badge--active {
-                background: color-mix(in srgb, var(--tm-success-color) 15%, transparent);
-                color: var(--tm-success-color);
-                border: 1px solid color-mix(in srgb, var(--tm-success-color) 28%, transparent);
+                background: color-mix(in srgb, var(--tm-success-color, #2e7d32) 12%, transparent);
+                color: var(--tm-success-color, #2e7d32);
+                border-color: color-mix(in srgb, var(--tm-success-color, #2e7d32) 35%, transparent);
             }
             .tm-oh-badge--removed {
-                background: color-mix(in srgb, var(--tm-danger-color) 12%, transparent);
-                color: var(--tm-danger-color);
-                border: 1px solid color-mix(in srgb, var(--tm-danger-color) 28%, transparent);
+                background: color-mix(in srgb, var(--tm-danger-color, #c62828) 12%, transparent);
+                color: var(--tm-danger-color, #c62828);
+                border-color: color-mix(in srgb, var(--tm-danger-color, #c62828) 35%, transparent);
             }
             .tm-oh-badge--unknown {
-                background: color-mix(in srgb, var(--tm-warning-color) 12%, transparent);
-                color: var(--tm-warning-color);
-                border: 1px solid color-mix(in srgb, var(--tm-warning-color) 28%, transparent);
+                background: color-mix(in srgb, var(--tm-muted-text, #888) 12%, transparent);
+                color: var(--tm-muted-text, #666);
+                border-color: color-mix(in srgb, var(--tm-muted-text, #888) 30%, transparent);
             }
-            .tm-oh-cell-muted { color: var(--tm-muted-text, var(--tm-secondary-color)); font-size: 12px; }
-            .tm-oh-cell-customer { font-weight: 600; max-width: 240px; white-space: normal; line-height: 1.35; }
-            .tm-order-filter-input {
-                width: 100%;
-                margin-top: 6px;
-                padding: 6px 8px;
-                font-size: 11px;
-                border-radius: 8px;
-                border: 1px solid var(--tm-input-border, var(--tm-shop-item-border));
-                background: var(--tm-input-bg, var(--tm-shop-item-bg));
-                color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color)));
+            .tm-oh-empty {
+                padding: 48px 20px;
+                text-align: center;
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+                font-size: 13px;
             }
-            .tm-order-filter-input:focus {
-                outline: none;
-                border-color: var(--tm-input-focus-border, var(--tm-primary-color));
-            }
-`;
+            .tm-oh-empty strong { color: var(--tm-shop-item-text, var(--tm-primary-color)); }
+            .tm-oh-muted { opacity: 0.7; }
+        `;
         document.head.appendChild(style);
     }
 
-    // Function to show order history modal
     function showOrderHistoryModal() {
-        // Check if modal already exists
-        if (document.querySelector('.tm-modal-overlay[data-order-history-modal]')) {
-            return;
-        }
+        if (document.querySelector('.tm-modal-overlay[data-order-history-modal]')) return;
 
         ensureOrderHistoryStyles();
-        
-        // Load history from current page only (local cache first)
-        const pageHistory = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
-        
-        // Sort by timestamp (newest first)
-        const sortedPageHistory = pageHistory.sort((a, b) => b.timestamp - a.timestamp);
-        
-        // Determine page name for display
-        const pageName = isServiceOrdersPage ? 'Παραγγελίες Υπηρεσιών' : 'Παραγγελίες Ανταλλακτικών';
-        const pageBadge = isServiceOrdersPage ? 'Υπηρεσίες' : 'Ανταλλακτικά';
+
+        const pageName = isServiceOrdersPage ? 'Υπηρεσίες' : 'Ανταλλακτικά';
+        const idColLabel = isServiceOrdersPage ? 'Επισκευή' : 'Παραγγελία';
         const storeLabel = ohGetStoreName() || '—';
-        const totalCount = sortedPageHistory.length;
-        
+
         const overlay = document.createElement('div');
         overlay.className = 'tm-modal-overlay tm-oh-overlay';
         overlay.setAttribute('data-order-history-modal', 'true');
         overlay.innerHTML = `
             <div class="tm-modal-content tm-oh-shell">
-                <div class="tm-oh-hero">
-                    <div class="tm-oh-hero-top">
-                        <div class="tm-oh-title-wrap">
-                            <h2 class="tm-oh-title">
-                                📦 Ιστορικό Παραγγελιών
-                                <span class="tm-oh-page-badge">${pageBadge}</span>
-                            </h2>
-                            <p class="tm-oh-subtitle">${pageName} · Κατάστημα: <strong id="tm-oh-store-label">${storeLabel.replace(/</g, '&lt;')}</strong> · <span id="tm-oh-sync-status">τοπικό cache</span></p>
-                        </div>
-                        <div class="tm-oh-hero-actions">
-                            <button type="button" class="tm-oh-close tm-modal-close" title="Κλείσιμο" aria-label="Κλείσιμο">&times;</button>
-                        </div>
+                <div class="tm-oh-header">
+                    <div class="tm-oh-header-left">
+                        <h2 class="tm-oh-title">Ιστορικό παραγγελιών <span class="tm-oh-page-badge">${pageName}</span></h2>
+                        <p class="tm-oh-meta">
+                            <span class="tm-oh-store-chip" id="tm-oh-store-label">${escapeHtml(storeLabel)}</span>
+                            <span id="tm-oh-sync-status">φόρτωση από server…</span>
+                            <span id="tm-oh-count-label" class="tm-oh-muted"></span>
+                        </p>
                     </div>
-                    <div class="tm-oh-stats-row">
-                        <div class="tm-oh-stat">
-                            <span class="tm-oh-stat-value" id="tm-order-history-stats">${totalCount}</span>
-                            <span class="tm-oh-stat-label">Σύνολο</span>
-                        </div>
-                        <div class="tm-oh-stat">
-                            <span class="tm-oh-stat-value" id="tm-order-history-visible-count">0</span>
-                            <span class="tm-oh-stat-label">Εμφανίζονται</span>
-                        </div>
-                        <div class="tm-oh-toolbar">
-                            <button type="button" id="tm-order-sync-btn" class="tm-oh-tool-btn" title="Κοινό ιστορικό καταστήματος (δουλεύει και με απενεργοποιημένο Chat)">
-                                <span>☁</span><span>Server</span>
-                            </button>
-                            <button type="button" id="tm-order-rescan-btn" class="tm-oh-tool-btn" title="Ανασάρωση τρέχουσας σελίδας">
-                                <span>🔄</span><span>Ανασάρωση</span>
-                            </button>
-                            <button type="button" id="tm-order-columns-toggle" class="tm-oh-tool-btn" title="Φίλτρα στηλών">
-                                <span>👁️</span><span>Στήλες</span>
-                            </button>
-                            <button type="button" id="tm-order-export-btn" class="tm-oh-tool-btn" title="Εξαγωγή CSV">
-                                <span>📥</span><span>Εξαγωγή</span>
-                            </button>
-                            <button type="button" id="tm-order-history-clear" class="tm-oh-tool-btn tm-oh-tool-btn--danger" title="Εκκαθάριση τοπικού cache (όχι του server)">
-                                <span>🗑️</span><span>Εκκαθάριση</span>
-                            </button>
-                        </div>
+                    <div class="tm-oh-header-actions">
+                        <button type="button" id="tm-order-sync-btn" class="tm-oh-tool-btn" title="Ανανέωση από server καταστήματος">Ανανέωση</button>
+                        <button type="button" id="tm-order-export-btn" class="tm-oh-tool-btn" title="Εξαγωγή CSV">CSV</button>
+                        <button type="button" class="tm-oh-close tm-modal-close" title="Κλείσιμο" aria-label="Κλείσιμο">&times;</button>
                     </div>
                 </div>
-                <div class="tm-oh-filters">
-                    <div class="tm-oh-filters-row">
-                        <div class="tm-oh-search-wrap">
-                            <input type="text" id="tm-order-history-search" class="tm-oh-input" placeholder="Αναζήτηση πελάτη, τηλεφώνου, κωδικού…">
-                        </div>
-                        <select id="tm-order-status-filter" class="tm-oh-select">
-                            <option value="">Όλες οι καταστάσεις</option>
-                            <option value="active">✅ Ενεργές</option>
-                            <option value="removed">❌ Αφαιρεμένες</option>
-                        </select>
-                        <input type="date" id="tm-order-date-from" class="tm-oh-input tm-oh-date-input" title="Από">
-                        <span class="tm-oh-cell-muted">→</span>
-                        <input type="date" id="tm-order-date-to" class="tm-oh-input tm-oh-date-input" title="Έως">
-                        <div class="tm-oh-preset-group">
-                            <button type="button" class="tm-order-date-preset tm-oh-preset" data-preset="today">Σήμερα</button>
-                            <button type="button" class="tm-order-date-preset tm-oh-preset" data-preset="last7">7 ημέρες</button>
-                            <button type="button" class="tm-order-date-preset tm-oh-preset" data-preset="last30">30 ημέρες</button>
-                            <button type="button" class="tm-order-date-preset tm-oh-preset" data-preset="thisMonth">Μήνας</button>
-                            <button type="button" id="tm-order-date-clear" class="tm-oh-preset" title="Καθαρισμός ημερομηνιών">✕</button>
-                        </div>
+                <div class="tm-oh-toolbar">
+                    <input type="search" id="tm-order-history-search" class="tm-oh-input tm-oh-search" placeholder="Αναζήτηση πελάτη, τηλ., επισκευής…" />
+                    <select id="tm-order-status-filter" class="tm-oh-select">
+                        <option value="all">Όλες</option>
+                        <option value="active">Ενεργές</option>
+                        <option value="removed">Διαγραμμένες</option>
+                    </select>
+                    <input type="date" id="tm-oh-date-from" class="tm-oh-input tm-oh-date" title="Από" />
+                    <input type="date" id="tm-oh-date-to" class="tm-oh-input tm-oh-date" title="Έως" />
+                    <div class="tm-oh-presets">
+                        <button type="button" class="tm-oh-preset" data-preset="today">Σήμερα</button>
+                        <button type="button" class="tm-oh-preset" data-preset="7d">7η</button>
+                        <button type="button" class="tm-oh-preset" data-preset="30d">30η</button>
+                        <button type="button" class="tm-oh-preset" data-preset="clear">Καθαρισμός</button>
                     </div>
                 </div>
-                <div class="tm-oh-body">
-                    <div id="tm-order-history-container"></div>
-                </div>
+                <div class="tm-oh-body" id="tm-order-history-container"></div>
             </div>
         `;
-        
         document.body.appendChild(overlay);
-        
-        // Event listeners
-        overlay.querySelector('.tm-modal-close').addEventListener('click', () => overlay.remove());
-        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-        
-        // Get container reference
+
         const container = overlay.querySelector('#tm-order-history-container');
-        
-        // Function to render orders (used by search and filter)
-        let currentSearchTerm = '';
-        let currentStatusFilter = '';
-        let currentDateFrom = '';
-        let currentDateTo = '';
-        let sortColumn = 'Date';
-        let sortDirection = 'desc';
-        let visibleColumns = new Set();
+        const searchInput = overlay.querySelector('#tm-order-history-search');
+        const statusFilter = overlay.querySelector('#tm-order-status-filter');
+        const dateFrom = overlay.querySelector('#tm-oh-date-from');
+        const dateTo = overlay.querySelector('#tm-oh-date-to');
+        const syncBtn = overlay.querySelector('#tm-order-sync-btn');
+        const exportBtn = overlay.querySelector('#tm-order-export-btn');
+
+        let sortKey = 'timestamp';
+        let sortDir = 'desc';
         let statusesChecked = false;
         const statusResultsMap = new Map();
-        const updateVisibleCounter = () => {
-            const visibleCountEl = overlay.querySelector('#tm-order-history-visible-count');
-            if (!visibleCountEl) return;
-            const rows = Array.from(container.querySelectorAll('.tm-order-history-row'));
-            const visible = rows.filter(r => r.style.display !== 'none').length;
-            visibleCountEl.textContent = visible;
-        };
-        
-        const renderOrders = () => {
-            // Use orders from current page only
-            let ordersToRender = [...sortedPageHistory];
-            
-            // Apply search
-            let filtered = ordersToRender;
-            if (currentSearchTerm) {
-                const searchLower = currentSearchTerm.toLowerCase();
-                filtered = filtered.filter(order => {
-                    // Search in all standard fields
-                    const searchableText = [
-                        order.phone, order.customer, order.description, order.id,
-                        order.repairNumber, order.status, order.technician, order.price,
-                        order.partName, order.quantity, order.supplier, order.cost
-                    ].filter(Boolean).join(' ').toLowerCase();
-                    
-                    // Also search in allColumns
-                    let allColumnsText = '';
-                    if (order.allColumns) {
-                        allColumnsText = Object.values(order.allColumns).filter(Boolean).join(' ').toLowerCase();
-                    }
-                    
-                    return searchableText.includes(searchLower) || allColumnsText.includes(searchLower);
-                });
-            }
-            
-            // Apply date range filter
-            if (currentDateFrom || currentDateTo) {
-                filtered = filtered.filter(order => {
-                    const orderDate = new Date(order.timestamp);
-                    if (currentDateFrom) {
-                        const fromDate = new Date(currentDateFrom);
-                        fromDate.setHours(0, 0, 0, 0);
-                        if (orderDate < fromDate) return false;
-                    }
-                    if (currentDateTo) {
-                        const toDate = new Date(currentDateTo);
-                        toDate.setHours(23, 59, 59, 999);
-                        if (orderDate > toDate) return false;
-                    }
-                    return true;
-                });
-            }
-            
-            // Update visible counter after all filtering
-            const visibleCountEl = overlay.querySelector('#tm-order-history-visible-count');
-            if (visibleCountEl) {
-                visibleCountEl.textContent = filtered.length;
-            }
-            
-            // Apply sorting
-            filtered.sort((a, b) => {
-                let aVal, bVal;
-                
-                if (sortColumn === 'Date' || sortColumn === 'Added') {
-                    aVal = a.timestamp;
-                    bVal = b.timestamp;
-                } else if (sortColumn === 'Type') {
-                    aVal = a.type || '';
-                    bVal = b.type || '';
-                } else if (sortColumn === 'Phone') {
-                    aVal = a.phone || '';
-                    bVal = b.phone || '';
-                } else if (sortColumn === 'Customer') {
-                    aVal = a.customer || '';
-                    bVal = b.customer || '';
-                } else if (a.allColumns && a.allColumns[sortColumn] && b.allColumns && b.allColumns[sortColumn]) {
-                    aVal = String(a.allColumns[sortColumn]);
-                    bVal = String(b.allColumns[sortColumn]);
-                } else {
-                    aVal = '';
-                    bVal = '';
-                }
-                
-                // Try to parse as number
-                const aNum = parseFloat(aVal);
-                const bNum = parseFloat(bVal);
-                if (!isNaN(aNum) && !isNaN(bNum)) {
-                    return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
-                }
-                
-                // String comparison
-                const comparison = String(aVal).localeCompare(String(bVal));
-                return sortDirection === 'asc' ? comparison : -comparison;
-            });
-            
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="tm-oh-empty">
-                        <div class="tm-oh-empty-icon">🔍</div>
-                        <div class="tm-oh-empty-title">Δεν βρέθηκαν παραγγελίες</div>
-                        <div>Δοκιμάστε άλλη αναζήτηση ή φίλτρο ημερομηνίας</div>
-                    </div>
-                `;
-                updateVisibleCounter();
-                return;
-            }
-            
-            // Collect all unique column names from all orders
-            const allColumnNames = new Set();
-            filtered.forEach(order => {
-                if (order.allColumns) {
-                    Object.keys(order.allColumns).forEach(col => allColumnNames.add(col));
-                }
-            });
-            
-            // Standard columns always shown
-            // 'Date'  → actual order date extracted from the table (falls back to capture date for old entries)
-            // 'Added' → relative capture time ("5 mins ago"), so it's distinct from the real order date
-            let standardColumns = ['Date', 'Added', 'Status'];
-
-            // Phone and Customer are relevant for service orders (srvorders_list), not parts orders
-            if (isServiceOrdersPage) {
-                standardColumns.push('Phone', 'Customer');
-            }
-
-            // Deduplicate: exclude allColumns keys that are already covered by a standard column.
-            // Matching is done by pattern so Greek-named columns (Τηλέφωνο, Πελάτης, Ημ/νία, …)
-            // don't end up shown twice alongside their English-named equivalents.
-            const _phonePattern    = /τηλ|phone|tel/i;
-            const _customerPattern = /πελάτ|customer|ονομ/i;
-            const _datePattern     = /^ημ|date/i;
-
-            const columnOrder = [
-                ...standardColumns,
-                ...Array.from(allColumnNames).filter(col => {
-                    if (standardColumns.includes(col)) return false;
-                    if (_datePattern.test(col)) return false;          // 'Date' covers this
-                    if (isServiceOrdersPage && _phonePattern.test(col)) return false;    // 'Phone' covers this
-                    if (isServiceOrdersPage && _customerPattern.test(col)) return false; // 'Customer' covers this
-                    return true;
-                })
-            ];
-            
-            // Build table HTML
-            let html = `
-                <div class="tm-oh-table-wrap">
-                    <table class="tm-order-history-table">
-                        <thead>
-                            <tr>
-                                ${columnOrder.map(col => {
-                                    const isSorted = col === sortColumn;
-                                    const sortClass = isSorted ? (sortDirection === 'asc' ? 'sort-asc' : 'sort-desc') : '';
-                                    return `
-                                        <th class="${sortClass}" data-column="${escapeHtml(col)}">
-                                            <div>${escapeHtml(col)}</div>
-                                            <input type="text" class="tm-order-filter-input" data-filter-col="${escapeHtml(col)}" placeholder="Φίλτρο…" style="display: none;">
-                                        </th>
-                                    `;
-                                }).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${filtered.map((order) => {
-                                const phoneDisplay = formatPhoneDisplay(order.phone) || order.phone || '';
-                                const isServiceOrderEntry = order.type === 'Service Order' || order.type === 'Product Order';
-                                const rowTypeClass = isServiceOrderEntry ? 'tm-order-history-row--service' : 'tm-order-history-row--parts';
-                                const dateTimeText = formatDateTime(order.timestamp);
-                                const orderDate = order.date || new Date(order.timestamp).toLocaleDateString('el-GR');
-                                const statusId = `order-status-${String(order.id || '').replace(/[^a-zA-Z0-9]/g, '-')}-${String(order.type || '').replace(/\s+/g, '-')}`;
-
-                                const getCellValue = (colName) => {
-                                    if (colName === 'Phone') {
-                                        if (!order.phone) return '<span class="tm-oh-cell-muted">—</span>';
-                                        return `<span class="tm-oh-phone">${escapeHtml(phoneDisplay)}</span><button type="button" class="tm-oh-icon-btn tm-copy-phone-btn" data-phone="${escapeHtml(order.phone)}" title="Αντιγραφή">📋</button>`;
-                                    }
-                                    if (colName === 'Customer') {
-                                        return `<span class="tm-oh-cell-customer">${escapeHtml(order.customer || '—')}</span>`;
-                                    }
-                                    if (colName === 'Date') return `<span>${escapeHtml(orderDate)}</span>`;
-                                    if (colName === 'Added') return `<span class="tm-oh-cell-muted">${escapeHtml(dateTimeText)}</span>`;
-                                    if (colName === 'Status') return `<span id="${statusId}" class="tm-oh-badge tm-oh-badge--checking">⏳ Έλεγχος…</span>`;
-                                    if (colName === 'Repair Number') return escapeHtml(order.repairNumber || '');
-                                    if (order.allColumns && order.allColumns[colName]) {
-                                        return escapeHtml(String(order.allColumns[colName]));
-                                    }
-                                    return '';
-                                };
-
-                                const getCellTitle = (colName) => {
-                                    if (colName === 'Phone') return phoneDisplay || order.phone || '';
-                                    if (colName === 'Customer') return order.customer || '';
-                                    if (colName === 'Date') return orderDate;
-                                    if (colName === 'Added') return dateTimeText;
-                                    if (colName === 'Status') return 'Έλεγχος…';
-                                    if (colName === 'Repair Number') return order.repairNumber || '';
-                                    if (order.allColumns && order.allColumns[colName]) {
-                                        return String(order.allColumns[colName]);
-                                    }
-                                    return '';
-                                };
-
-                                return `
-                                    <tr class="tm-order-history-row ${rowTypeClass}" data-order-id="${escapeHtml(order.id)}" data-order-type="${escapeHtml(order.type)}">
-                                        ${columnOrder.map((col) => {
-                                            const cellValue = getCellValue(col);
-                                            const cellTitle = getCellTitle(col);
-                                            let textAlign = 'left';
-                                            if (col === 'Date' || col === 'Added' || col.includes('Date') || col.includes('Ημ')) {
-                                                textAlign = 'center';
-                                            } else if (col.includes('Price') || col.includes('Cost') || col.includes('Amount') || col.includes('Quantity')) {
-                                                textAlign = 'right';
-                                            }
-                                            return `<td style="text-align:${textAlign};" title="${escapeHtml(cellTitle)}">${cellValue}</td>`;
-                                        }).join('')}
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            
-            container.innerHTML = html;
-            
-            // Attach sortable column headers
-            const headers = container.querySelectorAll('.tm-order-history-table thead th[data-column]');
-            headers.forEach(header => {
-                header.addEventListener('click', (e) => {
-                    if (e.target.tagName === 'INPUT') return; // Don't sort when clicking filter input
-                    const col = header.dataset.column;
-                    if (sortColumn === col) {
-                        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        sortColumn = col;
-                        sortDirection = 'asc';
-                    }
-                    renderOrders();
-                });
-            });
-            
-            // Attach column filter inputs
-            const filterInputs = container.querySelectorAll('.tm-order-filter-input');
-            filterInputs.forEach(input => {
-                input.addEventListener('input', (e) => {
-                    const filterCol = e.target.dataset.filterCol;
-                    const filterValue = e.target.value.toLowerCase();
-                    const rows = container.querySelectorAll('.tm-order-history-row');
-                    const headerArray = Array.from(headers);
-                    rows.forEach(row => {
-                        const cells = row.querySelectorAll('td');
-                        const colIndex = headerArray.findIndex(h => h.dataset.column === filterCol);
-                        if (colIndex >= 0 && colIndex < cells.length) {
-                            const cellText = cells[colIndex].textContent.toLowerCase();
-                            row.style.display = cellText.includes(filterValue) ? '' : 'none';
-                        }
-                    });
-                    updateVisibleCounter();
-                });
-            });
-            
-            // Status checking: only on first modal open; reuse cached results on subsequent renders
-            if (filtered.length > 0) {
-                const applyStatusToRow = (order, status) => {
-                    const statusId = `order-status-${String(order.id || '').replace(/[^a-zA-Z0-9]/g, '-')}-${String(order.type || '').replace(/\s+/g, '-')}`;
-                    const statusEl = container.querySelector(`#${statusId}`);
-                    if (!statusEl) return;
-                    
-                    if (status.checking) {
-                        statusEl.className = 'tm-oh-badge tm-oh-badge--checking';
-                        statusEl.innerHTML = '⏳ Έλεγχος…';
-                    } else if (status.error) {
-                        statusEl.className = 'tm-oh-badge tm-oh-badge--unknown';
-                        statusEl.innerHTML = '❓ Άγνωστο';
-                        statusEl.title = 'Δεν ήταν δυνατός ο έλεγχος κατάστασης';
-                    } else if (status.exists) {
-                        statusEl.className = 'tm-oh-badge tm-oh-badge--active';
-                        statusEl.innerHTML = '✅ Ενεργή';
-                        statusEl.title = 'Η παραγγελία υπάρχει ακόμα στο σύστημα';
-                    } else {
-                        statusEl.className = 'tm-oh-badge tm-oh-badge--removed';
-                        statusEl.innerHTML = '❌ Αφαιρέθηκε';
-                        statusEl.title = 'Η παραγγελία αφαιρέθηκε από το σύστημα';
-                    }
-                };
-                
-                if (!statusesChecked) {
-                    checkOrdersStatus(filtered).then(statuses => {
-                        statuses.forEach((status, idx) => {
-                            const order = filtered[idx];
-                            const key = `${order.id}_${order.type}`;
-                            statusResultsMap.set(key, status);
-                            applyStatusToRow(order, status);
-                        });
-                        statusesChecked = true;
-                        
-                        // Apply status filter if active
-                        if (currentStatusFilter) {
-                            const rows = container.querySelectorAll('.tm-order-history-row');
-                            rows.forEach(row => {
-                                const statusEl = row.querySelector('[id^="order-status-"]');
-                                if (statusEl) {
-                                    const statusText = statusEl.textContent || '';
-                                    const shouldShow = 
-                                        (currentStatusFilter === 'active' && (statusText.includes('✅') || statusText.includes('Ενεργ'))) ||
-                                        (currentStatusFilter === 'removed' && (statusText.includes('❌') || statusText.includes('Αφαιρ')));
-                                    row.style.display = shouldShow ? '' : 'none';
-                                } else if (currentStatusFilter !== '') {
-                                    row.style.display = 'none';
-                                }
-                            });
-                            updateVisibleCounter();
-                        }
-                    }).catch(err => {
-                        console.error('[MMS Order History] Error checking order statuses:', err);
-                    });
-                } else if (statusResultsMap.size > 0) {
-                    // Re-apply cached statuses to newly rendered rows without re-checking
-                    filtered.forEach(order => {
-                        const key = `${order.id}_${order.type}`;
-                        const status = statusResultsMap.get(key);
-                        if (status) {
-                            applyStatusToRow(order, status);
-                        }
-                    });
-                    if (currentStatusFilter) {
-                        const rows = container.querySelectorAll('.tm-order-history-row');
-                        rows.forEach(row => {
-                            const statusEl = row.querySelector('[id^="order-status-"]');
-                            if (statusEl) {
-                                const statusText = statusEl.textContent || '';
-                                const shouldShow = 
-                                    (currentStatusFilter === 'active' && (statusText.includes('✅') || statusText.includes('Ενεργ') || statusText.includes('Active'))) ||
-                                    (currentStatusFilter === 'removed' && (statusText.includes('❌') || statusText.includes('Αφαιρ') || statusText.includes('Removed')));
-                                row.style.display = shouldShow ? '' : 'none';
-                            } else if (currentStatusFilter !== '') {
-                                row.style.display = 'none';
-                            }
-                        });
-                    }
-                    updateVisibleCounter();
-                }
-            }
-
-            // Make rows open the source page in a new tab
-            const rows = container.querySelectorAll('.tm-order-history-row');
-            rows.forEach(row => {
-                row.style.cursor = 'pointer';
-                row.addEventListener('click', (e) => {
-                    // Don't trigger if clicking on interactive elements
-                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-                        return;
-                    }
-                    
-                    const orderId = row.dataset.orderId;
-                    const orderType = row.dataset.orderType;
-                    const order = filtered.find(o => String(o.id) === String(orderId) && o.type === orderType);
-                    
-                    console.log('[Order History] Click debug:', {
-                        orderId,
-                        orderType,
-                        foundOrder: !!order,
-                        orderUrl: order?.url
-                    });
-                    
-                    if (order && order.url) {
-                        console.log('[Order History] Opening URL:', order.url);
-                        window.open(order.url, '_blank');
-                    } else if (order) {
-                        console.warn('[Order History] Order found but no URL stored');
-                        if (window.showNegativeMessage) {
-                            window.showNegativeMessage('No URL stored for this order');
-                        }
-                    } else {
-                        console.warn('[Order History] Order not found in filtered list');
-                    }
-                });
-            });
-
-            // Final visible counter after all row-level changes
-            updateVisibleCounter();
-        };
+        let activePreset = '';
 
         const setSyncStatus = (text) => {
             const el = overlay.querySelector('#tm-oh-sync-status');
             if (el) el.textContent = text;
         };
 
+        const setCountLabel = (visible, total) => {
+            const el = overlay.querySelector('#tm-oh-count-label');
+            if (!el) return;
+            const cap = ohViewCapped ? ' · νεότερα 200' : '';
+            el.textContent = total ? `${visible} / ${total}${cap}` : '';
+        };
+
+        const closeModal = () => overlay.remove();
+        overlay.querySelector('.tm-oh-close')?.addEventListener('click', closeModal);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeModal();
+        });
+
+        const orderDayStart = (order) => {
+            const ts = Number(order.timestamp) || 0;
+            if (ts) {
+                const d = new Date(ts);
+                d.setHours(0, 0, 0, 0);
+                return d.getTime();
+            }
+            const raw = String(order.date || '');
+            const m = raw.match(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/);
+            if (m) {
+                const y = m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]);
+                return new Date(y, Number(m[2]) - 1, Number(m[1])).getTime();
+            }
+            return 0;
+        };
+
+        const getFilteredOrders = () => {
+            const q = String(searchInput.value || '').trim().toLowerCase();
+            const statusMode = statusFilter.value || 'all';
+            const fromVal = dateFrom.value ? new Date(dateFrom.value) : null;
+            const toVal = dateTo.value ? new Date(dateTo.value) : null;
+            if (fromVal) fromVal.setHours(0, 0, 0, 0);
+            if (toVal) toVal.setHours(23, 59, 59, 999);
+
+            let list = ohViewOrders.slice();
+            if (q) {
+                list = list.filter((o) => {
+                    const blob = [
+                        o.customer, o.phone, o.repairNumber, o.id, o.date, o.status, ohExtractOrderId(o),
+                    ].join(' ').toLowerCase();
+                    return blob.includes(q);
+                });
+            }
+            if (fromVal || toVal) {
+                list = list.filter((o) => {
+                    const day = orderDayStart(o);
+                    if (!day) return false;
+                    if (fromVal && day < fromVal.getTime()) return false;
+                    if (toVal && day > toVal.getTime()) return false;
+                    return true;
+                });
+            }
+            if (statusMode !== 'all' && statusesChecked) {
+                list = list.filter((o) => {
+                    const st = statusResultsMap.get(String(o.id || ohExtractOrderId(o)));
+                    if (!st || st.checking || st.error) return statusMode === 'all';
+                    if (statusMode === 'active') return !!st.exists;
+                    if (statusMode === 'removed') return !st.exists;
+                    return true;
+                });
+            }
+
+            const dir = sortDir === 'asc' ? 1 : -1;
+            list.sort((a, b) => {
+                let av;
+                let bv;
+                if (sortKey === 'customer') {
+                    av = String(a.customer || '');
+                    bv = String(b.customer || '');
+                    return av.localeCompare(bv, 'el') * dir;
+                }
+                if (sortKey === 'phone') {
+                    av = String(a.phone || '').replace(/\D/g, '');
+                    bv = String(b.phone || '').replace(/\D/g, '');
+                    return av.localeCompare(bv) * dir;
+                }
+                if (sortKey === 'repair') {
+                    av = String(a.repairNumber || ohExtractOrderId(a) || '');
+                    bv = String(b.repairNumber || ohExtractOrderId(b) || '');
+                    return av.localeCompare(bv, 'el', { numeric: true }) * dir;
+                }
+                if (sortKey === 'date') {
+                    av = orderDayStart(a);
+                    bv = orderDayStart(b);
+                    return (av - bv) * dir;
+                }
+                av = Number(a.timestamp) || 0;
+                bv = Number(b.timestamp) || 0;
+                return (av - bv) * dir;
+            });
+            return list;
+        };
+
+        const statusBadgeHtml = (order) => {
+            const key = String(order.id || ohExtractOrderId(order));
+            if (!orderHistoryStatusCheckEnabled) {
+                return `<span class="tm-oh-badge tm-oh-badge--unknown">${escapeHtml(order.status || '—')}</span>`;
+            }
+            const st = statusResultsMap.get(key);
+            if (!st || st.checking) {
+                return '<span class="tm-oh-badge tm-oh-badge--checking">…</span>';
+            }
+            if (st.error) {
+                return '<span class="tm-oh-badge tm-oh-badge--unknown">?</span>';
+            }
+            if (st.exists) {
+                return '<span class="tm-oh-badge tm-oh-badge--active">Ενεργή</span>';
+            }
+            return '<span class="tm-oh-badge tm-oh-badge--removed">Διαγραμμένη</span>';
+        };
+
+        const renderOrders = () => {
+            const filtered = getFilteredOrders();
+            setCountLabel(filtered.length, ohViewOrders.length);
+
+            if (!ohViewOrders.length) {
+                container.innerHTML = `<div class="tm-oh-empty">Δεν υπάρχουν εγγραφές στο server για αυτό το κατάστημα.<br><span class="tm-oh-muted">Η αποδοχή παραγγελιών ανεβαίνει αυτόματα.</span></div>`;
+                return;
+            }
+            if (!filtered.length) {
+                container.innerHTML = `<div class="tm-oh-empty">Καμία εγγραφή με τα τρέχοντα φίλτρα.</div>`;
+                return;
+            }
+
+            const th = (key, label) => {
+                const cls = sortKey === key ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : '';
+                return `<th data-sort="${key}" class="${cls}">${label}</th>`;
+            };
+
+            const rows = filtered.map((order) => {
+                const phone = String(order.phone || '');
+                const phoneDisp = formatPhoneDisplay(phone) || '—';
+                const repair = isServiceOrdersPage
+                    ? (order.repairNumber || ohExtractOrderId(order) || '—')
+                    : (ohExtractOrderId(order) || order.repairNumber || '—');
+                const dateDisp = order.date || (order.timestamp
+                    ? new Date(order.timestamp).toLocaleDateString('el-GR')
+                    : '—');
+                const added = order.timestamp ? formatDateTime(order.timestamp) : '—';
+                return `
+                    <tr data-url="${escapeHtml(order.url || '')}">
+                        <td>${escapeHtml(dateDisp)}</td>
+                        <td class="tm-oh-muted">${escapeHtml(added)}</td>
+                        <td>${escapeHtml(order.customer || '—')}</td>
+                        <td>
+                            <span class="tm-oh-phone-cell">
+                                <span>${escapeHtml(phoneDisp)}</span>
+                                ${phone ? `<button type="button" class="tm-copy-phone-btn" data-phone="${escapeHtml(phone)}" title="Αντιγραφή">⧉</button>` : ''}
+                            </span>
+                        </td>
+                        <td>${escapeHtml(String(repair))}</td>
+                        <td>${statusBadgeHtml(order)}</td>
+                    </tr>`;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="tm-oh-table-wrap">
+                    <table class="tm-oh-table">
+                        <thead>
+                            <tr>
+                                ${th('date', 'Ημερομηνία')}
+                                ${th('timestamp', 'Προστέθηκε')}
+                                ${th('customer', 'Πελάτης')}
+                                ${th('phone', 'Τηλέφωνο')}
+                                ${th('repair', idColLabel)}
+                                <th>Κατάσταση</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>`;
+        };
+
+        const runStatusChecks = async () => {
+            if (!orderHistoryStatusCheckEnabled || !ohViewOrders.length) {
+                statusesChecked = true;
+                renderOrders();
+                return;
+            }
+            ohViewOrders.forEach((o) => {
+                const key = String(o.id || ohExtractOrderId(o));
+                statusResultsMap.set(key, { checking: true });
+            });
+            renderOrders();
+            try {
+                const results = await checkOrdersStatus(ohViewOrders);
+                results.forEach((st, i) => {
+                    const o = ohViewOrders[i];
+                    if (!o) return;
+                    statusResultsMap.set(String(o.id || ohExtractOrderId(o)), st);
+                });
+            } catch (_) { /* ignore */ }
+            statusesChecked = true;
+            renderOrders();
+        };
+
         const refreshFromServer = async ({ silent } = {}) => {
-            const kind = ohPageKind();
             setSyncStatus('συγχρονισμός…');
+            if (syncBtn) syncBtn.disabled = true;
+            const kind = ohPageKind();
             const remote = await fetchStoreOrderHistoryFromServer(kind);
+            if (syncBtn) syncBtn.disabled = false;
             if (!remote.ok) {
+                const cache = ohLoadViewCache(ohStoreKey(), kind);
+                if (cache?.orders?.length) {
+                    ohViewOrders = cache.orders.slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                    ohViewCapped = !!cache.capped;
+                    const storeEl = overlay.querySelector('#tm-oh-store-label');
+                    if (storeEl) storeEl.textContent = cache.store || ohGetStoreName() || '—';
+                    const age = ohFormatCacheAge(cache.savedAt);
+                    setSyncStatus(remote.unsupported
+                        ? `cache · server off${age ? ` · ${age}` : ''}`
+                        : `cache · offline${age ? ` · ${age}` : ''}`);
+                    statusesChecked = false;
+                    statusResultsMap.clear();
+                    renderOrders();
+                    runStatusChecks();
+                    if (!silent && window.showNegativeMessage) {
+                        window.showNegativeMessage('Server μη διαθέσιμος — εμφανίζεται τοπικό cache');
+                    }
+                    return false;
+                }
                 setSyncStatus(remote.unsupported
                     ? 'server μη διαθέσιμος'
-                    : (remote.reason === 'no-store' ? 'δεν βρέθηκε κατάστημα' : 'τοπικό cache'));
+                    : (remote.reason === 'no-store' ? 'δεν βρέθηκε κατάστημα' : 'αποτυχία φόρτωσης'));
                 if (!silent && window.showNegativeMessage) {
                     window.showNegativeMessage(remote.unsupported
                         ? 'Λείπει collection order_history στο PocketBase'
                         : (remote.reason === 'no-store'
-                            ? 'Δεν βρέθηκε κατάστημα (σελίδα/login) — δεν φορτώνει κοινό ιστορικό'
+                            ? 'Δεν βρέθηκε κατάστημα — δεν φορτώνει κοινό ιστορικό'
                             : 'Αποτυχία φόρτωσης από server'));
+                }
+                if (!ohViewOrders.length) {
+                    ohViewOrders = [];
+                    ohViewCapped = false;
+                    renderOrders();
                 }
                 return false;
             }
-            mergeServerOrdersIntoLocal(kind, remote.orders);
-            // Push local rows (force when server empty so first sync always uploads)
-            try {
-                const localNow = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
-                const force = !remote.orders?.length;
-                const queued = queueOrdersForServerSync(Array.isArray(localNow) ? localNow : [], { force });
-                if (force && queued) scheduleOhSyncFlush(300);
-            } catch (_) { /* ignore */ }
-            const newPageHistory = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
-            sortedPageHistory.length = 0;
-            sortedPageHistory.push(...newPageHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
-            const statsEl = overlay.querySelector('#tm-order-history-stats');
-            if (statsEl) statsEl.textContent = String(sortedPageHistory.length);
+            ohViewOrders = (remote.orders || []).slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            ohViewCapped = !!remote.capped;
             const storeEl = overlay.querySelector('#tm-oh-store-label');
             if (storeEl) storeEl.textContent = remote.store || ohGetStoreName() || '—';
+            setSyncStatus(`server · ${remote.storeKey || 'store'}`);
             statusesChecked = false;
             statusResultsMap.clear();
             renderOrders();
-            setSyncStatus(`κοινό · ${remote.storeKey || 'store'} · ${remote.orders.length} από server`);
+            runStatusChecks();
             if (!silent && window.showPositiveMessage) {
-                window.showPositiveMessage(`Ιστορικό καταστήματος: ${remote.orders.length} εγγραφές`);
+                window.showPositiveMessage(`Φορτώθηκαν ${ohViewOrders.length} εγγραφές από server`);
             }
             return true;
         };
-        
-        // Initial render (local), then pull shared store history
-        renderOrders();
-        refreshFromServer({ silent: true }).catch(() => {});
 
-        const syncBtn = overlay.querySelector('#tm-order-sync-btn');
-        if (syncBtn) {
-            syncBtn.addEventListener('click', async () => {
-                syncBtn.disabled = true;
-                syncBtn.innerHTML = '<span>⏳</span><span>Server…</span>';
-                try {
-                    await refreshFromServer({ silent: false });
-                } finally {
-                    syncBtn.disabled = false;
-                    syncBtn.innerHTML = '<span>☁</span><span>Server</span>';
-                }
-            });
-        }
-        
-        // Search functionality
-        const searchInput = overlay.querySelector('#tm-order-history-search');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                currentSearchTerm = e.target.value.toLowerCase();
+        const paintFromCacheThenRefresh = () => {
+            const kind = ohPageKind();
+            const cache = ohLoadViewCache(ohStoreKey(), kind);
+            if (cache?.orders?.length) {
+                ohViewOrders = cache.orders.slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                ohViewCapped = !!cache.capped;
+                const storeEl = overlay.querySelector('#tm-oh-store-label');
+                if (storeEl) storeEl.textContent = cache.store || ohGetStoreName() || '—';
+                const age = ohFormatCacheAge(cache.savedAt);
+                setSyncStatus(`cache${age ? ` · ${age}` : ''} · ενημέρωση…`);
                 renderOrders();
-            });
-        }
-        
-        // Status filter
-        const statusFilter = overlay.querySelector('#tm-order-status-filter');
-        if (statusFilter) {
-            statusFilter.addEventListener('change', (e) => {
-                currentStatusFilter = e.target.value;
-                // Apply filter to existing rows without re-rendering (to preserve status checks)
-                const rows = container.querySelectorAll('.tm-order-history-row');
-                rows.forEach(row => {
-                    const statusEl = row.querySelector('[id^="order-status-"]');
-                    if (statusEl) {
-                        const statusText = statusEl.textContent || '';
-                        const shouldShow = 
-                            currentStatusFilter === '' ||
-                            (currentStatusFilter === 'active' && (statusText.includes('✅') || statusText.includes('Ενεργ'))) ||
-                            (currentStatusFilter === 'removed' && (statusText.includes('❌') || statusText.includes('Αφαιρ')));
-                        row.style.display = shouldShow ? '' : 'none';
-                    } else if (currentStatusFilter !== '') {
-                        // Hide if status not checked yet and filter is active
-                        row.style.display = 'none';
-                    } else {
-                        row.style.display = '';
-                    }
-                });
-                updateVisibleCounter();
-            });
-        }
-        
-        // Date range filters
-        const dateFrom = overlay.querySelector('#tm-order-date-from');
-        const dateTo = overlay.querySelector('#tm-order-date-to');
-        if (dateFrom) {
-            dateFrom.addEventListener('change', (e) => {
-                currentDateFrom = e.target.value;
-                renderOrders();
-            });
-        }
-        if (dateTo) {
-            dateTo.addEventListener('change', (e) => {
-                currentDateTo = e.target.value;
-                renderOrders();
-            });
-        }
-        
-        // Helper to format date for input[type=date]
-        const formatDateForInput = (date) => {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
+            } else {
+                container.innerHTML = `<div class="tm-oh-empty">Φόρτωση από server…</div>`;
+            }
+            refreshFromServer({ silent: true }).catch(() => {});
         };
-        
-        // Date preset buttons
-        const datePresetButtons = overlay.querySelectorAll('.tm-order-date-preset');
-        datePresetButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const preset = btn.dataset.preset;
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                
-                let fromDate, toDate;
-                
-                switch (preset) {
-                    case 'today':
-                        fromDate = new Date(today);
-                        toDate = new Date(today);
-                        break;
-                    case 'yesterday':
-                        fromDate = new Date(today);
-                        fromDate.setDate(today.getDate() - 1);
-                        toDate = new Date(fromDate);
-                        break;
-                    case 'last7':
-                        fromDate = new Date(today);
-                        fromDate.setDate(today.getDate() - 6);
-                        toDate = new Date(today);
-                        break;
-                    case 'last30':
-                        fromDate = new Date(today);
-                        fromDate.setDate(today.getDate() - 29);
-                        toDate = new Date(today);
-                        break;
-                    case 'thisMonth':
-                        fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                        toDate = new Date(today);
-                        break;
-                }
-                
-                if (fromDate && toDate) {
-                    dateFrom.value = formatDateForInput(fromDate);
-                    dateTo.value = formatDateForInput(toDate);
-                    currentDateFrom = dateFrom.value;
-                    currentDateTo = dateTo.value;
-                    
-                    datePresetButtons.forEach(b => b.classList.remove('is-active'));
-                    btn.classList.add('is-active');
-                    
-                    renderOrders();
-                }
+
+        const applyPreset = (preset) => {
+            activePreset = preset;
+            overlay.querySelectorAll('.tm-oh-preset').forEach((btn) => {
+                btn.classList.toggle('is-active', btn.getAttribute('data-preset') === preset && preset !== 'clear');
             });
-        });
-        
-        // Clear date filter button
-        const dateClearBtn = overlay.querySelector('#tm-order-date-clear');
-        if (dateClearBtn) {
-            dateClearBtn.addEventListener('click', () => {
+            const now = new Date();
+            const toIso = (d) => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            };
+            if (preset === 'clear') {
                 dateFrom.value = '';
                 dateTo.value = '';
-                currentDateFrom = '';
-                currentDateTo = '';
-                
-                datePresetButtons.forEach(b => b.classList.remove('is-active'));
-                
-                renderOrders();
-            });
-        }
+                activePreset = '';
+            } else if (preset === 'today') {
+                dateFrom.value = toIso(now);
+                dateTo.value = toIso(now);
+            } else if (preset === '7d') {
+                const from = new Date(now);
+                from.setDate(from.getDate() - 6);
+                dateFrom.value = toIso(from);
+                dateTo.value = toIso(now);
+            } else if (preset === '30d') {
+                const from = new Date(now);
+                from.setDate(from.getDate() - 29);
+                dateFrom.value = toIso(from);
+                dateTo.value = toIso(now);
+            }
+            renderOrders();
+        };
 
-        // Rescan current page for orders
-        const rescanBtn = overlay.querySelector('#tm-order-rescan-btn');
-        if (rescanBtn) {
-            rescanBtn.addEventListener('click', () => {
-                try {
-                    rescanBtn.disabled = true;
-                    rescanBtn.innerHTML = '<span>⏳</span><span>Ανασάρωση…</span>';
-                    
-                    const beforeCount = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]')).length;
-                    
-                    const newOrders = extractOrderData();
-                    if (newOrders && newOrders.length > 0) {
-                        console.log(`[MMS Order History] Found ${newOrders.length} orders on page`);
-                        saveOrdersToHistory(newOrders);
-                        
-                        // Reload history from storage
-                        const newPageHistory = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
-                        sortedPageHistory.length = 0;
-                        sortedPageHistory.push(...newPageHistory.sort((a, b) => b.timestamp - a.timestamp));
-                        
-                        const totalAdded = newPageHistory.length - beforeCount;
-                        const duplicates = newOrders.length - totalAdded;
-                        
-                        // Update stats
-                        const statsEl = overlay.querySelector('#tm-order-history-stats');
-                        if (statsEl) {
-                            statsEl.textContent = String(newPageHistory.length);
-                        }
-                        
-                        // Reset status cache so checks can re-run if needed
-                        statusesChecked = false;
-                        statusResultsMap.clear();
-                        
-                        // Clear GM_setValue status cache for all orders on this page
-                        newPageHistory.forEach(order => {
-                            const cacheKey = `order_status_${order.id}_${order.type}`;
-                            GM_deleteValue(cacheKey);
-                        });
-                        
-                        renderOrders();
-                        
-                        if (window.showPositiveMessage) {
-                            window.showPositiveMessage(`Rescan: Found ${newOrders.length} orders | Added: ${totalAdded} | Duplicates: ${duplicates}`);
-                        }
-                    } else {
-                        if (window.showNegativeMessage) {
-                            window.showNegativeMessage('No orders found on current page');
-                        }
-                    }
-                } catch (error) {
-                    console.error('[MMS Order History] Rescan error:', error);
-                    if (window.showNegativeMessage) {
-                        window.showNegativeMessage('Rescan failed: ' + error.message);
-                    }
-                } finally {
-                    rescanBtn.disabled = false;
-                    rescanBtn.innerHTML = '<span>🔄</span><span>Ανασάρωση</span>';
-                }
-            });
-        }
-        
-        // Export functionality
-        const exportBtn = overlay.querySelector('#tm-order-export-btn');
-        if (exportBtn) {
-            exportBtn.addEventListener('click', () => {
-                // Get current page's orders
-                let ordersToExport = [...sortedPageHistory];
-                
-                // Apply same filters as display
-                let filtered = ordersToExport;
-                if (currentSearchTerm) {
-                    const searchLower = currentSearchTerm.toLowerCase();
-                    filtered = ordersToExport.filter(order => {
-                        const searchableText = [
-                            order.phone, order.customer, order.description, order.id,
-                            order.repairNumber, order.status, order.technician, order.price,
-                            order.partName, order.quantity, order.supplier, order.cost
-                        ].filter(Boolean).join(' ').toLowerCase();
-                        let allColumnsText = '';
-                        if (order.allColumns) {
-                            allColumnsText = Object.values(order.allColumns).filter(Boolean).join(' ').toLowerCase();
-                        }
-                        return searchableText.includes(searchLower) || allColumnsText.includes(searchLower);
-                    });
-                } else {
-                    filtered = ordersToExport;
-                }
-                
-                // Apply date filters
-                if (currentDateFrom || currentDateTo) {
-                    filtered = filtered.filter(order => {
-                        const orderDate = new Date(order.timestamp);
-                        if (currentDateFrom) {
-                            const fromDate = new Date(currentDateFrom);
-                            fromDate.setHours(0, 0, 0, 0);
-                            if (orderDate < fromDate) return false;
-                        }
-                        if (currentDateTo) {
-                            const toDate = new Date(currentDateTo);
-                            toDate.setHours(23, 59, 59, 999);
-                            if (orderDate > toDate) return false;
-                        }
-                        return true;
-                    });
-                }
-                
-                // Collect all columns
-                const allColumnNames = new Set();
-                filtered.forEach(order => {
-                    if (order.allColumns) {
-                        Object.keys(order.allColumns).forEach(col => allColumnNames.add(col));
-                    }
-                });
-                let standardColumns = ['Type', 'Date', 'Added', 'Status'];
-                if (isServiceOrdersPage) {
-                    standardColumns.push('Phone', 'Customer', 'Repair Number');
-                }
-                const _csvPhonePattern    = /τηλ|phone|tel/i;
-                const _csvCustomerPattern = /πελάτ|customer|ονομ/i;
-                const _csvDatePattern     = /^ημ|date/i;
-                const columnOrder = [
-                    ...standardColumns,
-                    ...Array.from(allColumnNames).filter(col => {
-                        if (standardColumns.includes(col)) return false;
-                        if (_csvDatePattern.test(col)) return false;
-                        if (isServiceOrdersPage && _csvPhonePattern.test(col)) return false;
-                        if (isServiceOrdersPage && _csvCustomerPattern.test(col)) return false;
-                        return true;
-                    })
-                ];
-                
-                // Create CSV
-                const headers = columnOrder.join(',');
-                const rows = filtered.map(order => {
-                    return columnOrder.map(col => {
-                        let val = '';
-                        if (col === 'Phone') val = order.phone || '';
-                        else if (col === 'Customer') val = order.customer || '';
-                        else if (col === 'Date') val = order.date || new Date(order.timestamp).toLocaleDateString('el-GR');
-                        else if (col === 'Added') val = formatDateTime(order.timestamp);
-                        else if (col === 'Status') val = 'Unknown';
-                        else if (col === 'Repair Number') val = order.repairNumber || '';
-                        else if (order.allColumns && order.allColumns[col]) val = String(order.allColumns[col]);
-                        return `"${String(val).replace(/"/g, '""')}"`;
-                    }).join(',');
-                });
-                
-                const csv = [headers, ...rows].join('\n');
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                const pageType = isServiceOrdersPage ? 'service_repairs' : 'parts_orders';
-                link.download = `order_history_${pageType}_${new Date().toISOString().split('T')[0]}.csv`;
-                link.click();
-            });
-        }
-        
-        // Column visibility toggle
-        const columnsToggle = overlay.querySelector('#tm-order-columns-toggle');
-        if (columnsToggle) {
-            columnsToggle.addEventListener('click', () => {
-                const filterInputs = container.querySelectorAll('.tm-order-filter-input');
-                const isVisible = filterInputs[0] && filterInputs[0].style.display !== 'none';
-                filterInputs.forEach(input => {
-                    input.style.display = isVisible ? 'none' : 'block';
-                });
-            });
-        }
-        
-        // Clear history button (local cache only — does not wipe store server history)
-        const clearBtn = overlay.querySelector('#tm-order-history-clear');
-        clearBtn.addEventListener('click', (e) => {
-            const clearMessage = `Εκκαθάριση τοπικού cache (${pageName})?\n\nΤο κοινό ιστορικό καταστήματος στον server ΔΕΝ διαγράφεται.`;
-            
-            if (confirm(clearMessage)) {
-                // Clear current page's history
-                GM_setValue(CURRENT_PAGE_HISTORY_KEY, '[]');
-                
-                // Update stats display
-                const statsEl = overlay.querySelector('#tm-order-history-stats');
-                if (statsEl) {
-                    statsEl.textContent = '0';
-                }
-                
-                // Clear local array
-                sortedPageHistory.length = 0;
-                
-                // Re-render
-                renderOrders();
-                setSyncStatus('τοπικό cache άδειο');
-                
-                if (window.showPositiveMessage) {
-                    window.showPositiveMessage(`Τοπικό cache εκκαθαρίστηκε (${pageName})`);
-                }
-            }
+        searchInput.addEventListener('input', () => renderOrders());
+        statusFilter.addEventListener('change', () => renderOrders());
+        dateFrom.addEventListener('change', () => { activePreset = ''; renderOrders(); });
+        dateTo.addEventListener('change', () => { activePreset = ''; renderOrders(); });
+        overlay.querySelectorAll('.tm-oh-preset').forEach((btn) => {
+            btn.addEventListener('click', () => applyPreset(btn.getAttribute('data-preset')));
         });
-        
-        // Copy phone number functionality (delegated event listener)
+
         container.addEventListener('click', (e) => {
-            if (e.target.classList.contains('tm-copy-phone-btn') || e.target.closest('.tm-copy-phone-btn')) {
-                const btn = e.target.classList.contains('tm-copy-phone-btn') ? e.target : e.target.closest('.tm-copy-phone-btn');
-                const phone = btn.getAttribute('data-phone');
-                if (phone) {
-                    navigator.clipboard.writeText(phone).then(() => {
-                        const originalText = btn.textContent;
-                        btn.textContent = '✓ Copied!';
-                        btn.style.background = 'rgba(76, 175, 80, 0.4)';
-                        btn.style.borderColor = 'rgba(76, 175, 80, 0.6)';
-                        setTimeout(() => {
-                            btn.textContent = originalText;
-                            btn.style.background = 'var(--tm-shop-item-bg)';
-                            btn.style.borderColor = 'var(--tm-shop-item-border)';
-                        }, 1500);
-                    }).catch(err => {
-                        console.error('Failed to copy phone:', err);
-                    });
-                }
+            const copyBtn = e.target.closest?.('.tm-copy-phone-btn');
+            if (copyBtn) {
+                e.stopPropagation();
+                const phone = copyBtn.getAttribute('data-phone') || '';
+                if (!phone) return;
+                navigator.clipboard.writeText(phone).then(() => {
+                    const prev = copyBtn.textContent;
+                    copyBtn.textContent = '✓';
+                    setTimeout(() => { copyBtn.textContent = prev; }, 1200);
+                }).catch(() => {});
+                return;
+            }
+            const th = e.target.closest?.('th[data-sort]');
+            if (th) {
+                const key = th.getAttribute('data-sort');
+                if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+                else { sortKey = key; sortDir = key === 'timestamp' || key === 'date' ? 'desc' : 'asc'; }
+                renderOrders();
+                return;
+            }
+            const tr = e.target.closest?.('tbody tr[data-url]');
+            if (tr) {
+                const url = tr.getAttribute('data-url');
+                if (url) window.open(url, '_blank');
             }
         });
+
+        syncBtn?.addEventListener('click', () => {
+            refreshFromServer({ silent: false }).catch(() => {});
+        });
+
+        exportBtn?.addEventListener('click', () => {
+            const rows = getFilteredOrders();
+            const headers = ['date', 'added', 'customer', 'phone', 'id', 'status', 'url'];
+            const lines = [headers.join(',')];
+            rows.forEach((o) => {
+                const cols = [
+                    o.date || '',
+                    o.timestamp ? new Date(o.timestamp).toISOString() : '',
+                    o.customer || '',
+                    o.phone || '',
+                    isServiceOrdersPage ? (o.repairNumber || ohExtractOrderId(o) || '') : (ohExtractOrderId(o) || ''),
+                    o.status || '',
+                    o.url || '',
+                ].map((v) => `"${String(v).replace(/"/g, '""')}"`);
+                lines.push(cols.join(','));
+            });
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `order-history-${ohPageKind()}-${Date.now()}.csv`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        });
+
+        container.innerHTML = `<div class="tm-oh-empty">Φόρτωση από server…</div>`;
+        paintFromCacheThenRefresh();
     }
 
     // Initialize monitoring when page loads
@@ -3341,9 +2837,8 @@
     window.initOrderHistory = initOrderHistory;
     window.syncOrderHistoryToServer = ({ force = true } = {}) => {
         try {
-            const service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]'));
-            const parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]'));
-            const queued = queueOrdersForServerSync([...(service || []), ...(parts || [])], { force });
+            const pending = ohLoadPendingBuffer();
+            const queued = queueOrdersForServerSync(pending, { force });
             scheduleOhSyncFlush(300);
             return { ok: true, queued };
         } catch (err) {
@@ -3356,17 +2851,11 @@
         try { window.captureConnectedStoreFromPage?.(document); } catch (_) { /* ignore */ }
         const store = ohGetStoreName();
         const storeKey = ohStoreKey(store);
-        let service = [];
-        let parts = [];
-        try { service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]')) || []; } catch (_) { /* ignore */ }
-        try { parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]')) || []; } catch (_) { /* ignore */ }
-        const withId = [...service, ...parts].filter((o) => !!ohExtractOrderId(o)).length;
+        const pending = ohLoadPendingBuffer();
         let authOk = false;
         let authError = '';
-        let token = '';
         try {
-            token = await ohEnsureAuthToken();
-            authOk = !!token;
+            authOk = !!(await ohEnsureAuthToken());
         } catch (err) {
             authError = String(err?.message || err);
         }
@@ -3380,9 +2869,9 @@
             storeKey,
             connected: GM_getValue('tm_connected_store_v1', ''),
             login: GM_getValue('tm_login_store_v1', ''),
-            localService: Array.isArray(service) ? service.length : 0,
-            localParts: Array.isArray(parts) ? parts.length : 0,
-            localWithOrderId: withId,
+            pending: pending.length,
+            viewOrders: ohViewOrders.length,
+            viewCapped: ohViewCapped,
             queue: ohSyncQueue.length,
             unsupported: ohServerUnsupported,
             authOk,
@@ -3390,6 +2879,7 @@
             remoteServiceCount: remoteCount,
             lastSyncOk: GM_getValue('tm_oh_last_sync_ok_v1', ''),
             migrated: GM_getValue(OH_MIGRATED_KEY, ''),
+            source: 'server',
         };
         console.log('[MMS Order History] debug', report);
         return report;

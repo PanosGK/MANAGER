@@ -1,11 +1,11 @@
 {
-  "version": "379",
+  "version": "380",
   "loaderVersion": "41",
-  "silentVersion": "23",
-  "displayVersion": "41.23",
+  "silentVersion": "24",
+  "displayVersion": "41.24",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix order history server sync: retry failed upserts, remigrate when store ready, force upload from Server",
+  "releaseNotes": "Server-first order history compact UI with local view cache",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
