@@ -1,11 +1,11 @@
 {
-  "version": "371",
+  "version": "372",
   "loaderVersion": "41",
-  "silentVersion": "15",
-  "displayVersion": "41.15",
+  "silentVersion": "16",
+  "displayVersion": "41.16",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Float chat message actions on hover without layout shift",
+  "releaseNotes": "Replace chat hover actions with right-click context menu",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

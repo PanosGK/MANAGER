@@ -1761,14 +1761,7 @@
             const seenHtml = mine && peersHaveReadMessage(m)
                 ? `<span class="tm-chat-msg-seen" title="Διαβάστηκε">✓✓</span>`
                 : (mine ? `<span class="tm-chat-msg-seen is-sent" title="Στάλθηκε">✓</span>` : '');
-            const canManage = isOwnChatMessage(m);
-            const actions = `<div class="tm-chat-msg-actions">
-                <button type="button" class="tm-chat-act" data-act="reply" data-id="${escapeHtml(m.id)}" title="Απάντηση">↩</button>
-                <button type="button" class="tm-chat-act" data-act="pin" data-id="${escapeHtml(m.id)}" title="${m.pinned ? 'Ξεκαρφίτσωμα' : 'Καρφίτσωμα'}">📌</button>
-                ${canManage ? `<button type="button" class="tm-chat-act" data-act="edit" data-id="${escapeHtml(m.id)}" title="Επεξεργασία">✎</button>
-                <button type="button" class="tm-chat-act" data-act="delete" data-id="${escapeHtml(m.id)}" title="Διαγραφή δικού σου μηνύματος">🗑</button>` : ''}
-            </div>`;
-            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}${isNew ? ' is-new' : ''}${m.pinned ? ' is-pinned' : ''}" data-id="${escapeHtml(m.id)}">
+            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}${isNew ? ' is-new' : ''}${m.pinned ? ' is-pinned' : ''}" data-id="${escapeHtml(m.id)}" title="Δεξί κλικ για επιλογές">
                 ${formatChatAvatarHtml(m)}
                 <div class="tm-chat-msg-bubble">
                     <div class="tm-chat-msg-meta">
@@ -1782,7 +1775,6 @@
                     ${replyHtml}
                     <div class="tm-chat-msg-text">${bodyHtml}</div>
                 </div>
-                ${actions}
             </div>`;
         }).join('');
         if (stickToBottom && !q) list.scrollTop = list.scrollHeight;
@@ -3140,39 +3132,36 @@
                 padding: 4px 8px; margin: 0 0 6px; cursor: pointer; font-size: 11px; color: var(--tm-chat-muted);
             }
             .tm-chat-msg-reply strong { display: block; color: var(--tm-chat-ink); font-size: 11px; }
-            .tm-chat-msg-actions {
-                position: absolute;
-                top: -10px;
-                right: 28px;
-                display: flex;
-                gap: 2px;
-                padding: 2px;
-                margin: 0;
-                border-radius: 8px;
+            .tm-chat-msg-ctx {
+                position: fixed;
+                z-index: 1000200;
+                min-width: 168px;
+                padding: 4px;
+                border-radius: 10px;
                 background: #fff;
-                border: 1px solid var(--tm-chat-line);
-                box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
-                opacity: 0;
-                pointer-events: none;
-                transform: translateY(2px);
-                transition: opacity 0.12s ease, transform 0.12s ease;
-                z-index: 3;
+                border: 1px solid var(--tm-chat-line, #e2e8f0);
+                box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
             }
-            .tm-chat-msg.is-mine .tm-chat-msg-actions {
-                right: auto;
-                left: 28px;
+            .tm-chat-msg-ctx[hidden] { display: none !important; }
+            .tm-chat-ctx-item {
+                display: flex; align-items: center; gap: 8px;
+                width: 100%; border: 0; background: transparent;
+                text-align: left; padding: 8px 10px; border-radius: 8px;
+                font-size: 12.5px; color: #0f172a; cursor: pointer;
             }
-            .tm-chat-msg:hover .tm-chat-msg-actions,
-            .tm-chat-msg:focus-within .tm-chat-msg-actions {
-                opacity: 1;
-                pointer-events: auto;
-                transform: translateY(0);
+            .tm-chat-ctx-item:hover, .tm-chat-ctx-item:focus {
+                background: #f1f5f9; outline: none;
             }
-            .tm-chat-act {
-                border: 0; background: transparent; border-radius: 6px; width: 26px; height: 24px;
-                cursor: pointer; font-size: 12px; line-height: 1; color: #475569;
+            .tm-chat-ctx-item.is-danger { color: #b91c1c; }
+            .tm-chat-ctx-item.is-danger:hover { background: #fef2f2; }
+            .tm-chat-ctx-ico { width: 18px; text-align: center; flex-shrink: 0; }
+            .tm-chat-ctx-sep {
+                height: 1px; margin: 4px 6px; background: #e2e8f0;
             }
-            .tm-chat-act:hover { background: #f1f5f9; color: #0f172a; }
+            .tm-chat-msg.is-ctx-target .tm-chat-msg-bubble {
+                outline: 2px solid color-mix(in srgb, var(--tm-chat-accent) 45%, transparent);
+                outline-offset: 1px;
+            }
             .tm-chat-mention {
                 color: var(--tm-chat-accent); font-weight: 700; background: color-mix(in srgb, var(--tm-chat-accent) 12%, transparent);
                 border-radius: 4px; padding: 0 2px;
@@ -3276,6 +3265,7 @@
                 <input type="file" id="tm-chat-file-input" class="tm-chat-file-input" tabindex="-1" aria-hidden="true" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,image/jpeg,image/png,image/webp,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
             </div>
             </div>
+            <div id="tm-chat-msg-ctx" class="tm-chat-msg-ctx" hidden role="menu" aria-label="Επιλογές μηνύματος"></div>
             <div id="tm-chat-resize-e" data-tm-resize="e" title="Αλλαγή πλάτους" aria-label="Αλλαγή πλάτους"></div>
             <div id="tm-chat-resize-s" data-tm-resize="s" title="Αλλαγή ύψους" aria-label="Αλλαγή ύψους"></div>
             <div id="tm-chat-resize" data-tm-resize="se" title="Αλλαγή μεγέθους" aria-label="Αλλαγή μεγέθους"></div>
@@ -3505,50 +3495,148 @@
         panel.addEventListener('drop', onDrop);
     }
 
+    function hideChatMessageContextMenu() {
+        const menu = document.getElementById('tm-chat-msg-ctx');
+        if (menu) {
+            menu.hidden = true;
+            menu.innerHTML = '';
+            delete menu.dataset.msgId;
+        }
+        document.querySelectorAll('.tm-chat-msg.is-ctx-target').forEach((el) => {
+            el.classList.remove('is-ctx-target');
+        });
+    }
+
+    function positionChatContextMenu(menu, clientX, clientY) {
+        if (!menu) return;
+        menu.hidden = false;
+        menu.style.left = '0px';
+        menu.style.top = '0px';
+        const rect = menu.getBoundingClientRect();
+        const pad = 8;
+        let left = clientX;
+        let top = clientY;
+        if (left + rect.width > window.innerWidth - pad) left = window.innerWidth - rect.width - pad;
+        if (top + rect.height > window.innerHeight - pad) top = window.innerHeight - rect.height - pad;
+        if (left < pad) left = pad;
+        if (top < pad) top = pad;
+        menu.style.left = `${Math.round(left)}px`;
+        menu.style.top = `${Math.round(top)}px`;
+    }
+
+    async function runChatMessageAction(STORAGE_KEYS, act, messageId) {
+        const msg = findChatMessageById(messageId);
+        if (!msg || isChatMessageDeleted(msg)) return;
+        if (act === 'reply') {
+            setChatReplyTarget(msg);
+            return;
+        }
+        if (act === 'pin') {
+            await togglePinChatMessage(STORAGE_KEYS, messageId);
+            return;
+        }
+        if (act === 'delete') {
+            if (!isOwnChatMessage(msg)) {
+                setChatStatus('error', 'Μπορείς να διαγράψεις μόνο τα δικά σου μηνύματα');
+                return;
+            }
+            if (!window.confirm('Διαγραφή του μηνύματός σου;')) return;
+            await softDeleteChatMessage(STORAGE_KEYS, messageId);
+            return;
+        }
+        if (act === 'edit') {
+            if (!isOwnChatMessage(msg)) {
+                setChatStatus('error', 'Μπορείς να επεξεργαστείς μόνο τα δικά σου μηνύματα');
+                return;
+            }
+            const next = window.prompt('Επεξεργασία μηνύματος', String(msg.text || ''));
+            if (next == null) return;
+            await editChatMessage(STORAGE_KEYS, messageId, next);
+        }
+    }
+
+    function showChatMessageContextMenu(STORAGE_KEYS, msgEl, clientX, clientY) {
+        const menu = document.getElementById('tm-chat-msg-ctx');
+        if (!menu || !msgEl) return;
+        const id = msgEl.getAttribute('data-id');
+        const msg = findChatMessageById(id);
+        if (!msg || isChatMessageDeleted(msg)) return;
+
+        hideChatMessageContextMenu();
+        msgEl.classList.add('is-ctx-target');
+        if (menu.parentElement !== document.body) {
+            document.body.appendChild(menu);
+        }
+        menu.dataset.msgId = id;
+        const canManage = isOwnChatMessage(msg);
+        const pinLabel = msg.pinned ? 'Ξεκαρφίτσωμα' : 'Καρφίτσωμα';
+        menu.innerHTML = `
+            <button type="button" class="tm-chat-ctx-item" role="menuitem" data-act="reply">
+                <span class="tm-chat-ctx-ico" aria-hidden="true">↩</span><span>Απάντηση</span>
+            </button>
+            <button type="button" class="tm-chat-ctx-item" role="menuitem" data-act="pin">
+                <span class="tm-chat-ctx-ico" aria-hidden="true">📌</span><span>${escapeHtml(pinLabel)}</span>
+            </button>
+            ${canManage ? `
+            <div class="tm-chat-ctx-sep" role="separator"></div>
+            <button type="button" class="tm-chat-ctx-item" role="menuitem" data-act="edit">
+                <span class="tm-chat-ctx-ico" aria-hidden="true">✎</span><span>Επεξεργασία</span>
+            </button>
+            <button type="button" class="tm-chat-ctx-item is-danger" role="menuitem" data-act="delete">
+                <span class="tm-chat-ctx-ico" aria-hidden="true">🗑</span><span>Διαγραφή</span>
+            </button>` : ''}
+        `;
+        positionChatContextMenu(menu, clientX, clientY);
+        menu.querySelector('.tm-chat-ctx-item')?.focus();
+    }
+
     function wireChatMessageActions(STORAGE_KEYS) {
         const list = document.getElementById('tm-chat-messages');
         const pinned = document.getElementById('tm-chat-pinned');
+        const menu = document.getElementById('tm-chat-msg-ctx');
         if (list && list.dataset.tmChatActionsWired !== '1') {
             list.dataset.tmChatActionsWired = '1';
-            list.addEventListener('click', async (e) => {
+            list.addEventListener('click', (e) => {
                 const jump = e.target.closest('[data-jump]');
-                if (jump) {
-                    const id = jump.getAttribute('data-jump');
-                    const el = list.querySelector(`.tm-chat-msg[data-id="${CSS.escape(id)}"]`);
-                    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    el?.classList.add('is-new');
-                    return;
-                }
-                const actBtn = e.target.closest('.tm-chat-act');
-                if (!actBtn) return;
-                const id = actBtn.getAttribute('data-id');
-                const act = actBtn.getAttribute('data-act');
-                const msg = findChatMessageById(id);
-                if (!msg) return;
-                if (act === 'reply') {
-                    setChatReplyTarget(msg);
-                    return;
-                }
-                if (act === 'pin') {
-                    await togglePinChatMessage(STORAGE_KEYS, id);
-                    return;
-                }
-                if (act === 'delete') {
-                    const target = findChatMessageById(id);
-                    if (!target || !isOwnChatMessage(target)) {
-                        setChatStatus('error', 'Μπορείς να διαγράψεις μόνο τα δικά σου μηνύματα');
-                        return;
-                    }
-                    if (!window.confirm('Διαγραφή του μηνύματός σου;')) return;
-                    await softDeleteChatMessage(STORAGE_KEYS, id);
-                    return;
-                }
-                if (act === 'edit') {
-                    const next = window.prompt('Επεξεργασία μηνύματος', String(msg.text || ''));
-                    if (next == null) return;
-                    await editChatMessage(STORAGE_KEYS, id, next);
-                }
+                if (!jump) return;
+                const id = jump.getAttribute('data-jump');
+                const el = list.querySelector(`.tm-chat-msg[data-id="${CSS.escape(id)}"]`);
+                el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el?.classList.add('is-new');
             });
+            list.addEventListener('contextmenu', (e) => {
+                const msgEl = e.target.closest('.tm-chat-msg');
+                if (!msgEl || !list.contains(msgEl)) return;
+                if (e.target.closest('a, button, input, textarea')) return;
+                e.preventDefault();
+                e.stopPropagation();
+                showChatMessageContextMenu(STORAGE_KEYS, msgEl, e.clientX, e.clientY);
+            });
+        }
+        if (menu && menu.dataset.tmChatCtxWired !== '1') {
+            menu.dataset.tmChatCtxWired = '1';
+            menu.addEventListener('click', async (e) => {
+                const item = e.target.closest('.tm-chat-ctx-item');
+                if (!item) return;
+                e.preventDefault();
+                const act = item.getAttribute('data-act');
+                const id = menu.dataset.msgId;
+                hideChatMessageContextMenu();
+                if (act && id) await runChatMessageAction(STORAGE_KEYS, act, id);
+            });
+            menu.addEventListener('contextmenu', (e) => e.preventDefault());
+        }
+        if (!wireChatMessageActions._docHideWired) {
+            wireChatMessageActions._docHideWired = true;
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('#tm-chat-msg-ctx')) return;
+                hideChatMessageContextMenu();
+            }, true);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') hideChatMessageContextMenu();
+            });
+            window.addEventListener('resize', hideChatMessageContextMenu);
+            document.getElementById('tm-chat-messages')?.addEventListener('scroll', hideChatMessageContextMenu, { passive: true });
         }
         if (pinned && pinned.dataset.tmChatPinnedWired !== '1') {
             pinned.dataset.tmChatPinnedWired = '1';
@@ -3665,13 +3753,15 @@
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '9';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '10';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
+            hideChatMessageContextMenu();
+            document.querySelectorAll('#tm-chat-msg-ctx').forEach((el) => el.remove());
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '9');
+            panel.setAttribute('data-tm-chat-ui', '10');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);
@@ -4003,6 +4093,7 @@
         if (!panel) return;
         setChatEmojiPickerOpen(false);
         hideChatMentionMenu();
+        hideChatMessageContextMenu();
         panel.classList.remove('is-open');
         chatPanelOpen = false;
         updateUnreadBadge();
