@@ -16,10 +16,10 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '335',
-        loaderVersion: '36',
-        silentVersion: '27',
-        displayVersion: '36.27',
+        version: '337',
+        loaderVersion: '38',
+        silentVersion: '1',
+        displayVersion: '38.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -111,6 +111,14 @@
         SHOP_DISCOUNT: 'tm_shop_discount', // Cumulative shop discount from levels
         MASCOT_FOOD_ITEMS: 'tm_mascot_food_items', // Mascot food inventory
         MASCOT_TREAT_ITEMS: 'tm_mascot_treat_items', // Mascot treat inventory
+        MASCOT_CARE_PANEL_SIZE: 'tm_mascot_care_panel_size', // compact | comfort | large
+        // Office chat (PocketBase on TrueNAS)
+        CHAT_ENABLED: 'tm_chat_enabled',
+        CHAT_BASE_URL: 'tm_chat_base_url',
+        CHAT_USER: 'tm_chat_user',
+        CHAT_PASS: 'tm_chat_pass',
+        CHAT_TOKEN_CACHE: 'tm_chat_token_cache',
+        CHAT_MUTED: 'tm_chat_muted',
         MASCOT_FEATHERS: 'tm_mascot_feather_set', // Phoenix molted feather collection (JSON per color)
         PHOENIX_LAST_REBIRTH: 'tm_phoenix_last_rebirth', // Timestamp of last phoenix rebirth event
         ENERGIZED_BUFF_COUNT: 'tm_energized_buff_count', // Number of energized buffs in inventory

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v335 / Custom Ver. 36.27 — generated, do not edit */
+/* MyManager Suite bundle v337 / Custom Ver. 38.1 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '335',
-        loaderVersion: '36',
-        silentVersion: '27',
-        displayVersion: '36.27',
+        version: '337',
+        loaderVersion: '38',
+        silentVersion: '1',
+        displayVersion: '38.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -3405,6 +3405,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         SHOP_DISCOUNT: 'tm_shop_discount', // Cumulative shop discount from levels
         MASCOT_FOOD_ITEMS: 'tm_mascot_food_items', // Mascot food inventory
         MASCOT_TREAT_ITEMS: 'tm_mascot_treat_items', // Mascot treat inventory
+        MASCOT_CARE_PANEL_SIZE: 'tm_mascot_care_panel_size', // compact | comfort | large
+        // Office chat (PocketBase on TrueNAS)
+        CHAT_ENABLED: 'tm_chat_enabled',
+        CHAT_BASE_URL: 'tm_chat_base_url',
+        CHAT_USER: 'tm_chat_user',
+        CHAT_PASS: 'tm_chat_pass',
+        CHAT_TOKEN_CACHE: 'tm_chat_token_cache',
+        CHAT_MUTED: 'tm_chat_muted',
         MASCOT_FEATHERS: 'tm_mascot_feather_set', // Phoenix molted feather collection (JSON per color)
         PHOENIX_LAST_REBIRTH: 'tm_phoenix_last_rebirth', // Timestamp of last phoenix rebirth event
         ENERGIZED_BUFF_COUNT: 'tm_energized_buff_count', // Number of energized buffs in inventory
@@ -16025,6 +16033,30 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             where: 'Μέσα στο σημειωματάριο.',
             when: 'Όταν επιλέγετε πρότυπο αντί να γράφετε από την αρχή.',
         },
+        office_chat: {
+            title: 'Office Chat',
+            what: 'Κοινό chat γραφείου μέσω PocketBase στον TrueNAS server σας. Όλοι οι τεχνικοί βλέπουν το ίδιο κανάλι.',
+            where: 'Κουμπί «Chat» στο δεξί slide-out · πάνελ μηνυμάτων.',
+            when: 'Αφού ρυθμίσετε URL και λογαριασμό PocketBase. Απαιτεί ενημέρωση loader (@connect).',
+        },
+        office_chat_url: {
+            title: 'Chat server URL',
+            what: 'Η δημόσια διεύθυνση του PocketBase πίσω από το reverse proxy (π.χ. http://mngerchat.littlejol.mywire.org).',
+            where: 'Ρυθμίσεις → Chat.',
+            when: 'Μία φορά κατά την εγκατάσταση· αλλάξτε μόνο αν αλλάξει το hostname.',
+        },
+        office_chat_user: {
+            title: 'Chat χρήστης',
+            what: 'Λογαριασμός PocketBase (users) — όχι ο admin. Κάθε τεχνικός έχει δικό του.',
+            where: 'Ρυθμίσεις → Chat.',
+            when: 'Σύνδεση στο chat API.',
+        },
+        office_chat_pass: {
+            title: 'Chat κωδικός',
+            what: 'Κωδικός του λογαριασμού PocketBase. Αποθηκεύεται τοπικά στο Tampermonkey.',
+            where: 'Ρυθμίσεις → Chat.',
+            when: 'Σύνδεση στο chat API.',
+        },
         quick_search_editor: {
             title: 'Επεξεργαστής γρήγορης αναζήτησης',
             what: 'Ορίζετε ετικέτα κουμπιού και όρο αναζήτησης για τα κουμπιά γρήγορης αναζήτησης.',
@@ -16539,6 +16571,29 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
             // --- Save Scratchpad Settings ---
             saveCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
+
+            // --- Save Office Chat ---
+            const chatEnabledEl = document.getElementById('tm-setting-chat-enabled');
+            if (chatEnabledEl) {
+                const chatOn = !!chatEnabledEl.checked;
+                GM_setValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', chatOn);
+                config.officeChatEnabled = chatOn;
+            }
+            const chatUrlEl = document.getElementById('tm-setting-chat-url');
+            const chatUserEl = document.getElementById('tm-setting-chat-user');
+            const chatPassEl = document.getElementById('tm-setting-chat-pass');
+            if (chatUrlEl) {
+                GM_setValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', chatUrlEl.value.trim().replace(/\/+$/, ''));
+            }
+            if (chatUserEl) {
+                GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', chatUserEl.value.trim());
+            }
+            if (chatPassEl) {
+                GM_setValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', chatPassEl.value);
+            }
+            try {
+                GM_setValue(STORAGE_KEYS.CHAT_TOKEN_CACHE || 'tm_chat_token_cache', '');
+            } catch (_) { /* ignore */ }
 
             // --- Save Gamification/Fun Settings ---
             saveCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
@@ -17154,6 +17209,70 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             `;
         }
 
+        function getOfficeChatSettingsHTML() {
+            const info = tmSettingsInfoBtn;
+            return `
+                <div class="tm-settings-section">
+                    <header class="tm-settings-section-head">
+                        <h3>Office Chat</h3>
+                        <p class="tm-settings-section-desc">Κοινό chat γραφείου (PocketBase στον TrueNAS). Δείτε chat-server/SETUP.md.</p>
+                    </header>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-enabled">Ενεργοποίηση</label>
+                                ${info('office_chat')}
+                            </div>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-chat-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-url">Server URL</label>
+                                ${info('office_chat_url')}
+                            </div>
+                            <p class="tm-setting-description">π.χ. http://mngerchat.littlejol.mywire.org</p>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="url" id="tm-setting-chat-url" class="tm-settings-input" autocomplete="off" spellcheck="false" placeholder="http://mngerchat.littlejol.mywire.org">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-user">Χρήστης</label>
+                                ${info('office_chat_user')}
+                            </div>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="text" id="tm-setting-chat-user" class="tm-settings-input" autocomplete="username" spellcheck="false" placeholder="email ή username">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-pass">Κωδικός</label>
+                                ${info('office_chat_pass')}
+                            </div>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="password" id="tm-setting-chat-pass" class="tm-settings-input" autocomplete="new-password" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <p class="tm-setting-description">Δοκιμάστε τη σύνδεση πριν την αποθήκευση. Το όνομα στο chat είναι το login MyManager.</p>
+                            <p class="tm-setting-description" id="tm-setting-chat-test-status">—</p>
+                        </div>
+                        <div class="tm-setting-control">
+                            <button type="button" id="tm-setting-chat-test-btn" class="tm-data-btn export">Έλεγχος σύνδεσης</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         function getDataManagementHTML() {
             const info = tmSettingsInfoBtn;
             return `
@@ -17441,6 +17560,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                                 <li><a href="#sec-general"><span class="tm-nav-icon" aria-hidden="true">⚙️</span><span class="tm-nav-label">Γενικές</span></a></li>
                                 <li><a href="#sec-search"><span class="tm-nav-icon" aria-hidden="true">🔍</span><span class="tm-nav-label">Εργαλεία</span></a></li>
                                 <li><a href="#sec-scratchpad"><span class="tm-nav-icon" aria-hidden="true">📝</span><span class="tm-nav-label">Σημειωματάριο</span></a></li>
+                                <li><a href="#sec-chat"><span class="tm-nav-icon" aria-hidden="true">💬</span><span class="tm-nav-label">Chat</span></a></li>
                                 <li><a href="#sec-gamification"><span class="tm-nav-icon" aria-hidden="true">🎮</span><span class="tm-nav-label">Παιχνίδι</span></a></li>
                                 <li><a href="#sec-updates"><span class="tm-nav-icon" aria-hidden="true">↻</span><span class="tm-nav-label">Ενημερώσεις</span></a></li>
                                 <li><a href="#sec-data"><span class="tm-nav-icon" aria-hidden="true">💾</span><span class="tm-nav-label">Δεδομένα</span></a></li>
@@ -17451,6 +17571,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <section id="sec-general">${getGeneralUISettingsHTML()}</section>
                             <section id="sec-search">${getSearchSettingsHTML()}${getQuickSearchEditorHTML()}${getPriceOptionsEditorHTML()}${getAutoRefreshSettingsHTML()}</section>
                             <section id="sec-scratchpad">${getScratchpadSettingsHTML()}</section>
+                            <section id="sec-chat">${getOfficeChatSettingsHTML()}</section>
                             <section id="sec-gamification">${window.getGamificationSettingsHTML(STORAGE_KEYS)}</section>
                             <section id="sec-debug">${getDebugSettingsHTML()}</section>
                             <section id="sec-updates">${getUpdatesSettingsHTML()}</section>
@@ -17600,6 +17721,44 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             populateCheckbox('tm-setting-search-enabled', 'searchFeatureEnabled');
             populateCheckbox('tm-setting-quick-search-enabled', 'quickSearchEnabled');
             populateCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
+            const chatEnabledBox = document.getElementById('tm-setting-chat-enabled');
+            if (chatEnabledBox) {
+                chatEnabledBox.checked = !!GM_getValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', false)
+                    || !!config.officeChatEnabled;
+            }
+            const chatUrlInput = document.getElementById('tm-setting-chat-url');
+            const chatUserInput = document.getElementById('tm-setting-chat-user');
+            const chatPassInput = document.getElementById('tm-setting-chat-pass');
+            if (chatUrlInput) {
+                chatUrlInput.value = GM_getValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', '') || '';
+            }
+            if (chatUserInput) {
+                chatUserInput.value = GM_getValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', '') || '';
+            }
+            if (chatPassInput) {
+                chatPassInput.value = GM_getValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', '') || '';
+            }
+            overlay.querySelector('#tm-setting-chat-test-btn')?.addEventListener('click', async () => {
+                const statusEl = document.getElementById('tm-setting-chat-test-status');
+                const urlEl = document.getElementById('tm-setting-chat-url');
+                const userEl = document.getElementById('tm-setting-chat-user');
+                const passEl = document.getElementById('tm-setting-chat-pass');
+                // Temporarily apply form values for the test (without full save/reload)
+                if (urlEl) GM_setValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', urlEl.value.trim().replace(/\/+$/, ''));
+                if (userEl) GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', userEl.value.trim());
+                if (passEl) GM_setValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', passEl.value);
+                try { GM_setValue(STORAGE_KEYS.CHAT_TOKEN_CACHE || 'tm_chat_token_cache', ''); } catch (_) { /* ignore */ }
+                if (statusEl) statusEl.textContent = 'Έλεγχος…';
+                if (typeof window.testOfficeChatConnection !== 'function') {
+                    if (statusEl) statusEl.textContent = 'Το module chat δεν φορτώθηκε.';
+                    return;
+                }
+                const result = await window.testOfficeChatConnection(STORAGE_KEYS);
+                if (statusEl) {
+                    statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
+                    statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
+                }
+            });
             populateCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
             populateCheckbox('tm-setting-repair-list-quickview-enabled', 'repairListQuickViewEnabled');
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
@@ -21387,6 +21546,782 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
 })();
 
+// ----- myman_chat.js -----
+
+(function () {
+    'use strict';
+
+    const CHAT_ROOM = 'office';
+    const CHAT_MAX_LEN = 500;
+    const CHAT_SEND_COOLDOWN_MS = 1500;
+    const CHAT_POLL_MS = 5000;
+    const CHAT_PAGE_SIZE = 50;
+    const CHAT_TOKEN_SKEW_MS = 60 * 1000;
+
+    let chatPollTimer = null;
+    let chatRealtimeEs = null;
+    let chatRealtimeClientId = null;
+    let chatLastSendAt = 0;
+    let chatMessages = [];
+    let chatUnread = 0;
+    let chatMuted = false;
+    let chatPanelOpen = false;
+    let chatConnecting = false;
+    let chatAuthToken = null;
+    let chatAuthExpires = 0;
+    let chatStatus = 'idle'; // idle | connecting | online | error | disabled
+    let chatStatusDetail = '';
+    let chatInitDone = false;
+    let chatHydrated = false;
+
+    function chatKeys(STORAGE_KEYS) {
+        const k = STORAGE_KEYS || window.STORAGE_KEYS || {};
+        return {
+            enabled: k.CHAT_ENABLED || 'tm_chat_enabled',
+            baseUrl: k.CHAT_BASE_URL || 'tm_chat_base_url',
+            user: k.CHAT_USER || 'tm_chat_user',
+            pass: k.CHAT_PASS || 'tm_chat_pass',
+            tokenCache: k.CHAT_TOKEN_CACHE || 'tm_chat_token_cache',
+            muted: k.CHAT_MUTED || 'tm_chat_muted',
+        };
+    }
+
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function normalizeBaseUrl(raw) {
+        let s = String(raw || '').trim().replace(/\/+$/, '');
+        if (!s) return '';
+        if (!/^https?:\/\//i.test(s)) s = `https://${s}`;
+        return s.replace(/\/+$/, '');
+    }
+
+    function getChatSettings(STORAGE_KEYS) {
+        const keys = chatKeys(STORAGE_KEYS);
+        return {
+            enabled: !!GM_getValue(keys.enabled, false),
+            baseUrl: normalizeBaseUrl(GM_getValue(keys.baseUrl, '')),
+            user: String(GM_getValue(keys.user, '') || '').trim(),
+            pass: String(GM_getValue(keys.pass, '') || ''),
+            muted: !!GM_getValue(keys.muted, false),
+        };
+    }
+
+    function getDisplayName() {
+        const name = window.tmCurrentUser
+            || window.config?.currentUser
+            || '';
+        return String(name || 'Τεχνικός').trim().slice(0, 64) || 'Τεχνικός';
+    }
+
+    function getProfileId() {
+        try {
+            if (typeof window.tmGetActiveProfileId === 'function') {
+                return String(window.tmGetActiveProfileId() || '').slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        return '';
+    }
+
+    function getXhr() {
+        if (typeof window.getScriptXhr === 'function') {
+            const fn = window.getScriptXhr();
+            if (fn) return fn;
+        }
+        if (typeof GM_xmlhttpRequest === 'function') return GM_xmlhttpRequest;
+        if (typeof GM !== 'undefined' && typeof GM.xmlHttpRequest === 'function') {
+            return GM.xmlHttpRequest.bind(GM);
+        }
+        return null;
+    }
+
+    function chatRequest({ method, url, headers, data, timeout }) {
+        const xhr = getXhr();
+        if (!xhr) {
+            return Promise.reject(new Error('GM_xmlhttpRequest unavailable'));
+        }
+        return new Promise((resolve, reject) => {
+            xhr({
+                method: method || 'GET',
+                url,
+                headers: headers || {},
+                data: data != null ? data : undefined,
+                timeout: timeout || 20000,
+                onload(res) {
+                    resolve(res);
+                },
+                onerror() {
+                    reject(new Error('Network error'));
+                },
+                ontimeout() {
+                    reject(new Error('Timeout'));
+                },
+            });
+        });
+    }
+
+    async function chatRequestJson(opts) {
+        const res = await chatRequest(opts);
+        let body = null;
+        try {
+            body = res.responseText ? JSON.parse(res.responseText) : null;
+        } catch (_) {
+            body = null;
+        }
+        return { status: res.status, body, raw: res.responseText || '' };
+    }
+
+    function loadCachedToken(STORAGE_KEYS) {
+        const keys = chatKeys(STORAGE_KEYS);
+        try {
+            const raw = GM_getValue(keys.tokenCache, '');
+            if (!raw) return null;
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            if (!parsed?.token) return null;
+            return parsed;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function saveCachedToken(STORAGE_KEYS, token, expires) {
+        const keys = chatKeys(STORAGE_KEYS);
+        try {
+            GM_setValue(keys.tokenCache, JSON.stringify({
+                token,
+                expires: Number(expires) || 0,
+                savedAt: Date.now(),
+            }));
+        } catch (_) { /* ignore */ }
+    }
+
+    function clearCachedToken(STORAGE_KEYS) {
+        const keys = chatKeys(STORAGE_KEYS);
+        try {
+            GM_setValue(keys.tokenCache, '');
+        } catch (_) { /* ignore */ }
+        chatAuthToken = null;
+        chatAuthExpires = 0;
+    }
+
+    function setChatStatus(status, detail) {
+        chatStatus = status;
+        chatStatusDetail = detail || '';
+        updateChatStatusUi();
+    }
+
+    function updateChatStatusUi() {
+        const el = document.getElementById('tm-chat-status');
+        if (!el) return;
+        const labels = {
+            idle: 'Ανενεργό',
+            connecting: 'Σύνδεση…',
+            online: 'Online',
+            error: 'Σφάλμα',
+            disabled: 'Απενεργοποιημένο',
+        };
+        el.textContent = chatStatusDetail
+            ? `${labels[chatStatus] || chatStatus}: ${chatStatusDetail}`
+            : (labels[chatStatus] || chatStatus);
+        el.dataset.status = chatStatus;
+    }
+
+    function updateUnreadBadge() {
+        const btn = document.getElementById('tm-chat-toggle-btn');
+        if (!btn) return;
+        let badge = btn.querySelector('.tm-chat-unread');
+        if (chatUnread > 0 && !chatPanelOpen) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'tm-chat-unread';
+                btn.appendChild(badge);
+            }
+            badge.textContent = chatUnread > 99 ? '99+' : String(chatUnread);
+            badge.hidden = false;
+        } else if (badge) {
+            badge.hidden = true;
+        }
+    }
+
+    function formatMsgTime(iso) {
+        if (!iso) return '';
+        try {
+            const d = new Date(iso);
+            if (Number.isNaN(d.getTime())) return '';
+            return d.toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' });
+        } catch (_) {
+            return '';
+        }
+    }
+
+    function renderMessages() {
+        const list = document.getElementById('tm-chat-messages');
+        if (!list) return;
+        const sorted = chatMessages.slice().sort((a, b) => {
+            const ta = new Date(a.created || 0).getTime();
+            const tb = new Date(b.created || 0).getTime();
+            return ta - tb;
+        });
+        const me = getDisplayName();
+        list.innerHTML = sorted.map((m) => {
+            const mine = String(m.displayName || '') === me;
+            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}" data-id="${escapeHtml(m.id)}">
+                <div class="tm-chat-msg-meta">
+                    <span class="tm-chat-msg-name">${escapeHtml(m.displayName || '?')}</span>
+                    <span class="tm-chat-msg-time">${escapeHtml(formatMsgTime(m.created))}</span>
+                </div>
+                <div class="tm-chat-msg-text">${escapeHtml(m.text || '')}</div>
+            </div>`;
+        }).join('');
+        list.scrollTop = list.scrollHeight;
+    }
+
+    function upsertMessages(records, { fromPollOrRealtime } = {}) {
+        if (!Array.isArray(records) || !records.length) return;
+        const byId = new Map(chatMessages.map((m) => [m.id, m]));
+        let added = 0;
+        records.forEach((rec) => {
+            if (!rec?.id) return;
+            if (String(rec.room || CHAT_ROOM) !== CHAT_ROOM) return;
+            const prev = byId.get(rec.id);
+            if (!prev) added += 1;
+            byId.set(rec.id, {
+                id: rec.id,
+                text: rec.text,
+                displayName: rec.displayName,
+                profileId: rec.profileId || '',
+                room: rec.room || CHAT_ROOM,
+                created: rec.created,
+            });
+        });
+        chatMessages = Array.from(byId.values());
+        if (chatMessages.length > 200) {
+            chatMessages = chatMessages
+                .slice()
+                .sort((a, b) => new Date(a.created || 0) - new Date(b.created || 0))
+                .slice(-200);
+        }
+        renderMessages();
+        if (chatHydrated && fromPollOrRealtime && added > 0 && !chatPanelOpen) {
+            chatUnread += added;
+            updateUnreadBadge();
+        }
+    }
+
+    async function ensureAuth(STORAGE_KEYS, { force } = {}) {
+        const settings = getChatSettings(STORAGE_KEYS);
+        if (!settings.baseUrl || !settings.user || !settings.pass) {
+            throw new Error('Λείπουν URL / χρήστης / κωδικός');
+        }
+
+        const now = Date.now();
+        if (!force && chatAuthToken && chatAuthExpires > now + CHAT_TOKEN_SKEW_MS) {
+            return chatAuthToken;
+        }
+
+        const cached = loadCachedToken(STORAGE_KEYS);
+        if (!force && cached?.token && Number(cached.expires) > now + CHAT_TOKEN_SKEW_MS) {
+            chatAuthToken = cached.token;
+            chatAuthExpires = Number(cached.expires) || 0;
+            return chatAuthToken;
+        }
+
+        const url = `${settings.baseUrl}/api/collections/users/auth-with-password`;
+        const { status, body } = await chatRequestJson({
+            method: 'POST',
+            url,
+            headers: { 'Content-Type': 'application/json' },
+            data: JSON.stringify({
+                identity: settings.user,
+                password: settings.pass,
+            }),
+        });
+
+        if (status < 200 || status >= 300 || !body?.token) {
+            clearCachedToken(STORAGE_KEYS);
+            const msg = body?.message || `Auth failed (${status})`;
+            throw new Error(msg);
+        }
+
+        chatAuthToken = body.token;
+        // PocketBase tokens are JWTs; expire ~token.expires or ~14 days. Use record if present.
+        const expSec = body.record?.tokenKey
+            ? null
+            : null;
+        // Prefer JWT exp if we can decode; else 12h cache.
+        let expires = now + 12 * 60 * 60 * 1000;
+        try {
+            const payload = JSON.parse(atob(String(body.token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            if (payload?.exp) expires = Number(payload.exp) * 1000;
+        } catch (_) { /* ignore */ }
+        void expSec;
+        chatAuthExpires = expires;
+        saveCachedToken(STORAGE_KEYS, chatAuthToken, expires);
+        return chatAuthToken;
+    }
+
+    async function fetchMessages(STORAGE_KEYS) {
+        const settings = getChatSettings(STORAGE_KEYS);
+        const token = await ensureAuth(STORAGE_KEYS);
+        const filter = encodeURIComponent(`room="${CHAT_ROOM}"`);
+        const url = `${settings.baseUrl}/api/collections/messages/records?page=1&perPage=${CHAT_PAGE_SIZE}&sort=-created&filter=${filter}`;
+        const { status, body } = await chatRequestJson({
+            method: 'GET',
+            url,
+            headers: { Authorization: token },
+        });
+        if (status === 401) {
+            clearCachedToken(STORAGE_KEYS);
+            const token2 = await ensureAuth(STORAGE_KEYS, { force: true });
+            const retry = await chatRequestJson({
+                method: 'GET',
+                url,
+                headers: { Authorization: token2 },
+            });
+            if (retry.status < 200 || retry.status >= 300) {
+                throw new Error(retry.body?.message || `Fetch failed (${retry.status})`);
+            }
+            upsertMessages(retry.body?.items || [], { fromPollOrRealtime: chatHydrated });
+            chatHydrated = true;
+            return;
+        }
+        if (status < 200 || status >= 300) {
+            throw new Error(body?.message || `Fetch failed (${status})`);
+        }
+        upsertMessages(body?.items || [], { fromPollOrRealtime: chatHydrated });
+        chatHydrated = true;
+    }
+
+    async function sendChatMessage(STORAGE_KEYS, text) {
+        const clean = String(text || '').trim().slice(0, CHAT_MAX_LEN);
+        if (!clean) return { ok: false, reason: 'empty' };
+        const now = Date.now();
+        if (now - chatLastSendAt < CHAT_SEND_COOLDOWN_MS) {
+            return { ok: false, reason: 'rate' };
+        }
+        chatLastSendAt = now;
+
+        const settings = getChatSettings(STORAGE_KEYS);
+        const token = await ensureAuth(STORAGE_KEYS);
+        const url = `${settings.baseUrl}/api/collections/messages/records`;
+        const payload = {
+            text: clean,
+            displayName: getDisplayName(),
+            profileId: getProfileId(),
+            room: CHAT_ROOM,
+        };
+        const { status, body } = await chatRequestJson({
+            method: 'POST',
+            url,
+            headers: {
+                Authorization: token,
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify(payload),
+        });
+        if (status === 401) {
+            clearCachedToken(STORAGE_KEYS);
+            const token2 = await ensureAuth(STORAGE_KEYS, { force: true });
+            const retry = await chatRequestJson({
+                method: 'POST',
+                url,
+                headers: {
+                    Authorization: token2,
+                    'Content-Type': 'application/json',
+                },
+                data: JSON.stringify(payload),
+            });
+            if (retry.status < 200 || retry.status >= 300) {
+                throw new Error(retry.body?.message || `Send failed (${retry.status})`);
+            }
+            upsertMessages([retry.body]);
+            return { ok: true };
+        }
+        if (status < 200 || status >= 300) {
+            throw new Error(body?.message || `Send failed (${status})`);
+        }
+        upsertMessages([body]);
+        return { ok: true };
+    }
+
+    function stopRealtime() {
+        if (chatRealtimeEs) {
+            try { chatRealtimeEs.close(); } catch (_) { /* ignore */ }
+            chatRealtimeEs = null;
+        }
+        chatRealtimeClientId = null;
+    }
+
+    function stopPolling() {
+        if (chatPollTimer) {
+            clearInterval(chatPollTimer);
+            chatPollTimer = null;
+        }
+    }
+
+    function startPolling(STORAGE_KEYS) {
+        stopPolling();
+        chatPollTimer = setInterval(() => {
+            if (chatConnecting) return;
+            fetchMessages(STORAGE_KEYS).catch(() => { /* keep polling */ });
+        }, CHAT_POLL_MS);
+    }
+
+    async function tryStartRealtime(STORAGE_KEYS) {
+        stopRealtime();
+        const settings = getChatSettings(STORAGE_KEYS);
+        if (!settings.baseUrl || typeof EventSource === 'undefined') {
+            return false;
+        }
+        try {
+            const token = await ensureAuth(STORAGE_KEYS);
+            const es = new EventSource(`${settings.baseUrl}/api/realtime`);
+            chatRealtimeEs = es;
+
+            await new Promise((resolve, reject) => {
+                const t = setTimeout(() => reject(new Error('realtime timeout')), 8000);
+                es.addEventListener('PB_CONNECT', async (ev) => {
+                    clearTimeout(t);
+                    try {
+                        const data = JSON.parse(ev.data || '{}');
+                        chatRealtimeClientId = data.clientId;
+                        const subUrl = `${settings.baseUrl}/api/realtime`;
+                        const { status } = await chatRequestJson({
+                            method: 'POST',
+                            url: subUrl,
+                            headers: {
+                                Authorization: token,
+                                'Content-Type': 'application/json',
+                            },
+                            data: JSON.stringify({
+                                clientId: chatRealtimeClientId,
+                                subscriptions: ['messages/*'],
+                            }),
+                        });
+                        if (status < 200 || status >= 300) {
+                            reject(new Error(`subscribe ${status}`));
+                            return;
+                        }
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+                es.onerror = () => {
+                    clearTimeout(t);
+                    reject(new Error('SSE error'));
+                };
+            });
+
+            es.addEventListener('messages/*', (ev) => {
+                try {
+                    const data = JSON.parse(ev.data || '{}');
+                    if (data?.record) {
+                        upsertMessages([data.record], { fromPollOrRealtime: true });
+                    }
+                } catch (_) { /* ignore */ }
+            });
+
+            // Also listen without wildcard encoding variants
+            es.onmessage = (ev) => {
+                try {
+                    const data = JSON.parse(ev.data || '{}');
+                    if (data?.record) {
+                        upsertMessages([data.record], { fromPollOrRealtime: true });
+                    }
+                } catch (_) { /* ignore */ }
+            };
+
+            return true;
+        } catch (_) {
+            stopRealtime();
+            return false;
+        }
+    }
+
+    async function connectChat(STORAGE_KEYS) {
+        const settings = getChatSettings(STORAGE_KEYS);
+        if (!settings.enabled) {
+            setChatStatus('disabled');
+            return { ok: false, reason: 'disabled' };
+        }
+        if (!settings.baseUrl || !settings.user || !settings.pass) {
+            setChatStatus('error', 'Ρυθμίστε URL και λογαριασμό');
+            return { ok: false, reason: 'config' };
+        }
+        if (chatConnecting) return { ok: false, reason: 'busy' };
+        chatConnecting = true;
+        setChatStatus('connecting');
+        try {
+            await ensureAuth(STORAGE_KEYS, { force: true });
+            await fetchMessages(STORAGE_KEYS);
+            const realtimeOk = await tryStartRealtime(STORAGE_KEYS);
+            startPolling(STORAGE_KEYS); // always poll as safety net
+            setChatStatus('online', realtimeOk ? 'realtime+poll' : 'poll');
+            return { ok: true, realtime: realtimeOk };
+        } catch (err) {
+            setChatStatus('error', err?.message || 'Σύνδεση απέτυχε');
+            return { ok: false, reason: 'error', error: err };
+        } finally {
+            chatConnecting = false;
+        }
+    }
+
+    async function testChatConnection(STORAGE_KEYS) {
+        const settings = getChatSettings(STORAGE_KEYS);
+        if (!settings.baseUrl || !settings.user || !settings.pass) {
+            return { ok: false, message: 'Συμπληρώστε URL, χρήστη και κωδικό.' };
+        }
+        try {
+            clearCachedToken(STORAGE_KEYS);
+            await ensureAuth(STORAGE_KEYS, { force: true });
+            await fetchMessages(STORAGE_KEYS);
+            return { ok: true, message: 'Σύνδεση OK — το chat είναι έτοιμο.' };
+        } catch (err) {
+            return { ok: false, message: err?.message || 'Αποτυχία σύνδεσης' };
+        }
+    }
+
+    function injectChatStyles() {
+        if (document.getElementById('tm-chat-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'tm-chat-styles';
+        style.textContent = `
+            #tm-chat-toggle-btn { position: relative; background-color: var(--tm-info-color, #0d6efd); }
+            #tm-chat-toggle-btn:hover { background-color: var(--tm-info-hover, #0b5ed7); }
+            #tm-chat-toggle-btn .tm-chat-unread {
+                position: absolute; top: -6px; right: -6px;
+                min-width: 18px; height: 18px; padding: 0 5px;
+                border-radius: 999px; background: #dc3545; color: #fff;
+                font-size: 10px; font-weight: 700; line-height: 18px; text-align: center;
+            }
+            #tm-chat-panel {
+                position: fixed; bottom: 60px; right: 20px; z-index: 9997;
+                width: 340px; height: 420px; max-height: calc(100vh - 80px);
+                display: none; flex-direction: column;
+                background: #fff; border: 1px solid #ccc; border-radius: 10px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.18); overflow: hidden;
+                font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            }
+            #tm-chat-panel.is-open { display: flex; }
+            #tm-chat-header {
+                display: flex; align-items: center; gap: 8px;
+                padding: 8px 10px; background: #e9ecef; border-bottom: 1px solid #ccc;
+                user-select: none;
+            }
+            #tm-chat-title { font-weight: 700; font-size: 13px; color: #333; flex: 1; }
+            #tm-chat-header button {
+                background: none; border: none; cursor: pointer; color: #555;
+                font-size: 14px; padding: 2px 6px; border-radius: 4px;
+            }
+            #tm-chat-header button:hover { background: #d4d9de; color: #000; }
+            #tm-chat-header button.is-muted { color: #dc3545; }
+            #tm-chat-status {
+                font-size: 11px; padding: 4px 10px; color: #6c757d;
+                border-bottom: 1px solid #eee; background: #f8f9fa;
+            }
+            #tm-chat-status[data-status="online"] { color: #198754; }
+            #tm-chat-status[data-status="error"] { color: #dc3545; }
+            #tm-chat-status[data-status="connecting"] { color: #0d6efd; }
+            #tm-chat-messages {
+                flex: 1; overflow-y: auto; padding: 10px; display: flex;
+                flex-direction: column; gap: 8px; background: #fafbfc;
+            }
+            .tm-chat-msg {
+                max-width: 92%; align-self: flex-start;
+                background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+                padding: 6px 8px;
+            }
+            .tm-chat-msg.is-mine {
+                align-self: flex-end; background: #e7f1ff; border-color: #cfe2ff;
+            }
+            .tm-chat-msg-meta {
+                display: flex; justify-content: space-between; gap: 8px;
+                font-size: 10px; color: #6c757d; margin-bottom: 2px;
+            }
+            .tm-chat-msg-name { font-weight: 700; color: #495057; }
+            .tm-chat-msg-text {
+                font-size: 13px; color: #212529; white-space: pre-wrap; word-break: break-word;
+            }
+            #tm-chat-composer {
+                display: flex; gap: 6px; padding: 8px; border-top: 1px solid #ccc; background: #fff;
+            }
+            #tm-chat-input {
+                flex: 1; resize: none; min-height: 38px; max-height: 80px;
+                border: 1px solid #ccc; border-radius: 8px; padding: 6px 8px;
+                font-size: 13px; font-family: inherit;
+            }
+            #tm-chat-send {
+                border: none; border-radius: 8px; padding: 0 14px;
+                background: var(--tm-primary-color, #0d6efd); color: #fff;
+                font-weight: 700; cursor: pointer;
+            }
+            #tm-chat-send:hover { filter: brightness(0.95); }
+            #tm-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function ensureRightSideContainer() {
+        let rightSideContainer = document.getElementById('tm-search-container');
+        if (!rightSideContainer) {
+            rightSideContainer = document.createElement('div');
+            rightSideContainer.id = 'tm-search-container';
+            document.body.appendChild(rightSideContainer);
+        }
+        return rightSideContainer;
+    }
+
+    function openChatPanel(STORAGE_KEYS) {
+        const panel = document.getElementById('tm-chat-panel');
+        if (!panel) return;
+        panel.classList.add('is-open');
+        chatPanelOpen = true;
+        chatUnread = 0;
+        updateUnreadBadge();
+        renderMessages();
+        document.getElementById('tm-chat-input')?.focus();
+        if (chatStatus !== 'online' && chatStatus !== 'connecting') {
+            connectChat(STORAGE_KEYS);
+        }
+    }
+
+    function closeChatPanel() {
+        const panel = document.getElementById('tm-chat-panel');
+        if (!panel) return;
+        panel.classList.remove('is-open');
+        chatPanelOpen = false;
+        updateUnreadBadge();
+    }
+
+    function toggleChatPanel(STORAGE_KEYS) {
+        if (chatPanelOpen) closeChatPanel();
+        else openChatPanel(STORAGE_KEYS);
+    }
+
+    function wireComposer(STORAGE_KEYS) {
+        const input = document.getElementById('tm-chat-input');
+        const sendBtn = document.getElementById('tm-chat-send');
+        if (!input || !sendBtn) return;
+
+        const doSend = async () => {
+            const text = input.value;
+            if (!String(text || '').trim()) return;
+            sendBtn.disabled = true;
+            try {
+                const result = await sendChatMessage(STORAGE_KEYS, text);
+                if (result.ok) {
+                    input.value = '';
+                } else if (result.reason === 'rate') {
+                    setChatStatus('online', 'Περίμενε λίγο…');
+                    setTimeout(() => setChatStatus('online'), 1200);
+                }
+            } catch (err) {
+                setChatStatus('error', err?.message || 'Αποστολή απέτυχε');
+            } finally {
+                sendBtn.disabled = false;
+                input.focus();
+            }
+        };
+
+        sendBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            doSend();
+        });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                doSend();
+            }
+        });
+    }
+
+    function initOfficeChatFeature(config, STORAGE_KEYS) {
+        if (chatInitDone) return;
+
+        const settings = getChatSettings(STORAGE_KEYS);
+        const enabled = settings.enabled === true || config?.officeChatEnabled === true;
+        if (!enabled) return;
+
+        chatInitDone = true;
+        chatMuted = settings.muted;
+        injectChatStyles();
+
+        const right = ensureRightSideContainer();
+        let toggleButton = document.getElementById('tm-chat-toggle-btn');
+        if (toggleButton && (toggleButton.getAttribute('data-tm-ui-shell') === '1'
+            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(toggleButton)))) {
+            toggleButton.remove();
+            toggleButton = null;
+        }
+        if (!toggleButton) {
+            toggleButton = document.createElement('button');
+            toggleButton.id = 'tm-chat-toggle-btn';
+            toggleButton.className = 'tm-slide-out-btn';
+            toggleButton.type = 'button';
+            toggleButton.textContent = '💬 Chat';
+            right.appendChild(toggleButton);
+        }
+        toggleButton.addEventListener('click', () => toggleChatPanel(STORAGE_KEYS));
+
+        if (!document.getElementById('tm-chat-panel')) {
+            const panel = document.createElement('div');
+            panel.id = 'tm-chat-panel';
+            panel.innerHTML = `
+                <div id="tm-chat-header">
+                    <span id="tm-chat-title">Office Chat</span>
+                    <button type="button" id="tm-chat-mute-btn" title="Σίγαση">🔔</button>
+                    <button type="button" id="tm-chat-refresh-btn" title="Ανανέωση">↻</button>
+                    <button type="button" id="tm-chat-close-btn" title="Κλείσιμο">&times;</button>
+                </div>
+                <div id="tm-chat-status">Ανενεργό</div>
+                <div id="tm-chat-messages"></div>
+                <div id="tm-chat-composer">
+                    <textarea id="tm-chat-input" maxlength="${CHAT_MAX_LEN}" placeholder="Μήνυμα… (Enter αποστολή)" rows="2"></textarea>
+                    <button type="button" id="tm-chat-send">Αποστολή</button>
+                </div>
+            `;
+            document.body.appendChild(panel);
+
+            panel.querySelector('#tm-chat-close-btn')?.addEventListener('click', closeChatPanel);
+            panel.querySelector('#tm-chat-refresh-btn')?.addEventListener('click', () => {
+                connectChat(STORAGE_KEYS);
+            });
+            const muteBtn = panel.querySelector('#tm-chat-mute-btn');
+            if (muteBtn) {
+                const syncMute = () => {
+                    muteBtn.textContent = chatMuted ? '🔕' : '🔔';
+                    muteBtn.classList.toggle('is-muted', chatMuted);
+                    muteBtn.title = chatMuted ? 'Άρση σίγασης' : 'Σίγαση';
+                };
+                syncMute();
+                muteBtn.addEventListener('click', () => {
+                    chatMuted = !chatMuted;
+                    const keys = chatKeys(STORAGE_KEYS);
+                    GM_setValue(keys.muted, chatMuted);
+                    syncMute();
+                });
+            }
+            wireComposer(STORAGE_KEYS);
+        }
+
+        // Background connect so unread works with panel closed
+        connectChat(STORAGE_KEYS);
+    }
+
+    window.initOfficeChatFeature = initOfficeChatFeature;
+    window.testOfficeChatConnection = testChatConnection;
+    window.connectOfficeChat = connectChat;
+    window.getOfficeChatSettings = getChatSettings;
+})();
+
+
 // ----- myman_mascot.js -----
 // This script is intended to be used as a library via the @require directive
 // in the main "MyManager All-in-One Suite" script. It does not do anything on its own.
@@ -22412,8 +23347,11 @@ const MASCOT_MOOD_MESSAGES = {
 };
 
 const MASCOT_WORK_REACTION_MESSAGES = {
-    statusChange: ['Νέο status!', 'Άλλη μία!', 'Προχωράμε!', 'Ωραία αλλαγή!'],
-    repairDone: ['Παράδοση!', 'Τέλος!', 'Μπράβο!', 'Άλλη μία έτοιμη!'],
+    statusChange: ['Νέο status!', 'Άλλη μία!', 'Προχωράμε!', 'Ωραία αλλαγή!', 'Κι άλλο βήμα!'],
+    repairDone: [
+        'Παράδοση!', 'Status 100!', 'Έτοιμο!', 'Μπράβο!', 'Άλλη μία έτοιμη!',
+        'Προς παράδοση!', 'Το κλείσαμε!', 'Ναιι!', 'Τέλος & καθαρό!',
+    ],
     newOrder: ['Παραγγελία!', 'Ανταλλακτικό!', 'Νέα δουλειά!', 'Πάμε!'],
     idle: ['Πού πήγε το κατσαβίδι;', 'Τι θα χαλάσει σήμερα;', 'Έτοιμος!', 'Χμμ…'],
     eod: ['Τέλος ημέρας;', 'Checklist!', 'Φεύγουμε;', 'Καλό βράδυ!'],
@@ -22595,24 +23533,34 @@ function notifyMascotWorkEvent(type, config) {
     if (config?.interactiveMascotEnabled === false) return;
     if (tamagotchiIsDead || tamagotchiStage === 'egg' || tamaCinematicLock) return;
     if (!tamagotchiLightsOn || tamagotchiIsSleeping) return;
-    if (isMascotFocusQuiet()) return;
+    // Focus quiet: still celebrate real repair completions (status 100), stay quiet otherwise
+    if (isMascotFocusQuiet() && type !== 'repairDone') return;
 
     const now = Date.now();
-    const minGap = type === 'idle' ? 45000 : 12000;
+    const minGap = type === 'idle' ? 45000 : (type === 'repairDone' ? 8000 : 12000);
     if (now - lastMascotWorkReactAt < minGap) return;
     lastMascotWorkReactAt = now;
 
     const pool = MASCOT_WORK_REACTION_MESSAGES[type] || MASCOT_WORK_REACTION_MESSAGES.idle;
-    const text = pickMoodBubble(pool) || pool[Math.floor(Math.random() * pool.length)];
+    const text = (typeof pickMoodBubble === 'function' ? pickMoodBubble(pool) : null)
+        || pool[Math.floor(Math.random() * pool.length)];
 
     if (type === 'repairDone') {
-        setMascotMood('proud', 10000);
-        setMascotState(config || window.config || {}, 'happy', 4000);
+        setMascotMood('proud', 12000);
+        setMascotState(config || window.config || {}, 'happy', 4500);
+        if (typeof updatePetStats === 'function') {
+            try {
+                updatePetStats(config || window.config || {}, window.STORAGE_KEYS, 4, 0);
+            } catch (_) { /* ignore */ }
+        }
     } else if (type === 'newOrder') {
         setMascotMood('curious', 8000);
         setMascotState(config || window.config || {}, 'eureka', 2500);
     } else if (type === 'statusChange') {
         setMascotMood('curious', 6000);
+        if (Math.random() < 0.35) {
+            setMascotState(config || window.config || {}, 'energized', 2200);
+        }
     } else if (type === 'eod') {
         setMascotMood('sleepy', 12000);
     } else if (type === 'idle') {
@@ -22621,7 +23569,7 @@ function notifyMascotWorkEvent(type, config) {
         else setMascotMood('calm', 6000);
     }
 
-    showMascotBubble(text, type === 'eod' ? 3500 : 2200);
+    showMascotBubble(text, type === 'eod' ? 3500 : (type === 'repairDone' ? 2800 : 2200));
 }
 
 const MASCOT_CARE_ACTION_LABELS_GR = {
@@ -28413,7 +29361,8 @@ function ensureDeskVisitorStyles() {
     const style = document.createElement('style');
     style.id = 'tm-desk-visitor-styles';
     style.textContent = `
-        #tm-desk-visitor {
+        #tm-desk-visitor,
+        #tm-desk-visitor-b {
             position: fixed; z-index: 99980;
             display: flex; align-items: flex-end; gap: 8px;
             pointer-events: none;
@@ -28421,16 +29370,20 @@ function ensureDeskVisitorStyles() {
             transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
             font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
         }
-        #tm-desk-visitor.is-visible {
+        #tm-desk-visitor.is-visible,
+        #tm-desk-visitor-b.is-visible {
             opacity: 1; transform: translateY(0);
         }
-        #tm-desk-visitor.tm-desk-visitor-left {
+        #tm-desk-visitor.tm-desk-visitor-left,
+        #tm-desk-visitor-b.tm-desk-visitor-left {
             left: 12px; bottom: 18px; flex-direction: row;
         }
-        #tm-desk-visitor.tm-desk-visitor-right {
+        #tm-desk-visitor.tm-desk-visitor-right,
+        #tm-desk-visitor-b.tm-desk-visitor-right {
             right: 12px; bottom: 18px; flex-direction: row-reverse;
         }
-        #tm-desk-visitor .tm-desk-visitor-emoji {
+        #tm-desk-visitor .tm-desk-visitor-emoji,
+        #tm-desk-visitor-b .tm-desk-visitor-emoji {
             width: 44px; height: 44px;
             border-radius: 14px;
             background: linear-gradient(160deg, #fff 0%, #e2e8f0 100%);
@@ -28440,7 +29393,8 @@ function ensureDeskVisitorStyles() {
             font-size: 24px;
             animation: tmDeskVisitorBob 1.6s ease-in-out infinite;
         }
-        #tm-desk-visitor .tm-desk-visitor-bubble {
+        #tm-desk-visitor .tm-desk-visitor-bubble,
+        #tm-desk-visitor-b .tm-desk-visitor-bubble {
             max-width: min(52vw, 220px);
             padding: 8px 10px;
             border-radius: 12px 12px 12px 4px;
@@ -28448,9 +29402,23 @@ function ensureDeskVisitorStyles() {
             font-size: 12px; font-weight: 600; line-height: 1.35;
             box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
         }
-        #tm-desk-visitor.tm-desk-visitor-right .tm-desk-visitor-bubble {
+        #tm-desk-visitor.tm-desk-visitor-right .tm-desk-visitor-bubble,
+        #tm-desk-visitor-b.tm-desk-visitor-right .tm-desk-visitor-bubble {
             border-radius: 12px 12px 4px 12px;
         }
+        #tm-desk-visitor-pair {
+            position: fixed; inset: 0; z-index: 99979; pointer-events: none;
+        }
+        #tm-desk-visitor-pair .tm-desk-visitor-duo-tag {
+            position: fixed; left: 50%; bottom: 78px; transform: translateX(-50%);
+            padding: 4px 10px; border-radius: 999px;
+            background: #0f172a; color: #f8fafc;
+            font-size: 11px; font-weight: 700;
+            opacity: 0; transition: opacity 0.3s ease;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2);
+        }
+        #tm-desk-visitor-pair.is-visible .tm-desk-visitor-duo-tag { opacity: 1; }
         @keyframes tmDeskVisitorBob {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-4px); }
@@ -28464,6 +29432,58 @@ function clearDeskVisitorSchedule() {
         clearTimeout(deskVisitorTimeout);
         deskVisitorTimeout = null;
     }
+}
+
+function getDeskVisitorDayKey() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+/** ~12% of calendar days are "duo visitor" days (rolled once, persisted). */
+function isDeskVisitorDuoDay() {
+    const dayKey = getDeskVisitorDayKey();
+    const storeKey = 'tm_desk_visitor_duo_day';
+    let stored = '';
+    try { stored = String(GM_getValue(storeKey, '') || ''); } catch (_) { /* ignore */ }
+    if (stored.startsWith(`${dayKey}:`)) return stored.endsWith(':1');
+    const isDuo = Math.random() < 0.12;
+    try { GM_setValue(storeKey, `${dayKey}:${isDuo ? 1 : 0}`); } catch (_) { /* ignore */ }
+    return isDuo;
+}
+
+function pickDeskVisitorGuest(excludeTypes = []) {
+    const guestPool = TAMA_CHARACTER_TYPES.filter((t) => t !== tamagotchiCharacterType && !excludeTypes.includes(t));
+    const guestType = guestPool[Math.floor(Math.random() * guestPool.length)]
+        || TAMA_CHARACTER_TYPES.filter((t) => t !== tamagotchiCharacterType)[0]
+        || 'slime';
+    const guest = MASCOT_CHARACTERS[guestType] || { emoji: '✨', name: 'Mascot' };
+    let tech = DESK_VISITOR_TECH_NAMES[Math.floor(Math.random() * DESK_VISITOR_TECH_NAMES.length)];
+    return { guestType, guest, tech };
+}
+
+function buildDeskVisitorCard({ side, guest, tech, myName, duo }) {
+    const lines = duo
+        ? [
+            `${tech} ήρθε παρέα… ${guest.emoji}`,
+            `${tech}: «Φέραμε κι άλλο για το ${myName}!»`,
+            `Διπλή επίσκεψη! ${guest.emoji}`,
+        ]
+        : [
+            `${tech} πέρασε με ${guest.emoji}…`,
+            `${tech}: «Πέρασα να δω το ${myName}!»`,
+            `${tech}: «Τι χαριτωμένο ${guest.emoji}!»`,
+            `Κάποιος από το γραφείο κοιτάει… ${guest.emoji}`,
+        ];
+    const el = document.createElement('div');
+    el.className = `tm-desk-visitor-${side}`;
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML =
+        `<div class="tm-desk-visitor-emoji">${guest.emoji}</div>`
+        + `<div class="tm-desk-visitor-bubble">${lines[Math.floor(Math.random() * lines.length)]}</div>`;
+    return el;
 }
 
 function canShowDeskVisitor() {
@@ -28499,29 +29519,65 @@ function playDeskVisitorPeek() {
     deskVisitorActive = true;
 
     document.getElementById('tm-desk-visitor')?.remove();
+    document.getElementById('tm-desk-visitor-b')?.remove();
+    document.getElementById('tm-desk-visitor-pair')?.remove();
 
-    const guestPool = TAMA_CHARACTER_TYPES.filter((t) => t !== tamagotchiCharacterType);
-    const guestType = guestPool[Math.floor(Math.random() * guestPool.length)] || 'slime';
-    const guest = MASCOT_CHARACTERS[guestType] || { emoji: '✨', name: 'Mascot' };
-    const tech = DESK_VISITOR_TECH_NAMES[Math.floor(Math.random() * DESK_VISITOR_TECH_NAMES.length)];
     const myName = (typeof getMascotDisplayName === 'function')
         ? getMascotDisplayName()
         : 'το mascot';
-    const side = Math.random() < 0.5 ? 'left' : 'right';
-    const lines = [
-        `${tech} πέρασε με ${guest.emoji}…`,
-        `${tech}: «Πέρασα να δω το ${myName}!»`,
-        `${tech}: «Τι χαριτωμένο ${guest.emoji}!»`,
-        `Κάποιος από το γραφείο κοιτάει… ${guest.emoji}`,
-    ];
+    const duo = isDeskVisitorDuoDay();
 
-    const el = document.createElement('div');
+    if (duo) {
+        const a = pickDeskVisitorGuest();
+        const b = pickDeskVisitorGuest([a.guestType]);
+        // Ensure different tech names when possible
+        if (b.tech === a.tech) {
+            const alt = DESK_VISITOR_TECH_NAMES.filter((n) => n !== a.tech);
+            if (alt.length) b.tech = alt[Math.floor(Math.random() * alt.length)];
+        }
+
+        const pair = document.createElement('div');
+        pair.id = 'tm-desk-visitor-pair';
+        const tag = document.createElement('div');
+        tag.className = 'tm-desk-visitor-duo-tag';
+        tag.textContent = 'Διπλή επίσκεψη σήμερα!';
+        const left = buildDeskVisitorCard({ side: 'left', guest: a.guest, tech: a.tech, myName, duo: true });
+        const right = buildDeskVisitorCard({ side: 'right', guest: b.guest, tech: b.tech, myName, duo: true });
+        // Apply same visual styles as #tm-desk-visitor to the second card
+        right.id = 'tm-desk-visitor-b';
+        pair.appendChild(tag);
+        document.body.appendChild(pair);
+        document.body.appendChild(left);
+        document.body.appendChild(right);
+
+        requestAnimationFrame(() => {
+            pair.classList.add('is-visible');
+            left.classList.add('is-visible');
+            right.classList.add('is-visible');
+        });
+
+        setTimeout(() => {
+            if (!isMascotFocusQuiet()) showMascotBubble('Πολύς κόσμος σήμερα!', 1800);
+        }, 700);
+
+        setTimeout(() => {
+            pair.classList.remove('is-visible');
+            left.classList.remove('is-visible');
+            right.classList.remove('is-visible');
+            setTimeout(() => {
+                pair.remove();
+                left.remove();
+                right.remove();
+                deskVisitorActive = false;
+            }, 450);
+        }, 5200);
+        return;
+    }
+
+    const { guest, tech } = pickDeskVisitorGuest();
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    const el = buildDeskVisitorCard({ side, guest, tech, myName, duo: false });
     el.id = 'tm-desk-visitor';
-    el.className = `tm-desk-visitor-${side}`;
-    el.setAttribute('aria-hidden', 'true');
-    el.innerHTML =
-        `<div class="tm-desk-visitor-emoji">${guest.emoji}</div>`
-        + `<div class="tm-desk-visitor-bubble">${lines[Math.floor(Math.random() * lines.length)]}</div>`;
     document.body.appendChild(el);
     requestAnimationFrame(() => el.classList.add('is-visible'));
 
@@ -37989,6 +39045,74 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         return Math.round(MASCOT_BASE_SIZE_PX * (isElite ? MASCOT_ELITE_SIZE_MULT : 1) * stageScale);
     }
 
+    const CARE_PANEL_SIZE_ORDER = ['compact', 'comfort', 'large'];
+    const CARE_PANEL_SIZE_META = {
+        compact: {
+            label: 'Μικρό',
+            icon: 'S',
+            previewMax: 72,
+            title: 'Μέγεθος: Μικρό · πάτα για μεσαίο',
+        },
+        comfort: {
+            label: 'Μεσαίο',
+            icon: 'M',
+            previewMax: 92,
+            title: 'Μέγεθος: Μεσαίο · πάτα για μεγάλο',
+        },
+        large: {
+            label: 'Μεγάλο',
+            icon: 'L',
+            previewMax: 120,
+            title: 'Μέγεθος: Μεγάλο · πάτα για μικρό',
+        },
+    };
+
+    function getMascotCarePanelSizeKey(STORAGE_KEYS) {
+        return STORAGE_KEYS?.MASCOT_CARE_PANEL_SIZE
+            || window.STORAGE_KEYS?.MASCOT_CARE_PANEL_SIZE
+            || 'tm_mascot_care_panel_size';
+    }
+
+    function getMascotCarePanelSize(STORAGE_KEYS) {
+        let raw = 'compact';
+        try {
+            raw = String(GM_getValue(getMascotCarePanelSizeKey(STORAGE_KEYS), 'compact') || 'compact');
+        } catch (_) { /* ignore */ }
+        return CARE_PANEL_SIZE_ORDER.includes(raw) ? raw : 'compact';
+    }
+
+    function setMascotCarePanelSize(size, STORAGE_KEYS) {
+        const next = CARE_PANEL_SIZE_ORDER.includes(size) ? size : 'compact';
+        try {
+            GM_setValue(getMascotCarePanelSizeKey(STORAGE_KEYS), next);
+        } catch (_) { /* ignore */ }
+        return next;
+    }
+
+    function cycleMascotCarePanelSize(STORAGE_KEYS) {
+        const cur = getMascotCarePanelSize(STORAGE_KEYS);
+        const idx = CARE_PANEL_SIZE_ORDER.indexOf(cur);
+        const next = CARE_PANEL_SIZE_ORDER[(idx + 1) % CARE_PANEL_SIZE_ORDER.length];
+        return setMascotCarePanelSize(next, STORAGE_KEYS);
+    }
+
+    function applyCarePanelSizeToModal(modal, size, STORAGE_KEYS) {
+        if (!modal) return;
+        const resolved = CARE_PANEL_SIZE_ORDER.includes(size)
+            ? size
+            : getMascotCarePanelSize(STORAGE_KEYS);
+        const meta = CARE_PANEL_SIZE_META[resolved] || CARE_PANEL_SIZE_META.compact;
+        const shell = modal.querySelector('.tm-mascot-modal-container');
+        if (shell) shell.dataset.careSize = resolved;
+        const btn = modal.querySelector('#tm-action-panel-size');
+        if (btn) {
+            btn.textContent = meta.icon;
+            btn.title = meta.title;
+            btn.setAttribute('aria-label', meta.title);
+        }
+        mountCarePanelMascotPreview(modal);
+    }
+
     function mountCarePanelMascotPreview(modal) {
         const stage = modal?.querySelector?.('#tm-mascot-care-preview-stage');
         const host = modal?.querySelector?.('#tm-mascot-care-preview');
@@ -38007,7 +39131,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         }
 
         const { clone, liveRoot } = built;
-        const sizePx = Math.min(72, getLiveMascotPreviewSizePx(liveRoot));
+        const sizeKey = modal.querySelector('.tm-mascot-modal-container')?.dataset?.careSize
+            || getMascotCarePanelSize();
+        const previewMax = CARE_PANEL_SIZE_META[sizeKey]?.previewMax || 72;
+        const sizePx = Math.min(previewMax, getLiveMascotPreviewSizePx(liveRoot));
         stage.style.setProperty('--tm-care-preview-size', `${sizePx}px`);
         const stageScale = liveRoot?.style?.getPropertyValue?.('--tm-stage-scale')
             || liveRoot?.dataset?.tmStageScale
@@ -38148,12 +39275,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             : String(typeof tamagotchiNickname !== 'undefined' ? tamagotchiNickname : '').trim().slice(0, 16);
         const nickBtnLabel = '✏️';
         const coinsBtnLabel = dailyCoinsState.claimed ? '🪙' : '🪙+';
+        const carePanelSize = getMascotCarePanelSize(STORAGE_KEYS);
+        const carePanelSizeMeta = CARE_PANEL_SIZE_META[carePanelSize] || CARE_PANEL_SIZE_META.compact;
 
         const modal = document.createElement('div');
         modal.id = 'tm-mascot-stats-modal';
         modal.innerHTML = `
             <div class="tm-mascot-modal-backdrop"></div>
-            <div class="tm-mascot-modal-container" role="dialog" aria-modal="true" aria-labelledby="tm-mascot-care-title">
+            <div class="tm-mascot-modal-container" data-care-size="${carePanelSize}" role="dialog" aria-modal="true" aria-labelledby="tm-mascot-care-title">
                 <div class="tm-mascot-modal-header">
                     <div class="tm-mascot-header-info">
                         <h2 class="tm-mascot-name" id="tm-mascot-care-title">${characterName}</h2>
@@ -38167,6 +39296,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <button type="button" class="tm-mascot-header-chip" id="tm-action-nickname" title="${nickValue ? `Παρατσούκλι: ${nickValue}` : 'Άλλαξε παρατσούκλι'}">${nickBtnLabel}</button>
                         <button type="button" class="tm-mascot-header-chip ${dailyCoinsState.claimed ? 'tm-daily-claimed' : 'tm-chip-claim'}" id="tm-action-daily-coins" title="${dailyCoinsState.title}" ${dailyCoinsState.claimed ? 'disabled' : ''}>${coinsBtnLabel}</button>
                         <button type="button" class="tm-mascot-header-chip" id="tm-action-age-preview" title="Δες όλες τις εξελίξεις">🧬</button>
+                        <button type="button" class="tm-mascot-header-chip tm-chip-size" id="tm-action-panel-size" title="${carePanelSizeMeta.title}" aria-label="${carePanelSizeMeta.title}">${carePanelSizeMeta.icon}</button>
+                        <button type="button" class="tm-mascot-header-chip" id="tm-action-park" title="${mascotPositionLocked ? 'Απελευθέρωσε το mascot' : 'Pin στο σημείο'}">${mascotPositionLocked ? '🔓' : '📌'}</button>
+                        <button type="button" class="tm-mascot-header-chip ${isMascotFocusQuiet() ? 'tm-chip-focus-on' : ''}" id="tm-action-focus" title="${isMascotFocusQuiet() ? `Τέλος focus (${getMascotFocusQuietRemainingLabel() || 'ενεργό'})` : 'Focus 25′ — ήσυχη εστίαση'}">🎯</button>
                         <button type="button" class="tm-mascot-close-btn" id="tm-modal-close" aria-label="Κλείσιμο">✕</button>
                     </div>
                 </div>
@@ -38299,7 +39431,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </div>
                 </div>
 
-                <details class="tm-mascot-more-details"${(praiseUrgent || scoldUrgent || isMascotFocusQuiet()) ? ' open' : ''}>
+                <details class="tm-mascot-more-details"${(praiseUrgent || scoldUrgent) ? ' open' : ''}>
                     <summary>Περισσότερα</summary>
                     <div class="tm-mascot-actions tm-actions-more">
                         <button type="button" class="tm-action-btn tm-action-praise ${praiseUrgent ? 'tm-action-urgent' : ''}" id="tm-action-praise" title="Έπαινος (+πειθαρχία, +χαρά)">
@@ -38313,14 +39445,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <button type="button" class="tm-action-btn tm-action-lights" id="tm-action-lights" title="Φώτα">
                             <span class="tm-action-icon">${tamagotchiLightsOn ? '💡' : '🌙'}</span>
                             <span class="tm-action-label">${tamagotchiLightsOn ? 'Φώτα' : 'Σκοτάδι'}</span>
-                        </button>
-                        <button type="button" class="tm-action-btn tm-action-park" id="tm-action-park" title="Σταθμεύσε / απελευθέρωσε">
-                            <span class="tm-action-icon">${mascotPositionLocked ? '🔓' : '📌'}</span>
-                            <span class="tm-action-label">${mascotPositionLocked ? 'Ελεύθερο' : 'Pin'}</span>
-                        </button>
-                        <button type="button" class="tm-action-btn tm-action-focus ${isMascotFocusQuiet() ? 'tm-action-urgent' : ''}" id="tm-action-focus" title="Ήσυχη εστίαση 25′">
-                            <span class="tm-action-icon">🎯</span>
-                            <span class="tm-action-label">${isMascotFocusQuiet() ? 'Τέλος' : 'Focus'}</span>
                         </button>
                     </div>
                 </details>
@@ -38380,13 +39504,24 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
             #tm-mascot-stats-modal .tm-mascot-modal-container {
                 position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                z-index: 100001; width: min(92vw, 340px); max-height: min(90vh, 700px);
+                z-index: 100001; width: min(92vw, var(--tm-care-panel-width, 340px));
+                max-height: min(90vh, var(--tm-care-panel-max-h, 700px));
                 overflow-y: auto; background: var(--tm-modal-bg, #fff);
                 color: var(--tm-shop-item-text, #1e293b); border-radius: 14px;
                 border: 1px solid var(--tm-shop-item-border, #e2e8f0);
                 box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
                 animation: tmCareSlideIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
                 font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+                transition: width 0.2s ease, max-height 0.2s ease;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="compact"] {
+                --tm-care-panel-width: 340px; --tm-care-panel-max-h: 700px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="comfort"] {
+                --tm-care-panel-width: 400px; --tm-care-panel-max-h: 760px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] {
+                --tm-care-panel-width: 480px; --tm-care-panel-max-h: 860px;
             }
             #tm-mascot-stats-modal .tm-mascot-modal-container::-webkit-scrollbar { width: 5px; }
             #tm-mascot-stats-modal .tm-mascot-modal-container::-webkit-scrollbar-thumb {
@@ -38400,6 +39535,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             #tm-mascot-stats-modal .tm-mascot-header-info { min-width: 0; flex: 1; }
             #tm-mascot-stats-modal .tm-mascot-header-tools {
                 display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+                flex-wrap: wrap; justify-content: flex-end; max-width: 62%;
             }
             #tm-mascot-stats-modal .tm-mascot-header-chip {
                 appearance: none; width: 28px; height: 28px; padding: 0;
@@ -38420,6 +39556,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
             #tm-mascot-stats-modal .tm-mascot-header-chip.tm-daily-claimed { opacity: 0.65; cursor: default; }
             #tm-mascot-stats-modal .tm-mascot-header-chip:disabled { pointer-events: none; }
+            #tm-mascot-stats-modal .tm-mascot-header-chip.tm-chip-size {
+                font-size: 11px; font-weight: 800; letter-spacing: 0.02em;
+            }
+            #tm-mascot-stats-modal .tm-mascot-header-chip.tm-chip-focus-on {
+                border-color: color-mix(in srgb, #22c55e 55%, #e2e8f0);
+                background: color-mix(in srgb, #22c55e 16%, #fff); color: #166534;
+            }
             #tm-mascot-stats-modal .tm-mascot-nickname-editor {
                 display: flex; align-items: center; gap: 6px;
                 margin: 0 12px 6px; padding: 6px 8px; border-radius: 10px;
@@ -38472,6 +39615,42 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 height: var(--tm-care-preview-size, 64px);
                 max-width: 72px; max-height: 72px;
                 display: flex; align-items: center; justify-content: center; overflow: visible;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="comfort"] .tm-mascot-care-preview-frame {
+                max-width: 92px; max-height: 92px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-mascot-care-preview-frame {
+                max-width: 120px; max-height: 120px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="comfort"] .tm-mascot-name {
+                font-size: 1.05rem;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-mascot-name {
+                font-size: 1.18rem;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="comfort"] .tm-action-icon {
+                font-size: 17px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="comfort"] .tm-action-label {
+                font-size: 10.5px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-action-btn {
+                padding: 8px 3px 6px; border-radius: 11px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-action-icon {
+                font-size: 19px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-action-label {
+                font-size: 11.5px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-stat-label {
+                font-size: 11.5px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-stat-bar {
+                height: 7px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-mascot-tip {
+                font-size: 12.5px;
             }
             #tm-mascot-stats-modal .tm-mascot-care-preview-sprite {
                 position: relative; z-index: 1; width: 100%; height: 100%;
@@ -38664,6 +39843,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             showMascotAgePreviewModal(config, STORAGE_KEYS);
         });
 
+        modal.querySelector('#tm-action-panel-size')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const next = cycleMascotCarePanelSize(STORAGE_KEYS);
+            applyCarePanelSizeToModal(modal, next, STORAGE_KEYS);
+        });
+
         modal.querySelector('#tm-action-nickname')?.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -38814,16 +40000,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
             const parkBtn = modal.querySelector('#tm-action-park');
             if (parkBtn) {
-                const icon = parkBtn.querySelector('.tm-action-icon');
-                const label = parkBtn.querySelector('.tm-action-label');
-                if (icon) icon.textContent = mascotPositionLocked ? '🔓' : '📌';
-                if (label) label.textContent = mascotPositionLocked ? 'Ελεύθερο' : 'Pin';
+                parkBtn.textContent = mascotPositionLocked ? '🔓' : '📌';
+                parkBtn.title = mascotPositionLocked ? 'Απελευθέρωσε το mascot' : 'Pin στο σημείο';
             }
             const focusBtn = modal.querySelector('#tm-action-focus');
             if (focusBtn) {
-                focusBtn.classList.toggle('tm-action-urgent', isMascotFocusQuiet());
-                const label = focusBtn.querySelector('.tm-action-label');
-                if (label) label.textContent = isMascotFocusQuiet() ? 'Τέλος' : 'Focus';
+                focusBtn.classList.toggle('tm-chip-focus-on', isMascotFocusQuiet());
+                focusBtn.title = isMascotFocusQuiet()
+                    ? `Τέλος focus (${getMascotFocusQuietRemainingLabel() || 'ενεργό'})`
+                    : 'Focus 25′ — ήσυχη εστίαση';
             }
             const lightsBtn = modal.querySelector('#tm-action-lights');
             if (lightsBtn) {
@@ -66143,6 +67328,7 @@ if (typeof window !== 'undefined') {
             { label: 'Back Cover', term: 'Back Cover' },
         ],
         scratchpadEnabled: true,
+        officeChatEnabled: false, // PocketBase office chat (configure in Settings → Chat)
         scrollToTopEnabled: true,
         technicianStatsEnabled: true,
         customerHistoryEnabled: true,
@@ -66299,6 +67485,11 @@ if (typeof window !== 'undefined') {
                     break;
                 case 'quickSearchButtons':
                     storageKey = 'quickSearchButtons';
+                    break;
+                case 'officeChatEnabled':
+                    storageKey = (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.CHAT_ENABLED)
+                        ? STORAGE_KEYS.CHAT_ENABLED
+                        : 'tm_chat_enabled';
                     break;
                 
                 // Most settings use their direct camelCase names as storage keys
@@ -67721,10 +68912,19 @@ if (typeof window !== 'undefined') {
                     trackDailyStat(config, STORAGE_KEYS, 'repairsCompleted');
                     trackDailyStat(config, STORAGE_KEYS, 'status100Transfers');
                     if (config.interactiveMascotEnabled) {
-                        setMascotState(config, 'happy', 5000);
+                        if (typeof window.notifyMascotWorkEvent === 'function') {
+                            window.notifyMascotWorkEvent('repairDone', config);
+                        } else {
+                            setMascotState(config, 'happy', 5000);
+                        }
                     }
                 } else if (repairInfo.status === '40') {
                     trackDailyStat(config, STORAGE_KEYS, 'status40Transfers');
+                    if (config.interactiveMascotEnabled && typeof window.notifyMascotWorkEvent === 'function') {
+                        window.notifyMascotWorkEvent('statusChange', config);
+                    }
+                } else if (config.interactiveMascotEnabled && typeof window.notifyMascotWorkEvent === 'function') {
+                    window.notifyMascotWorkEvent('statusChange', config);
                 }
             } catch (e) {
                 console.error('[MMS] ❌ Error storing status transfer:', e);
@@ -71497,6 +72697,9 @@ if (typeof window !== 'undefined') {
         }
         if (config?.scratchpadEnabled) {
         window.initScratchpadFeature(config, STORAGE_KEYS); // Pass config
+        }
+        if (typeof window.initOfficeChatFeature === 'function') {
+            window.initOfficeChatFeature(config, STORAGE_KEYS);
         }
         
         if (typeof window.initPhoneCatalogMenuItem === 'function') {

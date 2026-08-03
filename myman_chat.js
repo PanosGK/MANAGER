@@ -1,0 +1,785 @@
+// ==UserScript==
+// @name         MyManager Office Chat
+// @namespace    http://tampermonkey.net/
+// @version      1
+// @description  PocketBase office chat panel for MyManager All-in-One Suite.
+// @author       Gkorogias
+// @match        *://thefixers.mymanager.gr/*
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_xmlhttpRequest
+// @grant        GM_addStyle
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    const CHAT_ROOM = 'office';
+    const CHAT_MAX_LEN = 500;
+    const CHAT_SEND_COOLDOWN_MS = 1500;
+    const CHAT_POLL_MS = 5000;
+    const CHAT_PAGE_SIZE = 50;
+    const CHAT_TOKEN_SKEW_MS = 60 * 1000;
+
+    let chatPollTimer = null;
+    let chatRealtimeEs = null;
+    let chatRealtimeClientId = null;
+    let chatLastSendAt = 0;
+    let chatMessages = [];
+    let chatUnread = 0;
+    let chatMuted = false;
+    let chatPanelOpen = false;
+    let chatConnecting = false;
+    let chatAuthToken = null;
+    let chatAuthExpires = 0;
+    let chatStatus = 'idle'; // idle | connecting | online | error | disabled
+    let chatStatusDetail = '';
+    let chatInitDone = false;
+    let chatHydrated = false;
+
+    function chatKeys(STORAGE_KEYS) {
+        const k = STORAGE_KEYS || window.STORAGE_KEYS || {};
+        return {
+            enabled: k.CHAT_ENABLED || 'tm_chat_enabled',
+            baseUrl: k.CHAT_BASE_URL || 'tm_chat_base_url',
+            user: k.CHAT_USER || 'tm_chat_user',
+            pass: k.CHAT_PASS || 'tm_chat_pass',
+            tokenCache: k.CHAT_TOKEN_CACHE || 'tm_chat_token_cache',
+            muted: k.CHAT_MUTED || 'tm_chat_muted',
+        };
+    }
+
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function normalizeBaseUrl(raw) {
+        let s = String(raw || '').trim().replace(/\/+$/, '');
+        if (!s) return '';
+        if (!/^https?:\/\//i.test(s)) s = `https://${s}`;
+        return s.replace(/\/+$/, '');
+    }
+
+    function getChatSettings(STORAGE_KEYS) {
+        const keys = chatKeys(STORAGE_KEYS);
+        return {
+            enabled: !!GM_getValue(keys.enabled, false),
+            baseUrl: normalizeBaseUrl(GM_getValue(keys.baseUrl, '')),
+            user: String(GM_getValue(keys.user, '') || '').trim(),
+            pass: String(GM_getValue(keys.pass, '') || ''),
+            muted: !!GM_getValue(keys.muted, false),
+        };
+    }
+
+    function getDisplayName() {
+        const name = window.tmCurrentUser
+            || window.config?.currentUser
+            || '';
+        return String(name || 'Τεχνικός').trim().slice(0, 64) || 'Τεχνικός';
+    }
+
+    function getProfileId() {
+        try {
+            if (typeof window.tmGetActiveProfileId === 'function') {
+                return String(window.tmGetActiveProfileId() || '').slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        return '';
+    }
+
+    function getXhr() {
+        if (typeof window.getScriptXhr === 'function') {
+            const fn = window.getScriptXhr();
+            if (fn) return fn;
+        }
+        if (typeof GM_xmlhttpRequest === 'function') return GM_xmlhttpRequest;
+        if (typeof GM !== 'undefined' && typeof GM.xmlHttpRequest === 'function') {
+            return GM.xmlHttpRequest.bind(GM);
+        }
+        return null;
+    }
+
+    function chatRequest({ method, url, headers, data, timeout }) {
+        const xhr = getXhr();
+        if (!xhr) {
+            return Promise.reject(new Error('GM_xmlhttpRequest unavailable'));
+        }
+        return new Promise((resolve, reject) => {
+            xhr({
+                method: method || 'GET',
+                url,
+                headers: headers || {},
+                data: data != null ? data : undefined,
+                timeout: timeout || 20000,
+                onload(res) {
+                    resolve(res);
+                },
+                onerror() {
+                    reject(new Error('Network error'));
+                },
+                ontimeout() {
+                    reject(new Error('Timeout'));
+                },
+            });
+        });
+    }
+
+    async function chatRequestJson(opts) {
+        const res = await chatRequest(opts);
+        let body = null;
+        try {
+            body = res.responseText ? JSON.parse(res.responseText) : null;
+        } catch (_) {
+            body = null;
+        }
+        return { status: res.status, body, raw: res.responseText || '' };
+    }
+
+    function loadCachedToken(STORAGE_KEYS) {
+        const keys = chatKeys(STORAGE_KEYS);
+        try {
+            const raw = GM_getValue(keys.tokenCache, '');
+            if (!raw) return null;
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            if (!parsed?.token) return null;
+            return parsed;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function saveCachedToken(STORAGE_KEYS, token, expires) {
+        const keys = chatKeys(STORAGE_KEYS);
+        try {
+            GM_setValue(keys.tokenCache, JSON.stringify({
+                token,
+                expires: Number(expires) || 0,
+                savedAt: Date.now(),
+            }));
+        } catch (_) { /* ignore */ }
+    }
+
+    function clearCachedToken(STORAGE_KEYS) {
+        const keys = chatKeys(STORAGE_KEYS);
+        try {
+            GM_setValue(keys.tokenCache, '');
+        } catch (_) { /* ignore */ }
+        chatAuthToken = null;
+        chatAuthExpires = 0;
+    }
+
+    function setChatStatus(status, detail) {
+        chatStatus = status;
+        chatStatusDetail = detail || '';
+        updateChatStatusUi();
+    }
+
+    function updateChatStatusUi() {
+        const el = document.getElementById('tm-chat-status');
+        if (!el) return;
+        const labels = {
+            idle: 'Ανενεργό',
+            connecting: 'Σύνδεση…',
+            online: 'Online',
+            error: 'Σφάλμα',
+            disabled: 'Απενεργοποιημένο',
+        };
+        el.textContent = chatStatusDetail
+            ? `${labels[chatStatus] || chatStatus}: ${chatStatusDetail}`
+            : (labels[chatStatus] || chatStatus);
+        el.dataset.status = chatStatus;
+    }
+
+    function updateUnreadBadge() {
+        const btn = document.getElementById('tm-chat-toggle-btn');
+        if (!btn) return;
+        let badge = btn.querySelector('.tm-chat-unread');
+        if (chatUnread > 0 && !chatPanelOpen) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'tm-chat-unread';
+                btn.appendChild(badge);
+            }
+            badge.textContent = chatUnread > 99 ? '99+' : String(chatUnread);
+            badge.hidden = false;
+        } else if (badge) {
+            badge.hidden = true;
+        }
+    }
+
+    function formatMsgTime(iso) {
+        if (!iso) return '';
+        try {
+            const d = new Date(iso);
+            if (Number.isNaN(d.getTime())) return '';
+            return d.toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' });
+        } catch (_) {
+            return '';
+        }
+    }
+
+    function renderMessages() {
+        const list = document.getElementById('tm-chat-messages');
+        if (!list) return;
+        const sorted = chatMessages.slice().sort((a, b) => {
+            const ta = new Date(a.created || 0).getTime();
+            const tb = new Date(b.created || 0).getTime();
+            return ta - tb;
+        });
+        const me = getDisplayName();
+        list.innerHTML = sorted.map((m) => {
+            const mine = String(m.displayName || '') === me;
+            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}" data-id="${escapeHtml(m.id)}">
+                <div class="tm-chat-msg-meta">
+                    <span class="tm-chat-msg-name">${escapeHtml(m.displayName || '?')}</span>
+                    <span class="tm-chat-msg-time">${escapeHtml(formatMsgTime(m.created))}</span>
+                </div>
+                <div class="tm-chat-msg-text">${escapeHtml(m.text || '')}</div>
+            </div>`;
+        }).join('');
+        list.scrollTop = list.scrollHeight;
+    }
+
+    function upsertMessages(records, { fromPollOrRealtime } = {}) {
+        if (!Array.isArray(records) || !records.length) return;
+        const byId = new Map(chatMessages.map((m) => [m.id, m]));
+        let added = 0;
+        records.forEach((rec) => {
+            if (!rec?.id) return;
+            if (String(rec.room || CHAT_ROOM) !== CHAT_ROOM) return;
+            const prev = byId.get(rec.id);
+            if (!prev) added += 1;
+            byId.set(rec.id, {
+                id: rec.id,
+                text: rec.text,
+                displayName: rec.displayName,
+                profileId: rec.profileId || '',
+                room: rec.room || CHAT_ROOM,
+                created: rec.created,
+            });
+        });
+        chatMessages = Array.from(byId.values());
+        if (chatMessages.length > 200) {
+            chatMessages = chatMessages
+                .slice()
+                .sort((a, b) => new Date(a.created || 0) - new Date(b.created || 0))
+                .slice(-200);
+        }
+        renderMessages();
+        if (chatHydrated && fromPollOrRealtime && added > 0 && !chatPanelOpen) {
+            chatUnread += added;
+            updateUnreadBadge();
+        }
+    }
+
+    async function ensureAuth(STORAGE_KEYS, { force } = {}) {
+        const settings = getChatSettings(STORAGE_KEYS);
+        if (!settings.baseUrl || !settings.user || !settings.pass) {
+            throw new Error('Λείπουν URL / χρήστης / κωδικός');
+        }
+
+        const now = Date.now();
+        if (!force && chatAuthToken && chatAuthExpires > now + CHAT_TOKEN_SKEW_MS) {
+            return chatAuthToken;
+        }
+
+        const cached = loadCachedToken(STORAGE_KEYS);
+        if (!force && cached?.token && Number(cached.expires) > now + CHAT_TOKEN_SKEW_MS) {
+            chatAuthToken = cached.token;
+            chatAuthExpires = Number(cached.expires) || 0;
+            return chatAuthToken;
+        }
+
+        const url = `${settings.baseUrl}/api/collections/users/auth-with-password`;
+        const { status, body } = await chatRequestJson({
+            method: 'POST',
+            url,
+            headers: { 'Content-Type': 'application/json' },
+            data: JSON.stringify({
+                identity: settings.user,
+                password: settings.pass,
+            }),
+        });
+
+        if (status < 200 || status >= 300 || !body?.token) {
+            clearCachedToken(STORAGE_KEYS);
+            const msg = body?.message || `Auth failed (${status})`;
+            throw new Error(msg);
+        }
+
+        chatAuthToken = body.token;
+        // PocketBase tokens are JWTs; expire ~token.expires or ~14 days. Use record if present.
+        const expSec = body.record?.tokenKey
+            ? null
+            : null;
+        // Prefer JWT exp if we can decode; else 12h cache.
+        let expires = now + 12 * 60 * 60 * 1000;
+        try {
+            const payload = JSON.parse(atob(String(body.token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            if (payload?.exp) expires = Number(payload.exp) * 1000;
+        } catch (_) { /* ignore */ }
+        void expSec;
+        chatAuthExpires = expires;
+        saveCachedToken(STORAGE_KEYS, chatAuthToken, expires);
+        return chatAuthToken;
+    }
+
+    async function fetchMessages(STORAGE_KEYS) {
+        const settings = getChatSettings(STORAGE_KEYS);
+        const token = await ensureAuth(STORAGE_KEYS);
+        const filter = encodeURIComponent(`room="${CHAT_ROOM}"`);
+        const url = `${settings.baseUrl}/api/collections/messages/records?page=1&perPage=${CHAT_PAGE_SIZE}&sort=-created&filter=${filter}`;
+        const { status, body } = await chatRequestJson({
+            method: 'GET',
+            url,
+            headers: { Authorization: token },
+        });
+        if (status === 401) {
+            clearCachedToken(STORAGE_KEYS);
+            const token2 = await ensureAuth(STORAGE_KEYS, { force: true });
+            const retry = await chatRequestJson({
+                method: 'GET',
+                url,
+                headers: { Authorization: token2 },
+            });
+            if (retry.status < 200 || retry.status >= 300) {
+                throw new Error(retry.body?.message || `Fetch failed (${retry.status})`);
+            }
+            upsertMessages(retry.body?.items || [], { fromPollOrRealtime: chatHydrated });
+            chatHydrated = true;
+            return;
+        }
+        if (status < 200 || status >= 300) {
+            throw new Error(body?.message || `Fetch failed (${status})`);
+        }
+        upsertMessages(body?.items || [], { fromPollOrRealtime: chatHydrated });
+        chatHydrated = true;
+    }
+
+    async function sendChatMessage(STORAGE_KEYS, text) {
+        const clean = String(text || '').trim().slice(0, CHAT_MAX_LEN);
+        if (!clean) return { ok: false, reason: 'empty' };
+        const now = Date.now();
+        if (now - chatLastSendAt < CHAT_SEND_COOLDOWN_MS) {
+            return { ok: false, reason: 'rate' };
+        }
+        chatLastSendAt = now;
+
+        const settings = getChatSettings(STORAGE_KEYS);
+        const token = await ensureAuth(STORAGE_KEYS);
+        const url = `${settings.baseUrl}/api/collections/messages/records`;
+        const payload = {
+            text: clean,
+            displayName: getDisplayName(),
+            profileId: getProfileId(),
+            room: CHAT_ROOM,
+        };
+        const { status, body } = await chatRequestJson({
+            method: 'POST',
+            url,
+            headers: {
+                Authorization: token,
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify(payload),
+        });
+        if (status === 401) {
+            clearCachedToken(STORAGE_KEYS);
+            const token2 = await ensureAuth(STORAGE_KEYS, { force: true });
+            const retry = await chatRequestJson({
+                method: 'POST',
+                url,
+                headers: {
+                    Authorization: token2,
+                    'Content-Type': 'application/json',
+                },
+                data: JSON.stringify(payload),
+            });
+            if (retry.status < 200 || retry.status >= 300) {
+                throw new Error(retry.body?.message || `Send failed (${retry.status})`);
+            }
+            upsertMessages([retry.body]);
+            return { ok: true };
+        }
+        if (status < 200 || status >= 300) {
+            throw new Error(body?.message || `Send failed (${status})`);
+        }
+        upsertMessages([body]);
+        return { ok: true };
+    }
+
+    function stopRealtime() {
+        if (chatRealtimeEs) {
+            try { chatRealtimeEs.close(); } catch (_) { /* ignore */ }
+            chatRealtimeEs = null;
+        }
+        chatRealtimeClientId = null;
+    }
+
+    function stopPolling() {
+        if (chatPollTimer) {
+            clearInterval(chatPollTimer);
+            chatPollTimer = null;
+        }
+    }
+
+    function startPolling(STORAGE_KEYS) {
+        stopPolling();
+        chatPollTimer = setInterval(() => {
+            if (chatConnecting) return;
+            fetchMessages(STORAGE_KEYS).catch(() => { /* keep polling */ });
+        }, CHAT_POLL_MS);
+    }
+
+    async function tryStartRealtime(STORAGE_KEYS) {
+        stopRealtime();
+        const settings = getChatSettings(STORAGE_KEYS);
+        if (!settings.baseUrl || typeof EventSource === 'undefined') {
+            return false;
+        }
+        try {
+            const token = await ensureAuth(STORAGE_KEYS);
+            const es = new EventSource(`${settings.baseUrl}/api/realtime`);
+            chatRealtimeEs = es;
+
+            await new Promise((resolve, reject) => {
+                const t = setTimeout(() => reject(new Error('realtime timeout')), 8000);
+                es.addEventListener('PB_CONNECT', async (ev) => {
+                    clearTimeout(t);
+                    try {
+                        const data = JSON.parse(ev.data || '{}');
+                        chatRealtimeClientId = data.clientId;
+                        const subUrl = `${settings.baseUrl}/api/realtime`;
+                        const { status } = await chatRequestJson({
+                            method: 'POST',
+                            url: subUrl,
+                            headers: {
+                                Authorization: token,
+                                'Content-Type': 'application/json',
+                            },
+                            data: JSON.stringify({
+                                clientId: chatRealtimeClientId,
+                                subscriptions: ['messages/*'],
+                            }),
+                        });
+                        if (status < 200 || status >= 300) {
+                            reject(new Error(`subscribe ${status}`));
+                            return;
+                        }
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+                es.onerror = () => {
+                    clearTimeout(t);
+                    reject(new Error('SSE error'));
+                };
+            });
+
+            es.addEventListener('messages/*', (ev) => {
+                try {
+                    const data = JSON.parse(ev.data || '{}');
+                    if (data?.record) {
+                        upsertMessages([data.record], { fromPollOrRealtime: true });
+                    }
+                } catch (_) { /* ignore */ }
+            });
+
+            // Also listen without wildcard encoding variants
+            es.onmessage = (ev) => {
+                try {
+                    const data = JSON.parse(ev.data || '{}');
+                    if (data?.record) {
+                        upsertMessages([data.record], { fromPollOrRealtime: true });
+                    }
+                } catch (_) { /* ignore */ }
+            };
+
+            return true;
+        } catch (_) {
+            stopRealtime();
+            return false;
+        }
+    }
+
+    async function connectChat(STORAGE_KEYS) {
+        const settings = getChatSettings(STORAGE_KEYS);
+        if (!settings.enabled) {
+            setChatStatus('disabled');
+            return { ok: false, reason: 'disabled' };
+        }
+        if (!settings.baseUrl || !settings.user || !settings.pass) {
+            setChatStatus('error', 'Ρυθμίστε URL και λογαριασμό');
+            return { ok: false, reason: 'config' };
+        }
+        if (chatConnecting) return { ok: false, reason: 'busy' };
+        chatConnecting = true;
+        setChatStatus('connecting');
+        try {
+            await ensureAuth(STORAGE_KEYS, { force: true });
+            await fetchMessages(STORAGE_KEYS);
+            const realtimeOk = await tryStartRealtime(STORAGE_KEYS);
+            startPolling(STORAGE_KEYS); // always poll as safety net
+            setChatStatus('online', realtimeOk ? 'realtime+poll' : 'poll');
+            return { ok: true, realtime: realtimeOk };
+        } catch (err) {
+            setChatStatus('error', err?.message || 'Σύνδεση απέτυχε');
+            return { ok: false, reason: 'error', error: err };
+        } finally {
+            chatConnecting = false;
+        }
+    }
+
+    async function testChatConnection(STORAGE_KEYS) {
+        const settings = getChatSettings(STORAGE_KEYS);
+        if (!settings.baseUrl || !settings.user || !settings.pass) {
+            return { ok: false, message: 'Συμπληρώστε URL, χρήστη και κωδικό.' };
+        }
+        try {
+            clearCachedToken(STORAGE_KEYS);
+            await ensureAuth(STORAGE_KEYS, { force: true });
+            await fetchMessages(STORAGE_KEYS);
+            return { ok: true, message: 'Σύνδεση OK — το chat είναι έτοιμο.' };
+        } catch (err) {
+            return { ok: false, message: err?.message || 'Αποτυχία σύνδεσης' };
+        }
+    }
+
+    function injectChatStyles() {
+        if (document.getElementById('tm-chat-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'tm-chat-styles';
+        style.textContent = `
+            #tm-chat-toggle-btn { position: relative; background-color: var(--tm-info-color, #0d6efd); }
+            #tm-chat-toggle-btn:hover { background-color: var(--tm-info-hover, #0b5ed7); }
+            #tm-chat-toggle-btn .tm-chat-unread {
+                position: absolute; top: -6px; right: -6px;
+                min-width: 18px; height: 18px; padding: 0 5px;
+                border-radius: 999px; background: #dc3545; color: #fff;
+                font-size: 10px; font-weight: 700; line-height: 18px; text-align: center;
+            }
+            #tm-chat-panel {
+                position: fixed; bottom: 60px; right: 20px; z-index: 9997;
+                width: 340px; height: 420px; max-height: calc(100vh - 80px);
+                display: none; flex-direction: column;
+                background: #fff; border: 1px solid #ccc; border-radius: 10px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.18); overflow: hidden;
+                font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            }
+            #tm-chat-panel.is-open { display: flex; }
+            #tm-chat-header {
+                display: flex; align-items: center; gap: 8px;
+                padding: 8px 10px; background: #e9ecef; border-bottom: 1px solid #ccc;
+                user-select: none;
+            }
+            #tm-chat-title { font-weight: 700; font-size: 13px; color: #333; flex: 1; }
+            #tm-chat-header button {
+                background: none; border: none; cursor: pointer; color: #555;
+                font-size: 14px; padding: 2px 6px; border-radius: 4px;
+            }
+            #tm-chat-header button:hover { background: #d4d9de; color: #000; }
+            #tm-chat-header button.is-muted { color: #dc3545; }
+            #tm-chat-status {
+                font-size: 11px; padding: 4px 10px; color: #6c757d;
+                border-bottom: 1px solid #eee; background: #f8f9fa;
+            }
+            #tm-chat-status[data-status="online"] { color: #198754; }
+            #tm-chat-status[data-status="error"] { color: #dc3545; }
+            #tm-chat-status[data-status="connecting"] { color: #0d6efd; }
+            #tm-chat-messages {
+                flex: 1; overflow-y: auto; padding: 10px; display: flex;
+                flex-direction: column; gap: 8px; background: #fafbfc;
+            }
+            .tm-chat-msg {
+                max-width: 92%; align-self: flex-start;
+                background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+                padding: 6px 8px;
+            }
+            .tm-chat-msg.is-mine {
+                align-self: flex-end; background: #e7f1ff; border-color: #cfe2ff;
+            }
+            .tm-chat-msg-meta {
+                display: flex; justify-content: space-between; gap: 8px;
+                font-size: 10px; color: #6c757d; margin-bottom: 2px;
+            }
+            .tm-chat-msg-name { font-weight: 700; color: #495057; }
+            .tm-chat-msg-text {
+                font-size: 13px; color: #212529; white-space: pre-wrap; word-break: break-word;
+            }
+            #tm-chat-composer {
+                display: flex; gap: 6px; padding: 8px; border-top: 1px solid #ccc; background: #fff;
+            }
+            #tm-chat-input {
+                flex: 1; resize: none; min-height: 38px; max-height: 80px;
+                border: 1px solid #ccc; border-radius: 8px; padding: 6px 8px;
+                font-size: 13px; font-family: inherit;
+            }
+            #tm-chat-send {
+                border: none; border-radius: 8px; padding: 0 14px;
+                background: var(--tm-primary-color, #0d6efd); color: #fff;
+                font-weight: 700; cursor: pointer;
+            }
+            #tm-chat-send:hover { filter: brightness(0.95); }
+            #tm-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function ensureRightSideContainer() {
+        let rightSideContainer = document.getElementById('tm-search-container');
+        if (!rightSideContainer) {
+            rightSideContainer = document.createElement('div');
+            rightSideContainer.id = 'tm-search-container';
+            document.body.appendChild(rightSideContainer);
+        }
+        return rightSideContainer;
+    }
+
+    function openChatPanel(STORAGE_KEYS) {
+        const panel = document.getElementById('tm-chat-panel');
+        if (!panel) return;
+        panel.classList.add('is-open');
+        chatPanelOpen = true;
+        chatUnread = 0;
+        updateUnreadBadge();
+        renderMessages();
+        document.getElementById('tm-chat-input')?.focus();
+        if (chatStatus !== 'online' && chatStatus !== 'connecting') {
+            connectChat(STORAGE_KEYS);
+        }
+    }
+
+    function closeChatPanel() {
+        const panel = document.getElementById('tm-chat-panel');
+        if (!panel) return;
+        panel.classList.remove('is-open');
+        chatPanelOpen = false;
+        updateUnreadBadge();
+    }
+
+    function toggleChatPanel(STORAGE_KEYS) {
+        if (chatPanelOpen) closeChatPanel();
+        else openChatPanel(STORAGE_KEYS);
+    }
+
+    function wireComposer(STORAGE_KEYS) {
+        const input = document.getElementById('tm-chat-input');
+        const sendBtn = document.getElementById('tm-chat-send');
+        if (!input || !sendBtn) return;
+
+        const doSend = async () => {
+            const text = input.value;
+            if (!String(text || '').trim()) return;
+            sendBtn.disabled = true;
+            try {
+                const result = await sendChatMessage(STORAGE_KEYS, text);
+                if (result.ok) {
+                    input.value = '';
+                } else if (result.reason === 'rate') {
+                    setChatStatus('online', 'Περίμενε λίγο…');
+                    setTimeout(() => setChatStatus('online'), 1200);
+                }
+            } catch (err) {
+                setChatStatus('error', err?.message || 'Αποστολή απέτυχε');
+            } finally {
+                sendBtn.disabled = false;
+                input.focus();
+            }
+        };
+
+        sendBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            doSend();
+        });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                doSend();
+            }
+        });
+    }
+
+    function initOfficeChatFeature(config, STORAGE_KEYS) {
+        if (chatInitDone) return;
+
+        const settings = getChatSettings(STORAGE_KEYS);
+        const enabled = settings.enabled === true || config?.officeChatEnabled === true;
+        if (!enabled) return;
+
+        chatInitDone = true;
+        chatMuted = settings.muted;
+        injectChatStyles();
+
+        const right = ensureRightSideContainer();
+        let toggleButton = document.getElementById('tm-chat-toggle-btn');
+        if (toggleButton && (toggleButton.getAttribute('data-tm-ui-shell') === '1'
+            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(toggleButton)))) {
+            toggleButton.remove();
+            toggleButton = null;
+        }
+        if (!toggleButton) {
+            toggleButton = document.createElement('button');
+            toggleButton.id = 'tm-chat-toggle-btn';
+            toggleButton.className = 'tm-slide-out-btn';
+            toggleButton.type = 'button';
+            toggleButton.textContent = '💬 Chat';
+            right.appendChild(toggleButton);
+        }
+        toggleButton.addEventListener('click', () => toggleChatPanel(STORAGE_KEYS));
+
+        if (!document.getElementById('tm-chat-panel')) {
+            const panel = document.createElement('div');
+            panel.id = 'tm-chat-panel';
+            panel.innerHTML = `
+                <div id="tm-chat-header">
+                    <span id="tm-chat-title">Office Chat</span>
+                    <button type="button" id="tm-chat-mute-btn" title="Σίγαση">🔔</button>
+                    <button type="button" id="tm-chat-refresh-btn" title="Ανανέωση">↻</button>
+                    <button type="button" id="tm-chat-close-btn" title="Κλείσιμο">&times;</button>
+                </div>
+                <div id="tm-chat-status">Ανενεργό</div>
+                <div id="tm-chat-messages"></div>
+                <div id="tm-chat-composer">
+                    <textarea id="tm-chat-input" maxlength="${CHAT_MAX_LEN}" placeholder="Μήνυμα… (Enter αποστολή)" rows="2"></textarea>
+                    <button type="button" id="tm-chat-send">Αποστολή</button>
+                </div>
+            `;
+            document.body.appendChild(panel);
+
+            panel.querySelector('#tm-chat-close-btn')?.addEventListener('click', closeChatPanel);
+            panel.querySelector('#tm-chat-refresh-btn')?.addEventListener('click', () => {
+                connectChat(STORAGE_KEYS);
+            });
+            const muteBtn = panel.querySelector('#tm-chat-mute-btn');
+            if (muteBtn) {
+                const syncMute = () => {
+                    muteBtn.textContent = chatMuted ? '🔕' : '🔔';
+                    muteBtn.classList.toggle('is-muted', chatMuted);
+                    muteBtn.title = chatMuted ? 'Άρση σίγασης' : 'Σίγαση';
+                };
+                syncMute();
+                muteBtn.addEventListener('click', () => {
+                    chatMuted = !chatMuted;
+                    const keys = chatKeys(STORAGE_KEYS);
+                    GM_setValue(keys.muted, chatMuted);
+                    syncMute();
+                });
+            }
+            wireComposer(STORAGE_KEYS);
+        }
+
+        // Background connect so unread works with panel closed
+        connectChat(STORAGE_KEYS);
+    }
+
+    window.initOfficeChatFeature = initOfficeChatFeature;
+    window.testOfficeChatConnection = testChatConnection;
+    window.connectOfficeChat = connectChat;
+    window.getOfficeChatSettings = getChatSettings;
+})();

@@ -58,6 +58,7 @@ Regenerate without a version bump: `npm run build` (does not rewrite the product
 | `myman_manifest.json` | Version + module list for updates |
 | `myman_allinone.js` | Main app logic |
 | `myman_*.js` | Feature modules (config, gamification, phonelist, etc.) |
+| `chat-server/` | PocketBase Docker Compose + SETUP for TrueNAS office chat |
 | `scripts/generate-loader.mjs` | Regenerates the production loader |
 
 ## Tampermonkey notes

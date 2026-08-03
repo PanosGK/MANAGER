@@ -1,0 +1,15 @@
+# MyManager office chat — PocketBase on TrueNAS Docker
+# Dataset / data path: /mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB
+# See SETUP.md for reverse-proxy, collections, and suite settings.
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: myman-chat
+    restart: unless-stopped
+    # LAN + reverse proxy can reach http://NAS_IP:8090 (was 127.0.0.1-only → ERR_CONNECTION_REFUSED)
+    ports:
+      - "8090:8090"
+    volumes:
+      # TrueNAS dataset for PocketBase SQLite + files
+      - /mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB:/pb_data
+    command: ["serve", "--http=0.0.0.0:8090", "--dir=/pb_data"]

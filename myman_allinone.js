@@ -118,6 +118,7 @@
             { label: 'Back Cover', term: 'Back Cover' },
         ],
         scratchpadEnabled: true,
+        officeChatEnabled: false, // PocketBase office chat (configure in Settings → Chat)
         scrollToTopEnabled: true,
         technicianStatsEnabled: true,
         customerHistoryEnabled: true,
@@ -274,6 +275,11 @@
                     break;
                 case 'quickSearchButtons':
                     storageKey = 'quickSearchButtons';
+                    break;
+                case 'officeChatEnabled':
+                    storageKey = (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.CHAT_ENABLED)
+                        ? STORAGE_KEYS.CHAT_ENABLED
+                        : 'tm_chat_enabled';
                     break;
                 
                 // Most settings use their direct camelCase names as storage keys
@@ -1696,10 +1702,19 @@
                     trackDailyStat(config, STORAGE_KEYS, 'repairsCompleted');
                     trackDailyStat(config, STORAGE_KEYS, 'status100Transfers');
                     if (config.interactiveMascotEnabled) {
-                        setMascotState(config, 'happy', 5000);
+                        if (typeof window.notifyMascotWorkEvent === 'function') {
+                            window.notifyMascotWorkEvent('repairDone', config);
+                        } else {
+                            setMascotState(config, 'happy', 5000);
+                        }
                     }
                 } else if (repairInfo.status === '40') {
                     trackDailyStat(config, STORAGE_KEYS, 'status40Transfers');
+                    if (config.interactiveMascotEnabled && typeof window.notifyMascotWorkEvent === 'function') {
+                        window.notifyMascotWorkEvent('statusChange', config);
+                    }
+                } else if (config.interactiveMascotEnabled && typeof window.notifyMascotWorkEvent === 'function') {
+                    window.notifyMascotWorkEvent('statusChange', config);
                 }
             } catch (e) {
                 console.error('[MMS] ❌ Error storing status transfer:', e);
@@ -5472,6 +5487,9 @@
         }
         if (config?.scratchpadEnabled) {
         window.initScratchpadFeature(config, STORAGE_KEYS); // Pass config
+        }
+        if (typeof window.initOfficeChatFeature === 'function') {
+            window.initOfficeChatFeature(config, STORAGE_KEYS);
         }
         
         if (typeof window.initPhoneCatalogMenuItem === 'function') {

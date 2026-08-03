@@ -868,6 +868,8 @@ const productionLoader = `// ==UserScript==
 // @connect      geocoding-api.open-meteo.com
 // @connect      api.open-meteo.com
 // @connect      raw.githubusercontent.com
+// @connect      mngerchat.littlejol.mywire.org
+// @connect      *
 // ==/UserScript==
 
 ${buildInlineBootstrap()}
@@ -919,6 +921,8 @@ const localLoader = `// ==UserScript==
 // @connect      geocoding-api.open-meteo.com
 // @connect      api.open-meteo.com
 // @connect      raw.githubusercontent.com
+// @connect      mngerchat.littlejol.mywire.org
+// @connect      *
 // ==/UserScript==
 
 ${buildInlineBootstrap({ localBundleUrl })}

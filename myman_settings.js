@@ -177,6 +177,30 @@
             where: 'Μέσα στο σημειωματάριο.',
             when: 'Όταν επιλέγετε πρότυπο αντί να γράφετε από την αρχή.',
         },
+        office_chat: {
+            title: 'Office Chat',
+            what: 'Κοινό chat γραφείου μέσω PocketBase στον TrueNAS server σας. Όλοι οι τεχνικοί βλέπουν το ίδιο κανάλι.',
+            where: 'Κουμπί «Chat» στο δεξί slide-out · πάνελ μηνυμάτων.',
+            when: 'Αφού ρυθμίσετε URL και λογαριασμό PocketBase. Απαιτεί ενημέρωση loader (@connect).',
+        },
+        office_chat_url: {
+            title: 'Chat server URL',
+            what: 'Η δημόσια διεύθυνση του PocketBase πίσω από το reverse proxy (π.χ. https://mngerchat.littlejol.mywire.org).',
+            where: 'Ρυθμίσεις → Chat.',
+            when: 'Μία φορά κατά την εγκατάσταση· αλλάξτε μόνο αν αλλάξει το hostname.',
+        },
+        office_chat_user: {
+            title: 'Chat χρήστης',
+            what: 'Λογαριασμός PocketBase (users) — όχι ο admin. Κάθε τεχνικός έχει δικό του.',
+            where: 'Ρυθμίσεις → Chat.',
+            when: 'Σύνδεση στο chat API.',
+        },
+        office_chat_pass: {
+            title: 'Chat κωδικός',
+            what: 'Κωδικός του λογαριασμού PocketBase. Αποθηκεύεται τοπικά στο Tampermonkey.',
+            where: 'Ρυθμίσεις → Chat.',
+            when: 'Σύνδεση στο chat API.',
+        },
         quick_search_editor: {
             title: 'Επεξεργαστής γρήγορης αναζήτησης',
             what: 'Ορίζετε ετικέτα κουμπιού και όρο αναζήτησης για τα κουμπιά γρήγορης αναζήτησης.',
@@ -691,6 +715,29 @@
 
             // --- Save Scratchpad Settings ---
             saveCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
+
+            // --- Save Office Chat ---
+            const chatEnabledEl = document.getElementById('tm-setting-chat-enabled');
+            if (chatEnabledEl) {
+                const chatOn = !!chatEnabledEl.checked;
+                GM_setValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', chatOn);
+                config.officeChatEnabled = chatOn;
+            }
+            const chatUrlEl = document.getElementById('tm-setting-chat-url');
+            const chatUserEl = document.getElementById('tm-setting-chat-user');
+            const chatPassEl = document.getElementById('tm-setting-chat-pass');
+            if (chatUrlEl) {
+                GM_setValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', chatUrlEl.value.trim().replace(/\/+$/, ''));
+            }
+            if (chatUserEl) {
+                GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', chatUserEl.value.trim());
+            }
+            if (chatPassEl) {
+                GM_setValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', chatPassEl.value);
+            }
+            try {
+                GM_setValue(STORAGE_KEYS.CHAT_TOKEN_CACHE || 'tm_chat_token_cache', '');
+            } catch (_) { /* ignore */ }
 
             // --- Save Gamification/Fun Settings ---
             saveCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
@@ -1306,6 +1353,70 @@
             `;
         }
 
+        function getOfficeChatSettingsHTML() {
+            const info = tmSettingsInfoBtn;
+            return `
+                <div class="tm-settings-section">
+                    <header class="tm-settings-section-head">
+                        <h3>Office Chat</h3>
+                        <p class="tm-settings-section-desc">Κοινό chat γραφείου (PocketBase στον TrueNAS). Δείτε chat-server/SETUP.md.</p>
+                    </header>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-enabled">Ενεργοποίηση</label>
+                                ${info('office_chat')}
+                            </div>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-chat-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-url">Server URL</label>
+                                ${info('office_chat_url')}
+                            </div>
+                            <p class="tm-setting-description">π.χ. https://mngerchat.littlejol.mywire.org</p>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="url" id="tm-setting-chat-url" class="tm-settings-input" autocomplete="off" spellcheck="false" placeholder="https://mngerchat.littlejol.mywire.org">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-user">Χρήστης</label>
+                                ${info('office_chat_user')}
+                            </div>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="text" id="tm-setting-chat-user" class="tm-settings-input" autocomplete="username" spellcheck="false" placeholder="email ή username">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-pass">Κωδικός</label>
+                                ${info('office_chat_pass')}
+                            </div>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="password" id="tm-setting-chat-pass" class="tm-settings-input" autocomplete="new-password" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <p class="tm-setting-description">Δοκιμάστε τη σύνδεση πριν την αποθήκευση. Το όνομα στο chat είναι το login MyManager.</p>
+                            <p class="tm-setting-description" id="tm-setting-chat-test-status">—</p>
+                        </div>
+                        <div class="tm-setting-control">
+                            <button type="button" id="tm-setting-chat-test-btn" class="tm-data-btn export">Έλεγχος σύνδεσης</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         function getDataManagementHTML() {
             const info = tmSettingsInfoBtn;
             return `
@@ -1593,6 +1704,7 @@
                                 <li><a href="#sec-general"><span class="tm-nav-icon" aria-hidden="true">⚙️</span><span class="tm-nav-label">Γενικές</span></a></li>
                                 <li><a href="#sec-search"><span class="tm-nav-icon" aria-hidden="true">🔍</span><span class="tm-nav-label">Εργαλεία</span></a></li>
                                 <li><a href="#sec-scratchpad"><span class="tm-nav-icon" aria-hidden="true">📝</span><span class="tm-nav-label">Σημειωματάριο</span></a></li>
+                                <li><a href="#sec-chat"><span class="tm-nav-icon" aria-hidden="true">💬</span><span class="tm-nav-label">Chat</span></a></li>
                                 <li><a href="#sec-gamification"><span class="tm-nav-icon" aria-hidden="true">🎮</span><span class="tm-nav-label">Παιχνίδι</span></a></li>
                                 <li><a href="#sec-updates"><span class="tm-nav-icon" aria-hidden="true">↻</span><span class="tm-nav-label">Ενημερώσεις</span></a></li>
                                 <li><a href="#sec-data"><span class="tm-nav-icon" aria-hidden="true">💾</span><span class="tm-nav-label">Δεδομένα</span></a></li>
@@ -1603,6 +1715,7 @@
                             <section id="sec-general">${getGeneralUISettingsHTML()}</section>
                             <section id="sec-search">${getSearchSettingsHTML()}${getQuickSearchEditorHTML()}${getPriceOptionsEditorHTML()}${getAutoRefreshSettingsHTML()}</section>
                             <section id="sec-scratchpad">${getScratchpadSettingsHTML()}</section>
+                            <section id="sec-chat">${getOfficeChatSettingsHTML()}</section>
                             <section id="sec-gamification">${window.getGamificationSettingsHTML(STORAGE_KEYS)}</section>
                             <section id="sec-debug">${getDebugSettingsHTML()}</section>
                             <section id="sec-updates">${getUpdatesSettingsHTML()}</section>
@@ -1752,6 +1865,44 @@
             populateCheckbox('tm-setting-search-enabled', 'searchFeatureEnabled');
             populateCheckbox('tm-setting-quick-search-enabled', 'quickSearchEnabled');
             populateCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
+            const chatEnabledBox = document.getElementById('tm-setting-chat-enabled');
+            if (chatEnabledBox) {
+                chatEnabledBox.checked = !!GM_getValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', false)
+                    || !!config.officeChatEnabled;
+            }
+            const chatUrlInput = document.getElementById('tm-setting-chat-url');
+            const chatUserInput = document.getElementById('tm-setting-chat-user');
+            const chatPassInput = document.getElementById('tm-setting-chat-pass');
+            if (chatUrlInput) {
+                chatUrlInput.value = GM_getValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', '') || '';
+            }
+            if (chatUserInput) {
+                chatUserInput.value = GM_getValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', '') || '';
+            }
+            if (chatPassInput) {
+                chatPassInput.value = GM_getValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', '') || '';
+            }
+            overlay.querySelector('#tm-setting-chat-test-btn')?.addEventListener('click', async () => {
+                const statusEl = document.getElementById('tm-setting-chat-test-status');
+                const urlEl = document.getElementById('tm-setting-chat-url');
+                const userEl = document.getElementById('tm-setting-chat-user');
+                const passEl = document.getElementById('tm-setting-chat-pass');
+                // Temporarily apply form values for the test (without full save/reload)
+                if (urlEl) GM_setValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', urlEl.value.trim().replace(/\/+$/, ''));
+                if (userEl) GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', userEl.value.trim());
+                if (passEl) GM_setValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', passEl.value);
+                try { GM_setValue(STORAGE_KEYS.CHAT_TOKEN_CACHE || 'tm_chat_token_cache', ''); } catch (_) { /* ignore */ }
+                if (statusEl) statusEl.textContent = 'Έλεγχος…';
+                if (typeof window.testOfficeChatConnection !== 'function') {
+                    if (statusEl) statusEl.textContent = 'Το module chat δεν φορτώθηκε.';
+                    return;
+                }
+                const result = await window.testOfficeChatConnection(STORAGE_KEYS);
+                if (statusEl) {
+                    statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
+                    statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
+                }
+            });
             populateCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
             populateCheckbox('tm-setting-repair-list-quickview-enabled', 'repairListQuickViewEnabled');
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');

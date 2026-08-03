@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite (Local Dev)
 // @namespace    http://tampermonkey.net/
-// @version      36
+// @version      38
 // @description  Local development — async file:// bundle. Enable "Allow access to local file URLs". Run: npm run build.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -17,6 +17,8 @@
 // @connect      geocoding-api.open-meteo.com
 // @connect      api.open-meteo.com
 // @connect      raw.githubusercontent.com
+// @connect      mngerchat.littlejol.mywire.org
+// @connect      *
 // ==/UserScript==
 
 (function tmMmsLoaderBootstrap() {
@@ -67,11 +69,11 @@
         } catch (e) { /* ignore */ }
     })();
 
-    var LOADER_VERSION = "36";
+    var LOADER_VERSION = "38";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "335";
+    var FALLBACK_BUNDLE_VERSION = "337";
     var LOCAL_BUNDLE_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.bundle.js";
 
     try {

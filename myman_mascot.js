@@ -1022,8 +1022,11 @@ const MASCOT_MOOD_MESSAGES = {
 };
 
 const MASCOT_WORK_REACTION_MESSAGES = {
-    statusChange: ['Νέο status!', 'Άλλη μία!', 'Προχωράμε!', 'Ωραία αλλαγή!'],
-    repairDone: ['Παράδοση!', 'Τέλος!', 'Μπράβο!', 'Άλλη μία έτοιμη!'],
+    statusChange: ['Νέο status!', 'Άλλη μία!', 'Προχωράμε!', 'Ωραία αλλαγή!', 'Κι άλλο βήμα!'],
+    repairDone: [
+        'Παράδοση!', 'Status 100!', 'Έτοιμο!', 'Μπράβο!', 'Άλλη μία έτοιμη!',
+        'Προς παράδοση!', 'Το κλείσαμε!', 'Ναιι!', 'Τέλος & καθαρό!',
+    ],
     newOrder: ['Παραγγελία!', 'Ανταλλακτικό!', 'Νέα δουλειά!', 'Πάμε!'],
     idle: ['Πού πήγε το κατσαβίδι;', 'Τι θα χαλάσει σήμερα;', 'Έτοιμος!', 'Χμμ…'],
     eod: ['Τέλος ημέρας;', 'Checklist!', 'Φεύγουμε;', 'Καλό βράδυ!'],
@@ -1205,24 +1208,34 @@ function notifyMascotWorkEvent(type, config) {
     if (config?.interactiveMascotEnabled === false) return;
     if (tamagotchiIsDead || tamagotchiStage === 'egg' || tamaCinematicLock) return;
     if (!tamagotchiLightsOn || tamagotchiIsSleeping) return;
-    if (isMascotFocusQuiet()) return;
+    // Focus quiet: still celebrate real repair completions (status 100), stay quiet otherwise
+    if (isMascotFocusQuiet() && type !== 'repairDone') return;
 
     const now = Date.now();
-    const minGap = type === 'idle' ? 45000 : 12000;
+    const minGap = type === 'idle' ? 45000 : (type === 'repairDone' ? 8000 : 12000);
     if (now - lastMascotWorkReactAt < minGap) return;
     lastMascotWorkReactAt = now;
 
     const pool = MASCOT_WORK_REACTION_MESSAGES[type] || MASCOT_WORK_REACTION_MESSAGES.idle;
-    const text = pickMoodBubble(pool) || pool[Math.floor(Math.random() * pool.length)];
+    const text = (typeof pickMoodBubble === 'function' ? pickMoodBubble(pool) : null)
+        || pool[Math.floor(Math.random() * pool.length)];
 
     if (type === 'repairDone') {
-        setMascotMood('proud', 10000);
-        setMascotState(config || window.config || {}, 'happy', 4000);
+        setMascotMood('proud', 12000);
+        setMascotState(config || window.config || {}, 'happy', 4500);
+        if (typeof updatePetStats === 'function') {
+            try {
+                updatePetStats(config || window.config || {}, window.STORAGE_KEYS, 4, 0);
+            } catch (_) { /* ignore */ }
+        }
     } else if (type === 'newOrder') {
         setMascotMood('curious', 8000);
         setMascotState(config || window.config || {}, 'eureka', 2500);
     } else if (type === 'statusChange') {
         setMascotMood('curious', 6000);
+        if (Math.random() < 0.35) {
+            setMascotState(config || window.config || {}, 'energized', 2200);
+        }
     } else if (type === 'eod') {
         setMascotMood('sleepy', 12000);
     } else if (type === 'idle') {
@@ -1231,7 +1244,7 @@ function notifyMascotWorkEvent(type, config) {
         else setMascotMood('calm', 6000);
     }
 
-    showMascotBubble(text, type === 'eod' ? 3500 : 2200);
+    showMascotBubble(text, type === 'eod' ? 3500 : (type === 'repairDone' ? 2800 : 2200));
 }
 
 const MASCOT_CARE_ACTION_LABELS_GR = {
@@ -7023,7 +7036,8 @@ function ensureDeskVisitorStyles() {
     const style = document.createElement('style');
     style.id = 'tm-desk-visitor-styles';
     style.textContent = `
-        #tm-desk-visitor {
+        #tm-desk-visitor,
+        #tm-desk-visitor-b {
             position: fixed; z-index: 99980;
             display: flex; align-items: flex-end; gap: 8px;
             pointer-events: none;
@@ -7031,16 +7045,20 @@ function ensureDeskVisitorStyles() {
             transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
             font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
         }
-        #tm-desk-visitor.is-visible {
+        #tm-desk-visitor.is-visible,
+        #tm-desk-visitor-b.is-visible {
             opacity: 1; transform: translateY(0);
         }
-        #tm-desk-visitor.tm-desk-visitor-left {
+        #tm-desk-visitor.tm-desk-visitor-left,
+        #tm-desk-visitor-b.tm-desk-visitor-left {
             left: 12px; bottom: 18px; flex-direction: row;
         }
-        #tm-desk-visitor.tm-desk-visitor-right {
+        #tm-desk-visitor.tm-desk-visitor-right,
+        #tm-desk-visitor-b.tm-desk-visitor-right {
             right: 12px; bottom: 18px; flex-direction: row-reverse;
         }
-        #tm-desk-visitor .tm-desk-visitor-emoji {
+        #tm-desk-visitor .tm-desk-visitor-emoji,
+        #tm-desk-visitor-b .tm-desk-visitor-emoji {
             width: 44px; height: 44px;
             border-radius: 14px;
             background: linear-gradient(160deg, #fff 0%, #e2e8f0 100%);
@@ -7050,7 +7068,8 @@ function ensureDeskVisitorStyles() {
             font-size: 24px;
             animation: tmDeskVisitorBob 1.6s ease-in-out infinite;
         }
-        #tm-desk-visitor .tm-desk-visitor-bubble {
+        #tm-desk-visitor .tm-desk-visitor-bubble,
+        #tm-desk-visitor-b .tm-desk-visitor-bubble {
             max-width: min(52vw, 220px);
             padding: 8px 10px;
             border-radius: 12px 12px 12px 4px;
@@ -7058,9 +7077,23 @@ function ensureDeskVisitorStyles() {
             font-size: 12px; font-weight: 600; line-height: 1.35;
             box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
         }
-        #tm-desk-visitor.tm-desk-visitor-right .tm-desk-visitor-bubble {
+        #tm-desk-visitor.tm-desk-visitor-right .tm-desk-visitor-bubble,
+        #tm-desk-visitor-b.tm-desk-visitor-right .tm-desk-visitor-bubble {
             border-radius: 12px 12px 4px 12px;
         }
+        #tm-desk-visitor-pair {
+            position: fixed; inset: 0; z-index: 99979; pointer-events: none;
+        }
+        #tm-desk-visitor-pair .tm-desk-visitor-duo-tag {
+            position: fixed; left: 50%; bottom: 78px; transform: translateX(-50%);
+            padding: 4px 10px; border-radius: 999px;
+            background: #0f172a; color: #f8fafc;
+            font-size: 11px; font-weight: 700;
+            opacity: 0; transition: opacity 0.3s ease;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2);
+        }
+        #tm-desk-visitor-pair.is-visible .tm-desk-visitor-duo-tag { opacity: 1; }
         @keyframes tmDeskVisitorBob {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-4px); }
@@ -7074,6 +7107,58 @@ function clearDeskVisitorSchedule() {
         clearTimeout(deskVisitorTimeout);
         deskVisitorTimeout = null;
     }
+}
+
+function getDeskVisitorDayKey() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+/** ~12% of calendar days are "duo visitor" days (rolled once, persisted). */
+function isDeskVisitorDuoDay() {
+    const dayKey = getDeskVisitorDayKey();
+    const storeKey = 'tm_desk_visitor_duo_day';
+    let stored = '';
+    try { stored = String(GM_getValue(storeKey, '') || ''); } catch (_) { /* ignore */ }
+    if (stored.startsWith(`${dayKey}:`)) return stored.endsWith(':1');
+    const isDuo = Math.random() < 0.12;
+    try { GM_setValue(storeKey, `${dayKey}:${isDuo ? 1 : 0}`); } catch (_) { /* ignore */ }
+    return isDuo;
+}
+
+function pickDeskVisitorGuest(excludeTypes = []) {
+    const guestPool = TAMA_CHARACTER_TYPES.filter((t) => t !== tamagotchiCharacterType && !excludeTypes.includes(t));
+    const guestType = guestPool[Math.floor(Math.random() * guestPool.length)]
+        || TAMA_CHARACTER_TYPES.filter((t) => t !== tamagotchiCharacterType)[0]
+        || 'slime';
+    const guest = MASCOT_CHARACTERS[guestType] || { emoji: '✨', name: 'Mascot' };
+    let tech = DESK_VISITOR_TECH_NAMES[Math.floor(Math.random() * DESK_VISITOR_TECH_NAMES.length)];
+    return { guestType, guest, tech };
+}
+
+function buildDeskVisitorCard({ side, guest, tech, myName, duo }) {
+    const lines = duo
+        ? [
+            `${tech} ήρθε παρέα… ${guest.emoji}`,
+            `${tech}: «Φέραμε κι άλλο για το ${myName}!»`,
+            `Διπλή επίσκεψη! ${guest.emoji}`,
+        ]
+        : [
+            `${tech} πέρασε με ${guest.emoji}…`,
+            `${tech}: «Πέρασα να δω το ${myName}!»`,
+            `${tech}: «Τι χαριτωμένο ${guest.emoji}!»`,
+            `Κάποιος από το γραφείο κοιτάει… ${guest.emoji}`,
+        ];
+    const el = document.createElement('div');
+    el.className = `tm-desk-visitor-${side}`;
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML =
+        `<div class="tm-desk-visitor-emoji">${guest.emoji}</div>`
+        + `<div class="tm-desk-visitor-bubble">${lines[Math.floor(Math.random() * lines.length)]}</div>`;
+    return el;
 }
 
 function canShowDeskVisitor() {
@@ -7109,29 +7194,65 @@ function playDeskVisitorPeek() {
     deskVisitorActive = true;
 
     document.getElementById('tm-desk-visitor')?.remove();
+    document.getElementById('tm-desk-visitor-b')?.remove();
+    document.getElementById('tm-desk-visitor-pair')?.remove();
 
-    const guestPool = TAMA_CHARACTER_TYPES.filter((t) => t !== tamagotchiCharacterType);
-    const guestType = guestPool[Math.floor(Math.random() * guestPool.length)] || 'slime';
-    const guest = MASCOT_CHARACTERS[guestType] || { emoji: '✨', name: 'Mascot' };
-    const tech = DESK_VISITOR_TECH_NAMES[Math.floor(Math.random() * DESK_VISITOR_TECH_NAMES.length)];
     const myName = (typeof getMascotDisplayName === 'function')
         ? getMascotDisplayName()
         : 'το mascot';
-    const side = Math.random() < 0.5 ? 'left' : 'right';
-    const lines = [
-        `${tech} πέρασε με ${guest.emoji}…`,
-        `${tech}: «Πέρασα να δω το ${myName}!»`,
-        `${tech}: «Τι χαριτωμένο ${guest.emoji}!»`,
-        `Κάποιος από το γραφείο κοιτάει… ${guest.emoji}`,
-    ];
+    const duo = isDeskVisitorDuoDay();
 
-    const el = document.createElement('div');
+    if (duo) {
+        const a = pickDeskVisitorGuest();
+        const b = pickDeskVisitorGuest([a.guestType]);
+        // Ensure different tech names when possible
+        if (b.tech === a.tech) {
+            const alt = DESK_VISITOR_TECH_NAMES.filter((n) => n !== a.tech);
+            if (alt.length) b.tech = alt[Math.floor(Math.random() * alt.length)];
+        }
+
+        const pair = document.createElement('div');
+        pair.id = 'tm-desk-visitor-pair';
+        const tag = document.createElement('div');
+        tag.className = 'tm-desk-visitor-duo-tag';
+        tag.textContent = 'Διπλή επίσκεψη σήμερα!';
+        const left = buildDeskVisitorCard({ side: 'left', guest: a.guest, tech: a.tech, myName, duo: true });
+        const right = buildDeskVisitorCard({ side: 'right', guest: b.guest, tech: b.tech, myName, duo: true });
+        // Apply same visual styles as #tm-desk-visitor to the second card
+        right.id = 'tm-desk-visitor-b';
+        pair.appendChild(tag);
+        document.body.appendChild(pair);
+        document.body.appendChild(left);
+        document.body.appendChild(right);
+
+        requestAnimationFrame(() => {
+            pair.classList.add('is-visible');
+            left.classList.add('is-visible');
+            right.classList.add('is-visible');
+        });
+
+        setTimeout(() => {
+            if (!isMascotFocusQuiet()) showMascotBubble('Πολύς κόσμος σήμερα!', 1800);
+        }, 700);
+
+        setTimeout(() => {
+            pair.classList.remove('is-visible');
+            left.classList.remove('is-visible');
+            right.classList.remove('is-visible');
+            setTimeout(() => {
+                pair.remove();
+                left.remove();
+                right.remove();
+                deskVisitorActive = false;
+            }, 450);
+        }, 5200);
+        return;
+    }
+
+    const { guest, tech } = pickDeskVisitorGuest();
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    const el = buildDeskVisitorCard({ side, guest, tech, myName, duo: false });
     el.id = 'tm-desk-visitor';
-    el.className = `tm-desk-visitor-${side}`;
-    el.setAttribute('aria-hidden', 'true');
-    el.innerHTML =
-        `<div class="tm-desk-visitor-emoji">${guest.emoji}</div>`
-        + `<div class="tm-desk-visitor-bubble">${lines[Math.floor(Math.random() * lines.length)]}</div>`;
     document.body.appendChild(el);
     requestAnimationFrame(() => el.classList.add('is-visible'));
 
@@ -16599,6 +16720,74 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         return Math.round(MASCOT_BASE_SIZE_PX * (isElite ? MASCOT_ELITE_SIZE_MULT : 1) * stageScale);
     }
 
+    const CARE_PANEL_SIZE_ORDER = ['compact', 'comfort', 'large'];
+    const CARE_PANEL_SIZE_META = {
+        compact: {
+            label: 'Μικρό',
+            icon: 'S',
+            previewMax: 72,
+            title: 'Μέγεθος: Μικρό · πάτα για μεσαίο',
+        },
+        comfort: {
+            label: 'Μεσαίο',
+            icon: 'M',
+            previewMax: 92,
+            title: 'Μέγεθος: Μεσαίο · πάτα για μεγάλο',
+        },
+        large: {
+            label: 'Μεγάλο',
+            icon: 'L',
+            previewMax: 120,
+            title: 'Μέγεθος: Μεγάλο · πάτα για μικρό',
+        },
+    };
+
+    function getMascotCarePanelSizeKey(STORAGE_KEYS) {
+        return STORAGE_KEYS?.MASCOT_CARE_PANEL_SIZE
+            || window.STORAGE_KEYS?.MASCOT_CARE_PANEL_SIZE
+            || 'tm_mascot_care_panel_size';
+    }
+
+    function getMascotCarePanelSize(STORAGE_KEYS) {
+        let raw = 'compact';
+        try {
+            raw = String(GM_getValue(getMascotCarePanelSizeKey(STORAGE_KEYS), 'compact') || 'compact');
+        } catch (_) { /* ignore */ }
+        return CARE_PANEL_SIZE_ORDER.includes(raw) ? raw : 'compact';
+    }
+
+    function setMascotCarePanelSize(size, STORAGE_KEYS) {
+        const next = CARE_PANEL_SIZE_ORDER.includes(size) ? size : 'compact';
+        try {
+            GM_setValue(getMascotCarePanelSizeKey(STORAGE_KEYS), next);
+        } catch (_) { /* ignore */ }
+        return next;
+    }
+
+    function cycleMascotCarePanelSize(STORAGE_KEYS) {
+        const cur = getMascotCarePanelSize(STORAGE_KEYS);
+        const idx = CARE_PANEL_SIZE_ORDER.indexOf(cur);
+        const next = CARE_PANEL_SIZE_ORDER[(idx + 1) % CARE_PANEL_SIZE_ORDER.length];
+        return setMascotCarePanelSize(next, STORAGE_KEYS);
+    }
+
+    function applyCarePanelSizeToModal(modal, size, STORAGE_KEYS) {
+        if (!modal) return;
+        const resolved = CARE_PANEL_SIZE_ORDER.includes(size)
+            ? size
+            : getMascotCarePanelSize(STORAGE_KEYS);
+        const meta = CARE_PANEL_SIZE_META[resolved] || CARE_PANEL_SIZE_META.compact;
+        const shell = modal.querySelector('.tm-mascot-modal-container');
+        if (shell) shell.dataset.careSize = resolved;
+        const btn = modal.querySelector('#tm-action-panel-size');
+        if (btn) {
+            btn.textContent = meta.icon;
+            btn.title = meta.title;
+            btn.setAttribute('aria-label', meta.title);
+        }
+        mountCarePanelMascotPreview(modal);
+    }
+
     function mountCarePanelMascotPreview(modal) {
         const stage = modal?.querySelector?.('#tm-mascot-care-preview-stage');
         const host = modal?.querySelector?.('#tm-mascot-care-preview');
@@ -16617,7 +16806,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         }
 
         const { clone, liveRoot } = built;
-        const sizePx = Math.min(72, getLiveMascotPreviewSizePx(liveRoot));
+        const sizeKey = modal.querySelector('.tm-mascot-modal-container')?.dataset?.careSize
+            || getMascotCarePanelSize();
+        const previewMax = CARE_PANEL_SIZE_META[sizeKey]?.previewMax || 72;
+        const sizePx = Math.min(previewMax, getLiveMascotPreviewSizePx(liveRoot));
         stage.style.setProperty('--tm-care-preview-size', `${sizePx}px`);
         const stageScale = liveRoot?.style?.getPropertyValue?.('--tm-stage-scale')
             || liveRoot?.dataset?.tmStageScale
@@ -16758,12 +16950,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             : String(typeof tamagotchiNickname !== 'undefined' ? tamagotchiNickname : '').trim().slice(0, 16);
         const nickBtnLabel = '✏️';
         const coinsBtnLabel = dailyCoinsState.claimed ? '🪙' : '🪙+';
+        const carePanelSize = getMascotCarePanelSize(STORAGE_KEYS);
+        const carePanelSizeMeta = CARE_PANEL_SIZE_META[carePanelSize] || CARE_PANEL_SIZE_META.compact;
 
         const modal = document.createElement('div');
         modal.id = 'tm-mascot-stats-modal';
         modal.innerHTML = `
             <div class="tm-mascot-modal-backdrop"></div>
-            <div class="tm-mascot-modal-container" role="dialog" aria-modal="true" aria-labelledby="tm-mascot-care-title">
+            <div class="tm-mascot-modal-container" data-care-size="${carePanelSize}" role="dialog" aria-modal="true" aria-labelledby="tm-mascot-care-title">
                 <div class="tm-mascot-modal-header">
                     <div class="tm-mascot-header-info">
                         <h2 class="tm-mascot-name" id="tm-mascot-care-title">${characterName}</h2>
@@ -16777,6 +16971,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <button type="button" class="tm-mascot-header-chip" id="tm-action-nickname" title="${nickValue ? `Παρατσούκλι: ${nickValue}` : 'Άλλαξε παρατσούκλι'}">${nickBtnLabel}</button>
                         <button type="button" class="tm-mascot-header-chip ${dailyCoinsState.claimed ? 'tm-daily-claimed' : 'tm-chip-claim'}" id="tm-action-daily-coins" title="${dailyCoinsState.title}" ${dailyCoinsState.claimed ? 'disabled' : ''}>${coinsBtnLabel}</button>
                         <button type="button" class="tm-mascot-header-chip" id="tm-action-age-preview" title="Δες όλες τις εξελίξεις">🧬</button>
+                        <button type="button" class="tm-mascot-header-chip tm-chip-size" id="tm-action-panel-size" title="${carePanelSizeMeta.title}" aria-label="${carePanelSizeMeta.title}">${carePanelSizeMeta.icon}</button>
+                        <button type="button" class="tm-mascot-header-chip" id="tm-action-park" title="${mascotPositionLocked ? 'Απελευθέρωσε το mascot' : 'Pin στο σημείο'}">${mascotPositionLocked ? '🔓' : '📌'}</button>
+                        <button type="button" class="tm-mascot-header-chip ${isMascotFocusQuiet() ? 'tm-chip-focus-on' : ''}" id="tm-action-focus" title="${isMascotFocusQuiet() ? `Τέλος focus (${getMascotFocusQuietRemainingLabel() || 'ενεργό'})` : 'Focus 25′ — ήσυχη εστίαση'}">🎯</button>
                         <button type="button" class="tm-mascot-close-btn" id="tm-modal-close" aria-label="Κλείσιμο">✕</button>
                     </div>
                 </div>
@@ -16909,7 +17106,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </div>
                 </div>
 
-                <details class="tm-mascot-more-details"${(praiseUrgent || scoldUrgent || isMascotFocusQuiet()) ? ' open' : ''}>
+                <details class="tm-mascot-more-details"${(praiseUrgent || scoldUrgent) ? ' open' : ''}>
                     <summary>Περισσότερα</summary>
                     <div class="tm-mascot-actions tm-actions-more">
                         <button type="button" class="tm-action-btn tm-action-praise ${praiseUrgent ? 'tm-action-urgent' : ''}" id="tm-action-praise" title="Έπαινος (+πειθαρχία, +χαρά)">
@@ -16923,14 +17120,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <button type="button" class="tm-action-btn tm-action-lights" id="tm-action-lights" title="Φώτα">
                             <span class="tm-action-icon">${tamagotchiLightsOn ? '💡' : '🌙'}</span>
                             <span class="tm-action-label">${tamagotchiLightsOn ? 'Φώτα' : 'Σκοτάδι'}</span>
-                        </button>
-                        <button type="button" class="tm-action-btn tm-action-park" id="tm-action-park" title="Σταθμεύσε / απελευθέρωσε">
-                            <span class="tm-action-icon">${mascotPositionLocked ? '🔓' : '📌'}</span>
-                            <span class="tm-action-label">${mascotPositionLocked ? 'Ελεύθερο' : 'Pin'}</span>
-                        </button>
-                        <button type="button" class="tm-action-btn tm-action-focus ${isMascotFocusQuiet() ? 'tm-action-urgent' : ''}" id="tm-action-focus" title="Ήσυχη εστίαση 25′">
-                            <span class="tm-action-icon">🎯</span>
-                            <span class="tm-action-label">${isMascotFocusQuiet() ? 'Τέλος' : 'Focus'}</span>
                         </button>
                     </div>
                 </details>
@@ -16990,13 +17179,24 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
             #tm-mascot-stats-modal .tm-mascot-modal-container {
                 position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                z-index: 100001; width: min(92vw, 340px); max-height: min(90vh, 700px);
+                z-index: 100001; width: min(92vw, var(--tm-care-panel-width, 340px));
+                max-height: min(90vh, var(--tm-care-panel-max-h, 700px));
                 overflow-y: auto; background: var(--tm-modal-bg, #fff);
                 color: var(--tm-shop-item-text, #1e293b); border-radius: 14px;
                 border: 1px solid var(--tm-shop-item-border, #e2e8f0);
                 box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
                 animation: tmCareSlideIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
                 font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+                transition: width 0.2s ease, max-height 0.2s ease;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="compact"] {
+                --tm-care-panel-width: 340px; --tm-care-panel-max-h: 700px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="comfort"] {
+                --tm-care-panel-width: 400px; --tm-care-panel-max-h: 760px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] {
+                --tm-care-panel-width: 480px; --tm-care-panel-max-h: 860px;
             }
             #tm-mascot-stats-modal .tm-mascot-modal-container::-webkit-scrollbar { width: 5px; }
             #tm-mascot-stats-modal .tm-mascot-modal-container::-webkit-scrollbar-thumb {
@@ -17010,6 +17210,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             #tm-mascot-stats-modal .tm-mascot-header-info { min-width: 0; flex: 1; }
             #tm-mascot-stats-modal .tm-mascot-header-tools {
                 display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+                flex-wrap: wrap; justify-content: flex-end; max-width: 62%;
             }
             #tm-mascot-stats-modal .tm-mascot-header-chip {
                 appearance: none; width: 28px; height: 28px; padding: 0;
@@ -17030,6 +17231,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
             #tm-mascot-stats-modal .tm-mascot-header-chip.tm-daily-claimed { opacity: 0.65; cursor: default; }
             #tm-mascot-stats-modal .tm-mascot-header-chip:disabled { pointer-events: none; }
+            #tm-mascot-stats-modal .tm-mascot-header-chip.tm-chip-size {
+                font-size: 11px; font-weight: 800; letter-spacing: 0.02em;
+            }
+            #tm-mascot-stats-modal .tm-mascot-header-chip.tm-chip-focus-on {
+                border-color: color-mix(in srgb, #22c55e 55%, #e2e8f0);
+                background: color-mix(in srgb, #22c55e 16%, #fff); color: #166534;
+            }
             #tm-mascot-stats-modal .tm-mascot-nickname-editor {
                 display: flex; align-items: center; gap: 6px;
                 margin: 0 12px 6px; padding: 6px 8px; border-radius: 10px;
@@ -17082,6 +17290,42 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 height: var(--tm-care-preview-size, 64px);
                 max-width: 72px; max-height: 72px;
                 display: flex; align-items: center; justify-content: center; overflow: visible;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="comfort"] .tm-mascot-care-preview-frame {
+                max-width: 92px; max-height: 92px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-mascot-care-preview-frame {
+                max-width: 120px; max-height: 120px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="comfort"] .tm-mascot-name {
+                font-size: 1.05rem;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-mascot-name {
+                font-size: 1.18rem;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="comfort"] .tm-action-icon {
+                font-size: 17px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="comfort"] .tm-action-label {
+                font-size: 10.5px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-action-btn {
+                padding: 8px 3px 6px; border-radius: 11px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-action-icon {
+                font-size: 19px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-action-label {
+                font-size: 11.5px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-stat-label {
+                font-size: 11.5px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-stat-bar {
+                height: 7px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container[data-care-size="large"] .tm-mascot-tip {
+                font-size: 12.5px;
             }
             #tm-mascot-stats-modal .tm-mascot-care-preview-sprite {
                 position: relative; z-index: 1; width: 100%; height: 100%;
@@ -17274,6 +17518,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             showMascotAgePreviewModal(config, STORAGE_KEYS);
         });
 
+        modal.querySelector('#tm-action-panel-size')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const next = cycleMascotCarePanelSize(STORAGE_KEYS);
+            applyCarePanelSizeToModal(modal, next, STORAGE_KEYS);
+        });
+
         modal.querySelector('#tm-action-nickname')?.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -17424,16 +17675,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
             const parkBtn = modal.querySelector('#tm-action-park');
             if (parkBtn) {
-                const icon = parkBtn.querySelector('.tm-action-icon');
-                const label = parkBtn.querySelector('.tm-action-label');
-                if (icon) icon.textContent = mascotPositionLocked ? '🔓' : '📌';
-                if (label) label.textContent = mascotPositionLocked ? 'Ελεύθερο' : 'Pin';
+                parkBtn.textContent = mascotPositionLocked ? '🔓' : '📌';
+                parkBtn.title = mascotPositionLocked ? 'Απελευθέρωσε το mascot' : 'Pin στο σημείο';
             }
             const focusBtn = modal.querySelector('#tm-action-focus');
             if (focusBtn) {
-                focusBtn.classList.toggle('tm-action-urgent', isMascotFocusQuiet());
-                const label = focusBtn.querySelector('.tm-action-label');
-                if (label) label.textContent = isMascotFocusQuiet() ? 'Τέλος' : 'Focus';
+                focusBtn.classList.toggle('tm-chip-focus-on', isMascotFocusQuiet());
+                focusBtn.title = isMascotFocusQuiet()
+                    ? `Τέλος focus (${getMascotFocusQuietRemainingLabel() || 'ενεργό'})`
+                    : 'Focus 25′ — ήσυχη εστίαση';
             }
             const lightsBtn = modal.querySelector('#tm-action-lights');
             if (lightsBtn) {
