@@ -4499,42 +4499,6 @@
                 height: 100%; width: 0; background: linear-gradient(90deg, #38bdf8, #0284c7); transition: width 0.12s ease-out;
             }
             .tm-gym-pad { width: 100%; font-size: 1.25rem; padding: 20px !important; }
-            .tm-shadow-silhouette {
-                width: 100px; height: 100px; margin: 0 auto 10px;
-                background: #0f172a;
-                border-radius: 16px;
-                filter: contrast(2);
-                box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08);
-                position: relative;
-                overflow: hidden;
-            }
-            .tm-shadow-silhouette::after {
-                content: attr(data-char);
-                position: absolute; inset: 0;
-                display: flex; align-items: center; justify-content: center;
-                font-size: 48px; filter: brightness(0);
-                opacity: 0.95;
-            }
-            .tm-shadow-silhouette[data-char="dragon"]::after { content: '🐉'; }
-            .tm-shadow-silhouette[data-char="robot"]::after { content: '🤖'; }
-            .tm-shadow-silhouette[data-char="slime"]::after { content: '🟢'; }
-            .tm-shadow-silhouette[data-char="plant"]::after { content: '🌱'; }
-            .tm-shadow-silhouette[data-char="ghost"]::after { content: '👻'; }
-            .tm-shadow-silhouette[data-char="cat"]::after { content: '🐱'; }
-            .tm-shadow-silhouette[data-char="phoenix"]::after { content: '🔥'; }
-            .tm-shadow-silhouette[data-char="crystal"]::after { content: '💎'; }
-            .tm-shadow-silhouette[data-char="aether"]::after { content: '🌌'; }
-            .tm-shadow-silhouette[data-char="leviathan"]::after { content: '🐋'; }
-            .tm-shadow-options { display: grid; gap: 8px; }
-            .tm-shadow-opt {
-                display: flex; align-items: center; gap: 10px;
-                padding: 10px 12px; border-radius: 12px; cursor: pointer;
-                border: 1px solid var(--tm-shop-item-border, #cbd5e1);
-                background: var(--tm-shop-item-bg, #f8fafc);
-            }
-            .tm-shadow-opt.correct { border-color: #16a34a; background: #dcfce7; }
-            .tm-shadow-opt.wrong { border-color: #dc2626; background: #fee2e2; }
-            .tm-shadow-emoji { font-size: 22px; }
             .tm-scramble-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
             .tm-scramble-ticket {
                 display: grid; grid-template-columns: auto 1fr auto auto; gap: 8px; align-items: center;

@@ -1,6 +1,6 @@
 /**
  * Mascot play features: hide-and-seek, chase cursor, teach tricks,
- * nickname helpers, rhythm/shadow/scramble mini-games, accessory toys.
+ * nickname helpers, rhythm/scramble mini-games, accessory toys.
  * Loaded after myman_mascot.js (shared bundle scope).
  */
 
@@ -778,92 +778,6 @@ function showMascotRhythmGame(config, STORAGE_KEYS) {
     return overlay;
 }
 
-// ── Shadow match ──────────────────────────────────────────────────
-function getMascotStageSpriteKey() {
-    const map = (typeof window.TAMA_STAGE_TO_SPRITE_KEY === 'object' && window.TAMA_STAGE_TO_SPRITE_KEY)
-        ? window.TAMA_STAGE_TO_SPRITE_KEY
-        : {
-            egg: 'base',
-            evo1: 'evo1',
-            evo2: 'evo2',
-            evo3: 'evo3',
-        };
-    return map[tamagotchiStage] || 'evo3';
-}
-
-function showMascotShadowMatchGame(config, STORAGE_KEYS) {
-    if (tamagotchiIsDead || tamagotchiStage === 'egg') {
-        showMascotBubble('Πρώτα να εκκολαφθώ!', 1800);
-        return;
-    }
-
-    const correctChar = tamagotchiCharacterType;
-    const correctStage = getMascotStageSpriteKey();
-    const distractors = TAMA_CHARACTER_TYPES.filter((c) => c !== correctChar)
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 2);
-    const options = [correctChar, ...distractors].sort(() => Math.random() - 0.5);
-
-    const stageLabel = MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage;
-
-    openMascotPlayOverlay({
-        title: 'Shadow Match',
-        subtitle: `Ποια σκιά είναι το σημερινό ${stageLabel};`,
-        bodyHtml: `
-            <div class="tm-shadow-stage">
-                <div class="tm-shadow-prompt">
-                    <div class="tm-shadow-silhouette" data-char="${correctChar}" data-stage="${correctStage}" title="Σκιά-μυστήριο"></div>
-                    <p>Διάλεξε τον σωστό χαρακτήρα</p>
-                </div>
-                <div class="tm-shadow-options" id="tm-shadow-options">
-                    ${options.map((c) => {
-                        const meta = MASCOT_CHARACTERS[c] || {};
-                        return `<button type="button" class="tm-shadow-opt" data-char="${c}">
-                            <span class="tm-shadow-emoji">${meta.emoji || '🐾'}</span>
-                            <span>${meta.name || c}</span>
-                        </button>`;
-                    }).join('')}
-                </div>
-            </div>
-        `,
-        onReady(root) {
-            root.querySelectorAll('.tm-shadow-opt').forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    const pick = btn.getAttribute('data-char');
-                    const ok = pick === correctChar;
-                    root.querySelectorAll('.tm-shadow-opt').forEach((b) => { b.disabled = true; });
-                    btn.classList.add(ok ? 'correct' : 'wrong');
-                    const foot = root.querySelector('#tm-mascot-play-foot');
-                    if (ok) {
-                        const reward = rewardMascotMiniGame(config, STORAGE_KEYS, {
-                            happiness: 10,
-                            xp: 18,
-                            coins: 10,
-                            source: 'mascotShadow',
-                            weightBurn: 1.4,
-                        });
-                        const lost = Math.abs(Math.round((reward?.weightResult?.delta || 0) * 10) / 10);
-                        showMascotBubble(`Σωστή σκιά!${lost ? ` −${lost} kg` : ''}`, 2000);
-                        if (foot) {
-                            foot.innerHTML = `<p class="tm-mascot-play-result">Μπράβο! +10🪙 · +18 XP${lost ? ` · −${lost} kg` : ''}</p>
-                                <button type="button" class="tm-mascot-play-done">Κλείσιμο</button>`;
-                        }
-                    } else {
-                        updatePetStats(config, STORAGE_KEYS, 2, 0);
-                        showMascotBubble('Όχι αυτή η σκιά…', 1800);
-                        setMascotMood('grumpy', 5000);
-                        if (foot) {
-                            foot.innerHTML = `<p class="tm-mascot-play-result">Ήταν ${MASCOT_CHARACTERS[correctChar]?.name || correctChar}</p>
-                                <button type="button" class="tm-mascot-play-done">Κλείσιμο</button>`;
-                        }
-                    }
-                    foot?.querySelector('.tm-mascot-play-done')?.addEventListener('click', () => closeMascotPlayOverlay());
-                });
-            });
-        },
-    });
-}
-
 // ── Order scramble ────────────────────────────────────────────────
 function showMascotOrderScrambleGame(config, STORAGE_KEYS) {
     const statuses = [
@@ -1113,10 +1027,6 @@ function getMascotPlayCareSectionHTML(STORAGE_KEYS) {
                     <span class="tm-action-label">Gym</span>
                     <span class="tm-action-hint">−kg</span>
                 </button>
-                <button type="button" class="tm-action-btn" id="tm-action-shadow" title="Shadow match">
-                    <span class="tm-action-icon">🌑</span>
-                    <span class="tm-action-label">Σκιά</span>
-                </button>
                 <button type="button" class="tm-action-btn" id="tm-action-scramble" title="Order scramble">
                     <span class="tm-action-icon">🎫</span>
                     <span class="tm-action-label">Tickets</span>
@@ -1149,11 +1059,6 @@ function wireMascotPlayCareHandlers(modal, config, STORAGE_KEYS, { closeModal })
     modal.querySelector('#tm-action-gym-extra')?.addEventListener('click', () => {
         closeModal?.();
         showMascotGymGame(config, STORAGE_KEYS);
-    });
-
-    modal.querySelector('#tm-action-shadow')?.addEventListener('click', () => {
-        closeModal?.();
-        showMascotShadowMatchGame(config, STORAGE_KEYS);
     });
 
     modal.querySelector('#tm-action-scramble')?.addEventListener('click', () => {
@@ -1579,7 +1484,6 @@ window.startMascotHideAndSeek = startMascotHideAndSeek;
 window.tryRevealMascotHideAndSeek = tryRevealMascotHideAndSeek;
 window.showMascotRhythmGame = showMascotRhythmGame;
 window.showMascotGymGame = showMascotGymGame;
-window.showMascotShadowMatchGame = showMascotShadowMatchGame;
 window.showMascotOrderScrambleGame = showMascotOrderScrambleGame;
 window.getMascotPlayCareSectionHTML = getMascotPlayCareSectionHTML;
 window.wireMascotPlayCareHandlers = wireMascotPlayCareHandlers;

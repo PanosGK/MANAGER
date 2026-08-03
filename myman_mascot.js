@@ -1000,7 +1000,7 @@ const MASCOT_CHARACTERS = {
 const MASCOT_CARE_COIN_COSTS = {
     meal: 8,
     snack: 4,
-    medicine: 35,
+    medicine: 35, // weekly soft vet visit (not spam heal)
     clean: 20,
     pet: 0,
     toilet: 0,
@@ -1239,7 +1239,7 @@ const MASCOT_CARE_ACTION_LABELS_GR = {
     snack: 'Σνακ',
     pet: 'Χάδι',
     clean: 'Καθάρισμα',
-    medicine: 'Φάρμακο',
+    medicine: 'Κτηνίατρος',
     toilet: 'Τουαλέτα',
     praise: 'Έπαινος',
     scold: 'Επίπληξη',
@@ -1470,6 +1470,14 @@ function playMascotTrick(config, STORAGE_KEYS) {
 function applyMascotShopCareEffect(effect, config, STORAGE_KEYS) {
     if (!effect || tamagotchiIsDead || tamagotchiStage === 'egg') return;
     let changed = false;
+    // Shop "medicine" = soft weekly vet kit (shop already charged — skip care-panel pay)
+    if (effect.careAction === 'medicine') {
+        const result = performMascotVetVisit(STORAGE_KEYS, config, { skipPay: true });
+        if (!result.ok && result.reason === 'already') {
+            showMascotBubble(mascotMsg('vetAlready'), 2200);
+        }
+        return;
+    }
     if (effect.health) {
         tamagotchiHealth = Math.min(100, tamagotchiHealth + Number(effect.health || 0));
         const container = document.getElementById('tm-mascot-container');
@@ -3553,6 +3561,8 @@ const TAMA_WEIGHT_BOUNDS = {
 let tamagotchiPoopCount = 0; // Number of poops on screen
 let tamagotchiIsSick = false;
 let tamagotchiSickType = 'none'; // none, cold, fever, upset_stomach
+/** ISO-ish week key of last soft vet visit (`YYYY-Wn`). Empty = never. */
+let tamagotchiLastVetWeek = '';
 let tamagotchiCareMistakes = 0; // Affects evolution and personality
 let tamagotchiPersonality = 'normal'; // normal, lazy, active, spoiled, well_cared
 let tamagotchiBirthday = Date.now();
@@ -3973,6 +3983,9 @@ const MASCOT_MESSAGES = {
     alreadyClean: ['Είμαι ήδη καθαρός!', 'Είναι καθαρά!', 'Όλα καλά εδώ!'],
     medicine: ['Καλύτερα!', 'Αισθάνομαι καλά!', 'Πέρασε!', 'Έγινα καλά!', 'Ευχαριστώ!'],
     medicinePanel: ['Καλύτερα!', 'Ευχαριστώ!', 'Γιατρός!', 'Θα γίνω καλά!', 'Έφτιαξα!'],
+    vetVisit: ['Checkup OK!', 'Ο κτηνίατρος είπε όλα καλά!', 'Έγινα φρέσκος!', 'Υγεία!', 'Ευχαριστώ γιατρέ!'],
+    vetCured: ['Έγινα καλά!', 'Πέρασε η αρρώστια!', 'Ξανά στα πόδια μου!', 'Θεραπεία!'],
+    vetAlready: ['Αυτή την εβδομάδα ήδη πήγαμε!', 'Επόμενο ραντεβού την άλλη εβδομάδα.', 'Ο κτηνίατρος είπε να ξεκουραστώ.'],
     healthy: ['Είμαι υγιής!', 'Μια χαρά είμαι!', 'Όλα καλά!'],
     feelingBetter: 'Αισθάνομαι καλύτερα!',
     toiletTrained: 'Έμαθα τουαλέτα! 🎉',
@@ -4317,6 +4330,195 @@ function getMascotEvolutionDisplayName(characterType, stage, opts = {}) {
         ? MASCOT_EVOLUTION_NAMES[characterType][stage]
         : null;
     return named || MASCOT_STAGE_GR[stage] || stage;
+}
+
+/** Short lore blurbs unlocked with each evolution name (GR primary). */
+const MASCOT_EVOLUTION_LORE = {
+    dragon: {
+        evo1: 'Μικρή φλόγα που μαθαίνει να καίει χωρίς να καίγεται.',
+        evo2: 'Η λάβα γίνεται πανοπλία — κάθε ανάσα μυρίζει αστέρια.',
+        evo3: 'Στέμμα από στάχτη και βασιλική οργή. Οι ουρανοί υποκλίνονται.',
+    },
+    robot: {
+        evo1: 'Κύβος με όνειρα σε LED — μετράει κάθε χτύπο της καρδιάς-κώδικα.',
+        evo2: 'Νέον κολοσσός· ξαναγράφει τον κόσμο γραμμή-γραμμή.',
+        evo3: 'Scarframe: ο πόλεμος τελείωσε, ο πυρήνας όμως θυμάται.',
+    },
+    slime: {
+        evo1: 'Ζελέ με περιέργεια — απορροφά γέλιο πριν τα πάντα.',
+        evo2: 'Jellord· κυλάει σαν θρόνος από ζελατίνη και χάος.',
+        evo3: 'Αβυσσαλέο ooze· το σκοτάδι έχει γεύση μήλου.',
+    },
+    plant: {
+        evo1: 'Σπόρος με υπομονή — ριζώνει εκεί που τον αγαπούν.',
+        evo2: 'Bloomkin· άνθη που κλείνουν μυστικά στο φως.',
+        evo3: 'Grovekin· δάσος σε ένα σώμα, φύλακας εποχών.',
+    },
+    ghost: {
+        evo1: 'Wispuff· ένα χνούδι από ομίχλη και γέλιο.',
+        evo2: 'Hauntling· παίζει κρυφτό με τις σκιές του γραφείου.',
+        evo3: 'Spectrex· όταν χαμογελά, κρυώνουν τα φώτα.',
+    },
+    cat: {
+        evo1: 'Moonkit· μαθαίνει τα οιωνά από τις αχτίδες της νύχτας.',
+        evo2: 'Moonfang Oracle· τα μάτια του διαβάζουν αύριο.',
+        evo3: 'Omenlord· κάθε νιαούρισμα είναι προφητεία.',
+    },
+    phoenix: {
+        evo1: 'Ember Chick· στάχτη που ακόμα κλωτσάει.',
+        evo2: 'Ashborn· φτερά από ξαναγεννημένη αυγή.',
+        evo3: 'Cinder Warlord· η φωτιά δεν πεθαίνει — αλλάζει βάρδια.',
+    },
+    crystal: {
+        evo1: 'Gemling· λάμπει πριν μάθει τι είναι το φως.',
+        evo2: 'Prism Titan· σπάει ακτίνες σε χρώματα και αποφάσεις.',
+        evo3: 'Veined Colossus· μέσα στις φλέβες κυλάει ουρανός.',
+    },
+    aether: {
+        evo1: 'Voidseed· σπόρος κενού που ονειρεύεται άστρα.',
+        evo2: 'Starveil· το πέπλο λεπταίνει· κάτι σε κοιτάει πίσω.',
+        evo3: 'Eclipse Sovereign· όταν σβήνει ο ήλιος, μένει το στέμμα.',
+    },
+    leviathan: {
+        evo1: 'Tide Serpentling· μαθαίνει τα κύματα πριν τη βαθιά θάλασσα.',
+        evo2: 'Storm Leviathan· αστραπή στη ραχοκοκαλιά του ορίζοντα.',
+        evo3: 'Tempest Sovereign· οι ακτές θυμούνται το όνομά του.',
+    },
+};
+
+/**
+ * Lore for a named evolution form. Locked stages return null (no spoilers).
+ * @param {string|null} characterType
+ * @param {string} stage
+ * @param {{ locked?: boolean, revealLocked?: boolean }} [opts]
+ */
+function getMascotEvolutionLore(characterType, stage, opts = {}) {
+    if (!stage || stage === 'egg') return null;
+    const locked = opts.locked != null
+        ? !!opts.locked
+        : !isMascotStageUnlockedForPreview(stage, characterType || 'none');
+    if (locked && !opts.revealLocked) return null;
+    if (!characterType || characterType === 'none') return null;
+    return MASCOT_EVOLUTION_LORE[characterType]?.[stage] || null;
+}
+
+function getNextMascotLifeStage(stage = tamagotchiStage) {
+    const idx = getMascotLifeStageIndex(stage);
+    if (idx < 0 || idx >= TAMA_LIFE_STAGE_ORDER.length - 1) return null;
+    return TAMA_LIFE_STAGE_ORDER[idx + 1];
+}
+
+/**
+ * Soft "almost evolved" tease — progress ≥72% toward the next stage.
+ * Returns blurred-next-form meta only (never real art of the locked stage).
+ */
+function getMascotAlmostEvolvedInfo() {
+    if (tamagotchiIsDead) return null;
+    const stage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
+    if (stage === 'egg') return null;
+    const nextStage = getNextMascotLifeStage(stage);
+    if (!nextStage) return null;
+    // Still on this stage in the current life
+    if (getMascotLifeStageIndex(tamagotchiStage) >= getMascotLifeStageIndex(nextStage)) return null;
+
+    const curMin = Number(TAMA_STAGE_MINUTES[stage]) || 0;
+    const nextMin = Number(TAMA_STAGE_MINUTES[nextStage]) || 0;
+    const span = Math.max(1, nextMin - curMin);
+    const progress = Math.max(0, Math.min(1, (Number(tamagotchiLifeMinutes) - curMin) / span));
+    if (progress < 0.72) return null;
+
+    const characterType = (tamagotchiCharacterType && tamagotchiCharacterType !== 'none'
+        && TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType))
+        ? tamagotchiCharacterType
+        : null;
+
+    return {
+        currentStage: stage,
+        nextStage,
+        progress,
+        percent: Math.round(progress * 100),
+        characterType,
+        nextName: getMascotEvolutionDisplayName(characterType, nextStage, { locked: true }),
+    };
+}
+
+/** Calendar week key for soft vet visit (1× / week). */
+function getMascotVetWeekKey() {
+    const d = new Date();
+    const onejan = new Date(d.getFullYear(), 0, 1);
+    const week = Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+    return `${d.getFullYear()}-W${week}`;
+}
+
+function hasMascotVetVisitThisWeek() {
+    return !!tamagotchiLastVetWeek && tamagotchiLastVetWeek === getMascotVetWeekKey();
+}
+
+function getMascotVetButtonState() {
+    const visited = hasMascotVetVisitThisWeek();
+    const sick = !!tamagotchiIsSick;
+    const low = tamagotchiHealth < 50;
+    return {
+        visited,
+        urgent: !visited && (sick || low),
+        canVisit: !visited,
+        label: 'Κτηνίατρος',
+        icon: '🩺',
+        title: visited
+            ? 'Ραντεβού κλειστό για αυτή την εβδομάδα · 1× checkup'
+            : careCoinHint(sick ? 'Θεραπεία + checkup' : 'Εβδομαδιαίο checkup · θεραπεία', 'medicine'),
+    };
+}
+
+/**
+ * Soft weekly vet visit — cures sickness + one solid heal. Not spam medicine.
+ * @param {object} [opts]
+ * @param {boolean} [opts.skipPay] — shop already charged for the kit
+ * @returns {{ ok: boolean, reason?: string, pay?: object, wasSick?: boolean }}
+ */
+function performMascotVetVisit(STORAGE_KEYS, config, opts = {}) {
+    if (tamagotchiIsDead) return { ok: false, reason: 'dead' };
+    if (tamagotchiStage === 'egg') return { ok: false, reason: 'egg' };
+    if (hasMascotVetVisitThisWeek()) return { ok: false, reason: 'already' };
+
+    let pay = { ok: true, paidWith: 'none', cost: 0 };
+    if (!opts.skipPay) {
+        pay = trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config);
+        if (!pay.ok) return { ok: false, reason: 'coins', pay };
+    }
+
+    const wasSick = !!tamagotchiIsSick;
+    const before = Number(tamagotchiHealth) || 0;
+    tamagotchiIsSick = false;
+    tamagotchiSickType = 'none';
+    tamagotchiHealth = Math.min(100, before + (wasSick ? 45 : 35));
+    if (wasSick) tamagotchiHealth = Math.max(tamagotchiHealth, 90);
+    tamagotchiLastVetWeek = getMascotVetWeekKey();
+
+    if (typeof updatePetStats === 'function') {
+        updatePetStats(config, STORAGE_KEYS, wasSick ? 10 : 6, 0);
+    }
+    if (typeof updateSickIndicator === 'function') updateSickIndicator();
+
+    const pool = wasSick ? MASCOT_MESSAGES.vetCured : MASCOT_MESSAGES.vetVisit;
+    if (!opts.skipPay) {
+        announceMascotCarePayment(pay, pool);
+    } else {
+        showMascotBubble(
+            Array.isArray(pool) ? pool[Math.floor(Math.random() * pool.length)] : pool,
+            2200,
+        );
+    }
+    applyMascotCarePreference('medicine', config, STORAGE_KEYS);
+
+    const container = document.getElementById('tm-mascot-container');
+    if (container && typeof updateTamagotchiStats === 'function') {
+        updateTamagotchiStats(container);
+    }
+    if (STORAGE_KEYS && typeof saveTamagotchiData === 'function') {
+        saveTamagotchiData(STORAGE_KEYS);
+    }
+    return { ok: true, pay, wasSick };
 }
 
 function mascotMsg(key) {
@@ -6246,6 +6448,7 @@ function commitMascotMotionPosition(container = document.getElementById('tm-masc
 function stopRoaming(config) {
     clearRoamingMoveTimeout();
     if (playfulTimeout) clearTimeout(playfulTimeout);
+    clearDeskVisitorSchedule();
     
     // Stop physics animation
     stopPhysicsAnimation();
@@ -6806,6 +7009,145 @@ function schedulePlayfulAction() {
     }, randomDelay);
 }
 
+// --- Desk visitor: another tech's mascot peeks in randomly ---
+let deskVisitorTimeout = null;
+let deskVisitorActive = false;
+
+const DESK_VISITOR_TECH_NAMES = [
+    'Μαρία', 'Νίκος', 'Ελένη', 'Γιώργος', 'Κατερίνα', 'Δημήτρης',
+    'Άννα', 'Πέτρος', 'Σοφία', 'Κώστας', 'Βασίλης', 'Ιωάννα',
+];
+
+function ensureDeskVisitorStyles() {
+    if (document.getElementById('tm-desk-visitor-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'tm-desk-visitor-styles';
+    style.textContent = `
+        #tm-desk-visitor {
+            position: fixed; z-index: 99980;
+            display: flex; align-items: flex-end; gap: 8px;
+            pointer-events: none;
+            opacity: 0; transform: translateY(18px);
+            transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        }
+        #tm-desk-visitor.is-visible {
+            opacity: 1; transform: translateY(0);
+        }
+        #tm-desk-visitor.tm-desk-visitor-left {
+            left: 12px; bottom: 18px; flex-direction: row;
+        }
+        #tm-desk-visitor.tm-desk-visitor-right {
+            right: 12px; bottom: 18px; flex-direction: row-reverse;
+        }
+        #tm-desk-visitor .tm-desk-visitor-emoji {
+            width: 44px; height: 44px;
+            border-radius: 14px;
+            background: linear-gradient(160deg, #fff 0%, #e2e8f0 100%);
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.18);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            animation: tmDeskVisitorBob 1.6s ease-in-out infinite;
+        }
+        #tm-desk-visitor .tm-desk-visitor-bubble {
+            max-width: min(52vw, 220px);
+            padding: 8px 10px;
+            border-radius: 12px 12px 12px 4px;
+            background: #0f172a; color: #f8fafc;
+            font-size: 12px; font-weight: 600; line-height: 1.35;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+        }
+        #tm-desk-visitor.tm-desk-visitor-right .tm-desk-visitor-bubble {
+            border-radius: 12px 12px 4px 12px;
+        }
+        @keyframes tmDeskVisitorBob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function clearDeskVisitorSchedule() {
+    if (deskVisitorTimeout) {
+        clearTimeout(deskVisitorTimeout);
+        deskVisitorTimeout = null;
+    }
+}
+
+function canShowDeskVisitor() {
+    if (document.hidden) return false;
+    if (!isRoaming) return false;
+    if (tamagotchiIsDead || tamagotchiStage === 'egg') return false;
+    if (!tamagotchiLightsOn || tamagotchiIsSleeping) return false;
+    if (typeof isMascotFocusQuiet === 'function' && isMascotFocusQuiet()) return false;
+    if (typeof mascotHideSeekActive !== 'undefined' && mascotHideSeekActive) return false;
+    if (typeof tamaCinematicLock !== 'undefined' && tamaCinematicLock) return false;
+    if (document.getElementById('tm-mascot-stats-modal')) return false;
+    if (document.getElementById('tm-mascot-age-preview-overlay')) return false;
+    if (deskVisitorActive) return false;
+    return true;
+}
+
+function scheduleDeskVisitor() {
+    clearDeskVisitorSchedule();
+    if (!isRoaming) return;
+    // 8–22 minutes between attempts; ~55% chance to actually peek
+    const delay = 8 * 60 * 1000 + Math.random() * 14 * 60 * 1000;
+    deskVisitorTimeout = setTimeout(() => {
+        if (canShowDeskVisitor() && Math.random() < 0.55) {
+            playDeskVisitorPeek();
+        }
+        if (isRoaming) scheduleDeskVisitor();
+    }, delay);
+}
+
+function playDeskVisitorPeek() {
+    if (!canShowDeskVisitor()) return;
+    ensureDeskVisitorStyles();
+    deskVisitorActive = true;
+
+    document.getElementById('tm-desk-visitor')?.remove();
+
+    const guestPool = TAMA_CHARACTER_TYPES.filter((t) => t !== tamagotchiCharacterType);
+    const guestType = guestPool[Math.floor(Math.random() * guestPool.length)] || 'slime';
+    const guest = MASCOT_CHARACTERS[guestType] || { emoji: '✨', name: 'Mascot' };
+    const tech = DESK_VISITOR_TECH_NAMES[Math.floor(Math.random() * DESK_VISITOR_TECH_NAMES.length)];
+    const myName = (typeof getMascotDisplayName === 'function')
+        ? getMascotDisplayName()
+        : 'το mascot';
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    const lines = [
+        `${tech} πέρασε με ${guest.emoji}…`,
+        `${tech}: «Πέρασα να δω το ${myName}!»`,
+        `${tech}: «Τι χαριτωμένο ${guest.emoji}!»`,
+        `Κάποιος από το γραφείο κοιτάει… ${guest.emoji}`,
+    ];
+
+    const el = document.createElement('div');
+    el.id = 'tm-desk-visitor';
+    el.className = `tm-desk-visitor-${side}`;
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML =
+        `<div class="tm-desk-visitor-emoji">${guest.emoji}</div>`
+        + `<div class="tm-desk-visitor-bubble">${lines[Math.floor(Math.random() * lines.length)]}</div>`;
+    document.body.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('is-visible'));
+
+    setTimeout(() => {
+        if (!isMascotFocusQuiet()) showMascotBubble('Γειαα!', 1500);
+    }, 700);
+
+    setTimeout(() => {
+        el.classList.remove('is-visible');
+        setTimeout(() => {
+            el.remove();
+            deskVisitorActive = false;
+        }, 450);
+    }, 4200);
+}
+
 async function moveToNewPosition() {
     const config = roamingConfig || window.config || {};
     const mascotContainer = document.getElementById('tm-mascot-container');
@@ -6964,6 +7306,7 @@ function startRoaming(config) {
     }
 
     schedulePlayfulAction();
+    scheduleDeskVisitor();
     ensureRoamingWatchdog(config);
     moveToNewPosition();
 }
@@ -7276,6 +7619,7 @@ function loadTamagotchiData(STORAGE_KEYS) {
         tamagotchiPoopCount = savedData.poopCount || 0;
         tamagotchiIsSick = savedData.isSick || false;
         tamagotchiSickType = savedData.sickType || 'none';
+        tamagotchiLastVetWeek = typeof savedData.lastVetWeek === 'string' ? savedData.lastVetWeek : '';
         tamagotchiCareMistakes = savedData.careMistakes || 0;
         tamagotchiPersonality = savedData.personality || 'normal';
         tamagotchiBirthday = savedData.birthday || Date.now();
@@ -7433,6 +7777,7 @@ function saveTamagotchiData(STORAGE_KEYS) {
         poopCount: tamagotchiPoopCount,
         isSick: tamagotchiIsSick,
         sickType: tamagotchiSickType,
+        lastVetWeek: tamagotchiLastVetWeek || '',
         careMistakes: tamagotchiCareMistakes,
         personality: tamagotchiPersonality,
         birthday: tamagotchiBirthday,
@@ -7769,7 +8114,14 @@ function checkTamagotchiEvolution(container) {
             // Recover hatch cinematic when stage was already baby (e.g. save raced ahead)
             runTamagotchiHatchSequence(tamagotchiCharacterType, container);
         } else if (stageChanged) {
+            const evoName = getMascotEvolutionDisplayName(tamagotchiCharacterType, tamagotchiStage);
+            const lore = getMascotEvolutionLore(tamagotchiCharacterType, tamagotchiStage, { locked: false });
             showMascotBubble(evolutionMessages[Math.floor(Math.random() * evolutionMessages.length)], 3000);
+            if (lore) {
+                setTimeout(() => {
+                    showMascotBubble(`${evoName}: ${lore}`, 4200);
+                }, 3200);
+            }
             if (tamagotchiCharacterType === 'aether' && tamagotchiStage !== 'egg') {
                 playAetherStageCinematic(tamagotchiStage);
             } else if (tamagotchiCharacterType === 'phoenix' && tamagotchiStage !== 'egg') {
@@ -10796,6 +11148,31 @@ function ensureMascotAgePreviewStyles() {
         #tm-mascot-age-preview-overlay .tm-age-prev-hero-meta .tm-age-locked-label {
             color: var(--tm-subtle-text, #64748b);
         }
+        #tm-mascot-age-preview-overlay .tm-age-prev-hero-meta .tm-age-evo-lore {
+            display: block; margin-top: 8px; max-width: 34ch;
+            font-size: 12px; font-weight: 500; line-height: 1.4;
+            color: var(--tm-subtle-text, #475569); font-style: italic;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-almost-banner {
+            display: flex; align-items: center; gap: 10px;
+            margin: 0 18px 12px; padding: 10px 12px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0; border: 1px solid #334155;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-almost-banner .tm-age-prev-mystery {
+            width: 36px; height: 36px; flex-shrink: 0;
+            border-radius: 46% 54% 50% 50% / 42% 48% 52% 58%;
+            background: linear-gradient(145deg, #64748b 0%, #1e293b 55%, #0f172a 100%);
+            filter: blur(6px) brightness(0.6);
+            opacity: 0.9;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-almost-copy {
+            font-size: 12px; line-height: 1.35;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-almost-copy strong {
+            display: block; font-size: 12.5px; margin-bottom: 2px; color: #f8fafc;
+        }
         #tm-mascot-age-preview-overlay .tm-age-prev-controls {
             display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
         }
@@ -10931,8 +11308,12 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
                     <button type="button" id="tm-age-prev-stop" hidden>■ Σταμάτα</button>
                 </div>
             </div>
+            <div class="tm-age-almost-banner" id="tm-age-almost-banner" hidden>
+                <div class="tm-age-prev-mystery" aria-hidden="true"></div>
+                <div class="tm-age-almost-copy" id="tm-age-almost-copy"></div>
+            </div>
             <div class="tm-age-prev-rail" id="tm-age-prev-rail"></div>
-            <p class="tm-age-prev-footnote">Τα στάδια που έχεις φτάσει εμφανίζονται καθαρά με το όνομά τους. Τα κλειδωμένα μένουν θολά — χωρίς μορφή και χωρίς όνομα — για να μην χαλάσει η ανακάλυψη.</p>
+            <p class="tm-age-prev-footnote">Τα στάδια που έχεις φτάσει εμφανίζονται καθαρά με όνομα και μικρό lore. Τα κλειδωμένα μένουν θολά — χωρίς μορφή και χωρίς όνομα. Κοντά στην εξέλιξη φαίνεται μόνο ένα θολό tease της επόμενης μορφής.</p>
         </div>
     `;
     document.body.appendChild(overlay);
@@ -10940,8 +11321,22 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
     const rail = overlay.querySelector('#tm-age-prev-rail');
     const hero = overlay.querySelector('#tm-age-prev-hero');
     const heroMeta = overlay.querySelector('#tm-age-prev-hero-meta');
+    const almostBanner = overlay.querySelector('#tm-age-almost-banner');
+    const almostCopy = overlay.querySelector('#tm-age-almost-copy');
     const playBtn = overlay.querySelector('#tm-age-prev-play');
     const stopBtn = overlay.querySelector('#tm-age-prev-stop');
+
+    const almostInfo = getMascotAlmostEvolvedInfo();
+    if (almostBanner && almostCopy) {
+        if (almostInfo) {
+            almostBanner.hidden = false;
+            almostCopy.innerHTML =
+                `<strong>Σχεδόν νέα μορφή… ${almostInfo.percent}%</strong>`
+                + `<span>Κάτι αλλάζει — η επόμενη εξέλιξη μένει θολή μέχρι να ξεκλειδωθεί (${almostInfo.nextName}).</span>`;
+        } else {
+            almostBanner.hidden = true;
+        }
+    }
 
     let selectedStage = characterType
         ? (TAMA_LIFE_STAGE_ORDER.includes(tamagotchiStage) ? tamagotchiStage : 'evo1')
@@ -11016,9 +11411,17 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
         if (heroMeta) {
             const evoName = getMascotEvolutionDisplayName(characterType, selectedStage, { locked: !unlocked });
             const stageGr = MASCOT_STAGE_GR[selectedStage] || selectedStage;
+            const lore = unlocked
+                ? getMascotEvolutionLore(characterType, selectedStage, { locked: false })
+                : null;
+            const almostHint = (!unlocked && almostInfo && almostInfo.nextStage === selectedStage)
+                ? `<span class="tm-age-locked-label">✨ Σχεδόν ξεκλειδώνει · ${almostInfo.percent}%</span>`
+                : '';
             heroMeta.innerHTML = unlocked
-                ? `<span class="tm-age-evo-name">${evoName}</span><span class="tm-age-evo-stage">${stageGr}</span>`
-                : `<span class="tm-age-locked-label">🔒 ${evoName} · κλειδωμένο</span>`;
+                ? `<span class="tm-age-evo-name">${evoName}</span>`
+                    + `<span class="tm-age-evo-stage">${stageGr}</span>`
+                    + (lore ? `<span class="tm-age-evo-lore">${lore}</span>` : '')
+                : (almostHint || `<span class="tm-age-locked-label">🔒 ${evoName} · κλειδωμένο</span>`);
         }
         rail?.querySelectorAll('.tm-age-prev-cell').forEach((cell) => {
             cell.classList.toggle('is-selected', cell.dataset.stage === selectedStage);
@@ -11348,9 +11751,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <span class="tm-btn-icon">🧹</span>
                         <span class="tm-btn-label">Clean</span>
                     </button>
-                    <button id="tm-pet-medicine-btn" class="tm-action-btn tm-btn-medicine" title="Give medicine">
-                        <span class="tm-btn-icon">💊</span>
-                        <span class="tm-btn-label">Medicine</span>
+                    <button id="tm-pet-medicine-btn" class="tm-action-btn tm-btn-medicine" title="Weekly vet checkup">
+                        <span class="tm-btn-icon">🩺</span>
+                        <span class="tm-btn-label">Vet</span>
                     </button>
                     <button id="tm-pet-toilet-btn" class="tm-action-btn tm-btn-toilet" title="Train to use toilet">
                         <span class="tm-btn-icon">🚽</span>
@@ -16214,7 +16617,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         }
 
         const { clone, liveRoot } = built;
-        const sizePx = getLiveMascotPreviewSizePx(liveRoot);
+        const sizePx = Math.min(72, getLiveMascotPreviewSizePx(liveRoot));
         stage.style.setProperty('--tm-care-preview-size', `${sizePx}px`);
         const stageScale = liveRoot?.style?.getPropertyValue?.('--tm-stage-scale')
             || liveRoot?.dataset?.tmStageScale
@@ -16275,8 +16678,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             if (tamagotchiIsDead) {
                 return { level: 'danger', icon: '💀', text: 'Το mascot έχει φύγει. Ξεκίνα νέο αυγό από την επαναφορά.' };
             }
+            if (tamagotchiIsSick) {
+                return { level: 'danger', icon: '🩺', text: hasMascotVetVisitThisWeek()
+                    ? 'Άρρωστο — το εβδομαδιαίο checkup ήδη έγινε. Φρόντισε καθαριότητα & ξεκούραση.'
+                    : 'Άρρωστο — πάτα Κτηνίατρος για checkup.' };
+            }
             if (tamagotchiHealth < 50) {
-                return { level: 'danger', icon: '💊', text: 'Χαμηλή υγεία — πάτα Φάρμακο.' };
+                return { level: 'danger', icon: '🩺', text: hasMascotVetVisitThisWeek()
+                    ? 'Χαμηλή υγεία — checkup την άλλη εβδομάδα· τάισε / καθάρισε / ξεκούρασε.'
+                    : 'Χαμηλή υγεία — πάτα Κτηνίατρος για checkup.' };
             }
             if (tamagotchiPoopCount > 0) {
                 return { level: 'warn', icon: '🧹', text: `Χρειάζεται καθάρισμα (${tamagotchiPoopCount}). Πάτα Καθάρισμα ή Τουαλέτα.` };
@@ -16329,10 +16739,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         const tip = getCareTip();
         const showCareTip = isEgg || tip.level === 'warn' || tip.level === 'danger';
         const cleanUrgent = !isEgg && tamagotchiPoopCount > 0;
-        const medUrgent = !isEgg && tamagotchiHealth < 50;
+        const vetState = !isEgg ? getMascotVetButtonState() : null;
+        const medUrgent = !isEgg && !!vetState?.urgent;
         const feedUrgent = !isEgg && petStats.hunger < 35;
         const praiseUrgent = !isEgg && !!tamagotchiNeedsPraise;
         const scoldUrgent = !isEgg && !!tamagotchiNeedsScold;
+        const almostEvo = !isEgg ? getMascotAlmostEvolvedInfo() : null;
         const dailyCoinsState = (typeof getDailyCareCoinsButtonState === 'function')
             ? getDailyCareCoinsButtonState(STORAGE_KEYS)
             : { claimed: false, amount: 50, label: 'Δωρεάν coins', hint: '+50 κάθε μέρα', title: 'Πάρε 50 δωρεάν coins (1×/μέρα)' };
@@ -16344,10 +16756,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         const nickValue = (typeof normalizeMascotNickname === 'function')
             ? normalizeMascotNickname(typeof tamagotchiNickname !== 'undefined' ? tamagotchiNickname : '')
             : String(typeof tamagotchiNickname !== 'undefined' ? tamagotchiNickname : '').trim().slice(0, 16);
-        const nickBtnLabel = nickValue ? `✏️ ${nickValue}` : '✏️ Παρατσούκλι';
-        const coinsBtnLabel = dailyCoinsState.claimed
-            ? '🪙 ✓'
-            : `🪙 +${dailyCoinsState.amount || 50}`;
+        const nickBtnLabel = '✏️';
+        const coinsBtnLabel = dailyCoinsState.claimed ? '🪙' : '🪙+';
 
         const modal = document.createElement('div');
         modal.id = 'tm-mascot-stats-modal';
@@ -16359,20 +16769,21 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <h2 class="tm-mascot-name" id="tm-mascot-care-title">${characterName}</h2>
                         <p class="tm-mascot-meta">
                             <span class="tm-mascot-stage-pill">${stageGr}</span>
-                            <span id="tm-mascot-meta-age">${isEgg ? `Εκκόλαψη ~${minutesToHatch} λεπτά` : stageGr}</span>
-                            ${isEgg ? '' : `<span class="tm-mascot-meta-sep">·</span><span id="tm-mascot-meta-weight">${formatTamagotchiWeightKg()}</span>`}
+                            <span id="tm-mascot-meta-age">${isEgg ? `~${minutesToHatch} λεπτά` : ''}</span>
+                            ${isEgg ? '' : `<span id="tm-mascot-meta-weight">${formatTamagotchiWeightKg()}</span>`}
                         </p>
                     </div>
                     <div class="tm-mascot-header-tools">
-                        <button type="button" class="tm-mascot-header-chip" id="tm-action-nickname" title="Άλλαξε παρατσούκλι">${nickBtnLabel}</button>
+                        <button type="button" class="tm-mascot-header-chip" id="tm-action-nickname" title="${nickValue ? `Παρατσούκλι: ${nickValue}` : 'Άλλαξε παρατσούκλι'}">${nickBtnLabel}</button>
                         <button type="button" class="tm-mascot-header-chip ${dailyCoinsState.claimed ? 'tm-daily-claimed' : 'tm-chip-claim'}" id="tm-action-daily-coins" title="${dailyCoinsState.title}" ${dailyCoinsState.claimed ? 'disabled' : ''}>${coinsBtnLabel}</button>
+                        <button type="button" class="tm-mascot-header-chip" id="tm-action-age-preview" title="Δες όλες τις εξελίξεις">🧬</button>
                         <button type="button" class="tm-mascot-close-btn" id="tm-modal-close" aria-label="Κλείσιμο">✕</button>
                     </div>
                 </div>
 
                 <div class="tm-mascot-nickname-editor" id="tm-mascot-nickname-editor" hidden>
                     <input type="text" id="tm-mascot-nickname-input" class="tm-mascot-nickname-input" maxlength="16" placeholder="π.χ. Φλόγα" value="${String(nickValue).replace(/"/g, '&quot;')}">
-                    <button type="button" class="tm-mascot-header-chip tm-chip-save" id="tm-mascot-nickname-save">Αποθήκευση</button>
+                    <button type="button" class="tm-mascot-header-chip tm-chip-save" id="tm-mascot-nickname-save">OK</button>
                 </div>
 
                 <div class="tm-mascot-care-preview" id="tm-mascot-care-preview-stage">
@@ -16380,12 +16791,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <div class="tm-mascot-care-preview-sprite" id="tm-mascot-care-preview"></div>
                         <div class="tm-mascot-care-preview-shadow" aria-hidden="true"></div>
                     </div>
-                    <div class="tm-mascot-care-preview-actions">
-                        <button type="button" class="tm-mascot-age-preview-btn" id="tm-action-age-preview" title="Δες όλες τις εξελίξεις">
-                            Εξελίξεις
-                        </button>
-                    </div>
                 </div>
+                ${almostEvo ? `
+                <div class="tm-almost-evo" id="tm-almost-evo-tease" title="Η επόμενη μορφή πλησιάζει — ακόμα μυστήριο">
+                    <div class="tm-almost-evo-blob" aria-hidden="true"></div>
+                    <div class="tm-almost-evo-copy">
+                        <strong>Σχεδόν εξελίσσεται…</strong>
+                        <span>${almostEvo.percent}% · ${almostEvo.nextName}</span>
+                    </div>
+                </div>` : ''}
 
                 <div class="tm-mascot-tip tm-tip-${tip.level}" id="tm-mascot-care-tip"${showCareTip ? '' : ' hidden'}>
                     <span class="tm-tip-icon">${tip.icon}</span>
@@ -16468,29 +16882,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
                 <div class="tm-mascot-actions-section">
                     <div class="tm-mascot-actions tm-actions-primary">
-                        <button type="button" class="tm-action-btn tm-action-meal ${feedUrgent ? 'tm-action-urgent' : ''}" id="tm-action-meal" title="Γεύμα (+30 φαγητό)">
+                        <button type="button" class="tm-action-btn tm-action-meal ${feedUrgent ? 'tm-action-urgent' : ''}" id="tm-action-meal" title="Γεύμα · ${careFeedHint('+30', 'meal', STORAGE_KEYS)}">
                             <span class="tm-action-icon">🍖</span>
                             <span class="tm-action-label">Γεύμα</span>
-                            <span class="tm-action-hint">${careFeedHint('+30', 'meal', STORAGE_KEYS)}</span>
                         </button>
-                        <button type="button" class="tm-action-btn tm-action-snack" id="tm-action-snack" title="Σνακ (+φαγητό & χαρά)">
+                        <button type="button" class="tm-action-btn tm-action-snack" id="tm-action-snack" title="Σνακ · ${careFeedHint('+χαρά', 'snack', STORAGE_KEYS)}">
                             <span class="tm-action-icon">🍪</span>
                             <span class="tm-action-label">Σνακ</span>
-                            <span class="tm-action-hint">${careFeedHint('+χαρά', 'snack', STORAGE_KEYS)}</span>
                         </button>
                         <button type="button" class="tm-action-btn tm-action-pet" id="tm-action-pet" title="Χάδι (+15 ευτυχία)">
                             <span class="tm-action-icon">💕</span>
                             <span class="tm-action-label">Χάδι</span>
                         </button>
-                        <button type="button" class="tm-action-btn tm-action-clean ${cleanUrgent ? 'tm-action-urgent' : ''}" id="tm-action-clean" title="Καθάρισμα">
+                        <button type="button" class="tm-action-btn tm-action-clean ${cleanUrgent ? 'tm-action-urgent' : ''}" id="tm-action-clean" title="Καθάρισμα · ${careCoinHint('Καθαρό', 'clean')}">
                             <span class="tm-action-icon">🧹</span>
-                            <span class="tm-action-label">Καθάρισμα</span>
-                            <span class="tm-action-hint">${careCoinHint('Καθαρό', 'clean')}</span>
+                            <span class="tm-action-label">Καθαρό</span>
                         </button>
-                        <button type="button" class="tm-action-btn tm-action-medicine ${medUrgent ? 'tm-action-urgent' : ''}" id="tm-action-medicine" title="Φάρμακο (+20 υγεία)">
-                            <span class="tm-action-icon">💊</span>
-                            <span class="tm-action-label">Φάρμακο</span>
-                            <span class="tm-action-hint">${careCoinHint('+20', 'medicine')}</span>
+                        <button type="button" class="tm-action-btn tm-action-medicine ${medUrgent ? 'tm-action-urgent' : ''}${vetState?.visited ? ' tm-action-spent' : ''}" id="tm-action-medicine" title="${vetState?.title || 'Κτηνίατρος'}">
+                            <span class="tm-action-icon">${vetState?.icon || '🩺'}</span>
+                            <span class="tm-action-label">${vetState?.label || 'Κτηνίατρος'}</span>
                         </button>
                         <button type="button" class="tm-action-btn tm-action-toilet ${cleanUrgent ? 'tm-action-urgent' : ''}" id="tm-action-toilet" title="Τουαλέτα">
                             <span class="tm-action-icon">🚽</span>
@@ -16505,7 +16915,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <button type="button" class="tm-action-btn tm-action-praise ${praiseUrgent ? 'tm-action-urgent' : ''}" id="tm-action-praise" title="Έπαινος (+πειθαρχία, +χαρά)">
                             <span class="tm-action-icon">👍</span>
                             <span class="tm-action-label">Έπαινος</span>
-                            <span class="tm-action-hint">+πειθαρχία</span>
                         </button>
                         <button type="button" class="tm-action-btn tm-action-scold ${scoldUrgent ? 'tm-action-urgent' : ''}" id="tm-action-scold" title="Επίπληξη">
                             <span class="tm-action-icon">👎</span>
@@ -16517,30 +16926,29 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </button>
                         <button type="button" class="tm-action-btn tm-action-park" id="tm-action-park" title="Σταθμεύσε / απελευθέρωσε">
                             <span class="tm-action-icon">${mascotPositionLocked ? '🔓' : '📌'}</span>
-                            <span class="tm-action-label">${mascotPositionLocked ? 'Ελεύθερο' : 'Σταθμεύσε'}</span>
+                            <span class="tm-action-label">${mascotPositionLocked ? 'Ελεύθερο' : 'Pin'}</span>
                         </button>
                         <button type="button" class="tm-action-btn tm-action-focus ${isMascotFocusQuiet() ? 'tm-action-urgent' : ''}" id="tm-action-focus" title="Ήσυχη εστίαση 25′">
                             <span class="tm-action-icon">🎯</span>
-                            <span class="tm-action-label">${isMascotFocusQuiet() ? 'Τέλος' : 'Εστίαση'}</span>
+                            <span class="tm-action-label">${isMascotFocusQuiet() ? 'Τέλος' : 'Focus'}</span>
                         </button>
                     </div>
                 </details>
 
                 <details class="tm-mascot-extra-details">
-                    <summary>Παιχνίδια &amp; κόλπα</summary>
+                    <summary>Παιχνίδια</summary>
                     <div class="tm-mascot-actions tm-actions-secondary">
                         <button type="button" class="tm-action-btn tm-action-play" id="tm-action-play" title="Παίξε μαζί του">
                             <span class="tm-action-icon">🎮</span>
-                            <span class="tm-action-label">Παιχνίδι</span>
+                            <span class="tm-action-label">Play</span>
                         </button>
                         <button type="button" class="tm-action-btn tm-action-bug-game" id="tm-action-bug-game" title="Bug Squish">
                             <span class="tm-action-icon">🐛</span>
-                            <span class="tm-action-label">Bug Squish</span>
+                            <span class="tm-action-label">Bugs</span>
                         </button>
                         <button type="button" class="tm-action-btn tm-action-gym" id="tm-action-gym" title="Gym — κάψε κιλά">
                             <span class="tm-action-icon">🏋️</span>
                             <span class="tm-action-label">Gym</span>
-                            <span class="tm-action-hint">−kg</span>
                         </button>
                     </div>
                     ${typeof getMascotPlayCareSectionHTML === 'function' ? getMascotPlayCareSectionHTML(STORAGE_KEYS) : ''}
@@ -16561,69 +16969,56 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
         document.body.appendChild(modal);
 
-        // Always refresh styles (v3 care panel)
+        // Always refresh styles (v4 compact care panel)
         document.getElementById('tm-mascot-modal-styles')?.remove();
         document.getElementById('tm-mascot-modal-styles-v2')?.remove();
         document.getElementById('tm-mascot-modal-styles-v3')?.remove();
+        document.getElementById('tm-mascot-modal-styles-v4')?.remove();
         const style = document.createElement('style');
-        style.id = 'tm-mascot-modal-styles-v3';
+        style.id = 'tm-mascot-modal-styles-v4';
         style.textContent = `
             #tm-mascot-stats-modal .tm-mascot-modal-backdrop {
-                position: fixed; inset: 0;
-                background: rgba(15, 23, 42, 0.5);
-                z-index: 100000;
-                animation: tmCareFadeIn 0.2s ease-out;
+                position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5);
+                z-index: 100000; animation: tmCareFadeIn 0.18s ease-out;
             }
             #tm-mascot-stats-modal .tm-mascot-preview-robot,
             #tm-mascot-stats-modal .tm-mascot-preview-robot * {
-                animation: none !important;
-                transition: none !important;
-                will-change: auto !important;
+                animation: none !important; transition: none !important; will-change: auto !important;
             }
             #tm-mascot-stats-modal .tm-mascot-preview-robot {
-                filter: none !important;
-                transform: none !important;
-                cursor: default !important;
+                filter: none !important; transform: none !important; cursor: default !important;
             }
             #tm-mascot-stats-modal .tm-mascot-modal-container {
-                position: fixed;
-                top: 50%; left: 50%;
-                transform: translate(-50%, -50%);
-                z-index: 100001;
-                width: min(92vw, 400px);
-                max-height: min(92vh, 780px);
-                overflow-y: auto;
-                background: var(--tm-modal-bg, #ffffff);
-                color: var(--tm-shop-item-text, #1e293b);
-                border-radius: 16px;
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                z-index: 100001; width: min(92vw, 340px); max-height: min(90vh, 700px);
+                overflow-y: auto; background: var(--tm-modal-bg, #fff);
+                color: var(--tm-shop-item-text, #1e293b); border-radius: 14px;
                 border: 1px solid var(--tm-shop-item-border, #e2e8f0);
-                box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
-                animation: tmCareSlideIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+                box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
+                animation: tmCareSlideIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
                 font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
             }
-            #tm-mascot-stats-modal .tm-mascot-modal-container::-webkit-scrollbar { width: 6px; }
+            #tm-mascot-stats-modal .tm-mascot-modal-container::-webkit-scrollbar { width: 5px; }
             #tm-mascot-stats-modal .tm-mascot-modal-container::-webkit-scrollbar-thumb {
                 background: color-mix(in srgb, var(--tm-primary-color, #007bff) 35%, #cbd5e1);
                 border-radius: 4px;
             }
             #tm-mascot-stats-modal .tm-mascot-modal-header {
-                display: flex; justify-content: space-between; align-items: flex-start;
-                gap: 10px; padding: 14px 16px 6px;
+                display: flex; justify-content: space-between; align-items: center;
+                gap: 8px; padding: 10px 12px 4px;
             }
             #tm-mascot-stats-modal .tm-mascot-header-info { min-width: 0; flex: 1; }
             #tm-mascot-stats-modal .tm-mascot-header-tools {
-                display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+                display: flex; align-items: center; gap: 4px; flex-shrink: 0;
             }
             #tm-mascot-stats-modal .tm-mascot-header-chip {
-                appearance: none; border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                appearance: none; width: 28px; height: 28px; padding: 0;
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
                 background: var(--tm-shop-item-bg, #f8fafc);
                 color: var(--tm-shop-item-text, #334155);
-                border-radius: 999px;
-                padding: 5px 10px;
-                font-size: 11px; font-weight: 700;
-                line-height: 1.2; cursor: pointer;
-                max-width: 118px;
-                overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+                border-radius: 8px; font-size: 13px; line-height: 1;
+                display: inline-flex; align-items: center; justify-content: center;
+                cursor: pointer;
             }
             #tm-mascot-stats-modal .tm-mascot-header-chip:hover {
                 border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 40%, #cbd5e1);
@@ -16631,144 +17026,115 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
             #tm-mascot-stats-modal .tm-mascot-header-chip.tm-chip-claim {
                 border-color: color-mix(in srgb, #f59e0b 55%, #e2e8f0);
-                background: color-mix(in srgb, #f59e0b 14%, #ffffff);
-                color: #92400e;
+                background: color-mix(in srgb, #f59e0b 16%, #fff); color: #92400e;
             }
-            #tm-mascot-stats-modal .tm-mascot-header-chip.tm-daily-claimed {
-                opacity: 0.7; cursor: default;
-            }
-            #tm-mascot-stats-modal .tm-mascot-header-chip:disabled {
-                pointer-events: none;
-            }
+            #tm-mascot-stats-modal .tm-mascot-header-chip.tm-daily-claimed { opacity: 0.65; cursor: default; }
+            #tm-mascot-stats-modal .tm-mascot-header-chip:disabled { pointer-events: none; }
             #tm-mascot-stats-modal .tm-mascot-nickname-editor {
-                display: flex; align-items: center; gap: 8px;
-                margin: 0 16px 8px; padding: 8px 10px;
-                border-radius: 12px;
+                display: flex; align-items: center; gap: 6px;
+                margin: 0 12px 6px; padding: 6px 8px; border-radius: 10px;
                 border: 1px solid var(--tm-shop-item-border, #e2e8f0);
                 background: var(--tm-shop-item-bg, #f8fafc);
             }
             #tm-mascot-stats-modal .tm-mascot-nickname-editor[hidden] { display: none !important; }
             #tm-mascot-stats-modal .tm-mascot-nickname-input {
-                flex: 1; min-width: 0;
-                border: 1px solid var(--tm-shop-item-border, #cbd5e1);
-                border-radius: 8px;
-                padding: 6px 10px;
-                font-size: 13px;
-                background: #fff;
+                flex: 1; min-width: 0; border: 1px solid var(--tm-shop-item-border, #cbd5e1);
+                border-radius: 7px; padding: 5px 8px; font-size: 12px; background: #fff;
                 color: var(--tm-shop-item-text, #0f172a);
             }
             #tm-mascot-stats-modal .tm-chip-save {
-                max-width: none;
+                width: auto; min-width: 36px; padding: 0 8px; font-size: 11px; font-weight: 700;
                 border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 40%, #cbd5e1);
                 color: var(--tm-primary-color, #1d4ed8);
             }
             #tm-mascot-stats-modal .tm-mascot-name {
-                margin: 0 0 2px; font-size: 1.1rem; font-weight: 700;
-                color: var(--tm-shop-item-text, #0f172a); line-height: 1.25;
+                margin: 0; font-size: 0.98rem; font-weight: 700;
+                color: var(--tm-shop-item-text, #0f172a); line-height: 1.2;
             }
             #tm-mascot-stats-modal .tm-mascot-meta {
-                margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
-                font-size: 12px; color: color-mix(in srgb, var(--tm-shop-item-text, #64748b) 80%, #64748b);
+                margin: 2px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+                font-size: 11px; color: color-mix(in srgb, var(--tm-shop-item-text, #64748b) 80%, #64748b);
             }
             #tm-mascot-stats-modal .tm-mascot-meta-sep { opacity: 0.5; }
+            #tm-mascot-stats-modal #tm-mascot-meta-age:empty { display: none; }
             #tm-mascot-stats-modal .tm-mascot-stage-pill {
-                display: inline-flex; padding: 2px 8px; border-radius: 999px;
+                display: inline-flex; padding: 1px 7px; border-radius: 999px;
                 background: color-mix(in srgb, var(--tm-primary-color, #007bff) 12%, transparent);
-                color: var(--tm-primary-color, #007bff); font-weight: 600; font-size: 11px;
+                color: var(--tm-primary-color, #007bff); font-weight: 600; font-size: 10px;
             }
             #tm-mascot-stats-modal .tm-mascot-close-btn {
-                width: 34px; height: 34px; border: none; border-radius: 10px; cursor: pointer;
+                width: 28px; height: 28px; border: none; border-radius: 8px; cursor: pointer;
                 background: var(--tm-shop-item-bg, #f1f5f9);
-                color: var(--tm-shop-item-text, #334155); font-size: 16px;
-                display: flex; align-items: center; justify-content: center;
-                transition: background 0.15s, color 0.15s; flex-shrink: 0;
+                color: var(--tm-shop-item-text, #334155); font-size: 13px;
+                display: flex; align-items: center; justify-content: center; flex-shrink: 0;
             }
-            #tm-mascot-stats-modal .tm-mascot-close-btn:hover {
-                background: #fee2e2; color: #b91c1c;
-            }
+            #tm-mascot-stats-modal .tm-mascot-close-btn:hover { background: #fee2e2; color: #b91c1c; }
             #tm-mascot-stats-modal .tm-mascot-care-preview {
-                margin: 0 16px 8px;
-                padding: 10px 10px 8px;
-                border-radius: 14px;
-                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 16%, var(--tm-shop-item-border, #e2e8f0));
-                background:
-                    radial-gradient(ellipse 70% 55% at 50% 42%,
-                        color-mix(in srgb, var(--tm-primary-color, #007bff) 10%, transparent) 0%,
-                        transparent 70%),
-                    linear-gradient(180deg,
-                        color-mix(in srgb, var(--tm-shop-item-bg, #f8fafc) 92%, #e2e8f0) 0%,
-                        var(--tm-shop-item-bg, #fff) 100%);
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 4px;
+                margin: 2px 12px 6px; padding: 6px;
+                border-radius: 12px;
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 14%, var(--tm-shop-item-border, #e2e8f0));
+                background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+                display: flex; flex-direction: column; align-items: center;
             }
             #tm-mascot-stats-modal .tm-mascot-care-preview[hidden] { display: none !important; }
             #tm-mascot-stats-modal .tm-mascot-care-preview-frame {
-                position: relative;
-                width: var(--tm-care-preview-size, 96px);
-                height: var(--tm-care-preview-size, 96px);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                overflow: visible;
+                position: relative; width: var(--tm-care-preview-size, 64px);
+                height: var(--tm-care-preview-size, 64px);
+                max-width: 72px; max-height: 72px;
+                display: flex; align-items: center; justify-content: center; overflow: visible;
             }
             #tm-mascot-stats-modal .tm-mascot-care-preview-sprite {
-                position: relative;
-                z-index: 1;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                position: relative; z-index: 1; width: 100%; height: 100%;
+                display: flex; align-items: center; justify-content: center;
             }
             #tm-mascot-stats-modal .tm-mascot-care-preview-sprite .tm-mascot-preview-robot,
             #tm-mascot-stats-modal .tm-mascot-care-preview-sprite svg {
-                width: 100%;
-                height: 100%;
-                display: block;
-                overflow: visible;
-                pointer-events: none;
+                width: 100%; height: 100%; display: block; overflow: visible; pointer-events: none;
             }
             #tm-mascot-stats-modal .tm-mascot-care-preview-shadow {
-                position: absolute;
-                left: 50%;
-                bottom: 2px;
-                width: 58%;
-                height: 10px;
-                transform: translateX(-50%);
-                border-radius: 50%;
-                background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.22) 0%, transparent 72%);
-                z-index: 0;
-                pointer-events: none;
+                position: absolute; left: 50%; bottom: 1px; width: 55%; height: 7px;
+                transform: translateX(-50%); border-radius: 50%;
+                background: radial-gradient(ellipse at center, rgba(15,23,42,0.2) 0%, transparent 72%);
+                z-index: 0; pointer-events: none;
             }
-            #tm-mascot-stats-modal .tm-mascot-care-preview-actions {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 100%;
+            #tm-mascot-stats-modal .tm-almost-evo {
+                margin: 0 12px 8px; padding: 6px 8px; border-radius: 10px;
+                display: flex; align-items: center; gap: 8px;
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                color: #e2e8f0; border: 1px solid #334155;
             }
-            #tm-mascot-stats-modal .tm-mascot-age-preview-btn {
-                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 35%, var(--tm-shop-item-border, #cbd5e1));
-                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 10%, var(--tm-shop-item-bg, #fff));
-                color: var(--tm-primary-color, #1d4ed8);
-                border-radius: 999px;
-                padding: 4px 12px;
-                font-size: 11px;
-                font-weight: 700;
-                cursor: pointer;
-                line-height: 1.2;
+            #tm-mascot-stats-modal .tm-almost-evo-blob {
+                width: 28px; height: 28px; flex-shrink: 0;
+                border-radius: 46% 54% 50% 50% / 42% 48% 52% 58%;
+                background: linear-gradient(145deg, #94a3b8 0%, #1e293b 60%, #0f172a 100%);
+                filter: blur(5px) brightness(0.7);
+                opacity: 0.9;
+                animation: tmAlmostPulse 2.4s ease-in-out infinite;
             }
-            #tm-mascot-stats-modal .tm-mascot-age-preview-btn:hover {
-                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 18%, var(--tm-shop-item-bg, #fff));
+            #tm-mascot-stats-modal .tm-almost-evo-copy {
+                display: flex; flex-direction: column; gap: 1px; min-width: 0;
+                font-size: 11px; line-height: 1.25;
+            }
+            #tm-mascot-stats-modal .tm-almost-evo-copy strong {
+                font-size: 11.5px; font-weight: 700; color: #f8fafc;
+            }
+            #tm-mascot-stats-modal .tm-almost-evo-copy span {
+                color: #94a3b8; font-weight: 550;
+            }
+            #tm-mascot-stats-modal .tm-action-spent {
+                opacity: 0.55; filter: grayscale(0.35);
+            }
+            @keyframes tmAlmostPulse {
+                0%, 100% { transform: scale(1); opacity: 0.85; }
+                50% { transform: scale(1.08); opacity: 1; }
             }
             #tm-mascot-stats-modal .tm-mascot-tip {
-                margin: 0 16px 8px; padding: 10px 12px; border-radius: 12px;
-                display: flex; align-items: flex-start; gap: 8px;
-                font-size: 12.5px; line-height: 1.35; font-weight: 500;
+                margin: 0 12px 6px; padding: 7px 9px; border-radius: 10px;
+                display: flex; align-items: flex-start; gap: 6px;
+                font-size: 11.5px; line-height: 1.3; font-weight: 500;
             }
             #tm-mascot-stats-modal .tm-mascot-tip[hidden] { display: none !important; }
-            #tm-mascot-stats-modal .tm-tip-icon { font-size: 16px; line-height: 1.2; }
+            #tm-mascot-stats-modal .tm-tip-icon { font-size: 14px; line-height: 1.2; }
             #tm-mascot-stats-modal .tm-tip-ok {
                 background: color-mix(in srgb, #22c55e 12%, var(--tm-shop-item-bg, #f8fafc));
                 border: 1px solid color-mix(in srgb, #22c55e 28%, transparent); color: #166534;
@@ -16786,154 +17152,116 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 background: color-mix(in srgb, #ef4444 12%, var(--tm-shop-item-bg, #fef2f2));
                 border: 1px solid color-mix(in srgb, #ef4444 30%, transparent); color: #991b1b;
             }
-            #tm-mascot-stats-modal .tm-mascot-stats-block {
-                padding: 4px 16px 8px;
-            }
+            #tm-mascot-stats-modal .tm-mascot-stats-block { padding: 2px 12px 6px; }
             #tm-mascot-stats-modal .tm-vitals-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 8px 12px;
+                display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px;
             }
-            #tm-mascot-stats-modal .tm-vitals-compact {
-                display: flex; flex-direction: column; gap: 8px;
-            }
+            #tm-mascot-stats-modal .tm-vitals-compact { display: flex; flex-direction: column; gap: 6px; }
             #tm-mascot-stats-modal .tm-stat-row-top {
                 display: flex; justify-content: space-between; align-items: baseline;
-                margin-bottom: 3px; gap: 6px;
+                margin-bottom: 2px; gap: 4px;
             }
             #tm-mascot-stats-modal .tm-stat-label {
-                font-size: 11.5px; font-weight: 600;
-                color: var(--tm-shop-item-text, #334155);
+                font-size: 10.5px; font-weight: 600; color: var(--tm-shop-item-text, #334155);
             }
             #tm-mascot-stats-modal .tm-stat-value {
-                font-size: 11px; font-weight: 700;
-                color: var(--tm-primary-color, #007bff); font-variant-numeric: tabular-nums;
+                font-size: 10px; font-weight: 700; color: var(--tm-primary-color, #007bff);
+                font-variant-numeric: tabular-nums;
             }
             #tm-mascot-stats-modal .tm-stat-bar {
-                height: 7px; border-radius: 999px; overflow: hidden;
+                height: 5px; border-radius: 999px; overflow: hidden;
                 background: var(--tm-shop-item-bg, #e2e8f0);
             }
-            #tm-mascot-stats-modal .tm-stat-fill {
-                height: 100%; border-radius: 999px;
-                transition: width 0.45s ease;
-            }
+            #tm-mascot-stats-modal .tm-stat-fill { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
             #tm-mascot-stats-modal .tm-fill-happy { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
             #tm-mascot-stats-modal .tm-fill-food { background: linear-gradient(90deg, #4ade80, #16a34a); }
             #tm-mascot-stats-modal .tm-fill-health { background: linear-gradient(90deg, #f87171, #dc2626); }
             #tm-mascot-stats-modal .tm-fill-disc { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
             #tm-mascot-stats-modal .tm-fill-hatch { background: linear-gradient(90deg, #2dd4bf, #0d9488); }
             #tm-mascot-stats-modal .tm-mascot-status-chips {
-                display: flex; flex-wrap: wrap; gap: 5px;
-                padding: 0 16px 10px;
+                display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 8px;
             }
             #tm-mascot-stats-modal .tm-status-chip {
-                font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 999px;
+                font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 999px;
                 background: var(--tm-shop-item-bg, #f1f5f9);
                 color: var(--tm-shop-item-text, #475569);
                 border: 1px solid var(--tm-shop-item-border, #e2e8f0);
             }
-            #tm-mascot-stats-modal .tm-mascot-actions-section {
-                padding: 0 16px 10px;
-            }
-            #tm-mascot-stats-modal .tm-mascot-actions {
-                display: grid; gap: 7px;
-            }
-            #tm-mascot-stats-modal .tm-actions-primary {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            #tm-mascot-stats-modal .tm-actions-egg {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            #tm-mascot-stats-modal .tm-actions-secondary {
-                grid-template-columns: repeat(3, 1fr);
-            }
+            #tm-mascot-stats-modal .tm-mascot-actions-section { padding: 0 12px 8px; }
+            #tm-mascot-stats-modal .tm-mascot-actions { display: grid; gap: 5px; }
+            #tm-mascot-stats-modal .tm-actions-primary,
+            #tm-mascot-stats-modal .tm-actions-egg,
+            #tm-mascot-stats-modal .tm-actions-secondary,
             #tm-mascot-stats-modal .tm-actions-more {
                 grid-template-columns: repeat(3, 1fr);
             }
             #tm-mascot-stats-modal .tm-mascot-more-details,
             #tm-mascot-stats-modal .tm-mascot-extra-details {
-                margin: 0 16px 8px; padding: 8px 10px;
-                border-radius: 12px; border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                margin: 0 12px 6px; padding: 6px 8px; border-radius: 10px;
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
                 background: var(--tm-shop-item-bg, #f8fafc);
             }
             #tm-mascot-stats-modal .tm-mascot-more-details summary,
             #tm-mascot-stats-modal .tm-mascot-extra-details summary {
-                cursor: pointer; font-size: 12px; font-weight: 700; color: var(--tm-shop-item-text, #475569);
-                list-style: none; display: flex; align-items: center; gap: 6px;
+                cursor: pointer; font-size: 11px; font-weight: 700;
+                color: var(--tm-shop-item-text, #475569);
+                list-style: none; display: flex; align-items: center; gap: 5px;
             }
             #tm-mascot-stats-modal .tm-mascot-more-details summary::-webkit-details-marker,
             #tm-mascot-stats-modal .tm-mascot-extra-details summary::-webkit-details-marker { display: none; }
             #tm-mascot-stats-modal .tm-mascot-more-details summary::before,
-            #tm-mascot-stats-modal .tm-mascot-extra-details summary::before { content: '▸'; font-size: 10px; opacity: 0.7; }
+            #tm-mascot-stats-modal .tm-mascot-extra-details summary::before { content: '▸'; font-size: 9px; opacity: 0.7; }
             #tm-mascot-stats-modal .tm-mascot-more-details[open] summary::before,
             #tm-mascot-stats-modal .tm-mascot-extra-details[open] summary::before { content: '▾'; }
             #tm-mascot-stats-modal .tm-mascot-more-details[open] summary,
-            #tm-mascot-stats-modal .tm-mascot-extra-details[open] summary { margin-bottom: 8px; }
+            #tm-mascot-stats-modal .tm-mascot-extra-details[open] summary { margin-bottom: 6px; }
             #tm-mascot-stats-modal .tm-action-btn {
                 appearance: none; border: 1px solid var(--tm-shop-item-border, #e2e8f0);
                 background: var(--tm-shop-item-bg, #f8fafc);
-                border-radius: 11px; padding: 8px 4px 6px;
-                display: flex; flex-direction: column; align-items: center; gap: 1px;
+                border-radius: 9px; padding: 5px 2px 4px;
+                display: flex; flex-direction: column; align-items: center; gap: 0;
                 cursor: pointer; color: var(--tm-shop-item-text, #1e293b);
-                transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.1s;
+                min-height: 0;
+                transition: border-color 0.12s, background 0.12s, transform 0.08s;
             }
             #tm-mascot-stats-modal .tm-action-btn:hover {
                 border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 45%, #cbd5e1);
-                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 8%, #ffffff);
-                box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 8%, #fff);
             }
-            #tm-mascot-stats-modal .tm-action-btn:active { transform: scale(0.98); }
+            #tm-mascot-stats-modal .tm-action-btn:active { transform: scale(0.97); }
             #tm-mascot-stats-modal .tm-action-urgent {
                 border-color: color-mix(in srgb, #f59e0b 55%, #e2e8f0);
-                background: color-mix(in srgb, #f59e0b 12%, #ffffff);
-                box-shadow: 0 0 0 2px color-mix(in srgb, #f59e0b 18%, transparent);
+                background: color-mix(in srgb, #f59e0b 12%, #fff);
+                box-shadow: 0 0 0 1px color-mix(in srgb, #f59e0b 20%, transparent);
             }
-            #tm-mascot-stats-modal .tm-action-icon { font-size: 20px; line-height: 1.2; }
+            #tm-mascot-stats-modal .tm-action-icon { font-size: 15px; line-height: 1.15; }
             #tm-mascot-stats-modal .tm-action-label {
-                font-size: 11.5px; font-weight: 700; text-align: center;
+                font-size: 9.5px; font-weight: 700; text-align: center; line-height: 1.15;
             }
-            #tm-mascot-stats-modal .tm-action-hint {
-                font-size: 9.5px; font-weight: 500; text-align: center;
-                color: color-mix(in srgb, var(--tm-shop-item-text, #94a3b8) 85%, #94a3b8);
-            }
+            #tm-mascot-stats-modal .tm-action-hint { display: none !important; }
             #tm-mascot-stats-modal .tm-mascot-danger-details {
-                margin: 2px 16px 14px; padding: 8px 10px;
-                border-radius: 12px; border: 1px dashed #fca5a5;
-                background: #fffafa;
+                margin: 0 12px 12px; padding: 6px 8px; border-radius: 10px;
+                border: 1px dashed #fca5a5; background: #fffafa;
             }
             #tm-mascot-stats-modal .tm-mascot-danger-details summary {
-                cursor: pointer; font-size: 12px; font-weight: 600; color: #b91c1c;
-                list-style: none; display: flex; align-items: center; gap: 6px;
+                cursor: pointer; font-size: 11px; font-weight: 600; color: #b91c1c;
+                list-style: none; display: flex; align-items: center; gap: 5px;
             }
             #tm-mascot-stats-modal .tm-mascot-danger-details summary::-webkit-details-marker { display: none; }
-            #tm-mascot-stats-modal .tm-mascot-danger-details summary::before {
-                content: '▸'; font-size: 10px;
-            }
+            #tm-mascot-stats-modal .tm-mascot-danger-details summary::before { content: '▸'; font-size: 9px; }
             #tm-mascot-stats-modal .tm-mascot-danger-details[open] summary::before { content: '▾'; }
             #tm-mascot-stats-modal .tm-danger-help {
-                margin: 8px 0 10px; font-size: 11px; color: #7f1d1d; line-height: 1.4;
+                margin: 6px 0 8px; font-size: 10.5px; color: #7f1d1d; line-height: 1.35;
             }
             #tm-mascot-stats-modal .tm-action-kill-restart {
-                width: 100%; flex-direction: row; gap: 8px; justify-content: center;
-                background: #fef2f2; border-color: #fca5a5; color: #991b1b;
+                width: 100%; flex-direction: row; gap: 6px; justify-content: center;
+                padding: 6px 4px; background: #fef2f2; border-color: #fca5a5; color: #991b1b;
             }
-            #tm-mascot-stats-modal .tm-action-kill-restart:hover {
-                background: #fee2e2; border-color: #f87171;
-            }
+            #tm-mascot-stats-modal .tm-action-kill-restart:hover { background: #fee2e2; border-color: #f87171; }
             @keyframes tmCareFadeIn { from { opacity: 0; } to { opacity: 1; } }
             @keyframes tmCareSlideIn {
                 from { opacity: 0; transform: translate(-50%, -48%) scale(0.97); }
                 to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            }
-            @media (max-width: 420px) {
-                #tm-mascot-stats-modal .tm-actions-primary,
-                #tm-mascot-stats-modal .tm-actions-more,
-                #tm-mascot-stats-modal .tm-actions-secondary {
-                    grid-template-columns: repeat(3, 1fr);
-                }
-                #tm-mascot-stats-modal .tm-vitals-grid {
-                    grid-template-columns: 1fr 1fr;
-                }
             }
         `;
         document.head.appendChild(style);
@@ -16995,7 +17323,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             btn.classList.toggle('tm-chip-claim', !state.claimed);
             btn.disabled = !!state.claimed;
             btn.title = state.title || '';
-            btn.textContent = state.claimed ? '🪙 ✓' : `🪙 +${state.amount || 50}`;
+            btn.textContent = state.claimed ? '🪙' : '🪙+';
         }
 
         function refreshNicknameChip() {
@@ -17004,7 +17332,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             const nick = (typeof normalizeMascotNickname === 'function')
                 ? normalizeMascotNickname(typeof tamagotchiNickname !== 'undefined' ? tamagotchiNickname : '')
                 : String(typeof tamagotchiNickname !== 'undefined' ? tamagotchiNickname : '').trim().slice(0, 16);
-            btn.textContent = nick ? `✏️ ${nick}` : '✏️ Παρατσούκλι';
+            btn.textContent = '✏️';
             btn.title = nick ? `Παρατσούκλι: ${nick}` : 'Άλλαξε παρατσούκλι';
         }
 
@@ -17059,7 +17387,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             const metaWeight = modal.querySelector('#tm-mascot-meta-weight');
             if (metaWeight) metaWeight.textContent = formatTamagotchiWeightKg();
             const metaAge = modal.querySelector('#tm-mascot-meta-age');
-            if (metaAge) metaAge.textContent = getMascotEvolutionDisplayName(tamagotchiCharacterType, tamagotchiStage);
+            if (metaAge) metaAge.textContent = '';
             const stagePill = modal.querySelector('.tm-mascot-stage-pill');
             if (stagePill) stagePill.textContent = getMascotEvolutionDisplayName(tamagotchiCharacterType, tamagotchiStage);
 
@@ -17077,22 +17405,35 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     '<span class="tm-status-chip" id="tm-mascot-inv-chip">🍖' + inv.food + ' 🍪' + inv.treats + feathers + '</span>';
             }
 
-            const mealHint = modal.querySelector('#tm-action-meal .tm-action-hint');
-            if (mealHint) mealHint.textContent = careFeedHint('+30', 'meal', STORAGE_KEYS);
-            const snackHint = modal.querySelector('#tm-action-snack .tm-action-hint');
-            if (snackHint) snackHint.textContent = careFeedHint('+χαρά', 'snack', STORAGE_KEYS);
+            const mealBtn = modal.querySelector('#tm-action-meal');
+            if (mealBtn) mealBtn.title = 'Γεύμα · ' + careFeedHint('+30', 'meal', STORAGE_KEYS);
+            const snackBtn = modal.querySelector('#tm-action-snack');
+            if (snackBtn) snackBtn.title = 'Σνακ · ' + careFeedHint('+χαρά', 'snack', STORAGE_KEYS);
+            const cleanBtn = modal.querySelector('#tm-action-clean');
+            if (cleanBtn) cleanBtn.title = 'Καθάρισμα · ' + careCoinHint('Καθαρό', 'clean');
+            const medBtn = modal.querySelector('#tm-action-medicine');
+            if (medBtn) {
+                const vet = getMascotVetButtonState();
+                medBtn.title = vet.title;
+                medBtn.classList.toggle('tm-action-urgent', !!vet.urgent);
+                medBtn.classList.toggle('tm-action-spent', !!vet.visited);
+                const icon = medBtn.querySelector('.tm-action-icon');
+                const label = medBtn.querySelector('.tm-action-label');
+                if (icon) icon.textContent = vet.icon;
+                if (label) label.textContent = vet.label;
+            }
             const parkBtn = modal.querySelector('#tm-action-park');
             if (parkBtn) {
                 const icon = parkBtn.querySelector('.tm-action-icon');
                 const label = parkBtn.querySelector('.tm-action-label');
                 if (icon) icon.textContent = mascotPositionLocked ? '🔓' : '📌';
-                if (label) label.textContent = mascotPositionLocked ? 'Ελεύθερο' : 'Σταθμεύσε';
+                if (label) label.textContent = mascotPositionLocked ? 'Ελεύθερο' : 'Pin';
             }
             const focusBtn = modal.querySelector('#tm-action-focus');
             if (focusBtn) {
                 focusBtn.classList.toggle('tm-action-urgent', isMascotFocusQuiet());
                 const label = focusBtn.querySelector('.tm-action-label');
-                if (label) label.textContent = isMascotFocusQuiet() ? 'Τέλος' : 'Εστίαση';
+                if (label) label.textContent = isMascotFocusQuiet() ? 'Τέλος' : 'Focus';
             }
             const lightsBtn = modal.querySelector('#tm-action-lights');
             if (lightsBtn) {
@@ -17105,7 +17446,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             modal.querySelector('#tm-action-meal')?.classList.toggle('tm-action-urgent', petStats.hunger < 35);
             modal.querySelector('#tm-action-clean')?.classList.toggle('tm-action-urgent', tamagotchiPoopCount > 0);
             modal.querySelector('#tm-action-toilet')?.classList.toggle('tm-action-urgent', tamagotchiPoopCount > 0);
-            modal.querySelector('#tm-action-medicine')?.classList.toggle('tm-action-urgent', tamagotchiHealth < 50);
             modal.querySelector('#tm-action-praise')?.classList.toggle('tm-action-urgent', !!tamagotchiNeedsPraise);
             modal.querySelector('#tm-action-scold')?.classList.toggle('tm-action-urgent', !!tamagotchiNeedsScold);
 
@@ -17281,20 +17621,21 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
         });
 
-        // Medicine button
+        // Soft weekly vet visit (replaces spam medicine)
         modal.querySelector('#tm-action-medicine')?.addEventListener('click', () => {
-            if (tamagotchiHealth < 100) {
-                const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config);
-                if (!pay.ok) return;
-                tamagotchiHealth = Math.min(100, tamagotchiHealth + 20);
-                announceMascotCarePayment(pay, MASCOT_MESSAGES.medicine);
-                applyMascotCarePreference('medicine', config, STORAGE_KEYS);
-                updateTamagotchiStats(container);
-                saveTamagotchiData(STORAGE_KEYS);
-                updateModalStats();
-            } else {
-                showMascotBubble(mascotMsg('healthy'), 1500);
+            if (tamagotchiIsDead) {
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
+                return;
             }
+            const result = performMascotVetVisit(STORAGE_KEYS, config);
+            if (!result.ok) {
+                if (result.reason === 'already') {
+                    showMascotBubble(mascotMsg('vetAlready'), 2200);
+                }
+                return;
+            }
+            setMascotState(config, 'happy', 2500);
+            updateModalStats();
         });
 
         // Toilet button
@@ -17985,28 +18326,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             showMascotBubble(MASCOT_MESSAGES.dead, 2000);
             return;
         }
-        if (tamagotchiIsSick) {
-            const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config);
-            if (!pay.ok) return;
-            tamagotchiIsSick = false;
-            tamagotchiSickType = 'none';
-            tamagotchiHealth = Math.min(100, tamagotchiHealth + 30);
-            announceMascotCarePayment(pay, MASCOT_MESSAGES.medicinePanel);
-            applyMascotCarePreference('medicine', config, STORAGE_KEYS);
-            updateSickIndicator();
-            updateTamagotchiStats(container);
-            saveTamagotchiData(STORAGE_KEYS);
-        } else if (tamagotchiHealth < 70) {
-            const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config);
-            if (!pay.ok) return;
-            tamagotchiHealth = Math.min(100, tamagotchiHealth + 20);
-            announceMascotCarePayment(pay, MASCOT_MESSAGES.feelingBetter);
-            applyMascotCarePreference('medicine', config, STORAGE_KEYS);
-            updateTamagotchiStats(container);
-            saveTamagotchiData(STORAGE_KEYS);
-        } else {
-            showMascotBubble(mascotMsg('healthy'), 1500);
+        const result = performMascotVetVisit(STORAGE_KEYS, config);
+        if (!result.ok) {
+            if (result.reason === 'already') {
+                showMascotBubble(mascotMsg('vetAlready'), 2200);
+            } else if (result.reason !== 'coins') {
+                showMascotBubble(mascotMsg('healthy'), 1500);
+            }
+            return;
         }
+        setMascotState(config, 'happy', 2500);
     });
     
     // Toilet training button
@@ -19071,7 +19400,13 @@ window.previewMascotStage = previewMascotStage;
 window.clearMascotStagePreview = clearMascotStagePreview;
 window.showMascotAgePreviewModal = showMascotAgePreviewModal;
 window.getMascotEvolutionDisplayName = getMascotEvolutionDisplayName;
+window.getMascotEvolutionLore = getMascotEvolutionLore;
 window.MASCOT_EVOLUTION_NAMES = MASCOT_EVOLUTION_NAMES;
+window.MASCOT_EVOLUTION_LORE = MASCOT_EVOLUTION_LORE;
+window.getMascotAlmostEvolvedInfo = getMascotAlmostEvolvedInfo;
+window.performMascotVetVisit = performMascotVetVisit;
+window.hasMascotVetVisitThisWeek = hasMascotVetVisitThisWeek;
+window.playDeskVisitorPeek = playDeskVisitorPeek;
 window.getMaxReachedEvolution = getMaxReachedEvolution;
 window.isMascotStageUnlockedForPreview = isMascotStageUnlockedForPreview;
 window.noteMascotEvolutionReached = noteMascotEvolutionReached;
