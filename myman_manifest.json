@@ -1,11 +1,11 @@
 {
-  "version": "340",
+  "version": "341",
   "loaderVersion": "38",
-  "silentVersion": "4",
-  "displayVersion": "38.4",
+  "silentVersion": "5",
+  "displayVersion": "38.5",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Chat identity from login_block1: Greek display name + latin email slug",
+  "releaseNotes": "Hardcode office chat server URL; remove URL settings field",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

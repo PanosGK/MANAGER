@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v340 / Custom Ver. 38.4 — generated, do not edit */
+/* MyManager Suite bundle v341 / Custom Ver. 38.5 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '340',
+        version: '341',
         loaderVersion: '38',
-        silentVersion: '4',
-        displayVersion: '38.4',
+        silentVersion: '5',
+        displayVersion: '38.5',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -16035,15 +16035,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         },
         office_chat: {
             title: 'Office Chat',
-            what: 'Κοινό chat γραφείου μέσω PocketBase στον TrueNAS server σας. Όλοι οι τεχνικοί βλέπουν το ίδιο κανάλι.',
+            what: 'Κοινό chat γραφείου μέσω του σταθερού server https://mngerchat.littlejol.mywire.org. Όλοι οι τεχνικοί βλέπουν το ίδιο κανάλι.',
             where: 'Κουμπί «Chat» στο δεξί slide-out · πάνελ μηνυμάτων.',
-            when: 'Αφού ρυθμίσετε URL και λογαριασμό PocketBase. Απαιτεί ενημέρωση loader (@connect).',
-        },
-        office_chat_url: {
-            title: 'Chat server URL',
-            what: 'Η δημόσια διεύθυνση του PocketBase πίσω από το reverse proxy (π.χ. https://mngerchat.littlejol.mywire.org).',
-            where: 'Ρυθμίσεις → Chat.',
-            when: 'Μία φορά κατά την εγκατάσταση· αλλάξτε μόνο αν αλλάξει το hostname.',
+            when: 'Αφού δημιουργήσετε λογαριασμό chat (αυτόματο email + κωδικός).',
         },
         office_chat_user: {
             title: 'Chat email',
@@ -16585,12 +16579,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 GM_setValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', chatOn);
                 config.officeChatEnabled = chatOn;
             }
-            const chatUrlEl = document.getElementById('tm-setting-chat-url');
             const chatUserEl = document.getElementById('tm-setting-chat-user');
             const chatPassEl = document.getElementById('tm-setting-chat-pass');
-            if (chatUrlEl) {
-                GM_setValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', chatUrlEl.value.trim().replace(/\/+$/, ''));
-            }
             if (chatUserEl) {
                 GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', chatUserEl.value.trim());
             }
@@ -17224,7 +17214,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
                         <h3>Office Chat</h3>
-                        <p class="tm-settings-section-desc">Κοινό chat γραφείου. Email από το όνομα στο login (π.χ. Γκορόγιας → gkorogias@myman.chat). Στο chat φαίνεται το ελληνικό όνομα.</p>
+                        <p class="tm-settings-section-desc">Κοινό chat γραφείου. Server σταθερός · email από το όνομα login · εσείς βάζετε μόνο κωδικό.</p>
                     </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -17237,14 +17227,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-chat-url">Server URL</label>
-                                ${info('office_chat_url')}
-                            </div>
-                            <p class="tm-setting-description">π.χ. https://mngerchat.littlejol.mywire.org</p>
-                        </div>
-                        <div class="tm-setting-control">
-                            <input type="url" id="tm-setting-chat-url" class="tm-settings-input" autocomplete="off" spellcheck="false" placeholder="https://mngerchat.littlejol.mywire.org">
+                            <label>Server</label>
+                            <p class="tm-setting-description tm-settings-code-line"><code>https://mngerchat.littlejol.mywire.org</code></p>
                         </div>
                     </div>
                     <div class="tm-setting-row">
@@ -17752,13 +17736,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 chatEnabledBox.checked = !!GM_getValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', false)
                     || !!config.officeChatEnabled;
             }
-            const chatUrlInput = document.getElementById('tm-setting-chat-url');
             const chatUserInput = document.getElementById('tm-setting-chat-user');
             const chatPassInput = document.getElementById('tm-setting-chat-pass');
-            if (chatUrlInput) {
-                chatUrlInput.value = GM_getValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', '')
-                    || 'https://mngerchat.littlejol.mywire.org';
-            }
             if (chatUserInput) {
                 const savedUser = GM_getValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', '') || '';
                 chatUserInput.value = savedUser
@@ -17768,10 +17747,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 chatPassInput.value = GM_getValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', '') || '';
             }
             const persistChatFormToStorage = () => {
-                const urlEl = document.getElementById('tm-setting-chat-url');
                 const userEl = document.getElementById('tm-setting-chat-user');
                 const passEl = document.getElementById('tm-setting-chat-pass');
-                if (urlEl) GM_setValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', urlEl.value.trim().replace(/\/+$/, ''));
                 if (userEl) GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', userEl.value.trim());
                 if (passEl) GM_setValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', passEl.value);
                 try { GM_setValue(STORAGE_KEYS.CHAT_TOKEN_CACHE || 'tm_chat_token_cache', ''); } catch (_) { /* ignore */ }
@@ -21620,6 +21597,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     const CHAT_POLL_MS = 5000;
     const CHAT_PAGE_SIZE = 50;
     const CHAT_TOKEN_SKEW_MS = 60 * 1000;
+    const OFFICE_CHAT_BASE_URL = 'https://mngerchat.littlejol.mywire.org';
 
     let chatPollTimer = null;
     let chatRealtimeEs = null;
@@ -21641,7 +21619,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         const k = STORAGE_KEYS || window.STORAGE_KEYS || {};
         return {
             enabled: k.CHAT_ENABLED || 'tm_chat_enabled',
-            baseUrl: k.CHAT_BASE_URL || 'tm_chat_base_url',
             user: k.CHAT_USER || 'tm_chat_user',
             pass: k.CHAT_PASS || 'tm_chat_pass',
             tokenCache: k.CHAT_TOKEN_CACHE || 'tm_chat_token_cache',
@@ -21673,18 +21650,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .replace(/"/g, '&quot;');
     }
 
-    function normalizeBaseUrl(raw) {
-        let s = String(raw || '').trim().replace(/\/+$/, '');
-        if (!s) return '';
-        if (!/^https?:\/\//i.test(s)) s = `https://${s}`;
-        return s.replace(/\/+$/, '');
-    }
-
     function getChatSettings(STORAGE_KEYS) {
         const keys = chatKeys(STORAGE_KEYS);
         return {
             enabled: !!GM_getValue(keys.enabled, false),
-            baseUrl: normalizeBaseUrl(GM_getValue(keys.baseUrl, '')),
+            baseUrl: OFFICE_CHAT_BASE_URL,
             user: String(GM_getValue(keys.user, '') || '').trim(),
             pass: String(GM_getValue(keys.pass, '') || ''),
             muted: !!GM_getValue(keys.muted, false),
@@ -21803,13 +21773,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     async function registerOfficeChatUser(STORAGE_KEYS, { email, password, passwordConfirm } = {}) {
         const settings = getChatSettings(STORAGE_KEYS);
-        const baseUrl = settings.baseUrl
-            || normalizeBaseUrl(GM_getValue(chatKeys(STORAGE_KEYS).baseUrl, ''));
+        const baseUrl = OFFICE_CHAT_BASE_URL;
         const mail = String(email || suggestOfficeChatEmail()).trim().toLowerCase();
         const pass = String(password || '');
         const pass2 = passwordConfirm != null ? String(passwordConfirm) : pass;
 
-        if (!baseUrl) return { ok: false, message: 'Συμπληρώστε το Server URL.' };
         if (!mail || !mail.includes('@')) return { ok: false, message: 'Μη έγκυρο email.' };
         if (pass.length < 8) return { ok: false, message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.' };
         if (pass !== pass2) return { ok: false, message: 'Οι κωδικοί δεν ταιριάζουν.' };
@@ -22058,8 +22026,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     async function ensureAuth(STORAGE_KEYS, { force } = {}) {
         const settings = getChatSettings(STORAGE_KEYS);
-        if (!settings.baseUrl || !settings.user || !settings.pass) {
-            throw new Error('Λείπουν URL / χρήστης / κωδικός');
+        if (!settings.user || !settings.pass) {
+            throw new Error('Λείπουν χρήστης / κωδικός');
         }
 
         const now = Date.now();
@@ -22292,8 +22260,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             setChatStatus('disabled');
             return { ok: false, reason: 'disabled' };
         }
-        if (!settings.baseUrl || !settings.user || !settings.pass) {
-            setChatStatus('error', 'Ρυθμίστε URL και λογαριασμό');
+        if (!settings.user || !settings.pass) {
+            setChatStatus('error', 'Ρυθμίστε λογαριασμό chat');
             return { ok: false, reason: 'config' };
         }
         if (chatConnecting) return { ok: false, reason: 'busy' };
@@ -22316,8 +22284,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     async function testChatConnection(STORAGE_KEYS) {
         const settings = getChatSettings(STORAGE_KEYS);
-        if (!settings.baseUrl || !settings.user || !settings.pass) {
-            return { ok: false, message: 'Συμπληρώστε URL, χρήστη και κωδικό.' };
+        if (!settings.user || !settings.pass) {
+            return { ok: false, message: 'Συμπληρώστε χρήστη και κωδικό.' };
         }
         try {
             clearCachedToken(STORAGE_KEYS);

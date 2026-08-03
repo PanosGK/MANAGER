@@ -20,6 +20,7 @@
     const CHAT_POLL_MS = 5000;
     const CHAT_PAGE_SIZE = 50;
     const CHAT_TOKEN_SKEW_MS = 60 * 1000;
+    const OFFICE_CHAT_BASE_URL = 'https://mngerchat.littlejol.mywire.org';
 
     let chatPollTimer = null;
     let chatRealtimeEs = null;
@@ -41,7 +42,6 @@
         const k = STORAGE_KEYS || window.STORAGE_KEYS || {};
         return {
             enabled: k.CHAT_ENABLED || 'tm_chat_enabled',
-            baseUrl: k.CHAT_BASE_URL || 'tm_chat_base_url',
             user: k.CHAT_USER || 'tm_chat_user',
             pass: k.CHAT_PASS || 'tm_chat_pass',
             tokenCache: k.CHAT_TOKEN_CACHE || 'tm_chat_token_cache',
@@ -73,18 +73,11 @@
             .replace(/"/g, '&quot;');
     }
 
-    function normalizeBaseUrl(raw) {
-        let s = String(raw || '').trim().replace(/\/+$/, '');
-        if (!s) return '';
-        if (!/^https?:\/\//i.test(s)) s = `https://${s}`;
-        return s.replace(/\/+$/, '');
-    }
-
     function getChatSettings(STORAGE_KEYS) {
         const keys = chatKeys(STORAGE_KEYS);
         return {
             enabled: !!GM_getValue(keys.enabled, false),
-            baseUrl: normalizeBaseUrl(GM_getValue(keys.baseUrl, '')),
+            baseUrl: OFFICE_CHAT_BASE_URL,
             user: String(GM_getValue(keys.user, '') || '').trim(),
             pass: String(GM_getValue(keys.pass, '') || ''),
             muted: !!GM_getValue(keys.muted, false),
@@ -203,13 +196,11 @@
 
     async function registerOfficeChatUser(STORAGE_KEYS, { email, password, passwordConfirm } = {}) {
         const settings = getChatSettings(STORAGE_KEYS);
-        const baseUrl = settings.baseUrl
-            || normalizeBaseUrl(GM_getValue(chatKeys(STORAGE_KEYS).baseUrl, ''));
+        const baseUrl = OFFICE_CHAT_BASE_URL;
         const mail = String(email || suggestOfficeChatEmail()).trim().toLowerCase();
         const pass = String(password || '');
         const pass2 = passwordConfirm != null ? String(passwordConfirm) : pass;
 
-        if (!baseUrl) return { ok: false, message: 'Συμπληρώστε το Server URL.' };
         if (!mail || !mail.includes('@')) return { ok: false, message: 'Μη έγκυρο email.' };
         if (pass.length < 8) return { ok: false, message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.' };
         if (pass !== pass2) return { ok: false, message: 'Οι κωδικοί δεν ταιριάζουν.' };
@@ -458,8 +449,8 @@
 
     async function ensureAuth(STORAGE_KEYS, { force } = {}) {
         const settings = getChatSettings(STORAGE_KEYS);
-        if (!settings.baseUrl || !settings.user || !settings.pass) {
-            throw new Error('Λείπουν URL / χρήστης / κωδικός');
+        if (!settings.user || !settings.pass) {
+            throw new Error('Λείπουν χρήστης / κωδικός');
         }
 
         const now = Date.now();
@@ -692,8 +683,8 @@
             setChatStatus('disabled');
             return { ok: false, reason: 'disabled' };
         }
-        if (!settings.baseUrl || !settings.user || !settings.pass) {
-            setChatStatus('error', 'Ρυθμίστε URL και λογαριασμό');
+        if (!settings.user || !settings.pass) {
+            setChatStatus('error', 'Ρυθμίστε λογαριασμό chat');
             return { ok: false, reason: 'config' };
         }
         if (chatConnecting) return { ok: false, reason: 'busy' };
@@ -716,8 +707,8 @@
 
     async function testChatConnection(STORAGE_KEYS) {
         const settings = getChatSettings(STORAGE_KEYS);
-        if (!settings.baseUrl || !settings.user || !settings.pass) {
-            return { ok: false, message: 'Συμπληρώστε URL, χρήστη και κωδικό.' };
+        if (!settings.user || !settings.pass) {
+            return { ok: false, message: 'Συμπληρώστε χρήστη και κωδικό.' };
         }
         try {
             clearCachedToken(STORAGE_KEYS);

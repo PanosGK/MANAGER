@@ -179,15 +179,9 @@
         },
         office_chat: {
             title: 'Office Chat',
-            what: 'Κοινό chat γραφείου μέσω PocketBase στον TrueNAS server σας. Όλοι οι τεχνικοί βλέπουν το ίδιο κανάλι.',
+            what: 'Κοινό chat γραφείου μέσω του σταθερού server https://mngerchat.littlejol.mywire.org. Όλοι οι τεχνικοί βλέπουν το ίδιο κανάλι.',
             where: 'Κουμπί «Chat» στο δεξί slide-out · πάνελ μηνυμάτων.',
-            when: 'Αφού ρυθμίσετε URL και λογαριασμό PocketBase. Απαιτεί ενημέρωση loader (@connect).',
-        },
-        office_chat_url: {
-            title: 'Chat server URL',
-            what: 'Η δημόσια διεύθυνση του PocketBase πίσω από το reverse proxy (π.χ. https://mngerchat.littlejol.mywire.org).',
-            where: 'Ρυθμίσεις → Chat.',
-            when: 'Μία φορά κατά την εγκατάσταση· αλλάξτε μόνο αν αλλάξει το hostname.',
+            when: 'Αφού δημιουργήσετε λογαριασμό chat (αυτόματο email + κωδικός).',
         },
         office_chat_user: {
             title: 'Chat email',
@@ -729,12 +723,8 @@
                 GM_setValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', chatOn);
                 config.officeChatEnabled = chatOn;
             }
-            const chatUrlEl = document.getElementById('tm-setting-chat-url');
             const chatUserEl = document.getElementById('tm-setting-chat-user');
             const chatPassEl = document.getElementById('tm-setting-chat-pass');
-            if (chatUrlEl) {
-                GM_setValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', chatUrlEl.value.trim().replace(/\/+$/, ''));
-            }
             if (chatUserEl) {
                 GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', chatUserEl.value.trim());
             }
@@ -1368,7 +1358,7 @@
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
                         <h3>Office Chat</h3>
-                        <p class="tm-settings-section-desc">Κοινό chat γραφείου. Email από το όνομα στο login (π.χ. Γκορόγιας → gkorogias@myman.chat). Στο chat φαίνεται το ελληνικό όνομα.</p>
+                        <p class="tm-settings-section-desc">Κοινό chat γραφείου. Server σταθερός · email από το όνομα login · εσείς βάζετε μόνο κωδικό.</p>
                     </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -1381,14 +1371,8 @@
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-chat-url">Server URL</label>
-                                ${info('office_chat_url')}
-                            </div>
-                            <p class="tm-setting-description">π.χ. https://mngerchat.littlejol.mywire.org</p>
-                        </div>
-                        <div class="tm-setting-control">
-                            <input type="url" id="tm-setting-chat-url" class="tm-settings-input" autocomplete="off" spellcheck="false" placeholder="https://mngerchat.littlejol.mywire.org">
+                            <label>Server</label>
+                            <p class="tm-setting-description tm-settings-code-line"><code>https://mngerchat.littlejol.mywire.org</code></p>
                         </div>
                     </div>
                     <div class="tm-setting-row">
@@ -1896,13 +1880,8 @@
                 chatEnabledBox.checked = !!GM_getValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', false)
                     || !!config.officeChatEnabled;
             }
-            const chatUrlInput = document.getElementById('tm-setting-chat-url');
             const chatUserInput = document.getElementById('tm-setting-chat-user');
             const chatPassInput = document.getElementById('tm-setting-chat-pass');
-            if (chatUrlInput) {
-                chatUrlInput.value = GM_getValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', '')
-                    || 'https://mngerchat.littlejol.mywire.org';
-            }
             if (chatUserInput) {
                 const savedUser = GM_getValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', '') || '';
                 chatUserInput.value = savedUser
@@ -1912,10 +1891,8 @@
                 chatPassInput.value = GM_getValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', '') || '';
             }
             const persistChatFormToStorage = () => {
-                const urlEl = document.getElementById('tm-setting-chat-url');
                 const userEl = document.getElementById('tm-setting-chat-user');
                 const passEl = document.getElementById('tm-setting-chat-pass');
-                if (urlEl) GM_setValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', urlEl.value.trim().replace(/\/+$/, ''));
                 if (userEl) GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', userEl.value.trim());
                 if (passEl) GM_setValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', passEl.value);
                 try { GM_setValue(STORAGE_KEYS.CHAT_TOKEN_CACHE || 'tm_chat_token_cache', ''); } catch (_) { /* ignore */ }
