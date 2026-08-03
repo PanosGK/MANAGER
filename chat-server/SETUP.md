@@ -97,7 +97,7 @@ For that to work, **users** collection:
 2. Turn **off** email verification / confirm email requirements.
 3. Optional: List/View can stay authenticated-only.
 
-If Create stays locked, the suite shows «Δημιουργία…» then an error — or used to hang; v38.7+ always times out with a message.
+If Create stays locked, the suite cannot auto-create users — check Create rule and email verification.
 
 ## 6. Backups
 
