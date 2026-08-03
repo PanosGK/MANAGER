@@ -28,7 +28,9 @@ Optional: **Settings → Chat** — enable/disable, profile photo, sound, connec
 | Draft autosave | Composer text kept if you close the panel |
 | Quiet hours | Auto-mute outside work hours (Settings → Chat) |
 | Repair links | `#12345` or 5–8 digit numbers → service search |
-| Presence | “Online: …” under rooms (needs `presence` collection) |
+| Presence | Online faces row + typing line (needs `presence` + optional `typingUntil`) |
+| @mentions | `@` button filters / jumps to messages that tagged you |
+| Repair cards | `#12345` in a message loads status / tech / store mini-card |
 | Read receipts | ✓✓ on your messages when peers opened chat |
 | Avatars sync | `users.avatar` + message fields + presence; directory refresh on heartbeat |
 
@@ -43,7 +45,7 @@ Optional: **Settings → Chat** — enable/disable, profile photo, sound, connec
 | Profile photo upload fails | users `avatar` File + Update `@request.auth.id = id`; View/List `@request.auth.id != ""` |
 | Initials only (no photo) | users List/View unlocked; photo applies after upload |
 | Reply / delete / edit / reactions ignored | Add `replyTo`, `replyPreview`, `deleted`, `edited`, `reactions` on messages (see SETUP) |
-| No Online line | Create `presence` collection (SETUP §6); optional Text `avatar` for synced photos |
+| No Online line / empty `presence` | Unlock List+Create+Update on `presence` with `@request.auth.id != ""` (empty rule = Admin only). Chat status shows the Presence hint. |
 | Auth failed / old manual password | Open Chat once on a PC that still has the old password, or delete user in Admin |
 | Auth failed after create | Disable email verification on users |
 | Network denied | Update loader / allow `@connect` |

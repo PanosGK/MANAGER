@@ -1,11 +1,11 @@
 {
-  "version": "376",
+  "version": "377",
   "loaderVersion": "41",
-  "silentVersion": "20",
-  "displayVersion": "41.20",
+  "silentVersion": "21",
+  "displayVersion": "41.21",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Chat reactions, copy, draft autosave, quiet hours, and avatar/presence server sync",
+  "releaseNotes": "Typing indicator, @mentions filter, online avatars, repair cards, and presence write fixes",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

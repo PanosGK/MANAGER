@@ -113,18 +113,32 @@ Admin → New collection → name: `presence`
 
 | Field         | Type | Options |
 | ------------- | ---- | ------- |
-| `userId`      | Text | required, max 32 (PocketBase users id) |
-| `displayName` | Text | required, max 64 |
+| `userId`      | Text | **required**, max **64** (PocketBase users id) |
+| `displayName` | Text | **required**, max 64 |
 | `profileId`   | Text | optional, max 64 |
 | `store`       | Text | optional, max 64 |
-| `lastSeen`    | Date | required |
+| `lastSeen`    | Date | **required** |
 | `lastReadAt`  | Date | optional (panel open → mark messages seen) |
 | `avatar`      | Text | optional, max 255 (filename on `users` — so everyone sees the same photo online) |
+| `typingUntil` | Date | optional (typing indicator expires after this time) |
 
-API rules (all unlocked for auth users):
+### API rules (this is why records stay empty)
 
-- List / View / Create / Update: `@request.auth.id != ""`
-- Delete: empty (deny)
+PocketBase **empty rule = only Admin**. If List/Create/Update are blank, the suite cannot write presence rows.
+
+For each of **List / View / Create / Update**:
+
+1. Click the **lock** to unlock the rule.
+2. Set the rule exactly to:
+
+```txt
+@request.auth.id != ""
+```
+
+3. Leave **Delete** empty (deny).
+4. Save the collection.
+
+Quick check: open Chat once as a tech → Admin → `presence` → you should see a new row within ~25s. If Chat status shows a Presence hint, fix that rule/field first.
 
 Enable **Realtime** for `presence` if available.
 
@@ -139,7 +153,7 @@ Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots.
 - [ ] Admin UI loads
 - [ ] `messages` + attachment + avatar/pbUserId + reply/deleted/edited + **reactions** fields
 - [ ] `users.avatar` + Update/List/View rules
-- [ ] `presence` collection + rules (+ optional `avatar`)
+- [ ] `presence` collection + rules (+ optional `avatar`, `typingUntil`)
 - [ ] Realtime enabled for messages (and presence)
 - [ ] Snapshot covers chat DB dataset
 

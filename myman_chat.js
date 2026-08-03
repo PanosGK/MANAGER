@@ -39,6 +39,17 @@
     let chatEditFieldUnsupported = false;
     let chatReactionsUnsupported = false;
     let chatPresenceAvatarUnsupported = false;
+    let chatTypingUnsupported = false;
+    let chatOwnPresenceRecordId = '';
+    let chatOwnTypingUntil = 0;
+    let chatTypingIdleTimer = null;
+    let chatTypingPushTimer = null;
+    let chatTypingUiTimer = null;
+    let chatMentionsOnly = false;
+    let chatUnreadMentionIds = new Set();
+    const CHAT_UNREAD_MENTIONS_KEY = 'tm_chat_unread_mentions_v1';
+    const chatRepairCardCache = new Map();
+    const chatRepairCardInflight = new Map();
     let chatSoundEnabled = true;
     let chatAvatarDirTick = 0;
     /** Local pin ids (fallback when PocketBase `pinned` field is missing). */
@@ -55,6 +66,8 @@
     const CHAT_DEFAULT_WORK_START = '09:00';
     const CHAT_DEFAULT_WORK_END = '18:00';
     const CHAT_REPAIR_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=';
+    const CHAT_REPAIR_LIST_URL = 'https://thefixers.mymanager.gr/mymanagerservice/service_list.php';
+    const CHAT_TYPING_TTL_MS = 4200;
     const CHAT_MAX_LEN = 500;
     const CHAT_SEND_COOLDOWN_MS = 1500;
     const CHAT_POLL_MS = 5000;
@@ -207,6 +220,138 @@
         const slug = greekToLatinSlug(me);
         if (slug && slug.length >= 2 && new RegExp(`@${slug}\\b`, 'i').test(text)) return true;
         return false;
+    }
+
+    function loadUnreadChatMentions() {
+        try {
+            const raw = GM_getValue(CHAT_UNREAD_MENTIONS_KEY, '[]');
+            const arr = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            chatUnreadMentionIds = new Set(Array.isArray(arr) ? arr.map(String) : []);
+        } catch (_) {
+            chatUnreadMentionIds = new Set();
+        }
+    }
+
+    function saveUnreadChatMentions() {
+        try {
+            GM_setValue(CHAT_UNREAD_MENTIONS_KEY, JSON.stringify([...chatUnreadMentionIds].slice(-80)));
+        } catch (_) { /* ignore */ }
+    }
+
+    function rememberUnreadMentions(messages) {
+        let changed = false;
+        (messages || []).forEach((m) => {
+            if (!m?.id || m.deleted || isOwnChatMessage(m)) return;
+            if (!messageMentionsMe(m.text)) return;
+            const id = String(m.id);
+            if (!chatUnreadMentionIds.has(id)) {
+                chatUnreadMentionIds.add(id);
+                changed = true;
+            }
+        });
+        if (changed) {
+            saveUnreadChatMentions();
+            updateChatMentionsBtnUi();
+        }
+    }
+
+    function clearUnreadMention(id) {
+        const key = String(id || '');
+        if (!key || !chatUnreadMentionIds.has(key)) return;
+        chatUnreadMentionIds.delete(key);
+        saveUnreadChatMentions();
+        updateChatMentionsBtnUi();
+    }
+
+    function getMentionMessages() {
+        const room = getChatRoom();
+        return chatMessages
+            .filter((m) => String(m.room || room) === room && !isChatMessageDeleted(m) && messageMentionsMe(m.text))
+            .slice()
+            .sort((a, b) => new Date(a.created || 0) - new Date(b.created || 0));
+    }
+
+    function updateChatMentionsBtnUi() {
+        const btn = document.getElementById('tm-chat-mentions-btn');
+        if (!btn) return;
+        const unread = [...chatUnreadMentionIds].filter((id) => findChatMessageById(id)).length;
+        const total = getMentionMessages().length;
+        btn.classList.toggle('is-active', chatMentionsOnly);
+        btn.classList.toggle('has-unread', unread > 0);
+        btn.title = chatMentionsOnly
+            ? 'Εμφάνιση όλων των μηνυμάτων'
+            : (unread > 0
+                ? `${unread} μη διαβασμένες αναφορές @ — κλικ για φίλτρο / μετάβαση`
+                : (total ? 'Φίλτρο: μηνύματα που σε ανέφεραν' : 'Καμία αναφορά @ ακόμα'));
+        let badge = btn.querySelector('.tm-chat-mentions-badge');
+        if (unread > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'tm-chat-mentions-badge';
+                btn.appendChild(badge);
+            }
+            badge.textContent = unread > 9 ? '9+' : String(unread);
+            badge.hidden = false;
+        } else if (badge) {
+            badge.hidden = true;
+        }
+    }
+
+    function jumpToChatMessage(id, { clearMention } = {}) {
+        const list = document.getElementById('tm-chat-messages');
+        if (!list || !id) return false;
+        const el = list.querySelector(`.tm-chat-msg[data-id="${CSS.escape(String(id))}"]`);
+        if (!el) return false;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('is-new', 'is-mention-flash');
+        window.setTimeout(() => el.classList.remove('is-mention-flash'), 1600);
+        if (clearMention !== false) clearUnreadMention(id);
+        return true;
+    }
+
+    function toggleChatMentionsFilter() {
+        const mentions = getMentionMessages();
+        if (!mentions.length) {
+            chatMentionsOnly = false;
+            setChatStatus('online', 'Καμία αναφορά @ στα φορτωμένα μηνύματα');
+            setTimeout(() => setChatStatus('online'), 1600);
+            updateChatMentionsBtnUi();
+            renderMessages({ force: true });
+            return;
+        }
+        chatMentionsOnly = !chatMentionsOnly;
+        updateChatMentionsBtnUi();
+        renderMessages({ force: true });
+        if (chatMentionsOnly) {
+            const unread = mentions.filter((m) => chatUnreadMentionIds.has(String(m.id)));
+            const target = (unread[0] || mentions[mentions.length - 1]);
+            window.setTimeout(() => jumpToChatMessage(target.id), 40);
+        }
+    }
+
+    function cycleChatMentionJump() {
+        const mentions = getMentionMessages();
+        if (!mentions.length) {
+            setChatStatus('online', 'Καμία αναφορά @');
+            setTimeout(() => setChatStatus('online'), 1200);
+            return;
+        }
+        if (!chatMentionsOnly) {
+            chatMentionsOnly = true;
+            updateChatMentionsBtnUi();
+            renderMessages({ force: true });
+        }
+        const unread = mentions.filter((m) => chatUnreadMentionIds.has(String(m.id)));
+        const pool = unread.length ? unread : mentions;
+        const list = document.getElementById('tm-chat-messages');
+        const visible = list?.querySelector('.tm-chat-msg.is-mention-flash, .tm-chat-msg.is-new');
+        let idx = 0;
+        if (visible) {
+            const cur = visible.getAttribute('data-id');
+            const at = pool.findIndex((m) => String(m.id) === String(cur));
+            idx = at >= 0 ? (at + 1) % pool.length : 0;
+        }
+        window.setTimeout(() => jumpToChatMessage(pool[idx].id), 40);
     }
 
     function playChatNotifySound({ mention } = {}) {
@@ -538,10 +683,87 @@
         ));
     }
 
+    function resolvePresenceAvatar(p) {
+        const userId = String(p?.userId || p?.pbUserId || '').trim();
+        const fromPresence = normalizePbFileName(p?.avatar);
+        if (userId && fromPresence) {
+            return { userId, filename: fromPresence };
+        }
+        if (userId) {
+            const byId = chatAvatarDirectory.get(`id:${userId}`);
+            if (byId?.filename) return byId;
+        }
+        const name = String(p?.displayName || '').trim();
+        if (name) {
+            const hit = resolveChatMessageAvatar({
+                displayName: name,
+                profileId: p?.profileId,
+                pbUserId: userId,
+                avatar: fromPresence,
+            });
+            if (hit) return hit;
+        }
+        return null;
+    }
+
+    function formatPresenceAvatarHtml(p) {
+        const name = String(p?.displayName || '?').trim() || '?';
+        const letter = chatAvatarLetter(name);
+        const resolved = resolvePresenceAvatar(p);
+        const store = String(p?.store || '').trim();
+        const title = store ? `${name} · ${store}` : name;
+        if (resolved?.userId && resolved?.filename) {
+            const url = getChatUserAvatarUrl(resolved.userId, resolved.filename);
+            return `<span class="tm-chat-presence-avatar is-photo" title="${escapeHtml(title)}" data-letter="${escapeHtml(letter)}"><img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="var p=this.parentElement;if(p){p.classList.remove('is-photo');p.textContent=p.getAttribute('data-letter')||'?';}"></span>`;
+        }
+        return `<span class="tm-chat-presence-avatar" title="${escapeHtml(title)}">${escapeHtml(letter)}</span>`;
+    }
+
+    function getTypingPresenceList() {
+        const now = Date.now();
+        const me = getDisplayName();
+        const names = [];
+        const seen = new Set();
+        (chatPresenceList || []).forEach((p) => {
+            const name = String(p?.displayName || '').trim();
+            if (!name || (me && name === me)) return;
+            const until = new Date(p.typingUntil || 0).getTime();
+            if (!until || until < now - 500) return;
+            if (seen.has(name)) return;
+            seen.add(name);
+            names.push(name);
+        });
+        return names;
+    }
+
+    function renderTypingUi() {
+        const el = document.getElementById('tm-chat-typing');
+        if (!el) return;
+        if (chatTypingUnsupported) {
+            el.hidden = true;
+            el.textContent = '';
+            return;
+        }
+        const names = getTypingPresenceList();
+        if (!names.length) {
+            el.hidden = true;
+            el.textContent = '';
+            return;
+        }
+        el.hidden = false;
+        const label = names.length === 1
+            ? `${names[0]} πληκτρολογεί…`
+            : (names.length === 2
+                ? `${names[0]} και ${names[1]} πληκτρολογούν…`
+                : `${names.slice(0, 2).join(', ')} +${names.length - 2} πληκτρολογούν…`);
+        el.innerHTML = `<span class="tm-chat-typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>${escapeHtml(label)}`;
+    }
+
     function renderPresenceUi() {
         const el = document.getElementById('tm-chat-presence');
         if (!el) return;
         const online = getOnlinePresenceList();
+        renderTypingUi();
 
         if (chatPresenceUnsupported && !online.length) {
             el.hidden = false;
@@ -556,9 +778,17 @@
         }
 
         el.hidden = false;
-        const names = online.slice(0, 8).map((p) => p.displayName).join(', ');
-        const more = online.length > 8 ? ` +${online.length - 8}` : '';
-        el.innerHTML = `<span class="tm-chat-presence-dot" aria-hidden="true"></span><strong>${online.length}</strong> online · ${escapeHtml(names)}${escapeHtml(more)}`;
+        const faces = online.slice(0, 10).map((p) => formatPresenceAvatarHtml(p)).join('');
+        const more = online.length > 10
+            ? `<span class="tm-chat-presence-more" title="${escapeHtml(online.slice(10).map((p) => p.displayName).join(', '))}">+${online.length - 10}</span>`
+            : '';
+        const names = online.slice(0, 4).map((p) => p.displayName).join(', ');
+        const namesMore = online.length > 4 ? ` +${online.length - 4}` : '';
+        el.innerHTML = `<div class="tm-chat-presence-row">
+            <span class="tm-chat-presence-dot" aria-hidden="true"></span>
+            <div class="tm-chat-presence-faces">${faces}${more}</div>
+            <div class="tm-chat-presence-meta"><strong>${online.length}</strong> online<span class="tm-chat-presence-names"> · ${escapeHtml(names)}${escapeHtml(namesMore)}</span></div>
+        </div>`;
     }
 
     function peersHaveReadMessage(m) {
@@ -693,6 +923,254 @@
         }
         out += escapeHtml(raw.slice(last));
         return out;
+    }
+
+    function extractChatRepairNumbers(text) {
+        const nums = [];
+        const seen = new Set();
+        const re = /#(\d{4,10})\b|\b(\d{5,8})\b/g;
+        let m;
+        const raw = String(text || '');
+        while ((m = re.exec(raw)) !== null) {
+            const num = String(m[1] || m[2] || '').trim();
+            if (!num || seen.has(num)) continue;
+            seen.add(num);
+            nums.push(num);
+            if (nums.length >= 3) break;
+        }
+        return nums;
+    }
+
+    function formatChatRepairCardsHtml(text) {
+        const nums = extractChatRepairNumbers(text);
+        if (!nums.length) return '';
+        return `<div class="tm-chat-repair-cards">${nums.map((num) => {
+            const cached = chatRepairCardCache.get(num);
+            if (cached?.ok === false) {
+                return `<a class="tm-chat-repair-card is-miss" href="${escapeHtml(CHAT_REPAIR_SEARCH_URL + encodeURIComponent(num))}" target="_blank" rel="noopener noreferrer" data-repair="${escapeHtml(num)}">
+                    <span class="tm-chat-repair-card-id">#${escapeHtml(num)}</span>
+                    <span class="tm-chat-repair-card-miss">Δεν βρέθηκε</span>
+                </a>`;
+            }
+            if (cached?.ok) {
+                return renderChatRepairCardHtml(num, cached);
+            }
+            return `<div class="tm-chat-repair-card is-loading" data-repair="${escapeHtml(num)}" aria-busy="true">
+                <span class="tm-chat-repair-card-id">#${escapeHtml(num)}</span>
+                <span class="tm-chat-repair-card-miss">Φόρτωση…</span>
+            </div>`;
+        }).join('')}</div>`;
+    }
+
+    function renderChatRepairCardHtml(num, data) {
+        const href = data.link || `${CHAT_REPAIR_SEARCH_URL}${encodeURIComponent(num)}`;
+        const status = data.status || '—';
+        const tech = data.tech || '—';
+        const store = data.store || '—';
+        const device = data.device ? `<span class="tm-chat-repair-card-device">${escapeHtml(data.device)}</span>` : '';
+        return `<a class="tm-chat-repair-card" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" data-repair="${escapeHtml(num)}" title="Άνοιγμα επισκευής">
+            <span class="tm-chat-repair-card-id">#${escapeHtml(data.number || num)}</span>
+            ${device}
+            <span class="tm-chat-repair-card-grid">
+                <span><em>Κατάσταση</em>${escapeHtml(status)}</span>
+                <span><em>Τεχνικός</em>${escapeHtml(tech)}</span>
+                <span><em>Κατάστημα</em>${escapeHtml(store)}</span>
+            </span>
+        </a>`;
+    }
+
+    function parseChatRepairCardFromDoc(doc, repairId, pageUrl) {
+        const target = String(repairId || '').trim();
+        const rows = doc.querySelectorAll('tbody tr[id^="gridRow"]');
+        const gridTable = doc.querySelector('table.rnr-b-grid, table.rnr-gridtable, table.hoverable');
+        const headers = gridTable
+            ? Array.from(gridTable.querySelectorAll('thead th')).map((th) => String(th.innerText || '').trim())
+            : [];
+        const idx = {
+            num: headers.findIndex((h) => /^Αρ\.?/i.test(h) || h.includes('Αρ.')),
+            status: headers.findIndex((h) => /κατάσταση|status/i.test(h)),
+            tech: headers.findIndex((h) => /τεχνικ|technician|\btech\b/i.test(h)),
+            store: headers.findIndex((h) => /κατάστημα|store|shop/i.test(h)),
+            device: headers.findIndex((h) => /συσκευή|device|model/i.test(h)),
+        };
+        const cellText = (row, i) => {
+            if (i < 0 || !row?.cells?.[i]) return '';
+            return String(row.cells[i].innerText || '').replace(/\s+/g, ' ').trim();
+        };
+        const findLink = (row) => {
+            const href = row.dataset.href || row.querySelector('td[data-href]')?.dataset.href;
+            if (href) {
+                try { return new URL(href, pageUrl).href; } catch (_) { return href; }
+            }
+            const a = row.querySelector('a[href*="service_edit"]');
+            return a ? a.href : '';
+        };
+        let best = null;
+        for (const row of rows) {
+            const numText = idx.num >= 0 ? cellText(row, idx.num) : '';
+            const blob = `${numText} ${row.innerText || ''}`;
+            const matches = blob.includes(target)
+                || new RegExp(`(?:^|\\D)${target}(?:\\D|$)`).test(blob.replace(/\s/g, ''));
+            if (!matches && rows.length !== 1) continue;
+            best = {
+                ok: true,
+                number: numText || target,
+                status: cellText(row, idx.status) || '—',
+                tech: cellText(row, idx.tech) || '—',
+                store: cellText(row, idx.store) || '—',
+                device: cellText(row, idx.device) || '',
+                link: findLink(row) || `${CHAT_REPAIR_SEARCH_URL}${encodeURIComponent(target)}`,
+            };
+            if (matches) break;
+        }
+        return best;
+    }
+
+    function fetchChatRepairCard(repairId) {
+        const num = String(repairId || '').trim();
+        if (!num) return Promise.resolve(null);
+        if (chatRepairCardCache.has(num)) return Promise.resolve(chatRepairCardCache.get(num));
+        if (chatRepairCardInflight.has(num)) return chatRepairCardInflight.get(num);
+
+        const searchUrl = `${CHAT_REPAIR_LIST_URL}?qs=${encodeURIComponent(num)}&statusid=all&pagesize=-1&menuItemId=1`;
+        const job = new Promise((resolve) => {
+            const finish = (data) => {
+                chatRepairCardCache.set(num, data);
+                chatRepairCardInflight.delete(num);
+                resolve(data);
+            };
+            const handleHtml = (html, finalUrl) => {
+                try {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const parsed = parseChatRepairCardFromDoc(doc, num, finalUrl || searchUrl);
+                    finish(parsed || { ok: false });
+                } catch (_) {
+                    finish({ ok: false });
+                }
+            };
+            const xhr = (typeof GM_xmlhttpRequest === 'function')
+                ? GM_xmlhttpRequest
+                : (typeof GM !== 'undefined' && typeof GM.xmlHttpRequest === 'function' ? GM.xmlHttpRequest : null);
+            if (xhr) {
+                xhr({
+                    method: 'GET',
+                    url: searchUrl,
+                    timeout: 15000,
+                    onload(res) { handleHtml(res.responseText, res.finalUrl); },
+                    onerror() { finish({ ok: false }); },
+                    ontimeout() { finish({ ok: false }); },
+                });
+            } else {
+                fetch(searchUrl)
+                    .then((r) => r.text())
+                    .then((html) => handleHtml(html, searchUrl))
+                    .catch(() => finish({ ok: false }));
+            }
+        });
+        chatRepairCardInflight.set(num, job);
+        return job;
+    }
+
+    function hydrateChatRepairCards(root) {
+        const scope = root || document.getElementById('tm-chat-messages');
+        if (!scope) return;
+        scope.querySelectorAll('.tm-chat-repair-card[data-repair].is-loading, .tm-chat-repair-card.is-loading').forEach((el) => {
+            const num = el.getAttribute('data-repair');
+            if (!num || el.dataset.tmHydrating === '1') return;
+            el.dataset.tmHydrating = '1';
+            fetchChatRepairCard(num).then((data) => {
+                const next = (data && data.ok)
+                    ? renderChatRepairCardHtml(num, data)
+                    : `<a class="tm-chat-repair-card is-miss" href="${escapeHtml(CHAT_REPAIR_SEARCH_URL + encodeURIComponent(num))}" target="_blank" rel="noopener noreferrer" data-repair="${escapeHtml(num)}">
+                        <span class="tm-chat-repair-card-id">#${escapeHtml(num)}</span>
+                        <span class="tm-chat-repair-card-miss">Άνοιγμα αναζήτησης</span>
+                    </a>`;
+                const wrap = document.createElement('div');
+                wrap.innerHTML = next;
+                const node = wrap.firstElementChild;
+                if (node && el.parentNode) el.replaceWith(node);
+            }).catch(() => {
+                el.classList.remove('is-loading');
+                el.classList.add('is-miss');
+                el.dataset.tmHydrating = '0';
+            });
+        });
+    }
+
+    function startTypingUiTicker() {
+        stopTypingUiTicker();
+        chatTypingUiTimer = window.setInterval(() => {
+            if (chatPanelOpen) renderTypingUi();
+        }, 1000);
+    }
+
+    function stopTypingUiTicker() {
+        if (chatTypingUiTimer) {
+            window.clearInterval(chatTypingUiTimer);
+            chatTypingUiTimer = null;
+        }
+    }
+
+    function scheduleOwnTypingPulse(STORAGE_KEYS) {
+        if (chatTypingUnsupported || chatPresenceUnsupported) return;
+        chatOwnTypingUntil = Date.now() + CHAT_TYPING_TTL_MS;
+        window.clearTimeout(chatTypingIdleTimer);
+        chatTypingIdleTimer = window.setTimeout(() => {
+            chatOwnTypingUntil = 0;
+            pushOwnTypingPresence(STORAGE_KEYS).catch(() => {});
+        }, CHAT_TYPING_TTL_MS);
+        window.clearTimeout(chatTypingPushTimer);
+        chatTypingPushTimer = window.setTimeout(() => {
+            pushOwnTypingPresence(STORAGE_KEYS).catch(() => {});
+        }, 400);
+    }
+
+    function clearOwnTypingPulse(STORAGE_KEYS) {
+        window.clearTimeout(chatTypingIdleTimer);
+        window.clearTimeout(chatTypingPushTimer);
+        if (!chatOwnTypingUntil) return;
+        chatOwnTypingUntil = 0;
+        pushOwnTypingPresence(STORAGE_KEYS).catch(() => {});
+    }
+
+    async function pushOwnTypingPresence(STORAGE_KEYS) {
+        if (chatTypingUnsupported || chatPresenceUnsupported) return false;
+        if (!chatOwnPresenceRecordId) {
+            return upsertOwnPresence(STORAGE_KEYS, { markRead: chatPanelOpen });
+        }
+        try {
+            const token = await ensureAuth(STORAGE_KEYS);
+            const base = OFFICE_CHAT_BASE_URL.replace(/\/$/, '');
+            const payload = {
+                lastSeen: formatChatPresenceTime(Date.now()),
+            };
+            if (chatOwnTypingUntil > Date.now()) {
+                payload.typingUntil = formatChatPresenceTime(chatOwnTypingUntil);
+            } else {
+                // Expire typing for peers (empty string often fails Date validation)
+                payload.typingUntil = formatChatPresenceTime(Date.now() - 60 * 1000);
+            }
+            const result = await chatRequestJson({
+                method: 'PATCH',
+                url: `${base}/api/collections/presence/records/${encodeURIComponent(chatOwnPresenceRecordId)}`,
+                headers: { Authorization: token, 'Content-Type': 'application/json' },
+                data: JSON.stringify(payload),
+                timeout: 8000,
+            });
+            if (result.status >= 400 && /typingUntil|unknown field/i.test(presenceErrBlob(result))) {
+                chatTypingUnsupported = true;
+                renderTypingUi();
+                return false;
+            }
+            if (result.status >= 200 && result.status < 300 && result.body) {
+                const others = (chatPresenceList || []).filter((p) => String(p.userId || '') !== chatSelfPbUserId);
+                chatPresenceList = [result.body, ...others];
+                renderTypingUi();
+            }
+            return result.status >= 200 && result.status < 300;
+        } catch (_) {
+            return false;
+        }
     }
 
     function formatChatFileSize(bytes) {
@@ -2068,9 +2546,13 @@
                 return blob.includes(q);
             });
         }
-        const nextKey = chatMessagesFingerprint(sorted) + `\u0003${q}\u0003${room}\u0003${chatPresenceList.map((p) => p.lastReadAt || '').join(',')}`;
+        if (chatMentionsOnly) {
+            sorted = sorted.filter((m) => messageMentionsMe(m.text));
+        }
+        const nextKey = chatMessagesFingerprint(sorted) + `\u0003${q}\u0003${room}\u0003${chatMentionsOnly ? '1' : '0'}\u0003${chatPresenceList.map((p) => p.lastReadAt || '').join(',')}`;
         if (!force && nextKey === chatMessagesRenderKey && list.childElementCount > 0) {
             if (CHAT_PIN_ENABLED) renderPinnedStrip();
+            hydrateChatRepairCards(list);
             return;
         }
         const stickToBottom = force || isChatMessagesNearBottom(list) || !chatMessagesRenderKey;
@@ -2089,8 +2571,8 @@
         if (!sorted.length) {
             list.innerHTML = `<div class="tm-chat-empty">
                 <div class="tm-chat-empty-icon">💬</div>
-                <div class="tm-chat-empty-title">${q ? 'Κανένα αποτέλεσμα' : 'Δεν υπάρχουν μηνύματα ακόμα'}</div>
-                <div class="tm-chat-empty-sub">${q ? 'Δοκίμασε άλλο όρο αναζήτησης' : 'Γράψε κάτι για να ξεκινήσει η συζήτηση'}</div>
+                <div class="tm-chat-empty-title">${chatMentionsOnly ? 'Καμία αναφορά @' : (q ? 'Κανένα αποτέλεσμα' : 'Δεν υπάρχουν μηνύματα ακόμα')}</div>
+                <div class="tm-chat-empty-sub">${chatMentionsOnly ? 'Όταν σε αναφέρουν με @ θα εμφανιστούν εδώ' : (q ? 'Δοκίμασε άλλο όρο αναζήτησης' : 'Γράψε κάτι για να ξεκινήσει η συζήτηση')}</div>
             </div>`;
             return;
         }
@@ -2125,6 +2607,7 @@
             const attachHtml = formatChatAttachmentHtml(m);
             const bodyHtml = [attachHtml, textHtml].filter(Boolean).join('')
                 || (isFilePlaceholder ? '' : escapeHtml(rawText));
+            const repairCardsHtml = showText ? formatChatRepairCardsHtml(rawText) : '';
             const replyHtml = m.replyTo
                 ? `<button type="button" class="tm-chat-msg-reply" data-jump="${escapeHtml(m.replyTo)}">
                     <strong>${escapeHtml(m.replyName || (findChatMessageById(m.replyTo)?.displayName) || 'Μήνυμα')}</strong>
@@ -2138,7 +2621,9 @@
             const seenHtml = mine && peersHaveReadMessage(m)
                 ? `<span class="tm-chat-msg-seen" title="Διαβάστηκε">✓✓</span>`
                 : (mine ? `<span class="tm-chat-msg-seen is-sent" title="Στάλθηκε">✓</span>` : '');
-            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}${isNew ? ' is-new' : ''}${(CHAT_PIN_ENABLED && isMessagePinned(m)) ? ' is-pinned' : ''}" data-id="${escapeHtml(m.id)}" title="Δεξί κλικ για επιλογές">
+            const mentionHit = messageMentionsMe(m.text);
+            const mentionUnread = mentionHit && chatUnreadMentionIds.has(String(m.id));
+            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}${isNew ? ' is-new' : ''}${mentionHit ? ' is-mention-hit' : ''}${mentionUnread ? ' is-mention-unread' : ''}${(CHAT_PIN_ENABLED && isMessagePinned(m)) ? ' is-pinned' : ''}" data-id="${escapeHtml(m.id)}" title="Δεξί κλικ για επιλογές">
                 ${formatChatAvatarHtml(m)}
                 <div class="tm-chat-msg-bubble">
                     <div class="tm-chat-msg-meta">
@@ -2151,12 +2636,15 @@
                     </div>
                     ${replyHtml}
                     <div class="tm-chat-msg-text">${bodyHtml}</div>
+                    ${repairCardsHtml}
                     ${formatChatReactionsHtml(m)}
                 </div>
             </div>`;
         }).join('');
-        if (stickToBottom && !q) list.scrollTop = list.scrollHeight;
+        if (stickToBottom && !q && !chatMentionsOnly) list.scrollTop = list.scrollHeight;
         else list.scrollTop = prevScrollTop;
+        hydrateChatRepairCards(list);
+        updateChatMentionsBtnUi();
     }
 
     function updateUnreadBadge() {
@@ -2212,6 +2700,7 @@
         });
 
         const mentioned = incoming.some((m) => messageMentionsMe(m.text));
+        rememberUnreadMentions(incoming);
         playChatNotifySound({ mention: mentioned });
 
         const btn = document.getElementById('tm-chat-toggle-btn');
@@ -2915,6 +3404,65 @@
         });
     }
 
+    function presenceErrBlob(result) {
+        return `${JSON.stringify(result?.body || {})}\n${result?.raw || ''}\n${result?.message || ''}`;
+    }
+
+    function isPresenceCollectionMissing(status, blob) {
+        if (status === 404) return true;
+        return status >= 400 && /missing collection|collection.*not found|didn't find the collection|unknown collection/i.test(String(blob || ''));
+    }
+
+    function isPresenceRuleDenied(status, blob) {
+        if (status !== 403 && status !== 401) return false;
+        return /superuser|only super|authorization|forbidden|not allowed|failed to authenticate/i.test(String(blob || ''))
+            || status === 403;
+    }
+
+    function hintPresenceFailure(status, body, raw) {
+        if (chatPresenceHintShown) return;
+        chatPresenceHintShown = true;
+        const blob = `${JSON.stringify(body || {})}\n${raw || ''}`;
+        let msg = formatPbError(body, `Presence αποτυχία (${status || 0})`);
+        if (isPresenceCollectionMissing(status, blob)) {
+            msg = 'Presence: δημιούργησε collection presence στο PocketBase';
+            chatPresenceUnsupported = true;
+        } else if (isPresenceRuleDenied(status, blob)) {
+            msg = 'Presence: ξεκλείδωσε List/Create/Update — κανόνας @request.auth.id != ""';
+        } else if (/unknown field|failed to find|invalid|validation/i.test(blob)) {
+            const fields = body?.data && typeof body.data === 'object'
+                ? Object.keys(body.data).join(', ')
+                : '';
+            msg = fields
+                ? `Presence πεδία: έλεγξε ${fields} (SETUP §6)`
+                : 'Presence: έλεγξε πεδία userId/displayName/lastSeen (SETUP §6)';
+        }
+        setChatStatus('online', msg);
+        setTimeout(() => setChatStatus('online'), 5000);
+    }
+
+    async function writePresenceRecord(STORAGE_KEYS, existingId, payload) {
+        const token = await ensureAuth(STORAGE_KEYS);
+        const base = OFFICE_CHAT_BASE_URL.replace(/\/$/, '');
+        const headers = { Authorization: token, 'Content-Type': 'application/json' };
+        if (existingId) {
+            return chatRequestJson({
+                method: 'PATCH',
+                url: `${base}/api/collections/presence/records/${encodeURIComponent(existingId)}`,
+                headers,
+                data: JSON.stringify(payload),
+                timeout: 10000,
+            });
+        }
+        return chatRequestJson({
+            method: 'POST',
+            url: `${base}/api/collections/presence/records`,
+            headers,
+            data: JSON.stringify(payload),
+            timeout: 10000,
+        });
+    }
+
     async function upsertOwnPresence(STORAGE_KEYS, { markRead } = {}) {
         if (chatPresenceUnsupported) {
             renderPresenceUi();
@@ -2928,118 +3476,145 @@
                 try { await fetchOwnChatUserRecord(STORAGE_KEYS); } catch (_) { /* optional */ }
             }
             if (!chatSelfPbUserId) {
-                renderPresenceUi();
-                return false;
-            }
-            const nowIso = formatChatPresenceTime(Date.now());
-            const payload = {
-                userId: chatSelfPbUserId,
-                displayName: getDisplayName(),
-                profileId: getProfileId() || '',
-                store: getChatStoreName(STORAGE_KEYS) || '',
-                lastSeen: nowIso,
-            };
-            if (markRead || chatPanelOpen) payload.lastReadAt = nowIso;
-            if (!chatPresenceAvatarUnsupported && chatSelfAvatarFile) {
-                payload.avatar = chatSelfAvatarFile;
-            }
-
-            const listUrl = `${base}/api/collections/presence/records?page=1&perPage=1&filter=${encodeURIComponent(`userId="${chatSelfPbUserId}"`)}`;
-            const listed = await chatRequestJson({
-                method: 'GET',
-                url: listUrl,
-                headers: { Authorization: token },
-                timeout: 10000,
-            });
-            const listedBlob = JSON.stringify(listed.body || {});
-            if (
-                listed.status === 404
-                || (listed.status >= 400 && /collection|presence|not found|missing/i.test(listedBlob + (listed.body?.message || '')))
-            ) {
-                chatPresenceUnsupported = true;
                 if (!chatPresenceHintShown) {
                     chatPresenceHintShown = true;
-                    setChatStatus('online', 'Presence: δημιούργησε collection presence στο PocketBase');
+                    setChatStatus('online', 'Presence: δεν βρέθηκε user id — άνοιξε Chat ξανά');
                     setTimeout(() => setChatStatus('online'), 3500);
                 }
                 renderPresenceUi();
                 return false;
             }
-            let result;
-            const existingId = listed.body?.items?.[0]?.id;
-            if (existingId) {
-                result = await chatRequestJson({
-                    method: 'PATCH',
-                    url: `${base}/api/collections/presence/records/${encodeURIComponent(existingId)}`,
-                    headers: { Authorization: token, 'Content-Type': 'application/json' },
-                    data: JSON.stringify(payload),
-                    timeout: 10000,
-                });
-            } else {
-                result = await chatRequestJson({
-                    method: 'POST',
-                    url: `${base}/api/collections/presence/records`,
-                    headers: { Authorization: token, 'Content-Type': 'application/json' },
-                    data: JSON.stringify(payload),
-                    timeout: 10000,
-                });
+
+            const nowIso = formatChatPresenceTime(Date.now());
+            const displayName = (getDisplayName() || 'Τεχνικός').slice(0, 64);
+            const basePayload = {
+                userId: String(chatSelfPbUserId).slice(0, 64),
+                displayName,
+                lastSeen: nowIso,
+            };
+            if (!chatTypingUnsupported && chatOwnTypingUntil > Date.now()) {
+                basePayload.typingUntil = formatChatPresenceTime(chatOwnTypingUntil);
             }
-            if (result.status >= 400) {
-                const err = JSON.stringify(result.body || {});
-                // Retry without optional fields / alternate date if schema differs
-                if (/avatar|unknown field/i.test(err) && payload.avatar) {
+
+            // Find existing row (filter → plain list fallback)
+            let existingId = '';
+            let listed = await chatRequestJson({
+                method: 'GET',
+                url: `${base}/api/collections/presence/records?page=1&perPage=1&filter=${encodeURIComponent(`userId="${chatSelfPbUserId}"`)}`,
+                headers: { Authorization: token },
+                timeout: 10000,
+            });
+            let listedBlob = presenceErrBlob(listed);
+            if (isPresenceCollectionMissing(listed.status, listedBlob)) {
+                hintPresenceFailure(listed.status, listed.body, listed.raw);
+                renderPresenceUi();
+                return false;
+            }
+            if (listed.status >= 400) {
+                // Filter/field mismatch or list rule — try unfiltered list
+                listed = await chatRequestJson({
+                    method: 'GET',
+                    url: `${base}/api/collections/presence/records?page=1&perPage=200&sort=-lastSeen`,
+                    headers: { Authorization: token },
+                    timeout: 10000,
+                });
+                listedBlob = presenceErrBlob(listed);
+                if (isPresenceCollectionMissing(listed.status, listedBlob)) {
+                    hintPresenceFailure(listed.status, listed.body, listed.raw);
+                    renderPresenceUi();
+                    return false;
+                }
+                if (listed.status >= 200 && listed.status < 300 && Array.isArray(listed.body?.items)) {
+                    const mine = listed.body.items.find((row) => String(row?.userId || '') === String(chatSelfPbUserId));
+                    if (mine?.id) existingId = mine.id;
+                } else if (isPresenceRuleDenied(listed.status, listedBlob)) {
+                    // Still try Create — Create rule may be open while List is locked
+                } else {
+                    hintPresenceFailure(listed.status, listed.body, listed.raw);
+                }
+            } else if (listed.body?.items?.[0]?.id) {
+                existingId = listed.body.items[0].id;
+            }
+
+            const attempts = [];
+            const full = { ...basePayload };
+            const profileId = getProfileId() || '';
+            const storeName = getChatStoreName(STORAGE_KEYS) || '';
+            if (profileId) full.profileId = profileId;
+            if (storeName) full.store = storeName;
+            if (markRead || chatPanelOpen) full.lastReadAt = nowIso;
+            if (!chatPresenceAvatarUnsupported && chatSelfAvatarFile) full.avatar = chatSelfAvatarFile;
+            attempts.push(full);
+            attempts.push({ ...basePayload, ...(profileId ? { profileId } : {}), ...(storeName ? { store: storeName } : {}), ...((markRead || chatPanelOpen) ? { lastReadAt: nowIso } : {}) });
+            attempts.push({ ...basePayload, ...(profileId ? { profileId } : {}), ...(storeName ? { store: storeName } : {}) });
+            attempts.push({ ...basePayload });
+            // Alternate date format some PB Date fields accept better
+            attempts.push({
+                userId: basePayload.userId,
+                displayName: basePayload.displayName,
+                lastSeen: nowIso.replace('T', ' ').replace(/\.\d{3}Z$/, 'Z'),
+            });
+
+            let result = null;
+            for (let i = 0; i < attempts.length; i++) {
+                const payload = attempts[i];
+                if (chatPresenceAvatarUnsupported && payload.avatar) delete payload.avatar;
+                result = await writePresenceRecord(STORAGE_KEYS, existingId, payload);
+                if (result.status >= 200 && result.status < 300) break;
+
+                const err = presenceErrBlob(result);
+                if (/avatar/i.test(err) && payload.avatar) {
                     chatPresenceAvatarUnsupported = true;
-                    delete payload.avatar;
-                    result = existingId
-                        ? await chatRequestJson({
-                            method: 'PATCH',
-                            url: `${base}/api/collections/presence/records/${encodeURIComponent(existingId)}`,
-                            headers: { Authorization: token, 'Content-Type': 'application/json' },
-                            data: JSON.stringify(payload),
-                            timeout: 10000,
-                        })
-                        : await chatRequestJson({
-                            method: 'POST',
-                            url: `${base}/api/collections/presence/records`,
-                            headers: { Authorization: token, 'Content-Type': 'application/json' },
-                            data: JSON.stringify(payload),
-                            timeout: 10000,
-                        });
+                    continue;
                 }
-                if (result.status >= 400 && /lastReadAt|unknown field/i.test(JSON.stringify(result.body || {}))) {
-                    delete payload.lastReadAt;
-                    result = existingId
-                        ? await chatRequestJson({
-                            method: 'PATCH',
-                            url: `${base}/api/collections/presence/records/${encodeURIComponent(existingId)}`,
-                            headers: { Authorization: token, 'Content-Type': 'application/json' },
-                            data: JSON.stringify(payload),
-                            timeout: 10000,
-                        })
-                        : await chatRequestJson({
-                            method: 'POST',
-                            url: `${base}/api/collections/presence/records`,
-                            headers: { Authorization: token, 'Content-Type': 'application/json' },
-                            data: JSON.stringify(payload),
-                            timeout: 10000,
-                        });
+                if (/typingUntil/i.test(err) && ('typingUntil' in payload)) {
+                    chatTypingUnsupported = true;
+                    attempts.forEach((a) => { if (a && 'typingUntil' in a) delete a.typingUntil; });
+                    continue;
+                }
+                if (/lastReadAt/i.test(err) && payload.lastReadAt) continue;
+                if (/profileId|store/i.test(err) && (payload.profileId || payload.store)) continue;
+                if (/unknown field|failed to find/i.test(err) && i < attempts.length - 1) continue;
+                // Unique / already exists → try to find id and PATCH
+                if (!existingId && /unique|already|duplicate/i.test(err)) {
+                    const again = await chatRequestJson({
+                        method: 'GET',
+                        url: `${base}/api/collections/presence/records?page=1&perPage=200`,
+                        headers: { Authorization: token },
+                        timeout: 10000,
+                    });
+                    const mine = (again.body?.items || []).find((row) => String(row?.userId || '') === String(chatSelfPbUserId));
+                    if (mine?.id) {
+                        existingId = mine.id;
+                        result = await writePresenceRecord(STORAGE_KEYS, existingId, basePayload);
+                        if (result.status >= 200 && result.status < 300) break;
+                    }
                 }
             }
-            if (result.status >= 400) {
-                if (/presence|collection|unknown|not found|missing/i.test(JSON.stringify(result.body || {}))) {
+
+            if (!result || result.status < 200 || result.status >= 300) {
+                hintPresenceFailure(result?.status, result?.body, result?.raw);
+                if (result && isPresenceCollectionMissing(result.status, presenceErrBlob(result))) {
                     chatPresenceUnsupported = true;
                 }
                 renderPresenceUi();
                 return false;
             }
-            // Reflect self immediately
-            const selfRec = result.body || { ...payload, id: existingId || result.body?.id };
+
+            const selfRec = result.body || { ...basePayload, id: existingId || result.body?.id };
+            if (selfRec?.id) chatOwnPresenceRecordId = String(selfRec.id);
+            else if (existingId) chatOwnPresenceRecordId = String(existingId);
             const others = (chatPresenceList || []).filter((p) => String(p.userId || '') !== chatSelfPbUserId);
             chatPresenceList = [selfRec, ...others];
             linkPresenceToAvatarDirectory();
             renderPresenceUi();
             return true;
-        } catch (_) {
+        } catch (err) {
+            if (!chatPresenceHintShown) {
+                chatPresenceHintShown = true;
+                setChatStatus('online', `Presence: ${err?.message || 'σφάλμα δικτύου'}`);
+                setTimeout(() => setChatStatus('online'), 4000);
+            }
             renderPresenceUi();
             return false;
         }
@@ -3057,7 +3632,8 @@
             const since = formatChatPresenceTime(Date.now() - 3 * 60 * 1000);
             let status;
             let body;
-            ({ status, body } = await chatRequestJson({
+            let raw;
+            ({ status, body, raw } = await chatRequestJson({
                 method: 'GET',
                 url: `${base}/api/collections/presence/records?page=1&perPage=100&sort=-lastSeen&filter=${encodeURIComponent(`lastSeen>="${since}"`)}`,
                 headers: { Authorization: token },
@@ -3065,26 +3641,30 @@
             }));
             if (status >= 400) {
                 // Fallback: list without date filter (schema / type mismatches)
-                ({ status, body } = await chatRequestJson({
+                ({ status, body, raw } = await chatRequestJson({
                     method: 'GET',
                     url: `${base}/api/collections/presence/records?page=1&perPage=100&sort=-lastSeen`,
                     headers: { Authorization: token },
                     timeout: 10000,
                 }));
             }
-            if (status === 404 || (status >= 400 && /collection|presence|not found|missing/i.test(JSON.stringify(body || {})))) {
+            const blob = presenceErrBlob({ status, body, raw });
+            if (isPresenceCollectionMissing(status, blob)) {
                 chatPresenceUnsupported = true;
+                hintPresenceFailure(status, body, raw);
                 chatPresenceList = [];
                 renderPresenceUi();
                 return false;
             }
             if (status < 200 || status >= 300) {
+                hintPresenceFailure(status, body, raw);
                 renderPresenceUi();
                 return false;
             }
             chatPresenceList = Array.isArray(body?.items) ? body.items : [];
             linkPresenceToAvatarDirectory();
             renderPresenceUi();
+            renderTypingUi();
             return true;
         } catch (_) {
             renderPresenceUi();
@@ -3782,17 +4362,126 @@
             .tm-chat-presence-hint { opacity: 0.75; font-size: 10px; }
             #tm-chat-presence {
                 padding: 4px 12px; font-size: 11px; color: var(--tm-chat-muted);
-                display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+                display: block; flex-shrink: 0;
                 border-bottom: 1px solid var(--tm-chat-line);
                 background: #f8fafc;
             }
             #tm-chat-presence[hidden] { display: none !important; }
             #tm-chat-presence strong { color: #166534; font-weight: 700; }
-            #tm-chat-search-row { padding: 4px 10px 6px; background: var(--tm-chat-surface); }
+            .tm-chat-presence-row {
+                display: flex; align-items: center; gap: 8px; min-width: 0;
+            }
+            .tm-chat-presence-faces { display: flex; align-items: center; }
+            .tm-chat-presence-avatar {
+                width: 22px; height: 22px; border-radius: 999px;
+                display: inline-grid; place-items: center;
+                font-size: 10px; font-weight: 700; color: #334155;
+                background: #e2e8f0; border: 2px solid #f8fafc;
+                margin-left: -6px; overflow: hidden; flex-shrink: 0;
+            }
+            .tm-chat-presence-faces .tm-chat-presence-avatar:first-child { margin-left: 0; }
+            .tm-chat-presence-avatar.is-photo { background: #cbd5e1; padding: 0; }
+            .tm-chat-presence-avatar.is-photo img {
+                width: 100%; height: 100%; object-fit: cover; display: block;
+            }
+            .tm-chat-presence-more {
+                margin-left: 4px; font-size: 10px; font-weight: 700; color: var(--tm-chat-muted);
+            }
+            .tm-chat-presence-meta {
+                min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            }
+            .tm-chat-presence-names { opacity: 0.85; }
+            #tm-chat-typing {
+                padding: 2px 12px 6px;
+                font-size: 11px; color: var(--tm-chat-muted);
+                border-bottom: 1px solid var(--tm-chat-line);
+                background: #f8fafc;
+                display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+            }
+            #tm-chat-typing[hidden] { display: none !important; }
+            .tm-chat-typing-dots { display: inline-flex; gap: 3px; }
+            .tm-chat-typing-dots i {
+                width: 4px; height: 4px; border-radius: 50%; background: #94a3b8;
+                animation: tm-chat-typing-bounce 1.1s infinite ease-in-out;
+            }
+            .tm-chat-typing-dots i:nth-child(2) { animation-delay: 0.15s; }
+            .tm-chat-typing-dots i:nth-child(3) { animation-delay: 0.3s; }
+            @keyframes tm-chat-typing-bounce {
+                0%, 80%, 100% { transform: translateY(0); opacity: 0.45; }
+                40% { transform: translateY(-3px); opacity: 1; }
+            }
+            #tm-chat-search-row {
+                display: flex; align-items: center; gap: 6px;
+                padding: 4px 10px 6px; background: var(--tm-chat-surface);
+            }
             #tm-chat-search {
-                width: 100%; border: 1px solid var(--tm-chat-line); border-radius: 8px;
+                flex: 1; min-width: 0;
+                border: 1px solid var(--tm-chat-line); border-radius: 8px;
                 padding: 6px 10px; font-size: 12px; background: #f8fafc; color: var(--tm-chat-ink);
             }
+            #tm-chat-mentions-btn {
+                position: relative;
+                width: 30px; height: 30px; flex-shrink: 0;
+                border: 1px solid var(--tm-chat-line);
+                border-radius: 10px;
+                background: #f8fafc;
+                cursor: pointer; font-size: 13px; font-weight: 800;
+                color: #64748b;
+            }
+            #tm-chat-mentions-btn:hover { background: #eff6ff; color: var(--tm-chat-accent); }
+            #tm-chat-mentions-btn.is-active {
+                background: color-mix(in srgb, var(--tm-chat-accent) 16%, #fff);
+                border-color: color-mix(in srgb, var(--tm-chat-accent) 40%, #fff);
+                color: var(--tm-chat-accent);
+            }
+            #tm-chat-mentions-btn.has-unread { color: #b45309; }
+            .tm-chat-mentions-badge {
+                position: absolute; top: -5px; right: -5px;
+                min-width: 16px; height: 16px; padding: 0 4px;
+                border-radius: 999px; background: #f59e0b; color: #fff;
+                font-size: 9px; font-weight: 800; line-height: 16px; text-align: center;
+            }
+            .tm-chat-msg.is-mention-unread .tm-chat-msg-bubble {
+                box-shadow: inset 3px 0 0 #f59e0b;
+            }
+            .tm-chat-msg.is-mention-flash .tm-chat-msg-bubble {
+                outline: 2px solid #f59e0b;
+                outline-offset: 1px;
+            }
+            .tm-chat-repair-cards {
+                display: flex; flex-direction: column; gap: 6px;
+                margin-top: 6px;
+            }
+            .tm-chat-repair-card {
+                display: block;
+                text-decoration: none; color: inherit;
+                border: 1px solid var(--tm-chat-line);
+                border-radius: 10px;
+                background: #f8fafc;
+                padding: 7px 9px;
+                max-width: 280px;
+            }
+            .tm-chat-repair-card:hover {
+                background: #eff6ff;
+                border-color: color-mix(in srgb, var(--tm-chat-accent) 35%, #fff);
+            }
+            .tm-chat-repair-card.is-loading,
+            .tm-chat-repair-card.is-miss { opacity: 0.85; }
+            .tm-chat-repair-card-id {
+                display: block; font-weight: 800; font-size: 12px; color: var(--tm-chat-accent);
+            }
+            .tm-chat-repair-card-device {
+                display: block; font-size: 11px; color: var(--tm-chat-ink); margin: 2px 0 4px;
+                overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            }
+            .tm-chat-repair-card-grid {
+                display: grid; grid-template-columns: 1fr; gap: 2px;
+                font-size: 10.5px; color: var(--tm-chat-ink);
+            }
+            .tm-chat-repair-card-grid em {
+                font-style: normal; color: var(--tm-chat-muted); margin-right: 6px; font-weight: 600;
+            }
+            .tm-chat-repair-card-miss { font-size: 11px; color: var(--tm-chat-muted); }
             #tm-chat-pinned {
                 margin: 0 10px 6px; border: 1px solid #fde68a; background: #fffbeb;
                 border-radius: 10px; overflow: hidden;
@@ -3936,12 +4625,14 @@
                 <button type="button" id="tm-chat-room-store" class="tm-chat-room-btn" role="tab">Κατάστημα</button>
             </div>
             <div id="tm-chat-presence" hidden></div>
+            <div id="tm-chat-typing" hidden aria-live="polite"></div>
             <div id="tm-chat-store-row">
                 <label for="tm-chat-store-select">Κατ.</label>
                 <select id="tm-chat-store-select" title="Από το κατάστημα/προφίλ του MyManager login"></select>
             </div>
             <div id="tm-chat-search-row">
                 <input type="search" id="tm-chat-search" placeholder="Αναζήτηση… @όνομα · #επισκευή" autocomplete="off" spellcheck="false">
+                <button type="button" id="tm-chat-mentions-btn" title="Αναφορές @" aria-label="Αναφορές">@</button>
             </div>
             <div id="tm-chat-pinned" hidden ${CHAT_PIN_ENABLED ? '' : 'data-disabled="1"'}></div>
             <div id="tm-chat-messages"></div>
@@ -4400,7 +5091,27 @@
             chatSearchQuery = String(search.value || '');
             renderMessages({ force: true });
         });
+        const mentionsBtn = panel.querySelector('#tm-chat-mentions-btn');
+        mentionsBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (e.shiftKey || e.altKey) {
+                cycleChatMentionJump();
+                return;
+            }
+            if (chatMentionsOnly) {
+                // Already filtering: jump next unread/mention; second plain click without unread toggles off via toggle
+                const unread = getMentionMessages().filter((m) => chatUnreadMentionIds.has(String(m.id)));
+                if (unread.length) {
+                    cycleChatMentionJump();
+                } else {
+                    toggleChatMentionsFilter();
+                }
+                return;
+            }
+            toggleChatMentionsFilter();
+        });
         updateChatRoomTabsUi();
+        updateChatMentionsBtnUi();
     }
 
     function hideChatMentionMenu() {
@@ -4510,7 +5221,7 @@
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '16';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '17';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
             hideChatMessageContextMenu();
@@ -4518,7 +5229,7 @@
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '16');
+            panel.setAttribute('data-tm-chat-ui', '17');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);
@@ -4840,6 +5551,8 @@
         renderMessages({ force: true });
         restoreChatDraftToInput(STORAGE_KEYS);
         document.getElementById('tm-chat-input')?.focus();
+        updateChatMentionsBtnUi();
+        startTypingUiTicker();
         upsertOwnPresence(STORAGE_KEYS, { markRead: true }).catch(() => {});
         refreshChatPresence(STORAGE_KEYS).catch(() => {});
         if (chatStatus !== 'online' && chatStatus !== 'connecting') {
@@ -4852,6 +5565,8 @@
         if (!panel) return;
         const input = document.getElementById('tm-chat-input');
         if (input && chatStorageKeys) saveChatDraft(chatStorageKeys, input.value);
+        if (chatStorageKeys) clearOwnTypingPulse(chatStorageKeys);
+        stopTypingUiTicker();
         setChatEmojiPickerOpen(false);
         hideChatMentionMenu();
         hideChatMessageContextMenu();
@@ -4884,6 +5599,7 @@
                 const result = await sendChatMessage(STORAGE_KEYS, text, file);
                 if (result.ok) {
                     setChatEmojiPickerOpen(false);
+                    clearOwnTypingPulse(STORAGE_KEYS);
                     input.value = '';
                     clearChatDraft(STORAGE_KEYS);
                     clearChatPendingFile();
@@ -4910,6 +5626,11 @@
         input.addEventListener('input', () => {
             updateChatMentionMenu(input);
             saveChatDraft(STORAGE_KEYS, input.value);
+            if (String(input.value || '').trim()) scheduleOwnTypingPulse(STORAGE_KEYS);
+            else clearOwnTypingPulse(STORAGE_KEYS);
+        });
+        input.addEventListener('blur', () => {
+            window.setTimeout(() => clearOwnTypingPulse(STORAGE_KEYS), 200);
         });
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
@@ -4940,6 +5661,7 @@
         loadLocalChatPins();
         loadLocalChatReplies();
         loadLocalChatReactions();
+        loadUnreadChatMentions();
         loadCachedSelfAvatar();
         injectChatStyles();
 
@@ -4975,4 +5697,18 @@
     window.uploadOfficeChatAvatar = uploadOfficeChatAvatar;
     window.clearOfficeChatAvatar = clearOfficeChatAvatar;
     window.refreshOfficeChatAvatar = fetchOwnChatUserRecord;
+    window.debugOfficeChatPresence = async function debugOfficeChatPresence() {
+        const keys = chatStorageKeys || window.STORAGE_KEYS;
+        chatPresenceUnsupported = false;
+        chatPresenceHintShown = false;
+        const ok = await upsertOwnPresence(keys, { markRead: true });
+        await refreshChatPresence(keys);
+        return {
+            ok,
+            selfId: chatSelfPbUserId,
+            unsupported: chatPresenceUnsupported,
+            online: getOnlinePresenceList().map((p) => p.displayName),
+            rawCount: (chatPresenceList || []).length,
+        };
+    };
 })();
