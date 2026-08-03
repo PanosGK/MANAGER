@@ -161,7 +161,7 @@
         return 'Τεχνικός';
     }
 
-    /** Store chosen on MyManager login / profile (#iProfileID or header text). */
+    /** Store chosen on MyManager login / profile (#iProfileID or cached from login page). */
     function detectLoginStoreName() {
         try {
             if (typeof window.detectAndCacheCurrentStoreName === 'function') {
@@ -177,7 +177,9 @@
                     .replace(/\u00a0/g, ' ')
                     .replace(/\s+/g, ' ')
                     .trim();
-                if (name && !/^select|επιλέξ|choose/i.test(name)) return name.slice(0, 64);
+                if (name && !/^(select|επιλέξ|επιλεξ|choose|—|-)/i.test(name)) {
+                    return name.slice(0, 64);
+                }
             }
         } catch (_) { /* ignore */ }
         try {
@@ -185,6 +187,11 @@
                 const auto = String(window.getAutoDetectedStoreName(document) || '').trim();
                 if (auto) return auto.slice(0, 64);
             }
+        } catch (_) { /* ignore */ }
+        // Loader captures Κατάστημα on login.php into this key (suite does not run on login)
+        try {
+            const cached = String(GM_getValue('tm_phone_my_store_name_v1', '') || '').trim();
+            if (cached) return cached.slice(0, 64);
         } catch (_) { /* ignore */ }
         return '';
     }

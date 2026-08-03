@@ -1,11 +1,11 @@
 {
-  "version": "355",
-  "loaderVersion": "39",
-  "silentVersion": "11",
-  "displayVersion": "39.11",
+  "version": "356",
+  "loaderVersion": "40",
+  "silentVersion": "1",
+  "displayVersion": "40.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Prefer MyManager login/profile store for chat; dropdown is optional override",
+  "releaseNotes": "Capture login Κατάστημα (#iProfileID) so chat store works after login",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

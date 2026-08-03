@@ -1298,10 +1298,16 @@ function parseCurrentStoreFromDocument(doc = document) {
     const sel = doc.querySelector('#iProfileID, select[name="iProfileID"]');
     if (sel && sel.selectedIndex >= 0) {
         const name = normalizeStoreDisplayName(sel.options[sel.selectedIndex].text);
-        if (name && !isDeprecatedStoreName(name)) return name;
+        if (name && !isDeprecatedStoreName(name) && !/^(select|επιλέξ|επιλεξ|choose|—|-)/i.test(name)) {
+            return name;
+        }
     }
 
-    const profileNames = getProfileStoreNamesFromDocument(doc);
+    let profileNames = getProfileStoreNamesFromDocument(doc);
+    // After login #iProfileID is gone — still try matching known store names in the page
+    if (!profileNames.length) {
+        profileNames = DEFAULT_PROFILE_STORES.slice();
+    }
     const searchRoots = [
         doc.querySelector('#login_block1'),
         doc.querySelector('.rnr-b-loggedas'),

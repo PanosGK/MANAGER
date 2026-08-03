@@ -233,6 +233,95 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
         return false;
     }
 
+    /**
+     * Login page has #iProfileID (Κατάστημα) but the suite bundle is skipped there.
+     * Capture the selected store into GM so chat/phone features can use it after login.
+     */
+    function captureLoginStoreSelection() {
+        var STORE_NAME_KEY = 'tm_phone_my_store_name_v1';
+        var CHAT_STORE_KEY = 'tm_chat_store';
+        var CHAT_MANUAL_KEY = 'tm_chat_store_manual';
+
+        function normalizeStoreName(name) {
+            return String(name || '')
+                .replace(/\\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '')
+                .replace(/\\u00a0/g, ' ')
+                .replace(/\\s+/g, ' ')
+                .trim();
+        }
+
+        function isPlaceholderStore(name) {
+            if (!name) return true;
+            return /^(select|επιλέξ|επιλεξ|choose|\\-\\-|κατάστημα\\b|κατάστημα\\s*\\*?)/i.test(name);
+        }
+
+        function readSelectedStore() {
+            var sel = document.querySelector('#iProfileID, select[name="iProfileID"]');
+            if (!sel || sel.selectedIndex < 0 || !sel.options || !sel.options.length) return '';
+            return normalizeStoreName(sel.options[sel.selectedIndex].text);
+        }
+
+        function saveSelectedStore(name) {
+            var clean = normalizeStoreName(name);
+            if (isPlaceholderStore(clean)) return;
+            try {
+                if (typeof GM_setValue !== 'function') return;
+                GM_setValue(STORE_NAME_KEY, clean);
+                var manual = false;
+                try { manual = GM_getValue(CHAT_MANUAL_KEY, false) === true; } catch (eM) { manual = false; }
+                if (!manual) {
+                    GM_setValue(CHAT_STORE_KEY, clean);
+                    GM_setValue(CHAT_MANUAL_KEY, false);
+                }
+            } catch (eSave) { /* ignore */ }
+        }
+
+        function bindStoreSelect() {
+            var sel = document.querySelector('#iProfileID, select[name="iProfileID"]');
+            if (!sel) return false;
+            saveSelectedStore(readSelectedStore());
+            if (sel.getAttribute('data-tm-store-capture') === '1') return true;
+            sel.setAttribute('data-tm-store-capture', '1');
+            sel.addEventListener('change', function () {
+                saveSelectedStore(readSelectedStore());
+            });
+            var form = sel.form || sel.closest('form') || document.querySelector('form');
+            if (form && form.getAttribute('data-tm-store-capture') !== '1') {
+                form.setAttribute('data-tm-store-capture', '1');
+                form.addEventListener('submit', function () {
+                    saveSelectedStore(readSelectedStore());
+                }, true);
+            }
+            // Also catch button clicks that submit without firing submit reliably
+            document.addEventListener('click', function (ev) {
+                var t = ev.target;
+                if (!t) return;
+                var btn = t.closest ? t.closest('button, input[type="submit"], input[type="button"], a') : null;
+                if (!btn) return;
+                var label = String((btn.textContent || btn.value || '') + ' ' + (btn.id || '') + ' ' + (btn.name || '')).toLowerCase();
+                if (/login|εισοδ|είσοδ|submit|συνδε/i.test(label)) {
+                    saveSelectedStore(readSelectedStore());
+                }
+            }, true);
+            return true;
+        }
+
+        function startCapture() {
+            if (bindStoreSelect()) return;
+            var tries = 0;
+            var timer = setInterval(function () {
+                tries += 1;
+                if (bindStoreSelect() || tries > 60) clearInterval(timer);
+            }, 250);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startCapture);
+        } else {
+            startCapture();
+        }
+    }
+
     /** Always-on master toggle — lives in the loader because the bundle is skipped when disabled. */
     function enableSuiteAndReload() {
         try {
@@ -736,6 +825,12 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
     }
 
     if (shouldSkip()) {
+        try {
+            var skipPath = (window.location && window.location.pathname) || '';
+            if (skipPath.indexOf('login.php') !== -1) {
+                captureLoginStoreSelection();
+            }
+        } catch (eCap) { /* ignore */ }
         if (typeof tmRevealThemeReady === 'function') tmRevealThemeReady();
         else {
             document.documentElement.classList.add('tm-mms-menu-ready');
@@ -785,6 +880,7 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
 
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {
+        try { captureLoginStoreSelection(); } catch (eCap40) { /* ignore */ }
         if (typeof tmRevealThemeReady === 'function') tmRevealThemeReady();
         else {
             document.documentElement.classList.add('tm-mms-menu-ready');

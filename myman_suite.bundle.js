@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v355 / Custom Ver. 39.11 — generated, do not edit */
+/* MyManager Suite bundle v356 / Custom Ver. 40.1 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '355',
-        loaderVersion: '39',
-        silentVersion: '11',
-        displayVersion: '39.11',
+        version: '356',
+        loaderVersion: '40',
+        silentVersion: '1',
+        displayVersion: '40.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -21663,7 +21663,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return 'Τεχνικός';
     }
 
-    /** Store chosen on MyManager login / profile (#iProfileID or header text). */
+    /** Store chosen on MyManager login / profile (#iProfileID or cached from login page). */
     function detectLoginStoreName() {
         try {
             if (typeof window.detectAndCacheCurrentStoreName === 'function') {
@@ -21679,7 +21679,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     .replace(/\u00a0/g, ' ')
                     .replace(/\s+/g, ' ')
                     .trim();
-                if (name && !/^select|επιλέξ|choose/i.test(name)) return name.slice(0, 64);
+                if (name && !/^(select|επιλέξ|επιλεξ|choose|—|-)/i.test(name)) {
+                    return name.slice(0, 64);
+                }
             }
         } catch (_) { /* ignore */ }
         try {
@@ -21687,6 +21689,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 const auto = String(window.getAutoDetectedStoreName(document) || '').trim();
                 if (auto) return auto.slice(0, 64);
             }
+        } catch (_) { /* ignore */ }
+        // Loader captures Κατάστημα on login.php into this key (suite does not run on login)
+        try {
+            const cached = String(GM_getValue('tm_phone_my_store_name_v1', '') || '').trim();
+            if (cached) return cached.slice(0, 64);
         } catch (_) { /* ignore */ }
         return '';
     }
@@ -55536,10 +55543,16 @@ function parseCurrentStoreFromDocument(doc = document) {
     const sel = doc.querySelector('#iProfileID, select[name="iProfileID"]');
     if (sel && sel.selectedIndex >= 0) {
         const name = normalizeStoreDisplayName(sel.options[sel.selectedIndex].text);
-        if (name && !isDeprecatedStoreName(name)) return name;
+        if (name && !isDeprecatedStoreName(name) && !/^(select|επιλέξ|επιλεξ|choose|—|-)/i.test(name)) {
+            return name;
+        }
     }
 
-    const profileNames = getProfileStoreNamesFromDocument(doc);
+    let profileNames = getProfileStoreNamesFromDocument(doc);
+    // After login #iProfileID is gone — still try matching known store names in the page
+    if (!profileNames.length) {
+        profileNames = DEFAULT_PROFILE_STORES.slice();
+    }
     const searchRoots = [
         doc.querySelector('#login_block1'),
         doc.querySelector('.rnr-b-loggedas'),
