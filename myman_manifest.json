@@ -1,11 +1,11 @@
 {
-  "version": "351",
+  "version": "352",
   "loaderVersion": "39",
-  "silentVersion": "7",
-  "displayVersion": "39.7",
+  "silentVersion": "8",
+  "displayVersion": "39.8",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Footer chat button + unread pulse reminder (no notification center)",
+  "releaseNotes": "Chat footer button emoji-only",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

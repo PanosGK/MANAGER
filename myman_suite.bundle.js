@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v351 / Custom Ver. 39.7 — generated, do not edit */
+/* MyManager Suite bundle v352 / Custom Ver. 39.8 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '351',
+        version: '352',
         loaderVersion: '39',
-        silentVersion: '7',
-        displayVersion: '39.7',
+        silentVersion: '8',
+        displayVersion: '39.8',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -22687,7 +22687,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             toggleButton.id = 'tm-chat-toggle-btn';
             toggleButton.type = 'button';
             toggleButton.className = 'tm-footer-widget tm-footer-icon-btn';
-            toggleButton.textContent = '💬 Chat';
+            toggleButton.textContent = '💬';
             toggleButton.title = 'Office Chat';
             toggleButton.setAttribute('aria-label', 'Office Chat');
             const settingsBtn = host.querySelector('#tm-settings-btn, [id*="settings"]');
@@ -22696,6 +22696,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         } else if (!host.contains(toggleButton)) {
             host.appendChild(toggleButton);
         }
+
+        // Keep label emoji-only (strip leftover "Chat" text from older builds)
+        const unread = toggleButton.querySelector('.tm-chat-unread');
+        toggleButton.textContent = '💬';
+        if (unread) toggleButton.appendChild(unread);
 
         toggleButton.classList.remove('tm-slide-out-btn');
         toggleButton.classList.add('tm-footer-widget', 'tm-footer-icon-btn');

@@ -1187,7 +1187,7 @@
             toggleButton.id = 'tm-chat-toggle-btn';
             toggleButton.type = 'button';
             toggleButton.className = 'tm-footer-widget tm-footer-icon-btn';
-            toggleButton.textContent = '💬 Chat';
+            toggleButton.textContent = '💬';
             toggleButton.title = 'Office Chat';
             toggleButton.setAttribute('aria-label', 'Office Chat');
             const settingsBtn = host.querySelector('#tm-settings-btn, [id*="settings"]');
@@ -1196,6 +1196,11 @@
         } else if (!host.contains(toggleButton)) {
             host.appendChild(toggleButton);
         }
+
+        // Keep label emoji-only (strip leftover "Chat" text from older builds)
+        const unread = toggleButton.querySelector('.tm-chat-unread');
+        toggleButton.textContent = '💬';
+        if (unread) toggleButton.appendChild(unread);
 
         toggleButton.classList.remove('tm-slide-out-btn');
         toggleButton.classList.add('tm-footer-widget', 'tm-footer-icon-btn');
