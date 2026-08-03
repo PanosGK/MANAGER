@@ -23,7 +23,8 @@ Optional: **Settings → Chat** has enable/disable + connection test only.
 | --- | --- |
 | Εγγραφή απέτυχε / create rule | Admin → users → Create rule = `@request.auth.id = ""` |
 | Failed to create record (messages) | messages Create = `@request.auth.id != ""` (no `text:length`) |
-| File attach fails / “attachment” | Admin → messages → add File field `attachment` (1 file, 5 MB) and make `text` optional — see [SETUP.md](SETUP.md) |
+| File attach fails / “attachment” | Admin → messages → add File field `attachment` (1 file, 5 MB), make `text` optional, and set **Update** rule to `@request.auth.id != ""` — see [SETUP.md](SETUP.md) |
+| Chat shows only “(αρχείο)” / no preview | Same as above — Update rule was deny, so the file never saved; unlock Update and retry |
 | Auth failed / old manual password | Open Chat once on a PC that still has the old password (auto-migrates), **or** delete that user in PocketBase Admin → users |
 | Auth failed after create | Disable email verification on users collection |
 | Network denied | Update loader / allow `@connect` |

@@ -1,11 +1,11 @@
 {
-  "version": "362",
+  "version": "363",
   "loaderVersion": "41",
-  "silentVersion": "6",
-  "displayVersion": "41.6",
+  "silentVersion": "7",
+  "displayVersion": "41.7",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Stop chat message list flicker on poll refresh",
+  "releaseNotes": "Fix chat file attach: two-step upload and stop showing only (αρχείο)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

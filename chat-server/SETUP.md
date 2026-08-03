@@ -94,7 +94,7 @@ Then set:
 - List / Search: `@request.auth.id != ""`
 - View: `@request.auth.id != ""`
 - Create: `@request.auth.id != ""`
-- Update: *(empty — deny)*
+- Update: `@request.auth.id != ""` *(needed so the suite can attach files after creating the message)*
 - Delete: *(empty — deny; delete only in Admin UI)*
 
 Do **not** add `text:length` or `room = "office"` in Create. Save, then retry send in MyManager.

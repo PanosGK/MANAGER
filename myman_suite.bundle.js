@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v362 / Custom Ver. 41.6 — generated, do not edit */
+/* MyManager Suite bundle v363 / Custom Ver. 41.7 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '362',
+        version: '363',
         loaderVersion: '41',
-        silentVersion: '6',
-        displayVersion: '41.6',
+        silentVersion: '7',
+        displayVersion: '41.7',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -21672,6 +21672,39 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return { ok: true };
     }
 
+    /** Ensure File has a real MIME type — PocketBase MIME allow-lists reject empty/octet-stream. */
+    function normalizeChatUploadFile(file) {
+        if (!file) return null;
+        const existing = String(file.type || '').toLowerCase();
+        if (existing && existing !== 'application/octet-stream') return file;
+        const name = String(file.name || 'file');
+        const ext = (name.split('.').pop() || '').toLowerCase();
+        const byExt = {
+            jpg: 'image/jpeg',
+            jpeg: 'image/jpeg',
+            png: 'image/png',
+            webp: 'image/webp',
+            gif: 'image/gif',
+            pdf: 'application/pdf',
+            doc: 'application/msword',
+            docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            xls: 'application/vnd.ms-excel',
+            xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        };
+        const mime = byExt[ext] || existing || 'application/octet-stream';
+        try {
+            return new File([file], name, { type: mime, lastModified: file.lastModified || Date.now() });
+        } catch (_) {
+            return file;
+        }
+    }
+
+    function normalizeChatAttachmentName(rec) {
+        const a = rec?.attachment;
+        if (Array.isArray(a)) return String(a[0] || '').trim();
+        return String(a || '').trim();
+    }
+
     function chatMessagePreviewText(m) {
         const t = String(m?.text || '').trim();
         if (t && t !== '(αρχείο)') return t.slice(0, 80);
@@ -21694,12 +21727,23 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function formatChatAttachmentHtml(m) {
-        const filename = String(m?.attachment || '').trim();
-        if (!filename) return '';
-        const url = getChatFileUrl(m.id, filename);
+        const filename = normalizeChatAttachmentName(m) || String(m?.attachment || '').trim();
+        if (!filename) {
+            const rawText = String(m?.text || '').trim();
+            if (rawText === '(αρχείο)' || /^📎\s/.test(rawText)) {
+                return `<div class="tm-chat-msg-file is-missing">
+                    <span class="tm-chat-msg-file-icon" aria-hidden="true">📎</span>
+                    <span class="tm-chat-msg-file-meta">
+                        <span class="tm-chat-msg-file-name">${escapeHtml(rawText === '(αρχείο)' ? 'Αρχείο' : rawText.replace(/^📎\s*/, ''))}</span>
+                        <span class="tm-chat-msg-file-hint">Δεν αποθηκεύτηκε στο server</span>
+                    </span>
+                </div>`;
+            }
+            return '';
+        }
         const fullUrl = getChatFileUrl(m.id, filename);
         if (isChatImageFileName(filename)) {
-            const thumbUrl = getChatFileUrl(m.id, filename, { thumb: '300x300' }) || url;
+            const thumbUrl = getChatFileUrl(m.id, filename, { thumb: '300x300' }) || fullUrl;
             return `<a class="tm-chat-msg-image-link" href="${escapeHtml(fullUrl)}" target="_blank" rel="noopener noreferrer" data-chat-file="${escapeHtml(filename)}" data-chat-record="${escapeHtml(m.id)}">
                 <img class="tm-chat-msg-image" src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(filename)}" loading="lazy">
             </a>`;
@@ -22367,8 +22411,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return { status: res.status, body, raw: rawText || '' };
     }
 
-    /** Build multipart body manually — reliable with GM_xmlhttpRequest (FormData often breaks). */
-    async function buildChatMultipartBody(fields, file) {
+    /** Build multipart body manually — fallback when FormData+fetch fails. */
+    async function buildChatMultipartBody(fields, file, fileFieldName) {
+        const fieldName = fileFieldName || 'attachment';
         const boundary = `----tmChat${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
         const encoder = new TextEncoder();
         const parts = [];
@@ -22390,7 +22435,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const filename = String(file.name || 'file').replace(/[\r\n"]/g, '_');
             const mime = String(file.type || 'application/octet-stream');
             pushLine(`--${boundary}\r\n`);
-            pushLine(`Content-Disposition: form-data; name="attachment"; filename="${filename}"\r\n`);
+            pushLine(`Content-Disposition: form-data; name="${fieldName}"; filename="${filename}"\r\n`);
             pushLine(`Content-Type: ${mime}\r\n\r\n`);
             const buf = file instanceof Blob
                 ? new Uint8Array(await file.arrayBuffer())
@@ -22411,7 +22456,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         });
 
         return {
-            data: new Blob([body]),
+            data: new Blob([body], { type: `multipart/form-data; boundary=${boundary}` }),
             contentType: `multipart/form-data; boundary=${boundary}`,
         };
     }
@@ -22538,11 +22583,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 : '';
             const name = m.displayName || '?';
             const rawText = String(m.text || '').trim();
-            const showText = rawText && !(m.attachment && rawText === '(αρχείο)');
+            const hasAttach = !!normalizeChatAttachmentName(m);
+            const isFilePlaceholder = rawText === '(αρχείο)' || (!hasAttach && /^📎\s/.test(rawText));
+            const showText = rawText && !isFilePlaceholder && !(hasAttach && (rawText === '(αρχείο)' || rawText === normalizeChatAttachmentName(m)));
             const textHtml = showText ? formatChatMessageHtml(rawText) : '';
             const attachHtml = formatChatAttachmentHtml(m);
             const bodyHtml = [attachHtml, textHtml].filter(Boolean).join('')
-                || escapeHtml(rawText);
+                || (isFilePlaceholder ? '' : escapeHtml(rawText));
             return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}${isNew ? ' is-new' : ''}" data-id="${escapeHtml(m.id)}">
                 <div class="tm-chat-msg-avatar" aria-hidden="true">${escapeHtml(chatAvatarLetter(name))}</div>
                 <div class="tm-chat-msg-bubble">
@@ -22657,7 +22704,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 profileId: rec.profileId || '',
                 room: rec.room || CHAT_ROOM,
                 created: rec.created,
-                attachment: String(rec.attachment || '').trim(),
+                attachment: normalizeChatAttachmentName(rec),
             };
             if (!prev) {
                 added += 1;
@@ -22780,7 +22827,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     async function sendChatMessage(STORAGE_KEYS, text, file) {
         const clean = String(text || '').trim().slice(0, CHAT_MAX_LEN);
-        const attachFile = file || null;
+        let attachFile = file ? normalizeChatUploadFile(file) : null;
         if (!clean && !attachFile) return { ok: false, reason: 'empty' };
         if (attachFile) {
             if (chatAttachmentFieldUnsupported) {
@@ -22800,8 +22847,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         chatLastSendAt = now;
 
         const settings = getChatSettings(STORAGE_KEYS);
-        const token = await ensureAuth(STORAGE_KEYS);
-        const url = `${settings.baseUrl}/api/collections/messages/records`;
+        let authHeader = await ensureAuth(STORAGE_KEYS);
+        const baseUrl = String(settings.baseUrl || '').replace(/\/$/, '');
+        const collectionUrl = `${baseUrl}/api/collections/messages/records`;
         const profileId = getProfileId();
         const storeName = getChatStoreName(STORAGE_KEYS);
         const displayName = getDisplayName();
@@ -22817,87 +22865,140 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             return fields;
         };
 
-        const postJson = async (authHeader, fields) => chatRequestJson({
+        const withAuthRetry = async (run) => {
+            let result = await run(authHeader);
+            if ((result.status === 401 || result.status === 403) && authHeader && !String(authHeader).startsWith('Bearer ')) {
+                result = await run(`Bearer ${authHeader}`);
+            }
+            if (result.status === 401) {
+                clearCachedToken(STORAGE_KEYS);
+                authHeader = await ensureAuth(STORAGE_KEYS, { force: true });
+                result = await run(authHeader);
+            }
+            return result;
+        };
+
+        const postJson = async (fields) => withAuthRetry((header) => chatRequestJson({
             method: 'POST',
-            url,
+            url: collectionUrl,
             headers: {
-                Authorization: authHeader,
+                Authorization: header,
                 'Content-Type': 'application/json',
             },
             data: JSON.stringify(fields),
-        });
+        }));
 
-        const postMultipart = async (authHeader, fields, filePart) => {
-            const built = await buildChatMultipartBody(fields, filePart || null);
-            return chatRequestJson({
-                method: 'POST',
-                url,
+        const sendMultipart = async (method, targetUrl, fields, filePart) => {
+            let formFail = null;
+            if (typeof FormData !== 'undefined') {
+                const fd = new FormData();
+                Object.keys(fields || {}).forEach((key) => {
+                    if (fields[key] == null) return;
+                    fd.append(key, String(fields[key]));
+                });
+                if (filePart) fd.append('attachment', filePart, filePart.name || 'file');
+                const viaForm = await withAuthRetry((header) => chatRequestJson({
+                    method,
+                    url: targetUrl,
+                    headers: { Authorization: header },
+                    data: fd,
+                    timeout: 60000,
+                    fetch: true,
+                }));
+                if (viaForm.status >= 200 && viaForm.status < 300) return viaForm;
+                formFail = viaForm;
+            }
+
+            const built = await buildChatMultipartBody(fields || {}, filePart || null, 'attachment');
+            const viaManual = await withAuthRetry((header) => chatRequestJson({
+                method,
+                url: targetUrl,
                 headers: {
-                    Authorization: authHeader,
+                    Authorization: header,
                     'Content-Type': built.contentType,
                 },
                 data: built.data,
                 timeout: 60000,
                 fetch: true,
-            });
+            }));
+            if (viaManual.status >= 200 && viaManual.status < 300) return viaManual;
+            return formFail || viaManual;
         };
 
-        // Prefer non-empty text so older PB schemas with required text still accept file sends
-        let textValue = clean || (attachFile ? '(αρχείο)' : '');
+        let textValue = clean;
+        if (!textValue && attachFile) {
+            textValue = `📎 ${attachFile.name || 'αρχείο'}`.slice(0, CHAT_MAX_LEN);
+        }
         let includeStore = true;
-        let useMultipart = !!(attachFile && !chatAttachmentFieldUnsupported);
+        let fields = buildFields(textValue, includeStore);
 
-        const postOnce = async (authHeader) => {
-            const fields = buildFields(textValue, includeStore);
-            if (useMultipart) return postMultipart(authHeader, fields, attachFile);
-            return postJson(authHeader, fields);
-        };
-
-        let { status, body, raw } = await postOnce(token);
-        if ((status === 401 || status === 403) && token && !String(token).startsWith('Bearer ')) {
-            ({ status, body, raw } = await postOnce(`Bearer ${token}`));
-        }
-        if (status === 401) {
-            clearCachedToken(STORAGE_KEYS);
-            const token2 = await ensureAuth(STORAGE_KEYS, { force: true });
-            ({ status, body, raw } = await postOnce(token2));
-        }
-
+        let { status, body, raw } = await postJson(fields);
         const errBlob = () => `${JSON.stringify(body || {})}\n${raw || ''}`;
 
-        // PocketBase may not have `store` field yet — retry without it
-        if (status >= 400 && storeName && !chatStoreFieldUnsupported && /[".]store[".]|store:/i.test(errBlob())) {
+        if (status >= 400 && storeName && !chatStoreFieldUnsupported && /store/i.test(errBlob())) {
             chatStoreFieldUnsupported = true;
             includeStore = false;
-            ({ status, body, raw } = await postOnce(chatAuthToken || token));
+            fields = buildFields(textValue, includeStore);
+            ({ status, body, raw } = await postJson(fields));
             if (status >= 400 && /store/i.test(errBlob())) {
                 setChatStatus('error', 'Πρόσθεσε πεδίο store στο messages (PocketBase)');
             }
         }
 
-        // Attachment field missing
-        if (status >= 400 && attachFile && /attachment/i.test(errBlob())) {
-            chatAttachmentFieldUnsupported = true;
-            setChatStatus('error', 'Πρόσθεσε πεδίο attachment στο messages (PocketBase)');
-            return { ok: false, reason: 'unsupported' };
-        }
-
-        // text still required / validation failed with empty — already using placeholder; try again if empty slipped through
-        if (status >= 400 && attachFile && !clean && /text/i.test(errBlob()) && textValue !== '(αρχείο)') {
+        if (status >= 400 && attachFile && !clean && /text/i.test(errBlob())) {
             textValue = '(αρχείο)';
-            ({ status, body, raw } = await postOnce(chatAuthToken || token));
+            fields = buildFields(textValue, includeStore);
+            ({ status, body, raw } = await postJson(fields));
         }
 
         if (status < 200 || status >= 300) {
             let msg = formatPbError(body, `Send failed (${status || 0})`);
             if (!body && raw) msg = `${msg} — ${String(raw).slice(0, 160)}`;
             if (/failed to create record/i.test(msg) && !/text:|displayName|room|profileId|store|attachment/i.test(msg)) {
-                msg += ' — PocketBase Admin → Collections → messages → API Rules: ξεκλείδωσε το Create (όχι Admins only) και βάλε ακριβώς: @request.auth.id != ""';
+                msg += ' — PocketBase Admin → Collections → messages → API Rules: ξεκλείδωσε το Create';
             }
             throw new Error(msg);
         }
-        const saved = body && typeof body === 'object' ? { ...body } : body;
+
+        let saved = body && typeof body === 'object' ? { ...body } : body;
         if (saved && storeName && !saved.store) saved.store = storeName;
+
+        if (attachFile && saved && saved.id) {
+            const patchUrl = `${collectionUrl}/${encodeURIComponent(saved.id)}`;
+            let patched = await sendMultipart('PATCH', patchUrl, {}, attachFile);
+            const patchBlob = () => `${JSON.stringify(patched.body || {})}\n${patched.raw || ''}`;
+
+            if (patched.status >= 200 && patched.status < 300 && patched.body) {
+                saved = { ...saved, ...patched.body };
+            } else {
+                // Update may be locked — try one-shot multipart create
+                const created = await sendMultipart('POST', collectionUrl, fields, attachFile);
+                if (created.status >= 200 && created.status < 300 && normalizeChatAttachmentName(created.body)) {
+                    saved = { ...created.body };
+                    if (storeName && !saved.store) saved.store = storeName;
+                } else if ((patched.status >= 400 && /attachment/i.test(patchBlob()))
+                    || (created.status >= 400 && /attachment/i.test(`${JSON.stringify(created.body || {})}\n${created.raw || ''}`))) {
+                    chatAttachmentFieldUnsupported = true;
+                    upsertMessages([saved]);
+                    setChatStatus('error', 'Πρόσθεσε πεδίο attachment στο messages (PocketBase)');
+                    return { ok: false, reason: 'unsupported' };
+                } else {
+                    upsertMessages([saved]);
+                    const hint = /403|superuser|update/i.test(patchBlob())
+                        ? 'PocketBase messages → API Rules → Update: βάλε @request.auth.id != ""'
+                        : formatPbError(patched.body || created.body, 'Το αρχείο δεν αποθηκεύτηκε');
+                    setChatStatus('error', hint);
+                    return { ok: false, reason: 'upload' };
+                }
+            }
+
+            if (!normalizeChatAttachmentName(saved)) {
+                upsertMessages([saved]);
+                setChatStatus('error', 'Το αρχείο δεν αποθηκεύτηκε — έλεγξε Update rule / πεδίο attachment');
+                return { ok: false, reason: 'upload' };
+            }
+        }
+
         upsertMessages([saved]);
         return { ok: true };
     }
@@ -23287,6 +23388,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 max-width: 260px;
             }
             .tm-chat-msg-file:hover { background: #eff6ff; border-color: color-mix(in srgb, var(--tm-chat-accent) 35%, #fff); }
+            .tm-chat-msg-file.is-missing {
+                opacity: 0.85; border-style: dashed; cursor: default;
+            }
+            .tm-chat-msg-file.is-missing .tm-chat-msg-file-hint { color: #b45309; }
             .tm-chat-msg-file-icon { font-size: 18px; flex-shrink: 0; }
             .tm-chat-msg-file-meta { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
             .tm-chat-msg-file-name {
