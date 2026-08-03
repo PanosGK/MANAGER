@@ -64,6 +64,8 @@
     let chatSelfAvatarFile = '';
     /** Once PB rejects message avatar/pbUserId fields, stop sending them until reload. */
     let chatMsgAvatarFieldsUnsupported = false;
+    /** Map displayName/slug/profileId/userId → { userId, filename } for bubble photos. */
+    const chatAvatarDirectory = new Map();
     const CHAT_AVATAR_MAX_BYTES = 1 * 1024 * 1024;
     const CHAT_AVATAR_META_KEY = 'tm_chat_avatar_meta';
     const CHAT_AVATAR_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -239,6 +241,14 @@
                 savedAt: Date.now(),
             }));
         } catch (_) { /* ignore */ }
+        rememberChatAvatarEntry({
+            userId: chatSelfPbUserId,
+            filename: chatSelfAvatarFile,
+            displayName: getDisplayName(),
+            profileId: getProfileId(),
+            email: suggestOfficeChatEmail(),
+            username: getLoginNameSlug(),
+        });
     }
 
     function loadCachedSelfAvatar() {
@@ -248,7 +258,82 @@
             const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
             if (parsed?.userId) chatSelfPbUserId = String(parsed.userId);
             chatSelfAvatarFile = String(parsed?.filename || '').trim();
+            if (chatSelfPbUserId && chatSelfAvatarFile) {
+                rememberChatAvatarEntry({
+                    userId: chatSelfPbUserId,
+                    filename: chatSelfAvatarFile,
+                    displayName: getDisplayName(),
+                    profileId: getProfileId(),
+                    email: suggestOfficeChatEmail(),
+                    username: getLoginNameSlug(),
+                });
+            }
         } catch (_) { /* ignore */ }
+    }
+
+    function chatAvatarDirKeys({ userId, displayName, profileId, email, username } = {}) {
+        const keys = [];
+        if (userId) keys.push(`id:${userId}`);
+        if (profileId) keys.push(`profile:${String(profileId).trim()}`);
+        const name = String(displayName || '').trim();
+        if (name) keys.push(`name:${name.toLowerCase()}`);
+        const slugFromName = name ? greekToLatinSlug(name) : '';
+        const slugFromUser = String(username || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '');
+        const slugFromEmail = String(email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9]+/g, '');
+        [slugFromUser, slugFromEmail, slugFromName].forEach((slug) => {
+            if (slug && slug.length >= 2) keys.push(`slug:${slug}`);
+        });
+        return keys;
+    }
+
+    function rememberChatAvatarEntry(entry) {
+        const userId = String(entry?.userId || '').trim();
+        if (!userId) return;
+        const filename = normalizePbFileName(entry?.filename);
+        const keys = chatAvatarDirKeys(entry);
+        if (!filename) {
+            keys.forEach((k) => {
+                const cur = chatAvatarDirectory.get(k);
+                if (cur && cur.userId === userId) chatAvatarDirectory.delete(k);
+            });
+            return;
+        }
+        const value = { userId, filename };
+        keys.forEach((k) => chatAvatarDirectory.set(k, value));
+    }
+
+    function resolveChatMessageAvatar(m) {
+        const fromMsgUser = String(m?.pbUserId || '').trim();
+        const fromMsgFile = normalizePbFileName(m?.avatar);
+        if (fromMsgUser && fromMsgFile) {
+            rememberChatAvatarEntry({
+                userId: fromMsgUser,
+                filename: fromMsgFile,
+                displayName: m?.displayName,
+                profileId: m?.profileId,
+            });
+            return { userId: fromMsgUser, filename: fromMsgFile };
+        }
+
+        const me = getDisplayName();
+        const mine = me && String(m?.displayName || '') === me;
+        if (mine && chatSelfPbUserId && chatSelfAvatarFile) {
+            return { userId: chatSelfPbUserId, filename: chatSelfAvatarFile };
+        }
+
+        const tries = [];
+        if (m?.profileId) tries.push(`profile:${String(m.profileId).trim()}`);
+        const name = String(m?.displayName || '').trim();
+        if (name) {
+            tries.push(`name:${name.toLowerCase()}`);
+            const slug = greekToLatinSlug(name);
+            if (slug) tries.push(`slug:${slug}`);
+        }
+        for (let i = 0; i < tries.length; i++) {
+            const hit = chatAvatarDirectory.get(tries[i]);
+            if (hit?.userId && hit?.filename) return hit;
+        }
+        return null;
     }
 
     function getChatUserAvatarUrl(userId, filename, thumb) {
@@ -275,13 +360,57 @@
 
     function formatChatAvatarHtml(m) {
         const name = m.displayName || '?';
-        const userId = String(m.pbUserId || '').trim();
-        const file = String(m.avatar || '').trim();
-        if (userId && file) {
-            const url = getChatUserAvatarUrl(userId, file);
-            return `<div class="tm-chat-msg-avatar is-photo" aria-hidden="true"><img src="${escapeHtml(url)}" alt="" loading="lazy"></div>`;
+        const letter = chatAvatarLetter(name);
+        const resolved = resolveChatMessageAvatar(m);
+        if (resolved?.userId && resolved?.filename) {
+            const url = getChatUserAvatarUrl(resolved.userId, resolved.filename);
+            return `<div class="tm-chat-msg-avatar is-photo" data-letter="${escapeHtml(letter)}" aria-hidden="true"><img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="var p=this.parentElement;if(p){p.classList.remove('is-photo');p.textContent=p.getAttribute('data-letter')||'?';}"></div>`;
         }
-        return `<div class="tm-chat-msg-avatar" aria-hidden="true">${escapeHtml(chatAvatarLetter(name))}</div>`;
+        return `<div class="tm-chat-msg-avatar" aria-hidden="true">${escapeHtml(letter)}</div>`;
+    }
+
+    function refreshChatMessagesAvatarUi() {
+        if (!document.getElementById('tm-chat-messages')) return;
+        chatMessagesRenderKey = '';
+        renderMessages({ force: true });
+    }
+
+    async function refreshChatAvatarDirectory(STORAGE_KEYS) {
+        try {
+            const token = await ensureAuth(STORAGE_KEYS);
+            const base = OFFICE_CHAT_BASE_URL.replace(/\/$/, '');
+            const headers = { Authorization: token };
+            let result = await chatRequestJson({
+                method: 'GET',
+                url: `${base}/api/collections/users/records?perPage=200&fields=id,email,username,avatar,name`,
+                headers,
+                timeout: 15000,
+            });
+            if (result.status >= 400) {
+                result = await chatRequestJson({
+                    method: 'GET',
+                    url: `${base}/api/collections/users/records?perPage=200`,
+                    headers,
+                    timeout: 15000,
+                });
+            }
+            const items = result.body?.items;
+            if (result.status < 200 || result.status >= 300 || !Array.isArray(items)) return false;
+            items.forEach((rec) => {
+                const filename = normalizePbFileName(rec?.avatar);
+                if (!rec?.id || !filename) return;
+                rememberChatAvatarEntry({
+                    userId: rec.id,
+                    filename,
+                    email: rec.email,
+                    username: rec.username,
+                    displayName: rec.name,
+                });
+            });
+            return true;
+        } catch (_) {
+            return false;
+        }
     }
 
     function chatMessagePreviewText(m) {
@@ -805,6 +934,7 @@
         rememberChatSelfAvatar(result.body || { id: record.id, avatar: result.body?.avatar });
         // Re-fetch to get final filename
         await fetchOwnChatUserRecord(STORAGE_KEYS);
+        refreshChatMessagesAvatarUi();
         return { ok: true, ...getOfficeChatAvatarInfo(), message: 'Η φωτογραφία αποθηκεύτηκε' };
     }
 
@@ -847,6 +977,7 @@
         }
         chatSelfAvatarFile = '';
         rememberChatSelfAvatar({ id: record.id, avatar: '' });
+        refreshChatMessagesAvatarUi();
         return { ok: true, ...getOfficeChatAvatarInfo(), message: 'Η φωτογραφία αφαιρέθηκε' };
     }
 
@@ -1262,16 +1393,21 @@
                 if (ta !== tb) return ta - tb;
                 return String(a.id || '').localeCompare(String(b.id || ''));
             })
-            .map((m) => [
-                m.id,
-                m.text || '',
-                m.displayName || '',
-                m.store || '',
-                m.attachment || '',
-                m.pbUserId || '',
-                m.avatar || '',
-                m.created || '',
-            ].join('\u0001'))
+            .map((m) => {
+                const av = resolveChatMessageAvatar(m);
+                return [
+                    m.id,
+                    m.text || '',
+                    m.displayName || '',
+                    m.store || '',
+                    m.attachment || '',
+                    m.pbUserId || '',
+                    m.avatar || '',
+                    av ? `${av.userId}:${av.filename}` : '',
+                    chatSelfAvatarFile || '',
+                    m.created || '',
+                ].join('\u0001');
+            })
             .join('\u0002');
     }
 
@@ -1440,6 +1576,14 @@
                 pbUserId: String(rec.pbUserId || '').trim(),
                 avatar: normalizePbFileName(rec.avatar),
             };
+            if (mapped.pbUserId && mapped.avatar) {
+                rememberChatAvatarEntry({
+                    userId: mapped.pbUserId,
+                    filename: mapped.avatar,
+                    displayName: mapped.displayName,
+                    profileId: mapped.profileId,
+                });
+            }
             if (!prev) {
                 added += 1;
                 changed = true;
@@ -1872,7 +2016,9 @@
             }
             loadCachedSelfAvatar();
             try { await fetchOwnChatUserRecord(STORAGE_KEYS); } catch (_) { /* optional */ }
+            try { await refreshChatAvatarDirectory(STORAGE_KEYS); } catch (_) { /* optional */ }
             await fetchMessages(STORAGE_KEYS);
+            refreshChatMessagesAvatarUi();
             const realtimeOk = await tryStartRealtime(STORAGE_KEYS);
             startPolling(STORAGE_KEYS);
             setChatStatus('online');

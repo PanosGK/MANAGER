@@ -1,11 +1,11 @@
 {
-  "version": "368",
+  "version": "369",
   "loaderVersion": "41",
-  "silentVersion": "12",
-  "displayVersion": "41.12",
+  "silentVersion": "13",
+  "displayVersion": "41.13",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Chat profile photos from Settings, shown on new messages",
+  "releaseNotes": "Show Settings profile photo on chat message avatars",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
