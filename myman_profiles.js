@@ -25,7 +25,9 @@
         'tm_script_enabled',
         'tm_status40_admin_username',
         'tm_status40_admin_password',
-        'tm_mms_last_profile_id'
+        'tm_mms_last_profile_id',
+        // Captured on login.php by the loader (suite UI skipped there) — must stay unscoped
+        'tm_login_store_v1',
     ]);
 
     const PROFILE_PREFIX = 'tm:p:';

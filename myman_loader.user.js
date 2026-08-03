@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite
 // @namespace    http://tampermonkey.net/
-// @version      40
+// @version      41
 // @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -71,11 +71,11 @@
         } catch (e) { /* ignore */ }
     })();
 
-    var LOADER_VERSION = "40";
+    var LOADER_VERSION = "41";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "356";
+    var FALLBACK_BUNDLE_VERSION = "357";
     var LOCAL_BUNDLE_URL = null;
 
     try {
@@ -206,6 +206,7 @@
      * Capture the selected store into GM so chat/phone features can use it after login.
      */
     function captureLoginStoreSelection() {
+        var LOGIN_STORE_KEY = 'tm_login_store_v1';
         var STORE_NAME_KEY = 'tm_phone_my_store_name_v1';
         var CHAT_STORE_KEY = 'tm_chat_store';
         var CHAT_MANUAL_KEY = 'tm_chat_store_manual';
@@ -220,13 +221,37 @@
 
         function isPlaceholderStore(name) {
             if (!name) return true;
-            return /^(select|επιλέξ|επιλεξ|choose|\-\-|κατάστημα\b|κατάστημα\s*\*?)/i.test(name);
+            return /^(select|επιλέξ|επιλεξ|choose|\-\-|κατάστημα)$/i.test(name);
+        }
+
+        function findStoreSelect() {
+            var sel = document.querySelector('#iProfileID, select[name="iProfileID"]');
+            if (sel) return sel;
+            sel = document.querySelector('select[id*="Profile" i], select[name*="Profile" i], select[id*="profile" i], select[name*="profile" i]');
+            if (sel) return sel;
+            var labels = document.querySelectorAll('label');
+            for (var i = 0; i < labels.length; i++) {
+                var t = String(labels[i].textContent || '');
+                if (!/κατάστημα/i.test(t)) continue;
+                var forId = labels[i].getAttribute('for');
+                if (forId) {
+                    sel = document.getElementById(forId);
+                    if (sel && sel.tagName === 'SELECT') return sel;
+                }
+                var wrap = labels[i].parentElement;
+                sel = wrap && wrap.querySelector('select');
+                if (sel) return sel;
+            }
+            return null;
         }
 
         function readSelectedStore() {
-            var sel = document.querySelector('#iProfileID, select[name="iProfileID"]');
+            var sel = findStoreSelect();
             if (!sel || sel.selectedIndex < 0 || !sel.options || !sel.options.length) return '';
-            return normalizeStoreName(sel.options[sel.selectedIndex].text);
+            var opt = sel.options[sel.selectedIndex];
+            var text = normalizeStoreName(opt && opt.text);
+            if (text) return text;
+            return normalizeStoreName(opt && opt.value);
         }
 
         function saveSelectedStore(name) {
@@ -234,6 +259,7 @@
             if (isPlaceholderStore(clean)) return;
             try {
                 if (typeof GM_setValue !== 'function') return;
+                GM_setValue(LOGIN_STORE_KEY, clean);
                 GM_setValue(STORE_NAME_KEY, clean);
                 var manual = false;
                 try { manual = GM_getValue(CHAT_MANUAL_KEY, false) === true; } catch (eM) { manual = false; }
@@ -241,11 +267,12 @@
                     GM_setValue(CHAT_STORE_KEY, clean);
                     GM_setValue(CHAT_MANUAL_KEY, false);
                 }
+                try { console.log('[MMS] Login store captured:', clean); } catch (eLog) { /* ignore */ }
             } catch (eSave) { /* ignore */ }
         }
 
         function bindStoreSelect() {
-            var sel = document.querySelector('#iProfileID, select[name="iProfileID"]');
+            var sel = findStoreSelect();
             if (!sel) return false;
             saveSelectedStore(readSelectedStore());
             if (sel.getAttribute('data-tm-store-capture') === '1') return true;
@@ -260,7 +287,6 @@
                     saveSelectedStore(readSelectedStore());
                 }, true);
             }
-            // Also catch button clicks that submit without firing submit reliably
             document.addEventListener('click', function (ev) {
                 var t = ev.target;
                 if (!t) return;

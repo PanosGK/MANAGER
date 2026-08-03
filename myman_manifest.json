@@ -1,11 +1,11 @@
 {
-  "version": "356",
-  "loaderVersion": "40",
+  "version": "357",
+  "loaderVersion": "41",
   "silentVersion": "1",
-  "displayVersion": "40.1",
+  "displayVersion": "41.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Capture login Κατάστημα (#iProfileID) so chat store works after login",
+  "releaseNotes": "Lock chat store when captured from login; global tm_login_store_v1",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
