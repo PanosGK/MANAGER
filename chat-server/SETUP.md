@@ -67,6 +67,8 @@ Admin → Collections → New collection → name: `messages`
 | `profileId`   | Text | optional, max 64                 |
 | `room`        | Text | required, max 32, default `office` |
 | `attachment`  | File | single file, max **5 MB** (see below) |
+| `pbUserId`    | Text | optional, max 32 (PocketBase user id for avatar) |
+| `avatar`      | Text | optional, max 255 (avatar filename on `users`) |
 
 If `messages` already exists:
 
@@ -82,6 +84,7 @@ If `messages` already exists:
      - `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
      - `application/vnd.ms-excel`
      - `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+4. Add text fields **`pbUserId`** (optional, max 32) and **`avatar`** (optional, max 255) for profile photos in chat.
 
 Uploads are stored on the TrueNAS dataset under `/pb_data` (same volume as the database).
 
@@ -101,22 +104,20 @@ Do **not** add `text:length` or `room = "office"` in Create. Save, then retry se
 
 Enable **Realtime** for the `messages` collection if your PocketBase UI shows that toggle (SSE still works when subscribed via API).
 
-## 5. Create tech users (self-register)
+## 5. Users collection (accounts + profile photo)
 
-Techs use suite **Settings → Chat → Δημιουργία λογαριασμού**.
+Techs auto-register from the MyManager login name. Configure **users**:
 
-For that to work, **users** collection:
+1. **API Rules → Create**: unlock and set `@request.auth.id = ""`
+2. **API Rules → Update**: unlock and set `@request.auth.id = id` (so each tech can upload their own avatar)
+3. **API Rules → View / List**: `@request.auth.id != ""` (or keep as needed)
+4. Turn **off** email verification / confirm email requirements.
+5. Add File field **`avatar`**:
+   - Max select: **1**
+   - Max size: **1 MB**
+   - MIME allow-list: `image/jpeg`, `image/png`, `image/webp`, `image/gif`
 
-1. **API Rules → Create**: unlock (not Admins only) and set:
-
-```
-@request.auth.id = ""
-```
-
-2. Turn **off** email verification / confirm email requirements.
-3. Optional: List/View can stay authenticated-only.
-
-If Create stays locked, the suite cannot auto-create users — check Create rule and email verification.
+Techs set the photo in suite **Settings → Chat → Φωτογραφία προφίλ**.
 
 ## 6. Backups
 
@@ -128,6 +129,8 @@ Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots. Sn
 - [ ] Admin login works
 - [ ] `messages` collection + rules exist
 - [ ] `messages.attachment` File field exists (5 MB, MIME allow-list) and `text` is optional
+- [ ] `messages.pbUserId` + `messages.avatar` text fields exist (profile photos)
+- [ ] `users.avatar` File field exists (1 MB, images) and users **Update** = `@request.auth.id = id`
 - [ ] At least one non-admin test user exists
 - [ ] Page loads from off-LAN (proxy + DNS OK)
 - [ ] Snapshot covers `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB`
@@ -138,6 +141,6 @@ Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots. Sn
 2. Open MyManager — chat is **on by default**.
 3. Click **💬 Chat** in the footer. First use auto-registers from the login name (no password in Settings).
 4. New messages show a badge / pulse on the footer Chat button (not the suite notification center).
-5. Optional: **Settings → Chat** → enable/disable or **Έλεγχος σύνδεσης**.
+5. Optional: **Settings → Chat** → enable/disable, **profile photo**, or **Έλεγχος σύνδεσης**.
 
 Display names in chat come from the MyManager login name, not from typing an account.

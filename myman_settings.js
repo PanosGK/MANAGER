@@ -179,7 +179,7 @@
         },
         office_chat: {
             title: 'Office Chat',
-            what: 'Κοινό chat γραφείου μέσω https://mngerchat.littlejol.mywire.org. Λογαριασμός δημιουργείται αυτόματα από το όνομα login — χωρίς κωδικό στις ρυθμίσεις. Νέα μηνύματα υπενθυμίζονται στο κουμπί του footer (όχι στο notification center).',
+            what: 'Κοινό chat γραφείου μέσω https://mngerchat.littlejol.mywire.org. Λογαριασμός δημιουργείται αυτόματα από το όνομα login — χωρίς κωδικό στις ρυθμίσεις. Νέα μηνύματα υπενθυμίζονται στο κουμπί του footer (όχι στο notification center). Μπορείς να ανεβάσεις φωτογραφία προφίλ από Ρυθμίσεις → Chat.',
             where: 'Κουμπί «💬 Chat» στο footer · πάνελ μηνυμάτων.',
             when: 'Μόλις φορτώσει το MyManager (αν το chat είναι ενεργό).',
         },
@@ -188,6 +188,12 @@
             what: 'Email από το όνομα login (π.χ. «Είσοδος ως Γκορόγιας» → gkorogias@myman.chat). Στο chat φαίνεται το ελληνικό όνομα.',
             where: 'Ρυθμίσεις → Chat (μόνο ενημερωτικά).',
             when: 'Αυτόματα σε κάθε σύνδεση.',
+        },
+        office_chat_avatar: {
+            title: 'Φωτογραφία προφίλ',
+            what: 'Μικρή εικόνα δίπλα στα μηνύματά σου στο Office Chat. Αποθηκεύεται στον λογαριασμό chat (έως 1 MB, jpg/png/webp/gif).',
+            where: 'Ρυθμίσεις → Chat · εμφανίζεται στα bubbles του chat.',
+            when: 'Μετά το ανέβασμα, στα νέα μηνύματα. Χρειάζεται πεδίο avatar στο PocketBase users.',
         },
         quick_search_editor: {
             title: 'Επεξεργαστής γρήγορης αναζήτησης',
@@ -1367,6 +1373,22 @@
                             <input type="email" id="tm-setting-chat-user" class="tm-settings-input" autocomplete="username" spellcheck="false" readonly>
                         </div>
                     </div>
+                    <div class="tm-setting-row tm-setting-row--stack">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label>Φωτογραφία προφίλ</label>
+                                ${info('office_chat_avatar')}
+                            </div>
+                            <p class="tm-setting-description">Εμφανίζεται δίπλα στα μηνύματά σου. Έως 1&nbsp;MB (jpg/png/webp/gif).</p>
+                        </div>
+                        <div class="tm-setting-control" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;">
+                            <div id="tm-setting-chat-avatar-preview" aria-hidden="true" style="width:56px;height:56px;border-radius:14px;background:#e2e8f0;overflow:hidden;display:grid;place-items:center;font-weight:700;color:#334155;flex-shrink:0;"></div>
+                            <input type="file" id="tm-setting-chat-avatar-input" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" hidden>
+                            <button type="button" id="tm-setting-chat-avatar-pick" class="tm-data-btn import">Επιλογή…</button>
+                            <button type="button" id="tm-setting-chat-avatar-clear" class="tm-data-btn reset">Αφαίρεση</button>
+                            <p class="tm-setting-description" id="tm-setting-chat-avatar-status" style="flex-basis:100%;margin:0;">—</p>
+                        </div>
+                    </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <label>Κατάσταση</label>
@@ -1840,6 +1862,100 @@
                     : '';
                 chatUserInput.readOnly = true;
             }
+            const setChatAvatarStatus = (text, ok) => {
+                const el = document.getElementById('tm-setting-chat-avatar-status');
+                if (!el) return;
+                el.textContent = text || '—';
+                el.style.color = ok === true ? '#198754' : ok === false ? '#dc3545' : '';
+            };
+            const renderChatAvatarPreview = (info) => {
+                const preview = document.getElementById('tm-setting-chat-avatar-preview');
+                if (!preview) return;
+                const url = info?.url || '';
+                if (url) {
+                    preview.innerHTML = `<img src="${url.replace(/"/g, '&quot;')}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+                    preview.style.background = '#cbd5e1';
+                } else {
+                    const letter = (typeof window.suggestOfficeChatEmail === 'function'
+                        ? String(window.suggestOfficeChatEmail() || '?').charAt(0)
+                        : '?').toUpperCase();
+                    preview.textContent = letter || '?';
+                    preview.style.background = '#e2e8f0';
+                }
+                const clearBtn = document.getElementById('tm-setting-chat-avatar-clear');
+                if (clearBtn) clearBtn.disabled = !url;
+            };
+            const refreshChatAvatarPreview = async ({ fromServer } = {}) => {
+                if (typeof window.getOfficeChatAvatarInfo !== 'function') {
+                    renderChatAvatarPreview(null);
+                    setChatAvatarStatus('Το module chat δεν φορτώθηκε.', false);
+                    return;
+                }
+                if (fromServer && typeof window.refreshOfficeChatAvatar === 'function') {
+                    try { await window.refreshOfficeChatAvatar(STORAGE_KEYS); } catch (_) { /* optional */ }
+                }
+                renderChatAvatarPreview(window.getOfficeChatAvatarInfo());
+            };
+            refreshChatAvatarPreview({ fromServer: true });
+            overlay.querySelector('#tm-setting-chat-avatar-pick')?.addEventListener('click', () => {
+                document.getElementById('tm-setting-chat-avatar-input')?.click();
+            });
+            overlay.querySelector('#tm-setting-chat-avatar-input')?.addEventListener('change', async (ev) => {
+                const input = ev.target;
+                const file = input?.files?.[0];
+                if (input) input.value = '';
+                if (!file) return;
+                if (typeof window.uploadOfficeChatAvatar !== 'function') {
+                    setChatAvatarStatus('Το module chat δεν φορτώθηκε.', false);
+                    return;
+                }
+                const pickBtn = document.getElementById('tm-setting-chat-avatar-pick');
+                const clearBtn = document.getElementById('tm-setting-chat-avatar-clear');
+                if (pickBtn) pickBtn.disabled = true;
+                if (clearBtn) clearBtn.disabled = true;
+                setChatAvatarStatus('Ανέβασμα…');
+                try {
+                    const result = await window.uploadOfficeChatAvatar(STORAGE_KEYS, file);
+                    if (result?.ok) {
+                        renderChatAvatarPreview(result);
+                        setChatAvatarStatus(result.message || 'Αποθηκεύτηκε', true);
+                    } else {
+                        setChatAvatarStatus(result?.message || 'Αποτυχία ανεβάσματος', false);
+                        await refreshChatAvatarPreview();
+                    }
+                } catch (err) {
+                    setChatAvatarStatus(err?.message || 'Σφάλμα ανεβάσματος', false);
+                    await refreshChatAvatarPreview();
+                } finally {
+                    if (pickBtn) pickBtn.disabled = false;
+                }
+            });
+            overlay.querySelector('#tm-setting-chat-avatar-clear')?.addEventListener('click', async () => {
+                if (typeof window.clearOfficeChatAvatar !== 'function') {
+                    setChatAvatarStatus('Το module chat δεν φορτώθηκε.', false);
+                    return;
+                }
+                const pickBtn = document.getElementById('tm-setting-chat-avatar-pick');
+                const clearBtn = document.getElementById('tm-setting-chat-avatar-clear');
+                if (pickBtn) pickBtn.disabled = true;
+                if (clearBtn) clearBtn.disabled = true;
+                setChatAvatarStatus('Αφαίρεση…');
+                try {
+                    const result = await window.clearOfficeChatAvatar(STORAGE_KEYS);
+                    if (result?.ok) {
+                        renderChatAvatarPreview(result);
+                        setChatAvatarStatus(result.message || 'Αφαιρέθηκε', true);
+                    } else {
+                        setChatAvatarStatus(result?.message || 'Αποτυχία αφαίρεσης', false);
+                        await refreshChatAvatarPreview();
+                    }
+                } catch (err) {
+                    setChatAvatarStatus(err?.message || 'Σφάλμα αφαίρεσης', false);
+                    await refreshChatAvatarPreview();
+                } finally {
+                    if (pickBtn) pickBtn.disabled = false;
+                }
+            });
             overlay.querySelector('#tm-setting-chat-test-btn')?.addEventListener('click', async () => {
                 const statusEl = document.getElementById('tm-setting-chat-test-status');
                 const btn = document.getElementById('tm-setting-chat-test-btn');
@@ -1856,6 +1972,7 @@
                         statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
                         statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
                     }
+                    await refreshChatAvatarPreview({ fromServer: true });
                 } catch (err) {
                     if (statusEl) {
                         statusEl.textContent = err?.message || 'Σφάλμα ελέγχου';

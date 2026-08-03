@@ -1,11 +1,11 @@
 {
-  "version": "367",
+  "version": "368",
   "loaderVersion": "41",
-  "silentVersion": "11",
-  "displayVersion": "41.11",
+  "silentVersion": "12",
+  "displayVersion": "41.12",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix chat panel resize handle hit target and pointer capture",
+  "releaseNotes": "Chat profile photos from Settings, shown on new messages",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

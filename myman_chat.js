@@ -59,6 +59,15 @@
     let chatPendingFile = null;
     /** Last rendered message snapshot — skip identical redraws (stops poll flicker). */
     let chatMessagesRenderKey = '';
+    /** Own PocketBase user id + avatar filename (from users.avatar). */
+    let chatSelfPbUserId = '';
+    let chatSelfAvatarFile = '';
+    /** Once PB rejects message avatar/pbUserId fields, stop sending them until reload. */
+    let chatMsgAvatarFieldsUnsupported = false;
+    const CHAT_AVATAR_MAX_BYTES = 1 * 1024 * 1024;
+    const CHAT_AVATAR_META_KEY = 'tm_chat_avatar_meta';
+    const CHAT_AVATAR_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const CHAT_AVATAR_EXT_RE = /\.(jpe?g|png|webp|gif)$/i;
 
     const CHAT_EMOJI_LIST = [
         '😀','😁','😂','🤣','😊','😍','😘','😎','🤔','😅',
@@ -199,6 +208,80 @@
         const a = rec?.attachment;
         if (Array.isArray(a)) return String(a[0] || '').trim();
         return String(a || '').trim();
+    }
+
+    function normalizePbFileName(value) {
+        if (Array.isArray(value)) return String(value[0] || '').trim();
+        return String(value || '').trim();
+    }
+
+    function isAllowedChatAvatarFile(file) {
+        if (!file) return { ok: false, reason: 'empty', message: 'Δεν επιλέχθηκε αρχείο' };
+        if (file.size > CHAT_AVATAR_MAX_BYTES) {
+            return { ok: false, reason: 'size', message: `Μέγιστο μέγεθος ${formatChatFileSize(CHAT_AVATAR_MAX_BYTES)}` };
+        }
+        const type = String(file.type || '').toLowerCase();
+        const name = String(file.name || '');
+        if (!(CHAT_AVATAR_MIME.includes(type) || CHAT_AVATAR_EXT_RE.test(name))) {
+            return { ok: false, reason: 'type', message: 'Μόνο εικόνες (jpg/png/webp/gif)' };
+        }
+        return { ok: true };
+    }
+
+    function rememberChatSelfAvatar(record) {
+        if (!record || !record.id) return;
+        chatSelfPbUserId = String(record.id);
+        chatSelfAvatarFile = normalizePbFileName(record.avatar);
+        try {
+            GM_setValue(CHAT_AVATAR_META_KEY, JSON.stringify({
+                userId: chatSelfPbUserId,
+                filename: chatSelfAvatarFile,
+                savedAt: Date.now(),
+            }));
+        } catch (_) { /* ignore */ }
+    }
+
+    function loadCachedSelfAvatar() {
+        try {
+            const raw = GM_getValue(CHAT_AVATAR_META_KEY, '');
+            if (!raw) return;
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            if (parsed?.userId) chatSelfPbUserId = String(parsed.userId);
+            chatSelfAvatarFile = String(parsed?.filename || '').trim();
+        } catch (_) { /* ignore */ }
+    }
+
+    function getChatUserAvatarUrl(userId, filename, thumb) {
+        if (!userId || !filename) return '';
+        const base = OFFICE_CHAT_BASE_URL.replace(/\/$/, '');
+        let url = `${base}/api/files/users/${encodeURIComponent(userId)}/${encodeURIComponent(filename)}`;
+        const params = [];
+        if (thumb) params.push(`thumb=${encodeURIComponent(thumb)}`);
+        if (chatAuthToken) params.push(`token=${encodeURIComponent(chatAuthToken)}`);
+        if (params.length) url += `?${params.join('&')}`;
+        return url;
+    }
+
+    function getOfficeChatAvatarInfo() {
+        loadCachedSelfAvatar();
+        const filename = chatSelfAvatarFile;
+        const userId = chatSelfPbUserId;
+        return {
+            userId,
+            filename,
+            url: filename && userId ? getChatUserAvatarUrl(userId, filename) : '',
+        };
+    }
+
+    function formatChatAvatarHtml(m) {
+        const name = m.displayName || '?';
+        const userId = String(m.pbUserId || '').trim();
+        const file = String(m.avatar || '').trim();
+        if (userId && file) {
+            const url = getChatUserAvatarUrl(userId, file);
+            return `<div class="tm-chat-msg-avatar is-photo" aria-hidden="true"><img src="${escapeHtml(url)}" alt="" loading="lazy"></div>`;
+        }
+        return `<div class="tm-chat-msg-avatar" aria-hidden="true">${escapeHtml(chatAvatarLetter(name))}</div>`;
     }
 
     function chatMessagePreviewText(m) {
@@ -619,7 +702,152 @@
         chatAuthToken = body.token;
         chatAuthExpires = expires;
         saveCachedToken(STORAGE_KEYS, chatAuthToken, expires);
+        if (body.record) rememberChatSelfAvatar(body.record);
         return body;
+    }
+
+    async function fetchOwnChatUserRecord(STORAGE_KEYS) {
+        loadCachedSelfAvatar();
+        const token = await ensureAuth(STORAGE_KEYS);
+        const base = OFFICE_CHAT_BASE_URL.replace(/\/$/, '');
+        // Prefer auth-refresh — returns current user record with avatar
+        const refreshed = await chatRequestJson({
+            method: 'POST',
+            url: `${base}/api/collections/users/auth-refresh`,
+            headers: { Authorization: token },
+            timeout: 12000,
+        });
+        if (refreshed.status >= 200 && refreshed.status < 300 && refreshed.body?.record) {
+            if (refreshed.body.token) {
+                chatAuthToken = refreshed.body.token;
+                let expires = Date.now() + 12 * 60 * 60 * 1000;
+                try {
+                    const payload = JSON.parse(atob(String(chatAuthToken).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+                    if (payload?.exp) expires = Number(payload.exp) * 1000;
+                } catch (_) { /* ignore */ }
+                chatAuthExpires = expires;
+                saveCachedToken(STORAGE_KEYS, chatAuthToken, expires);
+            }
+            rememberChatSelfAvatar(refreshed.body.record);
+            return refreshed.body.record;
+        }
+        if (chatSelfPbUserId) {
+            const { status, body } = await chatRequestJson({
+                method: 'GET',
+                url: `${base}/api/collections/users/records/${encodeURIComponent(chatSelfPbUserId)}`,
+                headers: { Authorization: token },
+            });
+            if (status >= 200 && status < 300 && body?.id) {
+                rememberChatSelfAvatar(body);
+                return body;
+            }
+        }
+        return null;
+    }
+
+    async function uploadOfficeChatAvatar(STORAGE_KEYS, file) {
+        const check = isAllowedChatAvatarFile(file);
+        if (!check.ok) return { ok: false, message: check.message || 'Μη έγκυρη εικόνα' };
+        const ensured = await ensureOfficeChatAccount(STORAGE_KEYS);
+        if (!ensured.ok) return ensured;
+        const record = await fetchOwnChatUserRecord(STORAGE_KEYS);
+        if (!record?.id) return { ok: false, message: 'Δεν βρέθηκε λογαριασμός chat' };
+        const uploadFile = normalizeChatUploadFile(file);
+        const url = `${OFFICE_CHAT_BASE_URL.replace(/\/$/, '')}/api/collections/users/records/${encodeURIComponent(record.id)}`;
+
+        const send = async (authHeader, useForm) => {
+            if (useForm && typeof FormData !== 'undefined') {
+                const fd = new FormData();
+                fd.append('avatar', uploadFile, uploadFile.name || 'avatar.jpg');
+                return chatRequestJson({
+                    method: 'PATCH',
+                    url,
+                    headers: { Authorization: authHeader },
+                    data: fd,
+                    timeout: 60000,
+                    fetch: true,
+                });
+            }
+            const built = await buildChatMultipartBody({}, uploadFile, 'avatar');
+            return chatRequestJson({
+                method: 'PATCH',
+                url,
+                headers: {
+                    Authorization: authHeader,
+                    'Content-Type': built.contentType,
+                },
+                data: built.data,
+                timeout: 60000,
+                fetch: true,
+            });
+        };
+
+        let token = chatAuthToken || await ensureAuth(STORAGE_KEYS);
+        let result = await send(token, true);
+        if (result.status >= 400) result = await send(token, false);
+        if ((result.status === 401 || result.status === 403) && token && !String(token).startsWith('Bearer ')) {
+            result = await send(`Bearer ${token}`, true);
+            if (result.status >= 400) result = await send(`Bearer ${token}`, false);
+        }
+        if (result.status === 401) {
+            clearCachedToken(STORAGE_KEYS);
+            token = await ensureAuth(STORAGE_KEYS, { force: true });
+            result = await send(token, true);
+            if (result.status >= 400) result = await send(token, false);
+        }
+        if (result.status < 200 || result.status >= 300) {
+            let msg = formatPbError(result.body, `Upload failed (${result.status || 0})`);
+            if (/avatar/i.test(msg) || /unknown field/i.test(msg)) {
+                msg = 'Πρόσθεσε πεδίο avatar (File) στο users και Update rule: @request.auth.id = id';
+            }
+            return { ok: false, message: msg };
+        }
+        rememberChatSelfAvatar(result.body || { id: record.id, avatar: result.body?.avatar });
+        // Re-fetch to get final filename
+        await fetchOwnChatUserRecord(STORAGE_KEYS);
+        return { ok: true, ...getOfficeChatAvatarInfo(), message: 'Η φωτογραφία αποθηκεύτηκε' };
+    }
+
+    async function clearOfficeChatAvatar(STORAGE_KEYS) {
+        const ensured = await ensureOfficeChatAccount(STORAGE_KEYS);
+        if (!ensured.ok) return ensured;
+        const record = await fetchOwnChatUserRecord(STORAGE_KEYS);
+        if (!record?.id) return { ok: false, message: 'Δεν βρέθηκε λογαριασμός chat' };
+        const url = `${OFFICE_CHAT_BASE_URL.replace(/\/$/, '')}/api/collections/users/records/${encodeURIComponent(record.id)}`;
+        let token = chatAuthToken || await ensureAuth(STORAGE_KEYS);
+        const patch = async (authHeader) => chatRequestJson({
+            method: 'PATCH',
+            url,
+            headers: {
+                Authorization: authHeader,
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({ avatar: null }),
+        });
+        let result = await patch(token);
+        if ((result.status === 401 || result.status === 403) && !String(token).startsWith('Bearer ')) {
+            result = await patch(`Bearer ${token}`);
+        }
+        if (result.status < 200 || result.status >= 300) {
+            // Multipart empty clear fallback
+            if (typeof FormData !== 'undefined') {
+                const fd = new FormData();
+                fd.append('avatar', '');
+                result = await chatRequestJson({
+                    method: 'PATCH',
+                    url,
+                    headers: { Authorization: token },
+                    data: fd,
+                    fetch: true,
+                });
+            }
+        }
+        if (result.status < 200 || result.status >= 300) {
+            return { ok: false, message: formatPbError(result.body, 'Αποτυχία αφαίρεσης') };
+        }
+        chatSelfAvatarFile = '';
+        rememberChatSelfAvatar({ id: record.id, avatar: '' });
+        return { ok: true, ...getOfficeChatAvatarInfo(), message: 'Η φωτογραφία αφαιρέθηκε' };
     }
 
     /** Move old manual passwords onto the silent auto password (multi-PC). */
@@ -1040,6 +1268,8 @@
                 m.displayName || '',
                 m.store || '',
                 m.attachment || '',
+                m.pbUserId || '',
+                m.avatar || '',
                 m.created || '',
             ].join('\u0001'))
             .join('\u0002');
@@ -1093,7 +1323,7 @@
             const bodyHtml = [attachHtml, textHtml].filter(Boolean).join('')
                 || (isFilePlaceholder ? '' : escapeHtml(rawText));
             return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}${isNew ? ' is-new' : ''}" data-id="${escapeHtml(m.id)}">
-                <div class="tm-chat-msg-avatar" aria-hidden="true">${escapeHtml(chatAvatarLetter(name))}</div>
+                ${formatChatAvatarHtml(m)}
                 <div class="tm-chat-msg-bubble">
                     <div class="tm-chat-msg-meta">
                         <span class="tm-chat-msg-who">
@@ -1207,6 +1437,8 @@
                 room: rec.room || CHAT_ROOM,
                 created: rec.created,
                 attachment: normalizeChatAttachmentName(rec),
+                pbUserId: String(rec.pbUserId || '').trim(),
+                avatar: normalizePbFileName(rec.avatar),
             };
             if (!prev) {
                 added += 1;
@@ -1217,6 +1449,8 @@
                 || String(prev.displayName || '') !== String(mapped.displayName || '')
                 || String(prev.store || '') !== String(mapped.store || '')
                 || String(prev.attachment || '') !== String(mapped.attachment || '')
+                || String(prev.pbUserId || '') !== String(mapped.pbUserId || '')
+                || String(prev.avatar || '') !== String(mapped.avatar || '')
                 || String(prev.created || '') !== String(mapped.created || '')
             ) {
                 changed = true;
@@ -1292,6 +1526,7 @@
         void expSec;
         chatAuthExpires = expires;
         saveCachedToken(STORAGE_KEYS, chatAuthToken, expires);
+        if (body.record) rememberChatSelfAvatar(body.record);
         return chatAuthToken;
     }
 
@@ -1356,7 +1591,7 @@
         const storeName = getChatStoreName(STORAGE_KEYS);
         const displayName = getDisplayName();
 
-        const buildFields = (textValue, includeStore) => {
+        const buildFields = (textValue, includeStore, includeAvatar) => {
             const fields = {
                 text: textValue,
                 displayName,
@@ -1364,6 +1599,10 @@
             };
             if (profileId) fields.profileId = profileId;
             if (includeStore && storeName && !chatStoreFieldUnsupported) fields.store = storeName;
+            if (includeAvatar && !chatMsgAvatarFieldsUnsupported && chatSelfPbUserId && chatSelfAvatarFile) {
+                fields.pbUserId = chatSelfPbUserId;
+                fields.avatar = chatSelfAvatarFile;
+            }
             return fields;
         };
 
@@ -1431,8 +1670,13 @@
         if (!textValue && attachFile) {
             textValue = `📎 ${attachFile.name || 'αρχείο'}`.slice(0, CHAT_MAX_LEN);
         }
+        loadCachedSelfAvatar();
+        if (!chatSelfPbUserId || (chatSelfAvatarFile === '' && !chatMsgAvatarFieldsUnsupported)) {
+            try { await fetchOwnChatUserRecord(STORAGE_KEYS); } catch (_) { /* optional */ }
+        }
         let includeStore = true;
-        let fields = buildFields(textValue, includeStore);
+        let includeAvatar = !chatMsgAvatarFieldsUnsupported;
+        let fields = buildFields(textValue, includeStore, includeAvatar);
 
         let { status, body, raw } = await postJson(fields);
         const errBlob = () => `${JSON.stringify(body || {})}\n${raw || ''}`;
@@ -1440,23 +1684,30 @@
         if (status >= 400 && storeName && !chatStoreFieldUnsupported && /store/i.test(errBlob())) {
             chatStoreFieldUnsupported = true;
             includeStore = false;
-            fields = buildFields(textValue, includeStore);
+            fields = buildFields(textValue, includeStore, includeAvatar);
             ({ status, body, raw } = await postJson(fields));
             if (status >= 400 && /store/i.test(errBlob())) {
                 setChatStatus('error', 'Πρόσθεσε πεδίο store στο messages (PocketBase)');
             }
         }
 
+        if (status >= 400 && includeAvatar && /pbUserId|avatar/i.test(errBlob())) {
+            chatMsgAvatarFieldsUnsupported = true;
+            includeAvatar = false;
+            fields = buildFields(textValue, includeStore, false);
+            ({ status, body, raw } = await postJson(fields));
+        }
+
         if (status >= 400 && attachFile && !clean && /text/i.test(errBlob())) {
             textValue = '(αρχείο)';
-            fields = buildFields(textValue, includeStore);
+            fields = buildFields(textValue, includeStore, includeAvatar);
             ({ status, body, raw } = await postJson(fields));
         }
 
         if (status < 200 || status >= 300) {
             let msg = formatPbError(body, `Send failed (${status || 0})`);
             if (!body && raw) msg = `${msg} — ${String(raw).slice(0, 160)}`;
-            if (/failed to create record/i.test(msg) && !/text:|displayName|room|profileId|store|attachment/i.test(msg)) {
+            if (/failed to create record/i.test(msg) && !/text:|displayName|room|profileId|store|attachment|pbUserId|avatar/i.test(msg)) {
                 msg += ' — PocketBase Admin → Collections → messages → API Rules: ξεκλείδωσε το Create';
             }
             throw new Error(msg);
@@ -1464,6 +1715,10 @@
 
         let saved = body && typeof body === 'object' ? { ...body } : body;
         if (saved && storeName && !saved.store) saved.store = storeName;
+        if (saved && chatSelfPbUserId && chatSelfAvatarFile) {
+            if (!saved.pbUserId) saved.pbUserId = chatSelfPbUserId;
+            if (!saved.avatar) saved.avatar = chatSelfAvatarFile;
+        }
 
         if (attachFile && saved && saved.id) {
             const patchUrl = `${collectionUrl}/${encodeURIComponent(saved.id)}`;
@@ -1615,6 +1870,8 @@
                 setChatStatus('error', ensured.message || 'Εγγραφή/σύνδεση απέτυχε');
                 return { ok: false, reason: 'account', error: ensured };
             }
+            loadCachedSelfAvatar();
+            try { await fetchOwnChatUserRecord(STORAGE_KEYS); } catch (_) { /* optional */ }
             await fetchMessages(STORAGE_KEYS);
             const realtimeOk = await tryStartRealtime(STORAGE_KEYS);
             startPolling(STORAGE_KEYS);
@@ -1680,15 +1937,17 @@
                 --tm-chat-ink: #0f172a;
                 --tm-chat-muted: #64748b;
                 --tm-chat-line: #e2e8f0;
-                position: fixed; bottom: 52px; right: 12px; z-index: 9997;
+                position: fixed; bottom: 56px; right: 12px;
+                /* Above footer shell (z-index ~1000001) so corner/edge grips receive clicks */
+                z-index: 1000100;
                 width: min(400px, calc(100vw - 16px));
-                height: min(92vh, calc(100vh - 56px));
+                height: min(70vh, calc(100vh - 72px));
                 display: none; flex-direction: column;
                 background: var(--tm-chat-surface);
                 border: 1px solid var(--tm-chat-line);
                 border-radius: 14px;
                 box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18), 0 2px 8px rgba(15, 23, 42, 0.06);
-                overflow: hidden;
+                overflow: visible;
                 font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
                 color: var(--tm-chat-ink);
                 min-width: 280px;
@@ -1702,36 +1961,66 @@
                 opacity: 0.97;
                 box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
             }
-            #tm-chat-panel.is-resizing { user-select: none; cursor: nwse-resize; }
+            #tm-chat-panel.is-resizing { user-select: none; }
+            #tm-chat-panel-inner {
+                display: flex; flex-direction: column;
+                flex: 1 1 auto; min-height: 0; min-width: 0;
+                height: 100%; width: 100%;
+                overflow: hidden;
+                border-radius: 14px;
+                background: inherit;
+            }
             #tm-chat-composer-wrap {
                 position: relative;
                 z-index: 1;
                 border-top: 1px solid var(--tm-chat-line);
                 background: #fff;
-                padding: 6px 22px 10px 8px;
+                padding: 6px 8px 8px;
                 flex-shrink: 0;
             }
-            #tm-chat-resize {
+            #tm-chat-resize,
+            #tm-chat-resize-e,
+            #tm-chat-resize-s {
                 position: absolute;
-                right: 0; bottom: 0;
-                width: 28px; height: 28px;
-                cursor: nwse-resize;
-                z-index: 30;
+                z-index: 40;
                 touch-action: none;
+                background: transparent;
+            }
+            #tm-chat-resize {
+                right: -4px; bottom: -4px;
+                width: 22px; height: 22px;
+                cursor: nwse-resize;
                 background:
-                    linear-gradient(135deg, transparent 46%, #94a3b8 46%, #94a3b8 52%, transparent 52%),
-                    linear-gradient(135deg, transparent 60%, #94a3b8 60%, #94a3b8 66%, transparent 66%),
-                    linear-gradient(135deg, transparent 74%, #94a3b8 74%, #94a3b8 80%, transparent 80%);
+                    linear-gradient(135deg, transparent 40%, #64748b 40%, #64748b 48%, transparent 48%),
+                    linear-gradient(135deg, transparent 56%, #64748b 56%, #64748b 64%, transparent 64%),
+                    linear-gradient(135deg, transparent 72%, #64748b 72%, #64748b 80%, transparent 80%);
+                background-color: #fff;
                 background-repeat: no-repeat;
-                background-position: right 5px bottom 5px;
-                background-size: 14px 14px;
-                border-radius: 0 0 12px 0;
+                background-position: center;
+                background-size: 12px 12px;
+                border: 1px solid var(--tm-chat-line);
+                border-radius: 6px;
+                box-shadow: 0 1px 4px rgba(15, 23, 42, 0.15);
+            }
+            #tm-chat-resize-e {
+                top: 12px; right: -5px; bottom: 18px;
+                width: 10px;
+                cursor: ew-resize;
+            }
+            #tm-chat-resize-s {
+                left: 12px; right: 18px; bottom: -5px;
+                height: 10px;
+                cursor: ns-resize;
             }
             #tm-chat-resize:hover,
             #tm-chat-panel.is-resizing #tm-chat-resize {
-                background-color: color-mix(in srgb, var(--tm-chat-accent, #2563eb) 12%, transparent);
+                border-color: var(--tm-chat-accent, #2563eb);
+                background-color: color-mix(in srgb, var(--tm-chat-accent, #2563eb) 12%, #fff);
             }
-            #tm-chat-resize::before { display: none; }
+            #tm-chat-resize-e:hover,
+            #tm-chat-resize-s:hover {
+                background: color-mix(in srgb, var(--tm-chat-accent, #2563eb) 25%, transparent);
+            }
             #tm-chat-header {
                 display: flex; align-items: center; gap: 6px;
                 padding: 6px 8px;
@@ -1880,6 +2169,13 @@
                 display: grid; place-items: center; flex-shrink: 0;
                 background: #e2e8f0; color: #334155;
                 font-size: 10px; font-weight: 700;
+                overflow: hidden;
+            }
+            .tm-chat-msg-avatar.is-photo {
+                background: #cbd5e1; padding: 0;
+            }
+            .tm-chat-msg-avatar.is-photo img {
+                width: 100%; height: 100%; object-fit: cover; display: block;
             }
             .tm-chat-msg.is-mine .tm-chat-msg-avatar {
                 background: color-mix(in srgb, var(--tm-chat-accent) 18%, #fff);
@@ -2097,6 +2393,7 @@
             `<button type="button" class="tm-chat-emoji-btn" data-emoji="${emoji}" title="${emoji}" aria-label="Insert ${emoji}">${emoji}</button>`
         )).join('');
         return `
+            <div id="tm-chat-panel-inner">
             <div id="tm-chat-header">
                 <div class="tm-chat-header-brand">
                     <div class="tm-chat-header-icon" aria-hidden="true">💬</div>
@@ -2138,7 +2435,10 @@
                 </div>
                 <input type="file" id="tm-chat-file-input" class="tm-chat-file-input" tabindex="-1" aria-hidden="true" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,image/jpeg,image/png,image/webp,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
             </div>
-            <div id="tm-chat-resize" title="Αλλαγή μεγέθους" aria-label="Αλλαγή μεγέθους" role="separator"></div>
+            </div>
+            <div id="tm-chat-resize-e" data-tm-resize="e" title="Αλλαγή πλάτους" aria-label="Αλλαγή πλάτους"></div>
+            <div id="tm-chat-resize-s" data-tm-resize="s" title="Αλλαγή ύψους" aria-label="Αλλαγή ύψους"></div>
+            <div id="tm-chat-resize" data-tm-resize="se" title="Αλλαγή μεγέθους" aria-label="Αλλαγή μεγέθους"></div>
         `;
     }
 
@@ -2405,13 +2705,13 @@
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '7';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '8';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '7');
+            panel.setAttribute('data-tm-chat-ui', '8');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);
@@ -2568,22 +2868,27 @@
     function wireChatPanelResize(panel, STORAGE_KEYS) {
         if (!panel || panel.dataset.tmChatResizeWired === '1') return;
         panel.dataset.tmChatResizeWired = '1';
-        const handle = panel.querySelector('#tm-chat-resize');
-        if (!handle) return;
+        const handles = panel.querySelectorAll('[data-tm-resize]');
+        if (!handles.length) return;
 
         let resizing = false;
+        let mode = 'se';
         let startX = 0;
         let startY = 0;
         let startW = 0;
         let startH = 0;
+        let activeHandle = null;
         let pointerId = null;
 
         const onMove = (clientX, clientY) => {
             if (!resizing) return;
-            const size = clampChatPanelSize(
-                startW + (clientX - startX),
-                startH + (clientY - startY)
-            );
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+            let nextW = startW;
+            let nextH = startH;
+            if (mode === 'e' || mode === 'se') nextW = startW + dx;
+            if (mode === 's' || mode === 'se') nextH = startH + dy;
+            const size = clampChatPanelSize(nextW, nextH);
             panel.style.width = `${size.width}px`;
             panel.style.height = `${size.height}px`;
             const rect = panel.getBoundingClientRect();
@@ -2596,20 +2901,23 @@
             if (!resizing) return;
             resizing = false;
             pointerId = null;
+            activeHandle = null;
+            mode = 'se';
             panel.classList.remove('is-resizing');
             document.body.style.userSelect = '';
             document.body.style.cursor = '';
             saveChatPanelGeometry(panel, STORAGE_KEYS);
         };
 
-        const startResize = (clientX, clientY, id) => {
+        const startResize = (clientX, clientY, id, handle, resizeMode) => {
             ensureChatPanelTopLeft(panel);
-            // Lock current CSS size into inline px so resize isn't fighting min()/vh values
             const rect = panel.getBoundingClientRect();
             const size = clampChatPanelSize(rect.width, rect.height);
             panel.style.width = `${size.width}px`;
             panel.style.height = `${size.height}px`;
             resizing = true;
+            mode = resizeMode || 'se';
+            activeHandle = handle;
             pointerId = id != null ? id : null;
             startX = clientX;
             startY = clientY;
@@ -2617,41 +2925,43 @@
             startH = size.height;
             panel.classList.add('is-resizing');
             document.body.style.userSelect = 'none';
-            document.body.style.cursor = 'nwse-resize';
+            document.body.style.cursor = mode === 'e' ? 'ew-resize' : (mode === 's' ? 'ns-resize' : 'nwse-resize');
         };
 
-        handle.addEventListener('pointerdown', (e) => {
-            if (e.button != null && e.button !== 0) return;
-            e.preventDefault();
-            e.stopPropagation();
-            startResize(e.clientX, e.clientY, e.pointerId);
-            try { handle.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+        handles.forEach((handle) => {
+            handle.addEventListener('pointerdown', (e) => {
+                if (e.button != null && e.button !== 0) return;
+                e.preventDefault();
+                e.stopPropagation();
+                startResize(e.clientX, e.clientY, e.pointerId, handle, handle.getAttribute('data-tm-resize') || 'se');
+                try { handle.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+            });
+
+            handle.addEventListener('pointermove', (e) => {
+                if (!resizing || activeHandle !== handle) return;
+                if (pointerId != null && e.pointerId !== pointerId) return;
+                e.preventDefault();
+                onMove(e.clientX, e.clientY);
+            });
+
+            const endPointer = (e) => {
+                if (!resizing || activeHandle !== handle) return;
+                if (pointerId != null && e.pointerId !== pointerId) return;
+                try { handle.releasePointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+                stopResize();
+            };
+            handle.addEventListener('pointerup', endPointer);
+            handle.addEventListener('pointercancel', endPointer);
+
+            handle.addEventListener('mousedown', (e) => {
+                if (window.PointerEvent) return;
+                if (e.button !== 0) return;
+                e.preventDefault();
+                e.stopPropagation();
+                startResize(e.clientX, e.clientY, null, handle, handle.getAttribute('data-tm-resize') || 'se');
+            });
         });
 
-        handle.addEventListener('pointermove', (e) => {
-            if (!resizing) return;
-            if (pointerId != null && e.pointerId !== pointerId) return;
-            e.preventDefault();
-            onMove(e.clientX, e.clientY);
-        });
-
-        const endPointer = (e) => {
-            if (!resizing) return;
-            if (pointerId != null && e.pointerId !== pointerId) return;
-            try { handle.releasePointerCapture(e.pointerId); } catch (_) { /* ignore */ }
-            stopResize();
-        };
-        handle.addEventListener('pointerup', endPointer);
-        handle.addEventListener('pointercancel', endPointer);
-
-        // Fallback for environments without PointerEvent
-        handle.addEventListener('mousedown', (e) => {
-            if (window.PointerEvent) return;
-            if (e.button !== 0) return;
-            e.preventDefault();
-            e.stopPropagation();
-            startResize(e.clientX, e.clientY, null);
-        });
         document.addEventListener('mousemove', (e) => {
             if (window.PointerEvent || !resizing) return;
             onMove(e.clientX, e.clientY);
@@ -2797,6 +3107,7 @@
         chatInitDone = true;
         chatStorageKeys = STORAGE_KEYS;
         chatMuted = settings.muted;
+        loadCachedSelfAvatar();
         injectChatStyles();
 
         const mount = () => {
@@ -2827,4 +3138,8 @@
     window.getOfficeChatSettings = getChatSettings;
     window.suggestOfficeChatEmail = suggestOfficeChatEmail;
     window.registerOfficeChatUser = registerOfficeChatUser;
+    window.getOfficeChatAvatarInfo = getOfficeChatAvatarInfo;
+    window.uploadOfficeChatAvatar = uploadOfficeChatAvatar;
+    window.clearOfficeChatAvatar = clearOfficeChatAvatar;
+    window.refreshOfficeChatAvatar = fetchOwnChatUserRecord;
 })();
