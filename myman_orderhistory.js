@@ -2923,9 +2923,66 @@
         }, 1000);
     }
 
+    /**
+     * Orders for Advanced Search: prefer fresh server fetch, fall back to view cache / pending.
+     * @param {'service'|'parts'} kind
+     */
+    async function getOrderHistoryOrdersForSearch(kind) {
+        const want = kind === 'parts' ? 'parts' : 'service';
+        try { window.captureConnectedStoreFromPage?.(document); } catch (_) { /* ignore */ }
+        const store = ohGetStoreName();
+        const storeKey = ohStoreKey(store);
+
+        let orders = [];
+        let source = 'none';
+
+        if (storeKey && !ohServerUnsupported) {
+            try {
+                const remote = await fetchStoreOrderHistoryFromServer(want);
+                if (remote?.ok && Array.isArray(remote.orders)) {
+                    orders = ohFilterOrdersByPageKind(remote.orders, want);
+                    source = 'server';
+                }
+            } catch (err) {
+                console.warn('[MMS Order History] search fetch failed', err);
+            }
+        }
+
+        if (!orders.length && storeKey) {
+            const cache = ohLoadViewCache(storeKey, want);
+            if (cache?.orders?.length) {
+                orders = ohFilterOrdersByPageKind(cache.orders, want);
+                source = 'cache';
+            }
+        }
+
+        if (!orders.length) {
+            // Pending write-buffer + any leftover legacy GM rows
+            const pending = ohLoadPendingBuffer().filter((o) => ohOrderKind(o) === want);
+            let legacy = [];
+            try {
+                const key = want === 'parts' ? 'tm_partsorders_page_history' : 'tm_srvorders_page_history';
+                const raw = JSON.parse(GM_getValue(key, '[]'));
+                if (Array.isArray(raw)) legacy = raw.filter((o) => ohOrderKind(o, want) === want);
+            } catch (_) { /* ignore */ }
+            orders = [...pending, ...legacy];
+            if (orders.length) source = 'local';
+        }
+
+        return {
+            ok: true,
+            kind: want,
+            store,
+            storeKey,
+            source,
+            orders: (orders || []).slice(),
+        };
+    }
+
     // Make functions globally accessible
     window.showOrderHistoryModal = showOrderHistoryModal;
     window.initOrderHistory = initOrderHistory;
+    window.getOrderHistoryOrdersForSearch = getOrderHistoryOrdersForSearch;
     window.syncOrderHistoryToServer = ({ force = true } = {}) => {
         try {
             const pending = ohLoadPendingBuffer();

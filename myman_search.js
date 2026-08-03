@@ -136,11 +136,10 @@
                 cells.push({ html: escapeSearchHtml(value), text: value });
             };
 
-            push(order.id);
             push(order.customer);
             push(order.phone);
-            push(order.code);
             push(order.repairNumber);
+            push(order.code);
             push(order.date);
             if (order.allColumns) {
                 Object.values(order.allColumns).forEach(push);
@@ -148,23 +147,41 @@
             return cells;
         }
 
-        function searchOrderHistory(storageKey, source) {
-            const orders = loadOrderHistory(storageKey);
+        function matchOrderHistoryOrders(orders, source) {
             const query = document.getElementById('tm-search-input')?.value.trim() || '';
-
-            orders.forEach(order => {
+            (orders || []).forEach((order) => {
                 const text = orderHistorySearchText(order);
-                const allTermsMatch = searchTerms.every(term => text.includes(term));
+                const allTermsMatch = searchTerms.every((term) => text.includes(term));
                 if (!allTermsMatch || !order.url) return;
-                if (searchResults.some(r => r.orderLink === order.url)) return;
+                if (searchResults.some((r) => r.orderLink === order.url)) return;
 
                 searchResults.push({
                     term: query,
                     orderLink: order.url,
                     source,
-                    historyEntry: order
+                    historyEntry: order,
                 });
             });
+        }
+
+        function searchOrderHistory(storageKey, source) {
+            matchOrderHistoryOrders(loadOrderHistory(storageKey), source);
+        }
+
+        async function searchOrderHistoryKind(kind, source) {
+            if (typeof window.getOrderHistoryOrdersForSearch === 'function') {
+                try {
+                    const res = await window.getOrderHistoryOrdersForSearch(kind);
+                    matchOrderHistoryOrders(res?.orders || [], source);
+                    return;
+                } catch (err) {
+                    console.warn('[MMS Search] server history search failed, falling back to local', err);
+                }
+            }
+            const storageKey = kind === 'parts'
+                ? (STORAGE_KEYS.ORDER_HISTORY_PARTS || 'tm_partsorders_page_history')
+                : (STORAGE_KEYS.ORDER_HISTORY_SERVICE || 'tm_srvorders_page_history');
+            searchOrderHistory(storageKey, source);
         }
 
         function getSearchSourceOptions() {
@@ -183,19 +200,20 @@
             return count;
         }
 
-        function runHistorySearches(options, generation) {
+        async function runHistorySearches(options, generation) {
             if (generation !== searchGeneration) return;
 
-            const serviceKey = STORAGE_KEYS.ORDER_HISTORY_SERVICE || 'tm_srvorders_page_history';
-            const partsKey = STORAGE_KEYS.ORDER_HISTORY_PARTS || 'tm_partsorders_page_history';
-
             if (options.merchandiseHistory) {
-                searchOrderHistory(serviceKey, 'history-merchandise');
+                if (generation !== searchGeneration) return;
+                await searchOrderHistoryKind('service', 'history-merchandise');
+                if (generation !== searchGeneration) return;
                 searchProgress.done++;
                 updateSearchProgressUI();
             }
             if (options.partsHistory) {
-                searchOrderHistory(partsKey, 'history-parts');
+                if (generation !== searchGeneration) return;
+                await searchOrderHistoryKind('parts', 'history-parts');
+                if (generation !== searchGeneration) return;
                 searchProgress.done++;
                 updateSearchProgressUI();
             }
@@ -922,13 +940,29 @@
 
             if (config.interactiveMascotEnabled) window.setMascotState(config, 'searching');
 
-            runHistorySearches(sourceOptions, currentGeneration);
+            let historyDone = historyTasks === 0;
+            let liveDone = liveUrls.length === 0;
+            const maybeComplete = () => {
+                if (currentGeneration !== searchGeneration) return;
+                if (historyDone && liveDone) onSearchComplete();
+            };
+
+            runHistorySearches(sourceOptions, currentGeneration)
+                .catch((err) => console.warn('[MMS Search] history search error', err))
+                .finally(() => {
+                    historyDone = true;
+                    maybeComplete();
+                });
 
             urlsToProcess = [...liveUrls];
-            if (urlsToProcess.length === 0) {
-                onSearchComplete();
+            if (liveUrls.length === 0) {
+                liveDone = true;
+                maybeComplete();
             } else {
-                processNextUrl(onSearchComplete, currentGeneration);
+                processNextUrl(() => {
+                    liveDone = true;
+                    maybeComplete();
+                }, currentGeneration);
             }
         }
 

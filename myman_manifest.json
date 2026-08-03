@@ -1,11 +1,11 @@
 {
-  "version": "381",
+  "version": "382",
   "loaderVersion": "41",
-  "silentVersion": "25",
-  "displayVersion": "41.25",
+  "silentVersion": "26",
+  "displayVersion": "41.26",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Order history: full table columns from server, fix service/parts kind split",
+  "releaseNotes": "Advanced Search uses shared server order history",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
