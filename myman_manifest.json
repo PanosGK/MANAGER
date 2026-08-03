@@ -1,11 +1,11 @@
 {
-  "version": "363",
+  "version": "364",
   "loaderVersion": "41",
-  "silentVersion": "7",
-  "displayVersion": "41.7",
+  "silentVersion": "8",
+  "displayVersion": "41.8",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix chat file attach: two-step upload and stop showing only (αρχείο)",
+  "releaseNotes": "Hide native file input; keep only paperclip attach button",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

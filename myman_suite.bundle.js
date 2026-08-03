@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v363 / Custom Ver. 41.7 — generated, do not edit */
+/* MyManager Suite bundle v364 / Custom Ver. 41.8 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '363',
+        version: '364',
         loaderVersion: '41',
-        silentVersion: '7',
-        displayVersion: '41.7',
+        silentVersion: '8',
+        displayVersion: '41.8',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -23434,6 +23434,20 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 border-color: color-mix(in srgb, var(--tm-chat-accent) 35%, #fff);
                 color: var(--tm-chat-accent);
             }
+            /* Native file input must stay fully hidden — only 📎 opens it */
+            #tm-chat-file-input {
+                position: absolute !important;
+                width: 1px !important;
+                height: 1px !important;
+                padding: 0 !important;
+                margin: -1px !important;
+                overflow: hidden !important;
+                clip: rect(0, 0, 0, 0) !important;
+                white-space: nowrap !important;
+                border: 0 !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
             #tm-chat-panel.is-drop-target #tm-chat-composer-wrap,
             #tm-chat-panel.is-drop-target #tm-chat-messages {
                 outline: 2px dashed color-mix(in srgb, var(--tm-chat-accent) 55%, #fff);
@@ -23573,7 +23587,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     <textarea id="tm-chat-input" maxlength="${CHAT_MAX_LEN}" placeholder="Γράψε μήνυμα… (Enter αποστολή)" rows="2"></textarea>
                     <button type="button" id="tm-chat-send" title="Αποστολή" aria-label="Αποστολή">➤</button>
                 </div>
-                <input type="file" id="tm-chat-file-input" hidden accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,image/jpeg,image/png,image/webp,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                <input type="file" id="tm-chat-file-input" class="tm-chat-file-input" tabindex="-1" aria-hidden="true" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,image/jpeg,image/png,image/webp,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
             </div>
         `;
     }
@@ -23840,13 +23854,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '3';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '4';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '3');
+            panel.setAttribute('data-tm-chat-ui', '4');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);
