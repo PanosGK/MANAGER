@@ -118,7 +118,7 @@
             { label: 'Back Cover', term: 'Back Cover' },
         ],
         scratchpadEnabled: true,
-        officeChatEnabled: false, // PocketBase office chat (configure in Settings → Chat)
+        officeChatEnabled: true, // auto-provision PocketBase account from MyManager login
         scrollToTopEnabled: true,
         technicianStatsEnabled: true,
         customerHistoryEnabled: true,

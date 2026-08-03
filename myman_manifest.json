@@ -1,11 +1,11 @@
 {
-  "version": "343",
+  "version": "344",
   "loaderVersion": "38",
-  "silentVersion": "7",
-  "displayVersion": "38.7",
+  "silentVersion": "8",
+  "displayVersion": "38.8",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix chat register hang: timeouts, try/catch, minimal user create payload",
+  "releaseNotes": "Passwordless office chat: auto-provision from MyManager login, no Settings password",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

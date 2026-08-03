@@ -21,6 +21,8 @@
     const CHAT_PAGE_SIZE = 50;
     const CHAT_TOKEN_SKEW_MS = 60 * 1000;
     const OFFICE_CHAT_BASE_URL = 'https://mngerchat.littlejol.mywire.org';
+    /** Salt for silent per-login passwords (office chat only — not high security). */
+    const OFFICE_CHAT_PASS_SECRET = 'myman-office-chat-v1';
 
     let chatPollTimer = null;
     let chatRealtimeEs = null;
@@ -49,6 +51,16 @@
         };
     }
 
+    /** Deterministic password from login email — same on every PC, never shown to user. */
+    function getOfficeChatAutoPassword(email) {
+        const input = `${OFFICE_CHAT_PASS_SECRET}|${String(email || '').toLowerCase()}`;
+        let h = 5381;
+        for (let i = 0; i < input.length; i++) h = ((h << 5) + h) ^ input.charCodeAt(i);
+        let h2 = 0;
+        for (let i = 0; i < input.length; i++) h2 = (h2 * 33 + input.charCodeAt(i)) >>> 0;
+        return `Mm${Math.abs(h).toString(36)}${h2.toString(36)}9x`.slice(0, 28);
+    }
+
     function formatPbError(body, fallback) {
         if (!body || typeof body !== 'object') return fallback;
         const parts = [];
@@ -75,36 +87,58 @@
 
     function getChatSettings(STORAGE_KEYS) {
         const keys = chatKeys(STORAGE_KEYS);
+        const mail = suggestOfficeChatEmail();
+        const pass = getOfficeChatAutoPassword(mail);
+        // Default ON — techs should not need Settings for chat
+        const enabledRaw = GM_getValue(keys.enabled, true);
         return {
-            enabled: !!GM_getValue(keys.enabled, false),
+            enabled: enabledRaw !== false,
             baseUrl: OFFICE_CHAT_BASE_URL,
-            user: String(GM_getValue(keys.user, '') || '').trim(),
-            pass: String(GM_getValue(keys.pass, '') || ''),
+            user: mail,
+            pass,
             muted: !!GM_getValue(keys.muted, false),
         };
+    }
+
+    function extractLoginDisplayName(raw) {
+        const text = String(raw || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!text) return '';
+        const match = text.match(/(?:είσοδος|εισοδος)\s+ως\s+(.+)/i);
+        if (match?.[1]) return String(match[1]).trim();
+        return text;
     }
 
     function getLoginBlockDisplayName() {
         try {
             if (typeof window.MMS_PROFILES?.parseLoginBlockDisplayName === 'function') {
                 const fromApi = window.MMS_PROFILES.parseLoginBlockDisplayName();
-                if (fromApi) return String(fromApi).trim();
+                const cleaned = extractLoginDisplayName(fromApi);
+                if (cleaned) return cleaned;
             }
         } catch (_) { /* ignore */ }
-        // Inline fallback (same rules as myman_profiles.js)
-        const loginBlock = document.getElementById('login_block1');
-        if (!loginBlock) return '';
-        const bold = loginBlock.querySelector('b');
-        if (bold) {
-            const name = String(bold.textContent || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
-            if (name) return name;
+        const roots = [
+            document.getElementById('login_block1'),
+            document.querySelector('.rnr-b-loggedas'),
+        ].filter(Boolean);
+        for (const root of roots) {
+            const bold = root.querySelector('b');
+            if (bold) {
+                const name = extractLoginDisplayName(bold.textContent);
+                if (name) return name;
+            }
+            const span = root.querySelector('span');
+            if (span) {
+                const name = extractLoginDisplayName(span.textContent);
+                if (name) return name;
+            }
+            const whole = extractLoginDisplayName(root.textContent);
+            if (whole && !/^(είσοδος|εισοδος)/i.test(whole)) return whole;
         }
-        const span = loginBlock.querySelector('span');
-        if (span) {
-            const text = String(span.textContent || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
-            const match = text.match(/(?:είσοδος|εισοδος)\s+ως\s+(.+)/i);
-            if (match?.[1]) return String(match[1]).replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
-        }
+        try {
+            const label = window.MMS_PROFILES?.getActiveProfileLabel?.();
+            const cleaned = extractLoginDisplayName(label);
+            if (cleaned && cleaned !== '_unknown') return cleaned;
+        } catch (_) { /* ignore */ }
         return '';
     }
 
@@ -113,8 +147,11 @@
         if (fromLogin) return fromLogin.slice(0, 64);
         const name = window.tmCurrentUser
             || window.config?.currentUser
+            || window.config?.profileLabel
             || '';
-        return String(name || 'Τεχνικός').trim().slice(0, 64) || 'Τεχνικός';
+        const cleaned = extractLoginDisplayName(name);
+        if (cleaned) return cleaned.slice(0, 64);
+        return 'Τεχνικός';
     }
 
     function getProfileId() {
@@ -201,26 +238,131 @@
         return `${getLoginNameSlug()}@myman.chat`;
     }
 
+    async function authWithPassword(STORAGE_KEYS, email, password) {
+        const baseUrl = OFFICE_CHAT_BASE_URL;
+        const url = `${baseUrl}/api/collections/users/auth-with-password`;
+        const { status, body } = await chatRequestJson({
+            method: 'POST',
+            url,
+            headers: { 'Content-Type': 'application/json' },
+            data: JSON.stringify({ identity: email, password }),
+            timeout: 12000,
+        });
+        if (status < 200 || status >= 300 || !body?.token) {
+            const msg = body?.message || `Auth failed (${status})`;
+            throw new Error(msg);
+        }
+        const now = Date.now();
+        let expires = now + 12 * 60 * 60 * 1000;
+        try {
+            const payload = JSON.parse(atob(String(body.token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            if (payload?.exp) expires = Number(payload.exp) * 1000;
+        } catch (_) { /* ignore */ }
+        chatAuthToken = body.token;
+        chatAuthExpires = expires;
+        saveCachedToken(STORAGE_KEYS, chatAuthToken, expires);
+        return body;
+    }
+
+    /** Move old manual passwords onto the silent auto password (multi-PC). */
+    async function migrateToAutoPassword(STORAGE_KEYS, recordId, oldPassword, newPassword) {
+        if (!recordId || !oldPassword || !newPassword || oldPassword === newPassword) return false;
+        const token = chatAuthToken;
+        if (!token) return false;
+        const url = `${OFFICE_CHAT_BASE_URL}/api/collections/users/records/${encodeURIComponent(recordId)}`;
+        try {
+            const { status } = await chatRequestJson({
+                method: 'PATCH',
+                url,
+                headers: {
+                    Authorization: token,
+                    'Content-Type': 'application/json',
+                },
+                data: JSON.stringify({
+                    oldPassword,
+                    password: newPassword,
+                    passwordConfirm: newPassword,
+                }),
+                timeout: 12000,
+            });
+            return status >= 200 && status < 300;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    async function ensureOfficeChatAccount(STORAGE_KEYS) {
+        const keys = chatKeys(STORAGE_KEYS);
+        const mail = suggestOfficeChatEmail();
+        const autoPass = getOfficeChatAutoPassword(mail);
+        const legacyPass = String(GM_getValue(keys.pass, '') || '');
+        if (!mail || !autoPass) {
+            return { ok: false, message: 'Δεν βρέθηκε όνομα login MyManager.' };
+        }
+        GM_setValue(keys.user, mail);
+
+        const tryLogin = async (pass) => {
+            clearCachedToken(STORAGE_KEYS);
+            GM_setValue(keys.pass, pass);
+            return authWithPassword(STORAGE_KEYS, mail, pass);
+        };
+
+        // 1) Silent auto password
+        try {
+            await tryLogin(autoPass);
+            return { ok: true, email: mail, message: 'Συνδεδεμένο' };
+        } catch (_) { /* next */ }
+
+        // 2) Legacy manual password from Settings (migrate → auto)
+        if (legacyPass && legacyPass !== autoPass && legacyPass.length >= 8) {
+            try {
+                const body = await tryLogin(legacyPass);
+                const recordId = body?.record?.id;
+                const migrated = await migrateToAutoPassword(STORAGE_KEYS, recordId, legacyPass, autoPass);
+                if (migrated) {
+                    clearCachedToken(STORAGE_KEYS);
+                    await tryLogin(autoPass);
+                    return { ok: true, email: mail, message: 'Συνδεδεμένο (αυτόματος κωδικός)', migrated: true };
+                }
+                // Keep working with legacy if migrate blocked
+                return { ok: true, email: mail, message: 'Συνδεδεμένο', legacy: true };
+            } catch (_) { /* register next */ }
+        }
+
+        // 3) Silent register
+        GM_setValue(keys.pass, autoPass);
+        const created = await registerOfficeChatUser(STORAGE_KEYS, {
+            email: mail,
+            password: autoPass,
+            passwordConfirm: autoPass,
+        });
+        if (created.ok) return created;
+
+        // 4) Race: someone else just created it
+        try {
+            await tryLogin(autoPass);
+            return { ok: true, email: mail, message: 'Συνδεδεμένο', existed: true };
+        } catch (_) {
+            return created;
+        }
+    }
+
     async function registerOfficeChatUser(STORAGE_KEYS, { email, password, passwordConfirm } = {}) {
         try {
             const baseUrl = OFFICE_CHAT_BASE_URL;
             const displayName = getDisplayName();
-            const mail = suggestOfficeChatEmail();
-            const pass = String(password || '');
+            const mail = String(email || suggestOfficeChatEmail()).trim().toLowerCase() || suggestOfficeChatEmail();
+            const pass = String(password || getOfficeChatAutoPassword(mail));
             const pass2 = passwordConfirm != null ? String(passwordConfirm) : pass;
 
             if (!mail || !mail.includes('@')) {
                 return { ok: false, message: 'Μη έγκυρο email από το όνομα login.' };
             }
             if (pass.length < 8) {
-                return { ok: false, message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.' };
-            }
-            if (pass !== pass2) {
-                return { ok: false, message: 'Οι κωδικοί δεν ταιριάζουν.' };
+                return { ok: false, message: 'Αυτόματος κωδικός μη έγκυρος.' };
             }
 
             const url = `${baseUrl}/api/collections/users/records`;
-            // Minimal payload — username/emailVisibility often break create on locked schemas
             const payload = {
                 email: mail,
                 password: pass,
@@ -248,7 +390,6 @@
                 };
             }
 
-            // Already registered → try login with this password
             if (status === 400 && /already|unique|exists|taken/i.test(JSON.stringify(body || {}))) {
                 const keys = chatKeys(STORAGE_KEYS);
                 GM_setValue(keys.user, mail);
@@ -256,12 +397,12 @@
                 GM_setValue(keys.tokenCache, '');
                 try {
                     await ensureAuth(STORAGE_KEYS, { force: true });
-                    return { ok: true, email: mail, message: 'Ο λογαριασμός υπάρχει ήδη — σύνδεση OK.', existed: true };
+                    return { ok: true, email: mail, message: 'Συνδεδεμένο', existed: true };
                 } catch (_) {
                     return {
                         ok: false,
                         email: mail,
-                        message: 'Το email υπάρχει ήδη. Βάλε τον σωστό κωδικό και πάτα Έλεγχος σύνδεσης.',
+                        message: 'Ο λογαριασμός υπάρχει με άλλον κωδικό. Διέγραψέ τον από PocketBase Admin → users και ξαναδοκίμασε.',
                     };
                 }
             }
@@ -269,7 +410,7 @@
             if (status < 200 || status >= 300) {
                 let msg = formatPbError(body, `Εγγραφή απέτυχε (${status})`);
                 if (/failed to create record/i.test(msg)) {
-                    msg += ' — Admin → users → API Rules → Create: ξεκλείδωσε και βάλε @request.auth.id = "" · απενεργοποίησε email verification';
+                    msg += ' — Admin → users → Create: ξεκλείδωσε + @request.auth.id = "" · off email verification';
                 }
                 return { ok: false, email: mail, message: msg };
             }
@@ -284,11 +425,11 @@
                 return {
                     ok: true,
                     email: mail,
-                    message: `Λογαριασμός OK, σύνδεση απέτυχε: ${err?.message || err}. Δοκίμασε Έλεγχος σύνδεσης.`,
+                    message: `Λογαριασμός OK, σύνδεση απέτυχε: ${err?.message || err}`,
                     authFailed: true,
                 };
             }
-            return { ok: true, email: mail, message: 'Λογαριασμός δημιουργήθηκε και συνδέθηκε.' };
+            return { ok: true, email: mail, message: 'Έτοιμο' };
         } catch (err) {
             return { ok: false, message: err?.message || 'Άγνωστο σφάλμα εγγραφής' };
         }
@@ -735,18 +876,18 @@
             setChatStatus('disabled');
             return { ok: false, reason: 'disabled' };
         }
-        if (!settings.user || !settings.pass) {
-            setChatStatus('error', 'Ρυθμίστε λογαριασμό chat');
-            return { ok: false, reason: 'config' };
-        }
         if (chatConnecting) return { ok: false, reason: 'busy' };
         chatConnecting = true;
-        setChatStatus('connecting');
+        setChatStatus('connecting', 'αυτόματη σύνδεση…');
         try {
-            await ensureAuth(STORAGE_KEYS, { force: true });
+            const ensured = await ensureOfficeChatAccount(STORAGE_KEYS);
+            if (!ensured.ok) {
+                setChatStatus('error', ensured.message || 'Εγγραφή/σύνδεση απέτυχε');
+                return { ok: false, reason: 'account', error: ensured };
+            }
             await fetchMessages(STORAGE_KEYS);
             const realtimeOk = await tryStartRealtime(STORAGE_KEYS);
-            startPolling(STORAGE_KEYS); // always poll as safety net
+            startPolling(STORAGE_KEYS);
             setChatStatus('online', realtimeOk ? 'realtime+poll' : 'poll');
             return { ok: true, realtime: realtimeOk };
         } catch (err) {
@@ -758,15 +899,11 @@
     }
 
     async function testChatConnection(STORAGE_KEYS) {
-        const settings = getChatSettings(STORAGE_KEYS);
-        if (!settings.user || !settings.pass) {
-            return { ok: false, message: 'Συμπληρώστε χρήστη και κωδικό.' };
-        }
         try {
-            clearCachedToken(STORAGE_KEYS);
-            await ensureAuth(STORAGE_KEYS, { force: true });
+            const ensured = await ensureOfficeChatAccount(STORAGE_KEYS);
+            if (!ensured.ok) return ensured;
             await fetchMessages(STORAGE_KEYS);
-            return { ok: true, message: 'Σύνδεση OK — το chat είναι έτοιμο.' };
+            return { ok: true, message: `OK — ${ensured.email || suggestOfficeChatEmail()}` };
         } catch (err) {
             return { ok: false, message: err?.message || 'Αποτυχία σύνδεσης' };
         }
@@ -1002,6 +1139,7 @@
     window.initOfficeChatFeature = initOfficeChatFeature;
     window.testOfficeChatConnection = testChatConnection;
     window.connectOfficeChat = connectChat;
+    window.ensureOfficeChatAccount = ensureOfficeChatAccount;
     window.getOfficeChatSettings = getChatSettings;
     window.suggestOfficeChatEmail = suggestOfficeChatEmail;
     window.registerOfficeChatUser = registerOfficeChatUser;

@@ -115,13 +115,8 @@ Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots. Sn
 ## 8. Suite (each tech)
 
 1. Tampermonkey → update the **loader** once if needed (`@connect` includes this host).
-2. MyManager → Suite **Settings → Chat**.
-3. Enable chat, paste:
+2. Open MyManager — chat is **on by default**.
+3. Click **💬 Chat** (right slide-out). First use auto-registers from the login name (no password in Settings).
+4. Optional: **Settings → Chat** → enable/disable or **Έλεγχος σύνδεσης**.
 
-   `https://mngerchat.littlejol.mywire.org`
-
-4. Enter PocketBase username + password.
-5. **Έλεγχος σύνδεσης** → Save & reload.
-6. Use the **Chat** button (right slide-out area).
-
-Display names in chat come from the MyManager login (`tmCurrentUser`), not from the PocketBase username.
+Display names in chat come from the MyManager login name, not from typing an account.
