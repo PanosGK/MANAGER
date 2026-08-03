@@ -919,20 +919,44 @@
 
     function refreshChatStoreSelect(STORAGE_KEYS) {
         const select = document.getElementById('tm-chat-store-select');
-        if (!select) return;
+        const row = document.getElementById('tm-chat-store-row');
+        const chip = document.getElementById('tm-chat-store-chip');
         const loginStore = detectLoginStoreName();
         const locked = !!loginStore;
         if (loginStore) {
             setChatStoreName(STORAGE_KEYS, loginStore, { manual: false });
         }
         const current = getChatStoreName(STORAGE_KEYS);
+
+        if (chip) {
+            if (locked && current) {
+                chip.hidden = false;
+                chip.textContent = current.length > 18 ? `${current.slice(0, 16)}…` : current;
+                chip.title = `Κατάστημα (από login): ${current}`;
+            } else {
+                chip.hidden = true;
+                chip.textContent = '';
+                chip.removeAttribute('title');
+            }
+        }
+
+        if (row) {
+            row.hidden = locked;
+            row.classList.toggle('is-locked', locked);
+        }
+
+        if (!select) return;
+        if (locked) {
+            select.disabled = true;
+            select.classList.add('is-locked');
+            return;
+        }
+
         const options = getChatStoreOptions(STORAGE_KEYS);
         select.innerHTML = '';
         const placeholder = document.createElement('option');
         placeholder.value = '';
-        placeholder.textContent = locked
-            ? '— Από login —'
-            : '— Επίλεξε κατάστημα —';
+        placeholder.textContent = '— Επίλεξε κατάστημα —';
         select.appendChild(placeholder);
         options.forEach((name) => {
             const opt = document.createElement('option');
@@ -942,26 +966,11 @@
             select.appendChild(opt);
         });
         if (current) select.value = current;
-        select.disabled = locked;
-        select.classList.toggle('is-locked', locked);
-        const row = document.getElementById('tm-chat-store-row');
-        if (row) row.classList.toggle('is-locked', locked);
+        select.disabled = false;
+        select.classList.remove('is-locked');
+        select.title = 'Επίλεξε κατάστημα (δεν βρέθηκε αυτόματα από το login)';
         let lockHint = document.getElementById('tm-chat-store-lock');
-        if (locked) {
-            if (!lockHint && row) {
-                lockHint = document.createElement('span');
-                lockHint.id = 'tm-chat-store-lock';
-                lockHint.textContent = '🔒';
-                lockHint.title = 'Κλειδωμένο από το login';
-                row.appendChild(lockHint);
-            }
-            if (lockHint) lockHint.hidden = false;
-        } else if (lockHint) {
-            lockHint.hidden = true;
-        }
-        select.title = locked
-            ? 'Κλειδωμένο από το κατάστημα του MyManager login'
-            : 'Επίλεξε κατάστημα (δεν βρέθηκε αυτόματα από το login)';
+        if (lockHint) lockHint.hidden = true;
     }
 
     function wireChatStoreSelect(STORAGE_KEYS) {
@@ -2759,7 +2768,24 @@
                 display: block; font-weight: 700; font-size: 13px;
                 color: var(--tm-chat-ink); line-height: 1.2;
                 white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                flex-shrink: 0;
             }
+            .tm-chat-store-chip {
+                display: inline-flex; align-items: center; gap: 3px;
+                max-width: 110px; min-width: 0;
+                font-size: 10px; font-weight: 600; line-height: 1.2;
+                color: var(--tm-chat-accent);
+                background: color-mix(in srgb, var(--tm-chat-accent) 12%, #fff);
+                border: 1px solid color-mix(in srgb, var(--tm-chat-accent) 22%, #e2e8f0);
+                border-radius: 999px; padding: 2px 7px 2px 6px;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }
+            .tm-chat-store-chip::before {
+                content: '🔒';
+                font-size: 9px;
+                flex-shrink: 0;
+            }
+            .tm-chat-store-chip[hidden] { display: none !important; }
             #tm-chat-subtitle { display: none; }
             .tm-chat-header-actions { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
             #tm-chat-header button {
@@ -2820,6 +2846,7 @@
                 padding: 4px 8px; border-bottom: 1px solid var(--tm-chat-line);
                 background: #fff; flex-shrink: 0;
             }
+            #tm-chat-store-row[hidden] { display: none !important; }
             #tm-chat-store-row.is-locked { background: #f8fafc; }
             #tm-chat-store-row label {
                 font-size: 10px; font-weight: 600; color: #64748b; white-space: nowrap;
@@ -3218,6 +3245,7 @@
                     <div id="tm-chat-title-wrap">
                         <span class="tm-chat-live-dot" id="tm-chat-live-dot" data-status="idle" title="Κατάσταση" aria-hidden="true"></span>
                         <span id="tm-chat-title">Office Chat</span>
+                        <span id="tm-chat-store-chip" class="tm-chat-store-chip" hidden title="Κατάστημα από login"></span>
                     </div>
                 </div>
                 <div class="tm-chat-header-actions">
@@ -3753,7 +3781,7 @@
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '10';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '11';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
             hideChatMessageContextMenu();
@@ -3761,7 +3789,7 @@
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '10');
+            panel.setAttribute('data-tm-chat-ui', '11');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);

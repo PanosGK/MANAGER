@@ -1,11 +1,11 @@
 {
-  "version": "372",
+  "version": "373",
   "loaderVersion": "41",
-  "silentVersion": "16",
-  "displayVersion": "41.16",
+  "silentVersion": "17",
+  "displayVersion": "41.17",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Replace chat hover actions with right-click context menu",
+  "releaseNotes": "Show locked store as compact header chip instead of dropdown row",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
