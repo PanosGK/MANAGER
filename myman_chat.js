@@ -1781,8 +1781,8 @@
                     </div>
                     ${replyHtml}
                     <div class="tm-chat-msg-text">${bodyHtml}</div>
-                    ${actions}
                 </div>
+                ${actions}
             </div>`;
         }).join('');
         if (stickToBottom && !q) list.scrollTop = list.scrollHeight;
@@ -2871,6 +2871,7 @@
             }
             .tm-chat-empty-sub { font-size: 11px; line-height: 1.4; }
             .tm-chat-msg {
+                position: relative;
                 display: flex; align-items: flex-end; gap: 6px;
                 max-width: 94%; align-self: flex-start;
                 background: transparent; border: none; padding: 0;
@@ -3140,14 +3141,38 @@
             }
             .tm-chat-msg-reply strong { display: block; color: var(--tm-chat-ink); font-size: 11px; }
             .tm-chat-msg-actions {
-                display: none; gap: 4px; margin-top: 4px; justify-content: flex-end;
+                position: absolute;
+                top: -10px;
+                right: 28px;
+                display: flex;
+                gap: 2px;
+                padding: 2px;
+                margin: 0;
+                border-radius: 8px;
+                background: #fff;
+                border: 1px solid var(--tm-chat-line);
+                box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+                opacity: 0;
+                pointer-events: none;
+                transform: translateY(2px);
+                transition: opacity 0.12s ease, transform 0.12s ease;
+                z-index: 3;
             }
-            .tm-chat-msg:hover .tm-chat-msg-actions { display: flex; }
+            .tm-chat-msg.is-mine .tm-chat-msg-actions {
+                right: auto;
+                left: 28px;
+            }
+            .tm-chat-msg:hover .tm-chat-msg-actions,
+            .tm-chat-msg:focus-within .tm-chat-msg-actions {
+                opacity: 1;
+                pointer-events: auto;
+                transform: translateY(0);
+            }
             .tm-chat-act {
-                border: 0; background: #f1f5f9; border-radius: 6px; width: 24px; height: 22px;
-                cursor: pointer; font-size: 11px; line-height: 1;
+                border: 0; background: transparent; border-radius: 6px; width: 26px; height: 24px;
+                cursor: pointer; font-size: 12px; line-height: 1; color: #475569;
             }
-            .tm-chat-act:hover { background: #e2e8f0; }
+            .tm-chat-act:hover { background: #f1f5f9; color: #0f172a; }
             .tm-chat-mention {
                 color: var(--tm-chat-accent); font-weight: 700; background: color-mix(in srgb, var(--tm-chat-accent) 12%, transparent);
                 border-radius: 4px; padding: 0 2px;

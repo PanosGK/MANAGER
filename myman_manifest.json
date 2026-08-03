@@ -1,11 +1,11 @@
 {
-  "version": "370",
+  "version": "371",
   "loaderVersion": "41",
-  "silentVersion": "14",
-  "displayVersion": "41.14",
+  "silentVersion": "15",
+  "displayVersion": "41.15",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Office chat feature pack: rooms, mentions, reply, pin, search, presence, sound, repair links, receipts, own-message delete",
+  "releaseNotes": "Float chat message actions on hover without layout shift",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
