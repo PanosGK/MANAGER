@@ -430,8 +430,10 @@
         if (existing) existing.remove();
 
         const options = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
-        const currentPick = window.getUserStorePick?.() || '';
-        const detected = window.getAutoDetectedStoreName?.() || '';
+        const loginStore = window.getLoginCapturedStore?.() || '';
+        const currentPick = window.getUserStorePick?.() || loginStore || '';
+        const detected = loginStore || window.getAutoDetectedStoreName?.() || '';
+        const locked = !!loginStore;
         const modal = document.createElement('div');
         modal.id = 'tm-phone-mystore-modal';
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -450,16 +452,18 @@
                 <button id="tm-mystore-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
             </div>
             <div style="font-size:11px;opacity:0.75;margin-bottom:12px;line-height:1.45;">${t('My store location hint')}</div>
-            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:6px;">${t('Select store')}</label>
-            <select id="tm-my-store-pick" style="width:100%;padding:10px 12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;box-sizing:border-box;margin-bottom:10px;">
+            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:6px;">${t('Select store')}${locked ? ' 🔒' : ''}</label>
+            <select id="tm-my-store-pick" ${locked ? 'disabled' : ''} style="width:100%;padding:10px 12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;box-sizing:border-box;margin-bottom:10px;${locked ? 'opacity:0.9;cursor:not-allowed;' : ''}">
                 <option value="">${t('Auto-detect store')}${detected ? ` (${detected})` : ''}</option>
                 ${optionHtml}
             </select>
             <div id="tm-my-store-detected" style="font-size:11px;opacity:0.7;margin-bottom:14px;">
-                ${detected ? `${t('Auto-detected store')}: <strong>${detected}</strong>` : t('No store detected')}
+                ${locked
+                    ? `${t('Auto-detected store')} (login): <strong>${loginStore}</strong>`
+                    : (detected ? `${t('Auto-detected store')}: <strong>${detected}</strong>` : t('No store detected'))}
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button id="tm-save-my-store" type="button" style="padding:8px 14px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;">${t('Save')}</button>
+                <button id="tm-save-my-store" type="button" style="padding:8px 14px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;" ${locked ? 'disabled' : ''}>${locked ? '🔒 Login' : t('Save')}</button>
             </div>
         `;
 
@@ -468,6 +472,12 @@
 
         const pickSelect = panel.querySelector('#tm-my-store-pick');
         const save = () => {
+            if (locked) {
+                window.syncMyStoreFromLoginCapture?.();
+                onChange();
+                modal.remove();
+                return;
+            }
             const value = pickSelect.value || '';
             window.setUserStorePick?.(value);
             if (window.showPositiveMessage) window.showPositiveMessage(t('My store saved'));
@@ -489,8 +499,10 @@
 
         const rules = window.loadPhoneStoreRules?.() || window.getDefaultPhoneStoreRules?.() || { buybackPatterns: [], regularPatterns: [], overrides: {} };
         const storeOptions = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
-        const currentPick = window.getUserStorePick?.() || '';
-        const detected = window.getAutoDetectedStoreName?.() || '';
+        const loginStore = window.getLoginCapturedStore?.() || '';
+        const currentPick = window.getUserStorePick?.() || loginStore || '';
+        const detected = loginStore || window.getAutoDetectedStoreName?.() || '';
+        const locked = !!loginStore;
         const modal = document.createElement('div');
         modal.id = 'tm-phone-stores-modal';
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -504,12 +516,12 @@
                 <button id="tm-stores-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
-                <label style="font-size:12px;font-weight:600;">${t('My store location')}</label>
-                <select id="tm-my-store-pick-inline" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
+                <label style="font-size:12px;font-weight:600;">${t('My store location')}${locked ? ' 🔒' : ''}</label>
+                <select id="tm-my-store-pick-inline" ${locked ? 'disabled' : ''} style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;${locked ? 'opacity:0.9;cursor:not-allowed;' : ''}">
                     <option value="">${t('Auto-detect store')}${detected ? ` (${detected})` : ''}</option>
                     ${storeOptions.map((name) => `<option value="${name.replace(/"/g, '&quot;')}"${currentPick === name ? ' selected' : ''}>${name}</option>`).join('')}
                 </select>
-                <div style="font-size:11px;opacity:0.7;line-height:1.4;">${t('My store location hint')}</div>
+                <div style="font-size:11px;opacity:0.7;line-height:1.4;">${locked ? `${t('Auto-detected store')} (login): <strong>${loginStore}</strong>` : t('My store location hint')}</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -688,7 +700,11 @@
                 buybackPatternsInput.value = next.buybackPatterns.join(', ');
             }
             window.savePhoneStoreRules?.(next);
-            window.setUserStorePick?.(myStorePickInput?.value || '');
+            if (window.getLoginCapturedStore?.()) {
+                window.syncMyStoreFromLoginCapture?.();
+            } else {
+                window.setUserStorePick?.(myStorePickInput?.value || '');
+            }
             persistAddressesFromForm();
             draftOverrides = { ...next.overrides };
             if (window.showPositiveMessage) window.showPositiveMessage(t('Store rules saved'));

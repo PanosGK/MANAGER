@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v357 / Custom Ver. 41.1 — generated, do not edit */
+/* MyManager Suite bundle v358 / Custom Ver. 41.2 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '357',
+        version: '358',
         loaderVersion: '41',
-        silentVersion: '1',
-        displayVersion: '41.1',
+        silentVersion: '2',
+        displayVersion: '41.2',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -55487,6 +55487,7 @@ function normalizeStoreDisplayName(name) {
 
 const MY_STORE_NAME_KEY = 'tm_phone_my_store_name_v1';
 const MY_STORE_PICK_KEY = 'tm_phone_my_store_pick_v1';
+const LOGIN_STORE_KEY = 'tm_login_store_v1';
 const STORE_ADDRESSES_KEY = 'tm_phone_store_addresses_v1';
 
 const DEFAULT_PROFILE_STORES = [
@@ -55609,15 +55610,47 @@ function detectAndCacheCurrentStoreName(doc = document) {
     return GM_getValue(MY_STORE_NAME_KEY, '') || '';
 }
 
+function getLoginCapturedStore() {
+    try {
+        const login = normalizeStoreDisplayName(GM_getValue(LOGIN_STORE_KEY, '') || '');
+        if (login && !isDeprecatedStoreName(login)) return login;
+    } catch (_) { /* ignore */ }
+    return '';
+}
+
+/** Prefer login-captured store for "my store"; keeps pick/cache in sync. */
+function syncMyStoreFromLoginCapture() {
+    const login = getLoginCapturedStore();
+    if (!login) return '';
+    try {
+        GM_setValue(MY_STORE_NAME_KEY, login);
+    } catch (_) { /* ignore */ }
+    try {
+        const pick = normalizeStoreDisplayName(GM_getValue(MY_STORE_PICK_KEY, '') || '');
+        if (!pick || normalizeStoreLookupKey(pick) !== normalizeStoreLookupKey(login)) {
+            GM_setValue(MY_STORE_PICK_KEY, login);
+        }
+    } catch (_) { /* ignore */ }
+    return login;
+}
+
 function getAutoDetectedStoreName(doc = document) {
     return detectAndCacheCurrentStoreName(doc);
 }
 
 function getUserStorePick() {
+    const login = syncMyStoreFromLoginCapture();
+    if (login) return login;
     return GM_getValue(MY_STORE_PICK_KEY, '') || '';
 }
 
 function setUserStorePick(name) {
+    // Login auto-store locks "my store" (same as chat)
+    const login = getLoginCapturedStore();
+    if (login) {
+        try { GM_setValue(MY_STORE_PICK_KEY, login); } catch (_) { /* ignore */ }
+        return login;
+    }
     const clean = normalizeStoreDisplayName(name);
     if (clean) {
         GM_setValue(MY_STORE_PICK_KEY, clean);
@@ -55641,14 +55674,18 @@ function getStorePickerOptions(...phoneLists) {
     (collectKnownStoreNames(...phoneLists) || []).forEach(add);
     const detected = GM_getValue(MY_STORE_NAME_KEY, '');
     if (detected) add(detected);
-    const pick = getUserStorePick();
+    const login = getLoginCapturedStore();
+    if (login) add(login);
+    const pick = GM_getValue(MY_STORE_PICK_KEY, '') || '';
     if (pick) add(pick);
 
     return [...seen.values()].sort((a, b) => a.localeCompare(b, 'el'));
 }
 
 function getCurrentStoreName() {
-    const pick = getUserStorePick();
+    const login = syncMyStoreFromLoginCapture();
+    if (login) return login;
+    const pick = GM_getValue(MY_STORE_PICK_KEY, '') || '';
     if (pick) return pick;
     return getAutoDetectedStoreName(document);
 }
@@ -57634,6 +57671,8 @@ window.getCurrentStoreName = getCurrentStoreName;
 window.getAutoDetectedStoreName = getAutoDetectedStoreName;
 window.getUserStorePick = getUserStorePick;
 window.setUserStorePick = setUserStorePick;
+window.getLoginCapturedStore = getLoginCapturedStore;
+window.syncMyStoreFromLoginCapture = syncMyStoreFromLoginCapture;
 window.getStorePickerOptions = getStorePickerOptions;
 window.loadStoreAddresses = loadStoreAddresses;
 window.saveStoreAddresses = saveStoreAddresses;
@@ -57668,9 +57707,13 @@ window.collectSuggestedCanonicalModels = collectSuggestedCanonicalModels;
 window.rebuildCanonModelTokens = rebuildCanonModelTokens;
 
 if (document.body) {
+    syncMyStoreFromLoginCapture();
     detectAndCacheCurrentStoreName(document);
-        } else {
-    document.addEventListener('DOMContentLoaded', () => detectAndCacheCurrentStoreName(document), { once: true });
+} else {
+    document.addEventListener('DOMContentLoaded', () => {
+        syncMyStoreFromLoginCapture();
+        detectAndCacheCurrentStoreName(document);
+    }, { once: true });
 }
 
 
@@ -58099,8 +58142,10 @@ if (document.body) {
         if (existing) existing.remove();
 
         const options = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
-        const currentPick = window.getUserStorePick?.() || '';
-        const detected = window.getAutoDetectedStoreName?.() || '';
+        const loginStore = window.getLoginCapturedStore?.() || '';
+        const currentPick = window.getUserStorePick?.() || loginStore || '';
+        const detected = loginStore || window.getAutoDetectedStoreName?.() || '';
+        const locked = !!loginStore;
         const modal = document.createElement('div');
         modal.id = 'tm-phone-mystore-modal';
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -58119,16 +58164,18 @@ if (document.body) {
                 <button id="tm-mystore-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
             </div>
             <div style="font-size:11px;opacity:0.75;margin-bottom:12px;line-height:1.45;">${t('My store location hint')}</div>
-            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:6px;">${t('Select store')}</label>
-            <select id="tm-my-store-pick" style="width:100%;padding:10px 12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;box-sizing:border-box;margin-bottom:10px;">
+            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:6px;">${t('Select store')}${locked ? ' 🔒' : ''}</label>
+            <select id="tm-my-store-pick" ${locked ? 'disabled' : ''} style="width:100%;padding:10px 12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;box-sizing:border-box;margin-bottom:10px;${locked ? 'opacity:0.9;cursor:not-allowed;' : ''}">
                 <option value="">${t('Auto-detect store')}${detected ? ` (${detected})` : ''}</option>
                 ${optionHtml}
             </select>
             <div id="tm-my-store-detected" style="font-size:11px;opacity:0.7;margin-bottom:14px;">
-                ${detected ? `${t('Auto-detected store')}: <strong>${detected}</strong>` : t('No store detected')}
+                ${locked
+                    ? `${t('Auto-detected store')} (login): <strong>${loginStore}</strong>`
+                    : (detected ? `${t('Auto-detected store')}: <strong>${detected}</strong>` : t('No store detected'))}
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button id="tm-save-my-store" type="button" style="padding:8px 14px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;">${t('Save')}</button>
+                <button id="tm-save-my-store" type="button" style="padding:8px 14px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;" ${locked ? 'disabled' : ''}>${locked ? '🔒 Login' : t('Save')}</button>
             </div>
         `;
 
@@ -58137,6 +58184,12 @@ if (document.body) {
 
         const pickSelect = panel.querySelector('#tm-my-store-pick');
         const save = () => {
+            if (locked) {
+                window.syncMyStoreFromLoginCapture?.();
+                onChange();
+                modal.remove();
+                return;
+            }
             const value = pickSelect.value || '';
             window.setUserStorePick?.(value);
             if (window.showPositiveMessage) window.showPositiveMessage(t('My store saved'));
@@ -58158,8 +58211,10 @@ if (document.body) {
 
         const rules = window.loadPhoneStoreRules?.() || window.getDefaultPhoneStoreRules?.() || { buybackPatterns: [], regularPatterns: [], overrides: {} };
         const storeOptions = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
-        const currentPick = window.getUserStorePick?.() || '';
-        const detected = window.getAutoDetectedStoreName?.() || '';
+        const loginStore = window.getLoginCapturedStore?.() || '';
+        const currentPick = window.getUserStorePick?.() || loginStore || '';
+        const detected = loginStore || window.getAutoDetectedStoreName?.() || '';
+        const locked = !!loginStore;
         const modal = document.createElement('div');
         modal.id = 'tm-phone-stores-modal';
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -58173,12 +58228,12 @@ if (document.body) {
                 <button id="tm-stores-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
-                <label style="font-size:12px;font-weight:600;">${t('My store location')}</label>
-                <select id="tm-my-store-pick-inline" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
+                <label style="font-size:12px;font-weight:600;">${t('My store location')}${locked ? ' 🔒' : ''}</label>
+                <select id="tm-my-store-pick-inline" ${locked ? 'disabled' : ''} style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;${locked ? 'opacity:0.9;cursor:not-allowed;' : ''}">
                     <option value="">${t('Auto-detect store')}${detected ? ` (${detected})` : ''}</option>
                     ${storeOptions.map((name) => `<option value="${name.replace(/"/g, '&quot;')}"${currentPick === name ? ' selected' : ''}>${name}</option>`).join('')}
                 </select>
-                <div style="font-size:11px;opacity:0.7;line-height:1.4;">${t('My store location hint')}</div>
+                <div style="font-size:11px;opacity:0.7;line-height:1.4;">${locked ? `${t('Auto-detected store')} (login): <strong>${loginStore}</strong>` : t('My store location hint')}</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -58357,7 +58412,11 @@ if (document.body) {
                 buybackPatternsInput.value = next.buybackPatterns.join(', ');
             }
             window.savePhoneStoreRules?.(next);
-            window.setUserStorePick?.(myStorePickInput?.value || '');
+            if (window.getLoginCapturedStore?.()) {
+                window.syncMyStoreFromLoginCapture?.();
+            } else {
+                window.setUserStorePick?.(myStorePickInput?.value || '');
+            }
             persistAddressesFromForm();
             draftOverrides = { ...next.overrides };
             if (window.showPositiveMessage) window.showPositiveMessage(t('Store rules saved'));

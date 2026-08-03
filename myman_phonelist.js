@@ -1211,6 +1211,7 @@ function normalizeStoreDisplayName(name) {
 
 const MY_STORE_NAME_KEY = 'tm_phone_my_store_name_v1';
 const MY_STORE_PICK_KEY = 'tm_phone_my_store_pick_v1';
+const LOGIN_STORE_KEY = 'tm_login_store_v1';
 const STORE_ADDRESSES_KEY = 'tm_phone_store_addresses_v1';
 
 const DEFAULT_PROFILE_STORES = [
@@ -1333,15 +1334,47 @@ function detectAndCacheCurrentStoreName(doc = document) {
     return GM_getValue(MY_STORE_NAME_KEY, '') || '';
 }
 
+function getLoginCapturedStore() {
+    try {
+        const login = normalizeStoreDisplayName(GM_getValue(LOGIN_STORE_KEY, '') || '');
+        if (login && !isDeprecatedStoreName(login)) return login;
+    } catch (_) { /* ignore */ }
+    return '';
+}
+
+/** Prefer login-captured store for "my store"; keeps pick/cache in sync. */
+function syncMyStoreFromLoginCapture() {
+    const login = getLoginCapturedStore();
+    if (!login) return '';
+    try {
+        GM_setValue(MY_STORE_NAME_KEY, login);
+    } catch (_) { /* ignore */ }
+    try {
+        const pick = normalizeStoreDisplayName(GM_getValue(MY_STORE_PICK_KEY, '') || '');
+        if (!pick || normalizeStoreLookupKey(pick) !== normalizeStoreLookupKey(login)) {
+            GM_setValue(MY_STORE_PICK_KEY, login);
+        }
+    } catch (_) { /* ignore */ }
+    return login;
+}
+
 function getAutoDetectedStoreName(doc = document) {
     return detectAndCacheCurrentStoreName(doc);
 }
 
 function getUserStorePick() {
+    const login = syncMyStoreFromLoginCapture();
+    if (login) return login;
     return GM_getValue(MY_STORE_PICK_KEY, '') || '';
 }
 
 function setUserStorePick(name) {
+    // Login auto-store locks "my store" (same as chat)
+    const login = getLoginCapturedStore();
+    if (login) {
+        try { GM_setValue(MY_STORE_PICK_KEY, login); } catch (_) { /* ignore */ }
+        return login;
+    }
     const clean = normalizeStoreDisplayName(name);
     if (clean) {
         GM_setValue(MY_STORE_PICK_KEY, clean);
@@ -1365,14 +1398,18 @@ function getStorePickerOptions(...phoneLists) {
     (collectKnownStoreNames(...phoneLists) || []).forEach(add);
     const detected = GM_getValue(MY_STORE_NAME_KEY, '');
     if (detected) add(detected);
-    const pick = getUserStorePick();
+    const login = getLoginCapturedStore();
+    if (login) add(login);
+    const pick = GM_getValue(MY_STORE_PICK_KEY, '') || '';
     if (pick) add(pick);
 
     return [...seen.values()].sort((a, b) => a.localeCompare(b, 'el'));
 }
 
 function getCurrentStoreName() {
-    const pick = getUserStorePick();
+    const login = syncMyStoreFromLoginCapture();
+    if (login) return login;
+    const pick = GM_getValue(MY_STORE_PICK_KEY, '') || '';
     if (pick) return pick;
     return getAutoDetectedStoreName(document);
 }
@@ -3358,6 +3395,8 @@ window.getCurrentStoreName = getCurrentStoreName;
 window.getAutoDetectedStoreName = getAutoDetectedStoreName;
 window.getUserStorePick = getUserStorePick;
 window.setUserStorePick = setUserStorePick;
+window.getLoginCapturedStore = getLoginCapturedStore;
+window.syncMyStoreFromLoginCapture = syncMyStoreFromLoginCapture;
 window.getStorePickerOptions = getStorePickerOptions;
 window.loadStoreAddresses = loadStoreAddresses;
 window.saveStoreAddresses = saveStoreAddresses;
@@ -3392,8 +3431,12 @@ window.collectSuggestedCanonicalModels = collectSuggestedCanonicalModels;
 window.rebuildCanonModelTokens = rebuildCanonModelTokens;
 
 if (document.body) {
+    syncMyStoreFromLoginCapture();
     detectAndCacheCurrentStoreName(document);
-        } else {
-    document.addEventListener('DOMContentLoaded', () => detectAndCacheCurrentStoreName(document), { once: true });
+} else {
+    document.addEventListener('DOMContentLoaded', () => {
+        syncMyStoreFromLoginCapture();
+        detectAndCacheCurrentStoreName(document);
+    }, { once: true });
 }
 

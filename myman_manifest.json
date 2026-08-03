@@ -1,11 +1,11 @@
 {
-  "version": "357",
+  "version": "358",
   "loaderVersion": "41",
-  "silentVersion": "1",
-  "displayVersion": "41.1",
+  "silentVersion": "2",
+  "displayVersion": "41.2",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Lock chat store when captured from login; global tm_login_store_v1",
+  "releaseNotes": "Use login auto-store for phone catalog My store (locked when captured)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
