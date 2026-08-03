@@ -91,7 +91,33 @@
         };
     }
 
+    function getLoginBlockDisplayName() {
+        try {
+            if (typeof window.MMS_PROFILES?.parseLoginBlockDisplayName === 'function') {
+                const fromApi = window.MMS_PROFILES.parseLoginBlockDisplayName();
+                if (fromApi) return String(fromApi).trim();
+            }
+        } catch (_) { /* ignore */ }
+        // Inline fallback (same rules as myman_profiles.js)
+        const loginBlock = document.getElementById('login_block1');
+        if (!loginBlock) return '';
+        const bold = loginBlock.querySelector('b');
+        if (bold) {
+            const name = String(bold.textContent || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+            if (name) return name;
+        }
+        const span = loginBlock.querySelector('span');
+        if (span) {
+            const text = String(span.textContent || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+            const match = text.match(/(?:είσοδος|εισοδος)\s+ως\s+(.+)/i);
+            if (match?.[1]) return String(match[1]).replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+        return '';
+    }
+
     function getDisplayName() {
+        const fromLogin = getLoginBlockDisplayName();
+        if (fromLogin) return fromLogin.slice(0, 64);
         const name = window.tmCurrentUser
             || window.config?.currentUser
             || '';
@@ -107,26 +133,71 @@
         return '';
     }
 
-    /** Build a valid-looking email local-part from MyManager display name / profile. */
-    function suggestOfficeChatEmail() {
-        const profileId = getProfileId();
-        const display = getDisplayName();
-        let local = String(profileId || display || 'tech')
-            .trim()
+    /** Rough Greek → Latin for email local-parts (Γκορόγιας → gkorogias). */
+    function greekToLatinSlug(raw) {
+        const map = {
+            α: 'a', ά: 'a', Α: 'a', Ά: 'a',
+            β: 'v', Β: 'v',
+            γ: 'g', Γ: 'g',
+            δ: 'd', Δ: 'd',
+            ε: 'e', έ: 'e', Ε: 'e', Έ: 'e',
+            ζ: 'z', Ζ: 'z',
+            η: 'i', ή: 'i', Η: 'i', Ή: 'i',
+            θ: 'th', Θ: 'th',
+            ι: 'i', ί: 'i', ϊ: 'i', ΐ: 'i', Ι: 'i', Ί: 'i',
+            κ: 'k', Κ: 'k',
+            λ: 'l', Λ: 'l',
+            μ: 'm', Μ: 'm',
+            ν: 'n', Ν: 'n',
+            ξ: 'x', Ξ: 'x',
+            ο: 'o', ό: 'o', Ο: 'o', Ό: 'o',
+            π: 'p', Π: 'p',
+            ρ: 'r', Ρ: 'r',
+            σ: 's', ς: 's', Σ: 's',
+            τ: 't', Τ: 't',
+            υ: 'y', ύ: 'y', ϋ: 'y', ΰ: 'y', Υ: 'y', Ύ: 'y',
+            φ: 'f', Φ: 'f',
+            χ: 'ch', Χ: 'ch',
+            ψ: 'ps', Ψ: 'ps',
+            ω: 'o', ώ: 'o', Ω: 'o', Ώ: 'o',
+        };
+        let s = String(raw || '');
+        // digraphs first
+        s = s
+            .replace(/[Γγ][Κκ]/g, 'gk')
+            .replace(/[Γγ][Γγ]/g, 'ng')
+            .replace(/[Μμ][Ππ]/g, 'b')
+            .replace(/[Νν][Ττ]/g, 'd')
+            .replace(/[Ττ][Σσς]/g, 'ts')
+            .replace(/[Ττ][Ζζ]/g, 'tz');
+        let out = '';
+        for (const ch of s) {
+            if (map[ch]) out += map[ch];
+            else out += ch;
+        }
+        return out
             .toLowerCase()
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^a-z0-9]+/g, '');
+            .replace(/[^a-z0-9]+/g, '')
+            .slice(0, 32);
+    }
+
+    /** Build email from login_block1 name: Γκορόγιας → gkorogias@myman.chat */
+    function suggestOfficeChatEmail() {
+        const display = getDisplayName();
+        let local = greekToLatinSlug(display);
         if (local.length < 2) {
-            // Greek / other scripts: stable hex slug from original characters
-            const raw = String(profileId || display || 'tech');
+            local = greekToLatinSlug(getProfileId());
+        }
+        if (local.length < 2) {
+            const raw = String(display || getProfileId() || 'tech');
             let hex = '';
             for (let i = 0; i < raw.length && hex.length < 20; i++) {
                 hex += raw.charCodeAt(i).toString(16);
             }
             local = `u${hex || Date.now().toString(36)}`;
         }
-        local = local.slice(0, 32);
         return `${local}@myman.chat`;
     }
 
@@ -143,12 +214,14 @@
         if (pass.length < 8) return { ok: false, message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.' };
         if (pass !== pass2) return { ok: false, message: 'Οι κωδικοί δεν ταιριάζουν.' };
 
+        const displayName = getDisplayName();
         const url = `${baseUrl}/api/collections/users/records`;
         const payload = {
             email: mail,
             password: pass,
             passwordConfirm: pass2,
-            name: getDisplayName(),
+            // PocketBase "name" = MyManager login_block1 short name (e.g. Γκορόγιας)
+            name: displayName,
             emailVisibility: false,
         };
         const { status, body } = await chatRequestJson({

@@ -191,7 +191,7 @@
         },
         office_chat_user: {
             title: 'Chat email',
-            what: 'Δημιουργείται αυτόματα από το όνομα MyManager (π.χ. name@myman.chat). Χρησιμοποιείται μόνο για το PocketBase chat.',
+            what: 'Δημιουργείται αυτόματα από το όνομα στο #login_block1 (π.χ. «Είσοδος ως Γκορόγιας» → gkorogias@myman.chat). Το όνομα στο chat παραμένει «Γκορόγιας».',
             where: 'Ρυθμίσεις → Chat.',
             when: 'Στην εγγραφή / σύνδεση στο chat.',
         },
@@ -1368,7 +1368,7 @@
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
                         <h3>Office Chat</h3>
-                        <p class="tm-settings-section-desc">Κοινό chat γραφείου. Το email φτιάχνεται αυτόματα από το όνομα MyManager· εσείς βάζετε μόνο κωδικό.</p>
+                        <p class="tm-settings-section-desc">Κοινό chat γραφείου. Email από το όνομα στο login (π.χ. Γκορόγιας → gkorogias@myman.chat). Στο chat φαίνεται το ελληνικό όνομα.</p>
                     </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">

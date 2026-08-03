@@ -1,11 +1,11 @@
 {
-  "version": "339",
+  "version": "340",
   "loaderVersion": "38",
-  "silentVersion": "3",
-  "displayVersion": "38.3",
+  "silentVersion": "4",
+  "displayVersion": "38.4",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Chat send: clearer create-rule error and simpler messages API rules",
+  "releaseNotes": "Chat identity from login_block1: Greek display name + latin email slug",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
