@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v337 / Custom Ver. 38.1 — generated, do not edit */
+/* MyManager Suite bundle v338 / Custom Ver. 38.2 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '337',
+        version: '338',
         loaderVersion: '38',
-        silentVersion: '1',
-        displayVersion: '38.1',
+        silentVersion: '2',
+        displayVersion: '38.2',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -16041,21 +16041,27 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         },
         office_chat_url: {
             title: 'Chat server URL',
-            what: 'Η δημόσια διεύθυνση του PocketBase πίσω από το reverse proxy (π.χ. http://mngerchat.littlejol.mywire.org).',
+            what: 'Η δημόσια διεύθυνση του PocketBase πίσω από το reverse proxy (π.χ. https://mngerchat.littlejol.mywire.org).',
             where: 'Ρυθμίσεις → Chat.',
             when: 'Μία φορά κατά την εγκατάσταση· αλλάξτε μόνο αν αλλάξει το hostname.',
         },
         office_chat_user: {
-            title: 'Chat χρήστης',
-            what: 'Λογαριασμός PocketBase (users) — όχι ο admin. Κάθε τεχνικός έχει δικό του.',
+            title: 'Chat email',
+            what: 'Δημιουργείται αυτόματα από το όνομα MyManager (π.χ. name@myman.chat). Χρησιμοποιείται μόνο για το PocketBase chat.',
             where: 'Ρυθμίσεις → Chat.',
-            when: 'Σύνδεση στο chat API.',
+            when: 'Στην εγγραφή / σύνδεση στο chat.',
         },
         office_chat_pass: {
             title: 'Chat κωδικός',
-            what: 'Κωδικός του λογαριασμού PocketBase. Αποθηκεύεται τοπικά στο Tampermonkey.',
+            what: 'Κωδικός που ορίζετε εσείς για το PocketBase (όχι ο κωδικός MyManager). Αποθηκεύεται τοπικά στο Tampermonkey.',
             where: 'Ρυθμίσεις → Chat.',
-            when: 'Σύνδεση στο chat API.',
+            when: 'Εγγραφή νέου λογαριασμού ή σύνδεση.',
+        },
+        office_chat_register: {
+            title: 'Δημιουργία λογαριασμού chat',
+            what: 'Δημιουργεί χρήστη στο PocketBase με το αυτόματο email και τον κωδικό που πληκτρολογήσατε.',
+            where: 'Ρυθμίσεις → Chat.',
+            when: 'Την πρώτη φορά που ενεργοποιείτε το chat σε αυτόν τον υπολογιστή.',
         },
         quick_search_editor: {
             title: 'Επεξεργαστής γρήγορης αναζήτησης',
@@ -17211,11 +17217,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         function getOfficeChatSettingsHTML() {
             const info = tmSettingsInfoBtn;
+            const suggestedEmail = (typeof window.suggestOfficeChatEmail === 'function')
+                ? window.suggestOfficeChatEmail()
+                : '';
             return `
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
                         <h3>Office Chat</h3>
-                        <p class="tm-settings-section-desc">Κοινό chat γραφείου (PocketBase στον TrueNAS). Δείτε chat-server/SETUP.md.</p>
+                        <p class="tm-settings-section-desc">Κοινό chat γραφείου. Το email φτιάχνεται αυτόματα από το όνομα MyManager· εσείς βάζετε μόνο κωδικό.</p>
                     </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -17232,29 +17241,31 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                                 <label for="tm-setting-chat-url">Server URL</label>
                                 ${info('office_chat_url')}
                             </div>
-                            <p class="tm-setting-description">π.χ. http://mngerchat.littlejol.mywire.org</p>
+                            <p class="tm-setting-description">π.χ. https://mngerchat.littlejol.mywire.org</p>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="url" id="tm-setting-chat-url" class="tm-settings-input" autocomplete="off" spellcheck="false" placeholder="http://mngerchat.littlejol.mywire.org">
+                            <input type="url" id="tm-setting-chat-url" class="tm-settings-input" autocomplete="off" spellcheck="false" placeholder="https://mngerchat.littlejol.mywire.org">
                         </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <div class="tm-setting-label-row">
-                                <label for="tm-setting-chat-user">Χρήστης</label>
+                                <label for="tm-setting-chat-user">Email (αυτόματο)</label>
                                 ${info('office_chat_user')}
                             </div>
+                            <p class="tm-setting-description">Από το login MyManager. Μπορείτε να το αλλάξετε αν χρειάζεται.</p>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="text" id="tm-setting-chat-user" class="tm-settings-input" autocomplete="username" spellcheck="false" placeholder="email ή username">
+                            <input type="email" id="tm-setting-chat-user" class="tm-settings-input" autocomplete="username" spellcheck="false" placeholder="${suggestedEmail || 'name@myman.chat'}">
                         </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <div class="tm-setting-label-row">
-                                <label for="tm-setting-chat-pass">Κωδικός</label>
+                                <label for="tm-setting-chat-pass">Κωδικός chat</label>
                                 ${info('office_chat_pass')}
                             </div>
+                            <p class="tm-setting-description">Τουλάχιστον 8 χαρακτήρες. Δεν είναι ο κωδικός MyManager.</p>
                         </div>
                         <div class="tm-setting-control">
                             <input type="password" id="tm-setting-chat-pass" class="tm-settings-input" autocomplete="new-password" placeholder="••••••••">
@@ -17262,11 +17273,26 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <p class="tm-setting-description">Δοκιμάστε τη σύνδεση πριν την αποθήκευση. Το όνομα στο chat είναι το login MyManager.</p>
-                            <p class="tm-setting-description" id="tm-setting-chat-test-status">—</p>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-pass2">Επιβεβαίωση κωδικού</label>
+                            </div>
                         </div>
                         <div class="tm-setting-control">
-                            <button type="button" id="tm-setting-chat-test-btn" class="tm-data-btn export">Έλεγχος σύνδεσης</button>
+                            <input type="password" id="tm-setting-chat-pass2" class="tm-settings-input" autocomplete="new-password" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label>Εγγραφή / σύνδεση</label>
+                                ${info('office_chat_register')}
+                            </div>
+                            <p class="tm-setting-description">Πρώτη φορά: «Δημιουργία λογαριασμού». Αν υπάρχει ήδη: «Έλεγχος σύνδεσης».</p>
+                            <p class="tm-setting-description" id="tm-setting-chat-test-status">—</p>
+                        </div>
+                        <div class="tm-setting-control tm-setting-control--stack">
+                            <button type="button" id="tm-setting-chat-register-btn" class="tm-data-btn export">Δημιουργία λογαριασμού</button>
+                            <button type="button" id="tm-setting-chat-test-btn" class="tm-data-btn import">Έλεγχος σύνδεσης</button>
                         </div>
                     </div>
                 </div>
@@ -17730,24 +17756,61 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const chatUserInput = document.getElementById('tm-setting-chat-user');
             const chatPassInput = document.getElementById('tm-setting-chat-pass');
             if (chatUrlInput) {
-                chatUrlInput.value = GM_getValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', '') || '';
+                chatUrlInput.value = GM_getValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', '')
+                    || 'https://mngerchat.littlejol.mywire.org';
             }
             if (chatUserInput) {
-                chatUserInput.value = GM_getValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', '') || '';
+                const savedUser = GM_getValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', '') || '';
+                chatUserInput.value = savedUser
+                    || (typeof window.suggestOfficeChatEmail === 'function' ? window.suggestOfficeChatEmail() : '');
             }
             if (chatPassInput) {
                 chatPassInput.value = GM_getValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', '') || '';
             }
-            overlay.querySelector('#tm-setting-chat-test-btn')?.addEventListener('click', async () => {
-                const statusEl = document.getElementById('tm-setting-chat-test-status');
+            const persistChatFormToStorage = () => {
                 const urlEl = document.getElementById('tm-setting-chat-url');
                 const userEl = document.getElementById('tm-setting-chat-user');
                 const passEl = document.getElementById('tm-setting-chat-pass');
-                // Temporarily apply form values for the test (without full save/reload)
                 if (urlEl) GM_setValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', urlEl.value.trim().replace(/\/+$/, ''));
                 if (userEl) GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', userEl.value.trim());
                 if (passEl) GM_setValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', passEl.value);
                 try { GM_setValue(STORAGE_KEYS.CHAT_TOKEN_CACHE || 'tm_chat_token_cache', ''); } catch (_) { /* ignore */ }
+            };
+            overlay.querySelector('#tm-setting-chat-register-btn')?.addEventListener('click', async () => {
+                const statusEl = document.getElementById('tm-setting-chat-test-status');
+                const passEl = document.getElementById('tm-setting-chat-pass');
+                const pass2El = document.getElementById('tm-setting-chat-pass2');
+                const userEl = document.getElementById('tm-setting-chat-user');
+                persistChatFormToStorage();
+                if (statusEl) {
+                    statusEl.textContent = 'Δημιουργία λογαριασμού…';
+                    statusEl.style.color = '#0d6efd';
+                }
+                if (typeof window.registerOfficeChatUser !== 'function') {
+                    if (statusEl) {
+                        statusEl.textContent = 'Το module chat δεν φορτώθηκε.';
+                        statusEl.style.color = '#dc3545';
+                    }
+                    return;
+                }
+                const result = await window.registerOfficeChatUser(STORAGE_KEYS, {
+                    email: userEl?.value?.trim(),
+                    password: passEl?.value || '',
+                    passwordConfirm: pass2El?.value || passEl?.value || '',
+                });
+                if (userEl && result?.email) userEl.value = result.email;
+                if (statusEl) {
+                    statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
+                    statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
+                }
+                if (result?.ok) {
+                    const en = document.getElementById('tm-setting-chat-enabled');
+                    if (en) en.checked = true;
+                }
+            });
+            overlay.querySelector('#tm-setting-chat-test-btn')?.addEventListener('click', async () => {
+                const statusEl = document.getElementById('tm-setting-chat-test-status');
+                persistChatFormToStorage();
                 if (statusEl) statusEl.textContent = 'Έλεγχος…';
                 if (typeof window.testOfficeChatConnection !== 'function') {
                     if (statusEl) statusEl.textContent = 'Το module chat δεν φορτώθηκε.';
@@ -21586,6 +21649,21 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         };
     }
 
+    function formatPbError(body, fallback) {
+        if (!body || typeof body !== 'object') return fallback;
+        const parts = [];
+        if (body.message) parts.push(String(body.message));
+        const data = body.data;
+        if (data && typeof data === 'object') {
+            Object.keys(data).forEach((key) => {
+                const item = data[key];
+                const msg = item?.message || item?.code || (typeof item === 'string' ? item : '');
+                if (msg) parts.push(`${key}: ${msg}`);
+            });
+        }
+        return parts.filter(Boolean).join(' — ') || fallback;
+    }
+
     function escapeHtml(str) {
         if (str == null) return '';
         return String(str)
@@ -21627,6 +21705,97 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
         } catch (_) { /* ignore */ }
         return '';
+    }
+
+    /** Build a valid-looking email local-part from MyManager display name / profile. */
+    function suggestOfficeChatEmail() {
+        const profileId = getProfileId();
+        const display = getDisplayName();
+        let local = String(profileId || display || 'tech')
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '');
+        if (local.length < 2) {
+            // Greek / other scripts: stable hex slug from original characters
+            const raw = String(profileId || display || 'tech');
+            let hex = '';
+            for (let i = 0; i < raw.length && hex.length < 20; i++) {
+                hex += raw.charCodeAt(i).toString(16);
+            }
+            local = `u${hex || Date.now().toString(36)}`;
+        }
+        local = local.slice(0, 32);
+        return `${local}@myman.chat`;
+    }
+
+    async function registerOfficeChatUser(STORAGE_KEYS, { email, password, passwordConfirm } = {}) {
+        const settings = getChatSettings(STORAGE_KEYS);
+        const baseUrl = settings.baseUrl
+            || normalizeBaseUrl(GM_getValue(chatKeys(STORAGE_KEYS).baseUrl, ''));
+        const mail = String(email || suggestOfficeChatEmail()).trim().toLowerCase();
+        const pass = String(password || '');
+        const pass2 = passwordConfirm != null ? String(passwordConfirm) : pass;
+
+        if (!baseUrl) return { ok: false, message: 'Συμπληρώστε το Server URL.' };
+        if (!mail || !mail.includes('@')) return { ok: false, message: 'Μη έγκυρο email.' };
+        if (pass.length < 8) return { ok: false, message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.' };
+        if (pass !== pass2) return { ok: false, message: 'Οι κωδικοί δεν ταιριάζουν.' };
+
+        const url = `${baseUrl}/api/collections/users/records`;
+        const payload = {
+            email: mail,
+            password: pass,
+            passwordConfirm: pass2,
+            name: getDisplayName(),
+            emailVisibility: false,
+        };
+        const { status, body } = await chatRequestJson({
+            method: 'POST',
+            url,
+            headers: { 'Content-Type': 'application/json' },
+            data: JSON.stringify(payload),
+        });
+
+        // Already registered → treat as OK if they can auth with this password
+        if (status === 400 && /already|unique|exists|taken/i.test(JSON.stringify(body || {}))) {
+            const keys = chatKeys(STORAGE_KEYS);
+            GM_setValue(keys.user, mail);
+            GM_setValue(keys.pass, pass);
+            GM_setValue(keys.tokenCache, '');
+            try {
+                await ensureAuth(STORAGE_KEYS, { force: true });
+                return { ok: true, email: mail, message: 'Ο λογαριασμός υπάρχει ήδη — σύνδεση OK.', existed: true };
+            } catch (err) {
+                return {
+                    ok: false,
+                    email: mail,
+                    message: 'Το email υπάρχει ήδη. Αν είναι δικό σου, βάλε τον σωστό κωδικό και πάτα Έλεγχος σύνδεσης.',
+                    error: err,
+                };
+            }
+        }
+
+        if (status < 200 || status >= 300) {
+            return { ok: false, email: mail, message: formatPbError(body, `Εγγραφή απέτυχε (${status})`) };
+        }
+
+        const keys = chatKeys(STORAGE_KEYS);
+        GM_setValue(keys.user, mail);
+        GM_setValue(keys.pass, pass);
+        GM_setValue(keys.tokenCache, '');
+        try {
+            await ensureAuth(STORAGE_KEYS, { force: true });
+        } catch (err) {
+            return {
+                ok: true,
+                email: mail,
+                message: `Λογαριασμός δημιουργήθηκε, αλλά η σύνδεση απέτυχε: ${err?.message || err}. Δοκίμασε Έλεγχος σύνδεσης.`,
+                authFailed: true,
+            };
+        }
+        return { ok: true, email: mail, message: 'Λογαριασμός δημιουργήθηκε και συνδέθηκε.' };
     }
 
     function getXhr() {
@@ -21938,13 +22107,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 data: JSON.stringify(payload),
             });
             if (retry.status < 200 || retry.status >= 300) {
-                throw new Error(retry.body?.message || `Send failed (${retry.status})`);
+                throw new Error(formatPbError(retry.body, `Send failed (${retry.status})`));
             }
             upsertMessages([retry.body]);
             return { ok: true };
         }
         if (status < 200 || status >= 300) {
-            throw new Error(body?.message || `Send failed (${status})`);
+            throw new Error(formatPbError(body, `Send failed (${status})`));
         }
         upsertMessages([body]);
         return { ok: true };
@@ -22319,6 +22488,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     window.testOfficeChatConnection = testChatConnection;
     window.connectOfficeChat = connectChat;
     window.getOfficeChatSettings = getChatSettings;
+    window.suggestOfficeChatEmail = suggestOfficeChatEmail;
+    window.registerOfficeChatUser = registerOfficeChatUser;
 })();
 
 

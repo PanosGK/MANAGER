@@ -70,19 +70,27 @@ Admin → Collections → New collection → name: `messages`
 
 - List / Search: `@request.auth.id != "" && room = "office"`
 - View: `@request.auth.id != "" && room = "office"`
-- Create: `@request.auth.id != "" && room = "office" && text:length > 0 && text:length <= 500`
+- Create: `@request.auth.id != "" && room = "office"`
 - Update: *(empty — deny)*
 - Delete: *(empty — deny; delete only in Admin UI)*
 
+Do **not** use `text:length` in rules — in PocketBase `:length` is for array fields and will make create fail with “Failed to create record.” Max length belongs on the Text field (max 500).
+
 Enable **Realtime** for the `messages` collection if your PocketBase UI shows that toggle (SSE still works when subscribed via API).
 
-## 5. Create tech users
+## 5. Create tech users (optional manual)
 
-Admin → **users** (auth collection):
+Techs can self-register from suite **Settings → Chat → Δημιουργία λογαριασμού** (auto email + their password).
 
-- One account per tech (email or username + password)
-- Not the admin account
-- Hand each tech their own credentials
+For that to work, set the **users** collection **Create** API rule to:
+
+```
+@request.auth.id = ""
+```
+
+Also turn **off** “Require email verification” / similar options on the `users` auth collection (fake `@myman.chat` addresses won’t verify).
+
+You can still create users manually in Admin if you prefer.
 
 ## 6. Backups
 

@@ -190,16 +190,22 @@
             when: 'Μία φορά κατά την εγκατάσταση· αλλάξτε μόνο αν αλλάξει το hostname.',
         },
         office_chat_user: {
-            title: 'Chat χρήστης',
-            what: 'Λογαριασμός PocketBase (users) — όχι ο admin. Κάθε τεχνικός έχει δικό του.',
+            title: 'Chat email',
+            what: 'Δημιουργείται αυτόματα από το όνομα MyManager (π.χ. name@myman.chat). Χρησιμοποιείται μόνο για το PocketBase chat.',
             where: 'Ρυθμίσεις → Chat.',
-            when: 'Σύνδεση στο chat API.',
+            when: 'Στην εγγραφή / σύνδεση στο chat.',
         },
         office_chat_pass: {
             title: 'Chat κωδικός',
-            what: 'Κωδικός του λογαριασμού PocketBase. Αποθηκεύεται τοπικά στο Tampermonkey.',
+            what: 'Κωδικός που ορίζετε εσείς για το PocketBase (όχι ο κωδικός MyManager). Αποθηκεύεται τοπικά στο Tampermonkey.',
             where: 'Ρυθμίσεις → Chat.',
-            when: 'Σύνδεση στο chat API.',
+            when: 'Εγγραφή νέου λογαριασμού ή σύνδεση.',
+        },
+        office_chat_register: {
+            title: 'Δημιουργία λογαριασμού chat',
+            what: 'Δημιουργεί χρήστη στο PocketBase με το αυτόματο email και τον κωδικό που πληκτρολογήσατε.',
+            where: 'Ρυθμίσεις → Chat.',
+            when: 'Την πρώτη φορά που ενεργοποιείτε το chat σε αυτόν τον υπολογιστή.',
         },
         quick_search_editor: {
             title: 'Επεξεργαστής γρήγορης αναζήτησης',
@@ -1355,11 +1361,14 @@
 
         function getOfficeChatSettingsHTML() {
             const info = tmSettingsInfoBtn;
+            const suggestedEmail = (typeof window.suggestOfficeChatEmail === 'function')
+                ? window.suggestOfficeChatEmail()
+                : '';
             return `
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
                         <h3>Office Chat</h3>
-                        <p class="tm-settings-section-desc">Κοινό chat γραφείου (PocketBase στον TrueNAS). Δείτε chat-server/SETUP.md.</p>
+                        <p class="tm-settings-section-desc">Κοινό chat γραφείου. Το email φτιάχνεται αυτόματα από το όνομα MyManager· εσείς βάζετε μόνο κωδικό.</p>
                     </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -1385,20 +1394,22 @@
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <div class="tm-setting-label-row">
-                                <label for="tm-setting-chat-user">Χρήστης</label>
+                                <label for="tm-setting-chat-user">Email (αυτόματο)</label>
                                 ${info('office_chat_user')}
                             </div>
+                            <p class="tm-setting-description">Από το login MyManager. Μπορείτε να το αλλάξετε αν χρειάζεται.</p>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="text" id="tm-setting-chat-user" class="tm-settings-input" autocomplete="username" spellcheck="false" placeholder="email ή username">
+                            <input type="email" id="tm-setting-chat-user" class="tm-settings-input" autocomplete="username" spellcheck="false" placeholder="${suggestedEmail || 'name@myman.chat'}">
                         </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <div class="tm-setting-label-row">
-                                <label for="tm-setting-chat-pass">Κωδικός</label>
+                                <label for="tm-setting-chat-pass">Κωδικός chat</label>
                                 ${info('office_chat_pass')}
                             </div>
+                            <p class="tm-setting-description">Τουλάχιστον 8 χαρακτήρες. Δεν είναι ο κωδικός MyManager.</p>
                         </div>
                         <div class="tm-setting-control">
                             <input type="password" id="tm-setting-chat-pass" class="tm-settings-input" autocomplete="new-password" placeholder="••••••••">
@@ -1406,11 +1417,26 @@
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <p class="tm-setting-description">Δοκιμάστε τη σύνδεση πριν την αποθήκευση. Το όνομα στο chat είναι το login MyManager.</p>
-                            <p class="tm-setting-description" id="tm-setting-chat-test-status">—</p>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-pass2">Επιβεβαίωση κωδικού</label>
+                            </div>
                         </div>
                         <div class="tm-setting-control">
-                            <button type="button" id="tm-setting-chat-test-btn" class="tm-data-btn export">Έλεγχος σύνδεσης</button>
+                            <input type="password" id="tm-setting-chat-pass2" class="tm-settings-input" autocomplete="new-password" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label>Εγγραφή / σύνδεση</label>
+                                ${info('office_chat_register')}
+                            </div>
+                            <p class="tm-setting-description">Πρώτη φορά: «Δημιουργία λογαριασμού». Αν υπάρχει ήδη: «Έλεγχος σύνδεσης».</p>
+                            <p class="tm-setting-description" id="tm-setting-chat-test-status">—</p>
+                        </div>
+                        <div class="tm-setting-control tm-setting-control--stack">
+                            <button type="button" id="tm-setting-chat-register-btn" class="tm-data-btn export">Δημιουργία λογαριασμού</button>
+                            <button type="button" id="tm-setting-chat-test-btn" class="tm-data-btn import">Έλεγχος σύνδεσης</button>
                         </div>
                     </div>
                 </div>
@@ -1874,24 +1900,61 @@
             const chatUserInput = document.getElementById('tm-setting-chat-user');
             const chatPassInput = document.getElementById('tm-setting-chat-pass');
             if (chatUrlInput) {
-                chatUrlInput.value = GM_getValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', '') || '';
+                chatUrlInput.value = GM_getValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', '')
+                    || 'https://mngerchat.littlejol.mywire.org';
             }
             if (chatUserInput) {
-                chatUserInput.value = GM_getValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', '') || '';
+                const savedUser = GM_getValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', '') || '';
+                chatUserInput.value = savedUser
+                    || (typeof window.suggestOfficeChatEmail === 'function' ? window.suggestOfficeChatEmail() : '');
             }
             if (chatPassInput) {
                 chatPassInput.value = GM_getValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', '') || '';
             }
-            overlay.querySelector('#tm-setting-chat-test-btn')?.addEventListener('click', async () => {
-                const statusEl = document.getElementById('tm-setting-chat-test-status');
+            const persistChatFormToStorage = () => {
                 const urlEl = document.getElementById('tm-setting-chat-url');
                 const userEl = document.getElementById('tm-setting-chat-user');
                 const passEl = document.getElementById('tm-setting-chat-pass');
-                // Temporarily apply form values for the test (without full save/reload)
                 if (urlEl) GM_setValue(STORAGE_KEYS.CHAT_BASE_URL || 'tm_chat_base_url', urlEl.value.trim().replace(/\/+$/, ''));
                 if (userEl) GM_setValue(STORAGE_KEYS.CHAT_USER || 'tm_chat_user', userEl.value.trim());
                 if (passEl) GM_setValue(STORAGE_KEYS.CHAT_PASS || 'tm_chat_pass', passEl.value);
                 try { GM_setValue(STORAGE_KEYS.CHAT_TOKEN_CACHE || 'tm_chat_token_cache', ''); } catch (_) { /* ignore */ }
+            };
+            overlay.querySelector('#tm-setting-chat-register-btn')?.addEventListener('click', async () => {
+                const statusEl = document.getElementById('tm-setting-chat-test-status');
+                const passEl = document.getElementById('tm-setting-chat-pass');
+                const pass2El = document.getElementById('tm-setting-chat-pass2');
+                const userEl = document.getElementById('tm-setting-chat-user');
+                persistChatFormToStorage();
+                if (statusEl) {
+                    statusEl.textContent = 'Δημιουργία λογαριασμού…';
+                    statusEl.style.color = '#0d6efd';
+                }
+                if (typeof window.registerOfficeChatUser !== 'function') {
+                    if (statusEl) {
+                        statusEl.textContent = 'Το module chat δεν φορτώθηκε.';
+                        statusEl.style.color = '#dc3545';
+                    }
+                    return;
+                }
+                const result = await window.registerOfficeChatUser(STORAGE_KEYS, {
+                    email: userEl?.value?.trim(),
+                    password: passEl?.value || '',
+                    passwordConfirm: pass2El?.value || passEl?.value || '',
+                });
+                if (userEl && result?.email) userEl.value = result.email;
+                if (statusEl) {
+                    statusEl.textContent = result?.message || (result?.ok ? 'OK' : 'Αποτυχία');
+                    statusEl.style.color = result?.ok ? '#198754' : '#dc3545';
+                }
+                if (result?.ok) {
+                    const en = document.getElementById('tm-setting-chat-enabled');
+                    if (en) en.checked = true;
+                }
+            });
+            overlay.querySelector('#tm-setting-chat-test-btn')?.addEventListener('click', async () => {
+                const statusEl = document.getElementById('tm-setting-chat-test-status');
+                persistChatFormToStorage();
                 if (statusEl) statusEl.textContent = 'Έλεγχος…';
                 if (typeof window.testOfficeChatConnection !== 'function') {
                     if (statusEl) statusEl.textContent = 'Το module chat δεν φορτώθηκε.';

@@ -49,6 +49,21 @@
         };
     }
 
+    function formatPbError(body, fallback) {
+        if (!body || typeof body !== 'object') return fallback;
+        const parts = [];
+        if (body.message) parts.push(String(body.message));
+        const data = body.data;
+        if (data && typeof data === 'object') {
+            Object.keys(data).forEach((key) => {
+                const item = data[key];
+                const msg = item?.message || item?.code || (typeof item === 'string' ? item : '');
+                if (msg) parts.push(`${key}: ${msg}`);
+            });
+        }
+        return parts.filter(Boolean).join(' — ') || fallback;
+    }
+
     function escapeHtml(str) {
         if (str == null) return '';
         return String(str)
@@ -90,6 +105,97 @@
             }
         } catch (_) { /* ignore */ }
         return '';
+    }
+
+    /** Build a valid-looking email local-part from MyManager display name / profile. */
+    function suggestOfficeChatEmail() {
+        const profileId = getProfileId();
+        const display = getDisplayName();
+        let local = String(profileId || display || 'tech')
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '');
+        if (local.length < 2) {
+            // Greek / other scripts: stable hex slug from original characters
+            const raw = String(profileId || display || 'tech');
+            let hex = '';
+            for (let i = 0; i < raw.length && hex.length < 20; i++) {
+                hex += raw.charCodeAt(i).toString(16);
+            }
+            local = `u${hex || Date.now().toString(36)}`;
+        }
+        local = local.slice(0, 32);
+        return `${local}@myman.chat`;
+    }
+
+    async function registerOfficeChatUser(STORAGE_KEYS, { email, password, passwordConfirm } = {}) {
+        const settings = getChatSettings(STORAGE_KEYS);
+        const baseUrl = settings.baseUrl
+            || normalizeBaseUrl(GM_getValue(chatKeys(STORAGE_KEYS).baseUrl, ''));
+        const mail = String(email || suggestOfficeChatEmail()).trim().toLowerCase();
+        const pass = String(password || '');
+        const pass2 = passwordConfirm != null ? String(passwordConfirm) : pass;
+
+        if (!baseUrl) return { ok: false, message: 'Συμπληρώστε το Server URL.' };
+        if (!mail || !mail.includes('@')) return { ok: false, message: 'Μη έγκυρο email.' };
+        if (pass.length < 8) return { ok: false, message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.' };
+        if (pass !== pass2) return { ok: false, message: 'Οι κωδικοί δεν ταιριάζουν.' };
+
+        const url = `${baseUrl}/api/collections/users/records`;
+        const payload = {
+            email: mail,
+            password: pass,
+            passwordConfirm: pass2,
+            name: getDisplayName(),
+            emailVisibility: false,
+        };
+        const { status, body } = await chatRequestJson({
+            method: 'POST',
+            url,
+            headers: { 'Content-Type': 'application/json' },
+            data: JSON.stringify(payload),
+        });
+
+        // Already registered → treat as OK if they can auth with this password
+        if (status === 400 && /already|unique|exists|taken/i.test(JSON.stringify(body || {}))) {
+            const keys = chatKeys(STORAGE_KEYS);
+            GM_setValue(keys.user, mail);
+            GM_setValue(keys.pass, pass);
+            GM_setValue(keys.tokenCache, '');
+            try {
+                await ensureAuth(STORAGE_KEYS, { force: true });
+                return { ok: true, email: mail, message: 'Ο λογαριασμός υπάρχει ήδη — σύνδεση OK.', existed: true };
+            } catch (err) {
+                return {
+                    ok: false,
+                    email: mail,
+                    message: 'Το email υπάρχει ήδη. Αν είναι δικό σου, βάλε τον σωστό κωδικό και πάτα Έλεγχος σύνδεσης.',
+                    error: err,
+                };
+            }
+        }
+
+        if (status < 200 || status >= 300) {
+            return { ok: false, email: mail, message: formatPbError(body, `Εγγραφή απέτυχε (${status})`) };
+        }
+
+        const keys = chatKeys(STORAGE_KEYS);
+        GM_setValue(keys.user, mail);
+        GM_setValue(keys.pass, pass);
+        GM_setValue(keys.tokenCache, '');
+        try {
+            await ensureAuth(STORAGE_KEYS, { force: true });
+        } catch (err) {
+            return {
+                ok: true,
+                email: mail,
+                message: `Λογαριασμός δημιουργήθηκε, αλλά η σύνδεση απέτυχε: ${err?.message || err}. Δοκίμασε Έλεγχος σύνδεσης.`,
+                authFailed: true,
+            };
+        }
+        return { ok: true, email: mail, message: 'Λογαριασμός δημιουργήθηκε και συνδέθηκε.' };
     }
 
     function getXhr() {
@@ -401,13 +507,13 @@
                 data: JSON.stringify(payload),
             });
             if (retry.status < 200 || retry.status >= 300) {
-                throw new Error(retry.body?.message || `Send failed (${retry.status})`);
+                throw new Error(formatPbError(retry.body, `Send failed (${retry.status})`));
             }
             upsertMessages([retry.body]);
             return { ok: true };
         }
         if (status < 200 || status >= 300) {
-            throw new Error(body?.message || `Send failed (${status})`);
+            throw new Error(formatPbError(body, `Send failed (${status})`));
         }
         upsertMessages([body]);
         return { ok: true };
@@ -782,4 +888,6 @@
     window.testOfficeChatConnection = testChatConnection;
     window.connectOfficeChat = connectChat;
     window.getOfficeChatSettings = getChatSettings;
+    window.suggestOfficeChatEmail = suggestOfficeChatEmail;
+    window.registerOfficeChatUser = registerOfficeChatUser;
 })();

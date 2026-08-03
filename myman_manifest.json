@@ -1,11 +1,11 @@
 {
-  "version": "337",
+  "version": "338",
   "loaderVersion": "38",
-  "silentVersion": "1",
-  "displayVersion": "38.1",
+  "silentVersion": "2",
+  "displayVersion": "38.2",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Chat host: mngerchat.littlejol.mywire.org @connect",
+  "releaseNotes": "Chat auto-email registration: user picks password",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
