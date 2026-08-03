@@ -68,13 +68,15 @@ Admin → Collections → New collection → name: `messages`
 
 **API rules (v1 — one shared room):**
 
-- List / Search: `@request.auth.id != "" && room = "office"`
-- View: `@request.auth.id != "" && room = "office"`
-- Create: `@request.auth.id != "" && room = "office"`
+- List / Search: `@request.auth.id != ""`
+- View: `@request.auth.id != ""`
+- Create: `@request.auth.id != ""`
 - Update: *(empty — deny)*
 - Delete: *(empty — deny; delete only in Admin UI)*
 
-Do **not** use `text:length` in rules — in PocketBase `:length` is for array fields and will make create fail with “Failed to create record.” Max length belongs on the Text field (max 500).
+Use exactly those. Do **not** add `text:length` or `room = "office"` in Create (those often cause “Failed to create record”). The script always sends `room: "office"`. Max length stays on the Text field (max 500).
+
+If Create still fails, open Admin → **Logs** (or the request response) for the field error.
 
 Enable **Realtime** for the `messages` collection if your PocketBase UI shows that toggle (SSE still works when subscribed via API).
 

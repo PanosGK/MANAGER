@@ -479,41 +479,40 @@
         const settings = getChatSettings(STORAGE_KEYS);
         const token = await ensureAuth(STORAGE_KEYS);
         const url = `${settings.baseUrl}/api/collections/messages/records`;
+        const profileId = getProfileId();
         const payload = {
             text: clean,
             displayName: getDisplayName(),
-            profileId: getProfileId(),
             room: CHAT_ROOM,
         };
-        const { status, body } = await chatRequestJson({
+        if (profileId) payload.profileId = profileId;
+
+        const postOnce = async (authHeader) => chatRequestJson({
             method: 'POST',
             url,
             headers: {
-                Authorization: token,
+                Authorization: authHeader,
                 'Content-Type': 'application/json',
             },
             data: JSON.stringify(payload),
         });
+
+        let { status, body } = await postOnce(token);
+        // Some proxies/PB builds prefer Bearer
+        if ((status === 401 || status === 403) && token && !String(token).startsWith('Bearer ')) {
+            ({ status, body } = await postOnce(`Bearer ${token}`));
+        }
         if (status === 401) {
             clearCachedToken(STORAGE_KEYS);
             const token2 = await ensureAuth(STORAGE_KEYS, { force: true });
-            const retry = await chatRequestJson({
-                method: 'POST',
-                url,
-                headers: {
-                    Authorization: token2,
-                    'Content-Type': 'application/json',
-                },
-                data: JSON.stringify(payload),
-            });
-            if (retry.status < 200 || retry.status >= 300) {
-                throw new Error(formatPbError(retry.body, `Send failed (${retry.status})`));
-            }
-            upsertMessages([retry.body]);
-            return { ok: true };
+            ({ status, body } = await postOnce(token2));
         }
         if (status < 200 || status >= 300) {
-            throw new Error(formatPbError(body, `Send failed (${status})`));
+            let msg = formatPbError(body, `Send failed (${status})`);
+            if (/failed to create record/i.test(msg) && !/text:|displayName|room|profileId/i.test(msg)) {
+                msg += ' — Στο PocketBase: messages → API Rules → Create = @request.auth.id != "" (χωρίς text:length / room=)';
+            }
+            throw new Error(msg);
         }
         upsertMessages([body]);
         return { ok: true };
