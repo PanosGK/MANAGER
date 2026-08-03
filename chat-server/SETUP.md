@@ -75,6 +75,7 @@ Admin → Collections → New collection → name: `messages`
 | `deleted`      | Bool | optional, default false (soft-delete; hard Delete rule stays deny) |
 | `deletedBy`    | Text | optional, max 64 (display name of who deleted the message) |
 | `edited`       | Bool | optional, default false |
+| `reactions`    | Text | optional, max 2000 (JSON: `{"👍":["Name"],"❤️":["Name"]}`) |
 
 If `messages` already exists, add any missing fields from the table above.
 
@@ -91,7 +92,7 @@ Important: each rule has a **lock**. Unlock Create / List / View / Update.
 - List / Search: `@request.auth.id != ""`
 - View: `@request.auth.id != ""`
 - Create: `@request.auth.id != ""`
-- Update: `@request.auth.id != ""` *(attach files, pin, edit, soft-delete)*
+- Update: `@request.auth.id != ""` *(attach files, reactions, edit, soft-delete)*
 - Delete: *(empty — deny; use soft `deleted` from the suite)*
 
 Do **not** add `text:length` or `room = "office"` in Create (store rooms must be allowed).
@@ -118,6 +119,7 @@ Admin → New collection → name: `presence`
 | `store`       | Text | optional, max 64 |
 | `lastSeen`    | Date | required |
 | `lastReadAt`  | Date | optional (panel open → mark messages seen) |
+| `avatar`      | Text | optional, max 255 (filename on `users` — so everyone sees the same photo online) |
 
 API rules (all unlocked for auth users):
 
@@ -126,7 +128,7 @@ API rules (all unlocked for auth users):
 
 Enable **Realtime** for `presence` if available.
 
-The suite heartbeats every ~25s while chat is connected and updates `lastReadAt` when the panel is open.
+The suite heartbeats every ~25s while chat is connected and updates `lastReadAt` when the panel is open. It also refreshes the users avatar directory so profile photos stay in sync for everyone.
 
 ## 7. Backups
 
@@ -135,9 +137,9 @@ Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots.
 ## 8. Server checklist
 
 - [ ] Admin UI loads
-- [ ] `messages` + attachment + avatar/pbUserId + reply/pin/deleted/edited fields
+- [ ] `messages` + attachment + avatar/pbUserId + reply/deleted/edited + **reactions** fields
 - [ ] `users.avatar` + Update/List/View rules
-- [ ] `presence` collection + rules
+- [ ] `presence` collection + rules (+ optional `avatar`)
 - [ ] Realtime enabled for messages (and presence)
 - [ ] Snapshot covers chat DB dataset
 
@@ -145,7 +147,7 @@ Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots.
 
 1. Update Tampermonkey loader if needed (`@connect` includes chat host).
 2. Chat is **on by default** — footer **💬 Chat**.
-3. Features in the panel: rooms (Όλοι / Κατάστημα), search, pin, reply, @mentions, edit/delete own, presence, optional sound (Settings → Chat).
-4. Profile photo: **Settings → Chat**.
+3. Features in the panel: search, reply, reactions (👍/❤️), copy, @mentions, edit/delete own, presence, draft autosave, quiet hours, optional sound (Settings → Chat).
+4. Profile photo: **Settings → Chat** (synced via `users.avatar` + message `pbUserId`/`avatar` + presence).
 
 Display names come from the MyManager login name.

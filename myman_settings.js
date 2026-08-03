@@ -201,6 +201,12 @@
             where: 'Ρυθμίσεις → Chat.',
             when: 'Όταν το πάνελ είναι κλειστό ή σε άλλο tab.',
         },
+        office_chat_quiet: {
+            title: 'Ήσυχες ώρες',
+            what: 'Εκτός ωραρίου εργασίας οι υπενθυμίσεις chat σιγάνονται αυτόματα (χωρίς ήχο / ping). Το κουδούνι στο chat εξακολουθεί να λειτουργεί για χειροκίνητη σίγαση.',
+            where: 'Ρυθμίσεις → Chat · ώρα έναρξης/λήξης βάρδιας.',
+            when: 'Κάθε μέρα με βάση την τοπική ώρα του PC.',
+        },
         quick_search_editor: {
             title: 'Επεξεργαστής γρήγορης αναζήτησης',
             what: 'Ορίζετε ετικέτα κουμπιού και όρο αναζήτησης για τα κουμπιά γρήγορης αναζήτησης.',
@@ -726,6 +732,18 @@
             const chatSoundEl = document.getElementById('tm-setting-chat-sound');
             if (chatSoundEl) {
                 GM_setValue(STORAGE_KEYS.CHAT_SOUND || 'tm_chat_sound', !!chatSoundEl.checked);
+            }
+            const chatQuietEl = document.getElementById('tm-setting-chat-quiet');
+            if (chatQuietEl) {
+                GM_setValue(STORAGE_KEYS.CHAT_QUIET_HOURS || 'tm_chat_quiet_hours', !!chatQuietEl.checked);
+            }
+            const workStartEl = document.getElementById('tm-setting-chat-work-start');
+            const workEndEl = document.getElementById('tm-setting-chat-work-end');
+            if (workStartEl) {
+                GM_setValue(STORAGE_KEYS.CHAT_WORK_START || 'tm_chat_work_start', workStartEl.value || '09:00');
+            }
+            if (workEndEl) {
+                GM_setValue(STORAGE_KEYS.CHAT_WORK_END || 'tm_chat_work_end', workEndEl.value || '18:00');
             }
             try {
                 const mail = (typeof window.suggestOfficeChatEmail === 'function')
@@ -1411,6 +1429,27 @@
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-chat-quiet">Ήσυχες ώρες</label>
+                                ${info('office_chat_quiet')}
+                            </div>
+                            <p class="tm-setting-description">Αυτόματη σίγαση υπενθυμίσεων εκτός ωραρίου (τοπική ώρα PC).</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-chat-quiet"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-chat-work-start">Ωράριο εργασίας</label>
+                            <p class="tm-setting-description">Εντός αυτών των ωρών οι υπενθυμίσεις επιτρέπονται (αν δεν έχεις πατήσει 🔕).</p>
+                        </div>
+                        <div class="tm-setting-control" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                            <input type="time" id="tm-setting-chat-work-start" class="tm-settings-input" style="width:auto;">
+                            <span aria-hidden="true">–</span>
+                            <input type="time" id="tm-setting-chat-work-end" class="tm-settings-input" style="width:auto;">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
                             <label>Κατάσταση</label>
                             <p class="tm-setting-description" id="tm-setting-chat-test-status">—</p>
                         </div>
@@ -1878,6 +1917,18 @@
             const chatSoundBox = document.getElementById('tm-setting-chat-sound');
             if (chatSoundBox) {
                 chatSoundBox.checked = GM_getValue(STORAGE_KEYS.CHAT_SOUND || 'tm_chat_sound', true) !== false;
+            }
+            const chatQuietBox = document.getElementById('tm-setting-chat-quiet');
+            if (chatQuietBox) {
+                chatQuietBox.checked = GM_getValue(STORAGE_KEYS.CHAT_QUIET_HOURS || 'tm_chat_quiet_hours', true) !== false;
+            }
+            const workStartBox = document.getElementById('tm-setting-chat-work-start');
+            if (workStartBox) {
+                workStartBox.value = GM_getValue(STORAGE_KEYS.CHAT_WORK_START || 'tm_chat_work_start', '09:00') || '09:00';
+            }
+            const workEndBox = document.getElementById('tm-setting-chat-work-end');
+            if (workEndBox) {
+                workEndBox.value = GM_getValue(STORAGE_KEYS.CHAT_WORK_END || 'tm_chat_work_end', '18:00') || '18:00';
             }
             const chatUserInput = document.getElementById('tm-setting-chat-user');
             if (chatUserInput) {

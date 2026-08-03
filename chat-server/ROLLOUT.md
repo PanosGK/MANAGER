@@ -24,10 +24,13 @@ Optional: **Settings → Chat** — enable/disable, profile photo, sound, connec
 | Rooms | **Όλοι** (office) / **Κατάστημα** (store channel) |
 | Search | Top search box |
 | @mentions | Type `@` — autocomplete; stronger ping when mentioned |
-| Reply / pin / edit / delete | Hover message actions |
+| Reply / reactions / copy / edit / delete | Right-click message (👍 ❤️ lighter than pin) |
+| Draft autosave | Composer text kept if you close the panel |
+| Quiet hours | Auto-mute outside work hours (Settings → Chat) |
 | Repair links | `#12345` or 5–8 digit numbers → service search |
 | Presence | “Online: …” under rooms (needs `presence` collection) |
 | Read receipts | ✓✓ on your messages when peers opened chat |
+| Avatars sync | `users.avatar` + message fields + presence; directory refresh on heartbeat |
 
 ## Troubleshooting
 
@@ -39,8 +42,8 @@ Optional: **Settings → Chat** — enable/disable, profile photo, sound, connec
 | Chat shows only “(αρχείο)” / no preview | Unlock messages Update rule |
 | Profile photo upload fails | users `avatar` File + Update `@request.auth.id = id`; View/List `@request.auth.id != ""` |
 | Initials only (no photo) | users List/View unlocked; photo applies after upload |
-| Reply / pin / delete / edit ignored | Add `replyTo`, `replyPreview`, `pinned`, `deleted`, `edited` on messages (see SETUP) |
-| No Online line | Create `presence` collection (SETUP §6) |
+| Reply / delete / edit / reactions ignored | Add `replyTo`, `replyPreview`, `deleted`, `edited`, `reactions` on messages (see SETUP) |
+| No Online line | Create `presence` collection (SETUP §6); optional Text `avatar` for synced photos |
 | Auth failed / old manual password | Open Chat once on a PC that still has the old password, or delete user in Admin |
 | Auth failed after create | Disable email verification on users |
 | Network denied | Update loader / allow `@connect` |
