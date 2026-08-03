@@ -16,10 +16,10 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '352',
+        version: '355',
         loaderVersion: '39',
-        silentVersion: '8',
-        displayVersion: '39.8',
+        silentVersion: '11',
+        displayVersion: '39.11',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -120,6 +120,8 @@
         CHAT_TOKEN_CACHE: 'tm_chat_token_cache',
         CHAT_MUTED: 'tm_chat_muted',
         CHAT_GEOMETRY: 'tm_chat_geometry',
+        CHAT_STORE: 'tm_chat_store',
+        CHAT_STORE_MANUAL: 'tm_chat_store_manual',
         MASCOT_FEATHERS: 'tm_mascot_feather_set', // Phoenix molted feather collection (JSON per color)
         PHOENIX_LAST_REBIRTH: 'tm_phoenix_last_rebirth', // Timestamp of last phoenix rebirth event
         ENERGIZED_BUFF_COUNT: 'tm_energized_buff_count', // Number of energized buffs in inventory

@@ -53,6 +53,8 @@
             tokenCache: k.CHAT_TOKEN_CACHE || 'tm_chat_token_cache',
             muted: k.CHAT_MUTED || 'tm_chat_muted',
             geometry: k.CHAT_GEOMETRY || 'tm_chat_geometry',
+            store: k.CHAT_STORE || 'tm_chat_store',
+            storeManual: k.CHAT_STORE_MANUAL || 'tm_chat_store_manual',
         };
     }
 
@@ -159,13 +161,61 @@
         return 'Τεχνικός';
     }
 
-    function getChatStoreName() {
+    /** Store chosen on MyManager login / profile (#iProfileID or header text). */
+    function detectLoginStoreName() {
         try {
-            if (typeof window.getCurrentStoreName === 'function') {
-                const name = String(window.getCurrentStoreName() || '').trim();
-                if (name) return name.slice(0, 64);
+            if (typeof window.detectAndCacheCurrentStoreName === 'function') {
+                const detected = String(window.detectAndCacheCurrentStoreName(document) || '').trim();
+                if (detected) return detected.slice(0, 64);
             }
         } catch (_) { /* ignore */ }
+        try {
+            // Direct read of login/profile select (same source as phonelist)
+            const sel = document.querySelector('#iProfileID, select[name="iProfileID"]');
+            if (sel && sel.selectedIndex >= 0) {
+                const name = String(sel.options[sel.selectedIndex].text || '')
+                    .replace(/\u00a0/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                if (name && !/^select|επιλέξ|choose/i.test(name)) return name.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof window.getAutoDetectedStoreName === 'function') {
+                const auto = String(window.getAutoDetectedStoreName(document) || '').trim();
+                if (auto) return auto.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        return '';
+    }
+
+    function isChatStoreManual(STORAGE_KEYS) {
+        const keys = chatKeys(STORAGE_KEYS);
+        try {
+            return !!GM_getValue(keys.storeManual, false);
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function getChatStoreName(STORAGE_KEYS) {
+        const keys = chatKeys(STORAGE_KEYS);
+        let saved = '';
+        try {
+            saved = String(GM_getValue(keys.store, '') || '').trim();
+        } catch (_) { /* ignore */ }
+
+        // Explicit dropdown override wins
+        if (isChatStoreManual(STORAGE_KEYS) && saved) {
+            return saved.slice(0, 64);
+        }
+
+        // Prefer store from login / active profile
+        const loginStore = detectLoginStoreName();
+        if (loginStore) return loginStore;
+
+        if (saved) return saved.slice(0, 64);
+
         try {
             if (typeof window.getUserStorePick === 'function') {
                 const pick = String(window.getUserStorePick() || '').trim();
@@ -173,6 +223,106 @@
             }
         } catch (_) { /* ignore */ }
         return '';
+    }
+
+    function setChatStoreName(STORAGE_KEYS, name, { manual = true } = {}) {
+        const keys = chatKeys(STORAGE_KEYS);
+        const clean = String(name || '').trim().slice(0, 64);
+        try {
+            GM_setValue(keys.store, clean);
+            GM_setValue(keys.storeManual, !!(manual && clean));
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof window.setUserStorePick === 'function') {
+                window.setUserStorePick(clean);
+            }
+        } catch (_) { /* ignore */ }
+        return clean;
+    }
+
+    function getChatStoreOptions(STORAGE_KEYS) {
+        let options = [];
+        try {
+            if (typeof window.getStorePickerOptions === 'function') {
+                options = window.getStorePickerOptions() || [];
+            }
+        } catch (_) { /* ignore */ }
+        if (!Array.isArray(options) || !options.length) {
+            options = [
+                'ΕΡΥΘΡΑΙΑ (ΕΕ)',
+                'ΣΥΝΤΑΓΜΑ SERVICE (ΕΕ)',
+                'ΣΥΝΤΑΓΜΑ (ΕΕ)',
+                'ΧΟΛΑΡΓΟΣ (ΙΚΕ)',
+                'ATHENS MALL (ΙΚΕ)',
+                'ΚΕΝΤΡΙΚΗ ΑΠΟΘΗΚΗ (ΙΚΕ)',
+                'ΚΟΛΩΝΑΚΙ (ΕΕ)',
+                'ΓΛΥΦΑΔΑ (ΙΚΕ)',
+                'ΠΕΙΡΑΙΑΣ (ΙΚΕ)',
+                'ΒΡΙΛΗΣΣΙΑ (IKE)',
+                'ΚΟΡΥΔΑΛΛΟΣ (ΕΕ)',
+                'ΚΗΦΙΣΙΑ (ΕΕ)',
+                'ΕΛΛΗΝΙΚΟ (ΙΚΕ)',
+                'ΑΓ.ΠΑΡΑΣΚΕΥΗ (ΕΕ)',
+                'ΧΑΛΑΝΔΡΙ (IKE)',
+            ];
+        }
+        const loginStore = detectLoginStoreName();
+        const current = getChatStoreName(STORAGE_KEYS);
+        [loginStore, current].forEach((name) => {
+            if (name && !options.some((o) => String(o) === name)) {
+                options = [name, ...options];
+            }
+        });
+        return options.map((o) => String(o || '').trim()).filter(Boolean);
+    }
+
+    function refreshChatStoreSelect(STORAGE_KEYS) {
+        const select = document.getElementById('tm-chat-store-select');
+        if (!select) return;
+        // Keep following login store until the user overrides in the dropdown
+        if (!isChatStoreManual(STORAGE_KEYS)) {
+            const loginStore = detectLoginStoreName();
+            if (loginStore) setChatStoreName(STORAGE_KEYS, loginStore, { manual: false });
+        }
+        const current = getChatStoreName(STORAGE_KEYS);
+        const options = getChatStoreOptions(STORAGE_KEYS);
+        select.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = isChatStoreManual(STORAGE_KEYS)
+            ? '— Αυτόματο από login —'
+            : '— Κατάστημα (από login) —';
+        select.appendChild(placeholder);
+        options.forEach((name) => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            if (name === current) opt.selected = true;
+            select.appendChild(opt);
+        });
+        if (current) select.value = current;
+        select.title = isChatStoreManual(STORAGE_KEYS)
+            ? 'Χειροκίνητη επιλογή — άδειασε για να ακολουθεί το login'
+            : 'Από το κατάστημα/προφίλ του MyManager login';
+    }
+
+    function wireChatStoreSelect(STORAGE_KEYS) {
+        const select = document.getElementById('tm-chat-store-select');
+        if (!select || select.dataset.tmChatStoreWired === '1') return;
+        select.dataset.tmChatStoreWired = '1';
+        select.addEventListener('change', () => {
+            if (!select.value) {
+                // Clear override → follow login again
+                setChatStoreName(STORAGE_KEYS, '', { manual: false });
+                const loginStore = detectLoginStoreName();
+                if (loginStore) setChatStoreName(STORAGE_KEYS, loginStore, { manual: false });
+            } else {
+                setChatStoreName(STORAGE_KEYS, select.value, { manual: true });
+            }
+            refreshChatStoreSelect(STORAGE_KEYS);
+        });
+        select.addEventListener('mousedown', (e) => e.stopPropagation());
+        refreshChatStoreSelect(STORAGE_KEYS);
     }
 
     function getProfileId() {
@@ -856,7 +1006,7 @@
         const token = await ensureAuth(STORAGE_KEYS);
         const url = `${settings.baseUrl}/api/collections/messages/records`;
         const profileId = getProfileId();
-        const storeName = getChatStoreName();
+        const storeName = getChatStoreName(STORAGE_KEYS);
         const payload = {
             text: clean,
             displayName: getDisplayName(),
@@ -1105,6 +1255,18 @@
             #tm-chat-status[data-status="online"] { color: #198754; }
             #tm-chat-status[data-status="error"] { color: #dc3545; }
             #tm-chat-status[data-status="connecting"] { color: #0d6efd; }
+            #tm-chat-store-row {
+                display: flex; align-items: center; gap: 8px;
+                padding: 6px 10px; border-bottom: 1px solid #eee; background: #fff;
+            }
+            #tm-chat-store-row label {
+                font-size: 11px; font-weight: 600; color: #495057; white-space: nowrap;
+            }
+            #tm-chat-store-select {
+                flex: 1; min-width: 0; font-size: 12px;
+                border: 1px solid #ccc; border-radius: 6px; padding: 4px 6px;
+                background: #fff; color: #212529;
+            }
             #tm-chat-messages {
                 flex: 1; overflow-y: auto; padding: 10px; display: flex;
                 flex-direction: column; gap: 8px; background: #fafbfc;
@@ -1308,6 +1470,7 @@
         const panel = document.getElementById('tm-chat-panel');
         if (!panel) return;
         applyChatPanelGeometry(panel, STORAGE_KEYS);
+        refreshChatStoreSelect(STORAGE_KEYS);
         panel.classList.add('is-open');
         chatPanelOpen = true;
         chatUnread = 0;
@@ -1407,6 +1570,10 @@
                     <button type="button" id="tm-chat-close-btn" title="Κλείσιμο">&times;</button>
                 </div>
                 <div id="tm-chat-status">Ανενεργό</div>
+                <div id="tm-chat-store-row">
+                    <label for="tm-chat-store-select">Κατάστημα</label>
+                    <select id="tm-chat-store-select" title="Από το κατάστημα/προφίλ του MyManager login"></select>
+                </div>
                 <div id="tm-chat-messages"></div>
                 <div id="tm-chat-composer">
                     <textarea id="tm-chat-input" maxlength="${CHAT_MAX_LEN}" placeholder="Μήνυμα… (Enter αποστολή)" rows="2"></textarea>
@@ -1436,10 +1603,22 @@
                 });
             }
             wireComposer(STORAGE_KEYS);
+            wireChatStoreSelect(STORAGE_KEYS);
             wireChatPanelDrag(panel, STORAGE_KEYS);
             applyChatPanelGeometry(panel, STORAGE_KEYS);
         } else {
             const existing = document.getElementById('tm-chat-panel');
+            if (existing && !existing.querySelector('#tm-chat-store-row')) {
+                const statusEl = existing.querySelector('#tm-chat-status');
+                const row = document.createElement('div');
+                row.id = 'tm-chat-store-row';
+                row.innerHTML = `
+                    <label for="tm-chat-store-select">Κατάστημα</label>
+                    <select id="tm-chat-store-select" title="Από το κατάστημα/προφίλ του MyManager login"></select>
+                `;
+                if (statusEl) statusEl.insertAdjacentElement('afterend', row);
+            }
+            wireChatStoreSelect(STORAGE_KEYS);
             wireChatPanelDrag(existing, STORAGE_KEYS);
             applyChatPanelGeometry(existing, STORAGE_KEYS);
         }
