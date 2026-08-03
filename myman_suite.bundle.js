@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v332 / Custom Ver. 36.24 — generated, do not edit */
+/* MyManager Suite bundle v333 / Custom Ver. 36.25 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '332',
+        version: '333',
         loaderVersion: '36',
-        silentVersion: '24',
-        displayVersion: '36.24',
+        silentVersion: '25',
+        displayVersion: '36.25',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -31379,7 +31379,7 @@ function updateWeightDisplay() {
     const modalWeight = document.getElementById('tm-modal-val-weight');
     if (modalWeight) {
         const band = getTamagotchiWeightBand();
-        modalWeight.textContent = `${formatTamagotchiWeightKg()} · ${band.label}`;
+        modalWeight.textContent = `⚖️ ${formatTamagotchiWeightKg()} · ${band.label}`;
     }
     const weightFill = document.getElementById('tm-modal-fill-weight');
     if (weightFill) {
@@ -37625,7 +37625,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     function mountCarePanelMascotPreview(modal) {
         const stage = modal?.querySelector?.('#tm-mascot-care-preview-stage');
         const host = modal?.querySelector?.('#tm-mascot-care-preview');
-        const thumb = modal?.querySelector?.('#tm-mascot-care-avatar-preview');
         if (!stage || !host) return;
 
         // One pruned clone only (full sheet ×2 was pegging GPU via idle animation + SVG size)
@@ -37648,13 +37647,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             || '';
         if (stageScale) stage.style.setProperty('--tm-stage-scale', String(stageScale).trim());
         host.replaceChildren(clone);
-
-        // Tiny header thumb: clone the already-pruned SVG (cheap), not another full sheet
-        if (thumb) {
-            const mini = clone.cloneNode(true);
-            freezeMascotPreviewClone(mini);
-            thumb.replaceChildren(mini);
-        }
 
         // Do not mirror mythic aura classes onto the preview stage — ::before auras are GPU-heavy
         [...stage.classList].filter((c) => c.startsWith('mascot-char-')).forEach((c) => stage.classList.remove(c));
@@ -37691,7 +37683,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             : (isEgg
                 ? 'Μυστήριο αυγάκι'
                 : (charMeta?.name || 'Mascot'));
-        const avatarEmoji = isEgg ? '🥚' : (charMeta?.emoji || '🐾');
         const fullness = Math.round(petStats.hunger * 10) / 10;
         const happiness = Math.round(petStats.happiness * 10) / 10;
         const health = Math.round(tamagotchiHealth * 10) / 10;
@@ -37762,6 +37753,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         }
 
         const tip = getCareTip();
+        const showCareTip = isEgg || tip.level === 'warn' || tip.level === 'danger';
         const cleanUrgent = !isEgg && tamagotchiPoopCount > 0;
         const medUrgent = !isEgg && tamagotchiHealth < 50;
         const feedUrgent = !isEgg && petStats.hunger < 35;
@@ -37770,6 +37762,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         const dailyCoinsState = (typeof getDailyCareCoinsButtonState === 'function')
             ? getDailyCareCoinsButtonState(STORAGE_KEYS)
             : { claimed: false, amount: 50, label: 'Δωρεάν coins', hint: '+50 κάθε μέρα', title: 'Πάρε 50 δωρεάν coins (1×/μέρα)' };
+        const invCounts = !isEgg ? getMascotInventoryCounts(STORAGE_KEYS) : null;
+        const phoenixFeathers = (!isEgg && tamagotchiCharacterType === 'phoenix' && typeof getPhoenixFeatherUniqueCount === 'function')
+            ? ` 🪶${getPhoenixFeatherUniqueCount(STORAGE_KEYS)}/5`
+            : '';
+        const weightBand = !isEgg ? getTamagotchiWeightBand() : null;
         const dailyCoinsRowHtml = `
                 <div class="tm-mascot-daily-coins-row">
                     <button type="button" class="tm-action-btn tm-action-daily-coins ${dailyCoinsState.claimed ? 'tm-daily-claimed' : 'tm-action-urgent'}" id="tm-action-daily-coins" title="${dailyCoinsState.title}" ${dailyCoinsState.claimed ? 'disabled' : ''}>
@@ -37787,47 +37784,41 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             <div class="tm-mascot-modal-backdrop"></div>
             <div class="tm-mascot-modal-container" role="dialog" aria-modal="true" aria-labelledby="tm-mascot-care-title">
                 <div class="tm-mascot-modal-header">
-                    <div class="tm-mascot-header-left">
-                        <div class="tm-mascot-avatar" id="tm-mascot-care-avatar-preview" aria-hidden="true">
-                            <span class="tm-mascot-avatar-fallback">${avatarEmoji}</span>
-                        </div>
-                        <div class="tm-mascot-header-info">
-                            <h2 class="tm-mascot-name" id="tm-mascot-care-title">${characterName}</h2>
-                            <p class="tm-mascot-meta">
-                                <span class="tm-mascot-stage-pill">${stageGr}</span>
-                                <span id="tm-mascot-meta-age">${isEgg ? `Εκκόλαψη ~${minutesToHatch} λεπτά` : `Εξέλιξη: ${stageGr}`}</span>
-                                ${isEgg ? '' : `<span>·</span><span id="tm-mascot-meta-weight">${formatTamagotchiWeightKg()}</span>`}
-                            </p>
-                        </div>
+                    <div class="tm-mascot-header-info">
+                        <h2 class="tm-mascot-name" id="tm-mascot-care-title">${characterName}</h2>
+                        <p class="tm-mascot-meta">
+                            <span class="tm-mascot-stage-pill">${stageGr}</span>
+                            <span id="tm-mascot-meta-age">${isEgg ? `Εκκόλαψη ~${minutesToHatch} λεπτά` : stageGr}</span>
+                            ${isEgg ? '' : `<span class="tm-mascot-meta-sep">·</span><span id="tm-mascot-meta-weight">${formatTamagotchiWeightKg()}</span>`}
+                        </p>
                     </div>
                     <button type="button" class="tm-mascot-close-btn" id="tm-modal-close" aria-label="Κλείσιμο">✕</button>
                 </div>
 
-                <div class="tm-mascot-care-preview" id="tm-mascot-care-preview-stage" hidden>
+                <div class="tm-mascot-care-preview" id="tm-mascot-care-preview-stage">
                     <div class="tm-mascot-care-preview-frame">
                         <div class="tm-mascot-care-preview-sprite" id="tm-mascot-care-preview"></div>
                         <div class="tm-mascot-care-preview-shadow" aria-hidden="true"></div>
                     </div>
                     <div class="tm-mascot-care-preview-actions">
-                        <p class="tm-mascot-care-preview-caption">Προεπισκόπηση 1∶1</p>
                         <button type="button" class="tm-mascot-age-preview-btn" id="tm-action-age-preview" title="Δες όλες τις εξελίξεις">
-                            Preview
+                            Εξελίξεις
                         </button>
                     </div>
                 </div>
 
-                <div class="tm-mascot-tip tm-tip-${tip.level}" id="tm-mascot-care-tip">
+                ${dailyCoinsRowHtml}
+
+                <div class="tm-mascot-tip tm-tip-${tip.level}" id="tm-mascot-care-tip"${showCareTip ? '' : ' hidden'}>
                     <span class="tm-tip-icon">${tip.icon}</span>
                     <span class="tm-tip-text">${tip.text}</span>
                 </div>
 
-                ${dailyCoinsRowHtml}
-
                 ${isEgg ? `
-                <div class="tm-mascot-stats-block">
+                <div class="tm-mascot-stats-block tm-vitals-compact">
                     <div class="tm-stat-row" data-stat="hatch">
                         <div class="tm-stat-row-top">
-                            <span class="tm-stat-label">🥚 Πρόοδος εκκόλαψης</span>
+                            <span class="tm-stat-label">🥚 Εκκόλαψη</span>
                             <span class="tm-stat-value" id="tm-egg-hatch-value">${hatchProgress}%</span>
                         </div>
                         <div class="tm-stat-bar">
@@ -37836,8 +37827,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </div>
                 </div>
                 <div class="tm-mascot-actions-section">
-                    <h3 class="tm-actions-title">Φροντίδα ωού</h3>
-                    <div class="tm-mascot-actions tm-actions-primary">
+                    <div class="tm-mascot-actions tm-actions-primary tm-actions-egg">
                         <button type="button" class="tm-action-btn" id="tm-action-egg-warm" title="Ζέστανε το ωό">
                             <span class="tm-action-icon">🔥</span>
                             <span class="tm-action-label">Ζέστανε</span>
@@ -37853,7 +37843,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </div>
                 </div>
                 ` : `
-                <div class="tm-mascot-stats-block">
+                <div class="tm-mascot-stats-block tm-vitals-grid">
                     <div class="tm-stat-row" data-stat="happiness">
                         <div class="tm-stat-row-top">
                             <span class="tm-stat-label">😊 Ευτυχία</span>
@@ -37881,15 +37871,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <div class="tm-stat-fill tm-fill-health" id="tm-modal-fill-health" style="width: ${tamagotchiHealth}%;"></div>
                         </div>
                     </div>
-                    <div class="tm-stat-row" data-stat="weight">
-                        <div class="tm-stat-row-top">
-                            <span class="tm-stat-label">⚖️ Βάρος</span>
-                            <span class="tm-stat-value" id="tm-modal-val-weight">${formatTamagotchiWeightKg()} · ${getTamagotchiWeightBand().label}</span>
-                        </div>
-                        <div class="tm-stat-bar">
-                            <div class="tm-stat-fill tm-fill-weight" id="tm-modal-fill-weight" data-band="${getTamagotchiWeightBand().id}" style="width: ${Math.max(0, Math.min(100, ((tamagotchiWeight - TAMA_WEIGHT_BOUNDS.min) / (TAMA_WEIGHT_BOUNDS.max - TAMA_WEIGHT_BOUNDS.min)) * 100))}%;"></div>
-                        </div>
-                    </div>
                     <div class="tm-stat-row" data-stat="discipline">
                         <div class="tm-stat-row-top">
                             <span class="tm-stat-label">🎓 Πειθαρχία</span>
@@ -37899,15 +37880,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <div class="tm-stat-fill tm-fill-disc" id="tm-modal-fill-discipline" style="width: ${tamagotchiDiscipline}%;"></div>
                         </div>
                     </div>
-                    <div class="tm-mascot-status-chips" id="tm-mascot-status-chips">
-                        <span class="tm-status-chip">${tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό'}</span>
-                        <span class="tm-status-chip">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
-                        ${(() => { const inv = getMascotInventoryCounts(STORAGE_KEYS); const feathers = (tamagotchiCharacterType === 'phoenix' && typeof getPhoenixFeatherUniqueCount === 'function') ? ` 🪶${getPhoenixFeatherUniqueCount(STORAGE_KEYS)}/5` : ''; return `<span class="tm-status-chip" id="tm-mascot-inv-chip">🍖${inv.food} 🍪${inv.treats}${feathers}</span>`; })()}
-                    </div>
+                </div>
+                <div class="tm-mascot-status-chips" id="tm-mascot-status-chips">
+                    <span class="tm-status-chip" id="tm-modal-val-weight">⚖️ ${formatTamagotchiWeightKg()} · ${weightBand.label}</span>
+                    <span class="tm-status-chip">${tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό'}</span>
+                    <span class="tm-status-chip">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
+                    <span class="tm-status-chip" id="tm-mascot-inv-chip">🍖${invCounts.food} 🍪${invCounts.treats}${phoenixFeathers}</span>
                 </div>
 
                 <div class="tm-mascot-actions-section">
-                    <h3 class="tm-actions-title">Φροντίδα</h3>
                     <div class="tm-mascot-actions tm-actions-primary">
                         <button type="button" class="tm-action-btn tm-action-meal ${feedUrgent ? 'tm-action-urgent' : ''}" id="tm-action-meal" title="Γεύμα (+30 φαγητό)">
                             <span class="tm-action-icon">🍖</span>
@@ -37937,6 +37918,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <span class="tm-action-icon">🚽</span>
                             <span class="tm-action-label">Τουαλέτα</span>
                         </button>
+                    </div>
+                </div>
+
+                <details class="tm-mascot-more-details"${(praiseUrgent || scoldUrgent || isMascotFocusQuiet()) ? ' open' : ''}>
+                    <summary>Περισσότερα</summary>
+                    <div class="tm-mascot-actions tm-actions-more">
                         <button type="button" class="tm-action-btn tm-action-praise ${praiseUrgent ? 'tm-action-urgent' : ''}" id="tm-action-praise" title="Έπαινος (+πειθαρχία, +χαρά)">
                             <span class="tm-action-icon">👍</span>
                             <span class="tm-action-label">Έπαινος</span>
@@ -37946,11 +37933,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <span class="tm-action-icon">👎</span>
                             <span class="tm-action-label">Επίπληξη</span>
                         </button>
-                    </div>
-                </div>
-
-                <div class="tm-mascot-actions-section tm-mascot-settings-row">
-                    <div class="tm-mascot-actions tm-actions-compact">
                         <button type="button" class="tm-action-btn tm-action-lights" id="tm-action-lights" title="Φώτα">
                             <span class="tm-action-icon">${tamagotchiLightsOn ? '💡' : '🌙'}</span>
                             <span class="tm-action-label">${tamagotchiLightsOn ? 'Φώτα' : 'Σκοτάδι'}</span>
@@ -37964,7 +37946,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <span class="tm-action-label">${isMascotFocusQuiet() ? 'Τέλος' : 'Εστίαση'}</span>
                         </button>
                     </div>
-                </div>
+                </details>
 
                 <details class="tm-mascot-extra-details">
                     <summary>Παιχνίδια &amp; κόλπα</summary>
@@ -38001,20 +37983,19 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
         document.body.appendChild(modal);
 
-        // Always refresh styles (v2 care panel)
+        // Always refresh styles (v3 care panel)
         document.getElementById('tm-mascot-modal-styles')?.remove();
         document.getElementById('tm-mascot-modal-styles-v2')?.remove();
+        document.getElementById('tm-mascot-modal-styles-v3')?.remove();
         const style = document.createElement('style');
-        style.id = 'tm-mascot-modal-styles-v2';
+        style.id = 'tm-mascot-modal-styles-v3';
         style.textContent = `
             #tm-mascot-stats-modal .tm-mascot-modal-backdrop {
                 position: fixed; inset: 0;
                 background: rgba(15, 23, 42, 0.5);
-                /* No backdrop-filter — full-screen blur was a major GPU cost with SVG previews */
                 z-index: 100000;
                 animation: tmCareFadeIn 0.2s ease-out;
             }
-            /* Freeze preview clones — global .tm-mascot-robot idle uses will-change + infinite animation */
             #tm-mascot-stats-modal .tm-mascot-preview-robot,
             #tm-mascot-stats-modal .tm-mascot-preview-robot * {
                 animation: none !important;
@@ -38031,8 +38012,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 top: 50%; left: 50%;
                 transform: translate(-50%, -50%);
                 z-index: 100001;
-                width: min(92vw, 440px);
-                max-height: min(90vh, 720px);
+                width: min(92vw, 400px);
+                max-height: min(92vh, 780px);
                 overflow-y: auto;
                 background: var(--tm-modal-bg, #ffffff);
                 color: var(--tm-shop-item-text, #1e293b);
@@ -38049,28 +38030,36 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
             #tm-mascot-stats-modal .tm-mascot-modal-header {
                 display: flex; justify-content: space-between; align-items: flex-start;
-                gap: 12px; padding: 18px 18px 12px;
+                gap: 12px; padding: 14px 16px 6px;
             }
-            #tm-mascot-stats-modal .tm-mascot-header-left {
-                display: flex; align-items: center; gap: 12px; min-width: 0;
+            #tm-mascot-stats-modal .tm-mascot-header-info { min-width: 0; flex: 1; }
+            #tm-mascot-stats-modal .tm-mascot-name {
+                margin: 0 0 2px; font-size: 1.1rem; font-weight: 700;
+                color: var(--tm-shop-item-text, #0f172a); line-height: 1.25;
             }
-            #tm-mascot-stats-modal .tm-mascot-avatar {
-                width: 52px; height: 52px; flex-shrink: 0;
-                border-radius: 14px;
+            #tm-mascot-stats-modal .tm-mascot-meta {
+                margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+                font-size: 12px; color: color-mix(in srgb, var(--tm-shop-item-text, #64748b) 80%, #64748b);
+            }
+            #tm-mascot-stats-modal .tm-mascot-meta-sep { opacity: 0.5; }
+            #tm-mascot-stats-modal .tm-mascot-stage-pill {
+                display: inline-flex; padding: 2px 8px; border-radius: 999px;
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 12%, transparent);
+                color: var(--tm-primary-color, #007bff); font-weight: 600; font-size: 11px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-close-btn {
+                width: 34px; height: 34px; border: none; border-radius: 10px; cursor: pointer;
+                background: var(--tm-shop-item-bg, #f1f5f9);
+                color: var(--tm-shop-item-text, #334155); font-size: 16px;
                 display: flex; align-items: center; justify-content: center;
-                font-size: 28px;
-                overflow: hidden;
-                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 14%, var(--tm-shop-item-bg, #f8f9fa));
-                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 22%, transparent);
+                transition: background 0.15s, color 0.15s; flex-shrink: 0;
             }
-            #tm-mascot-stats-modal .tm-mascot-avatar .tm-mascot-preview-robot,
-            #tm-mascot-stats-modal .tm-mascot-avatar svg {
-                width: 44px; height: 44px; display: block;
-                overflow: visible;
+            #tm-mascot-stats-modal .tm-mascot-close-btn:hover {
+                background: #fee2e2; color: #b91c1c;
             }
             #tm-mascot-stats-modal .tm-mascot-care-preview {
-                margin: 0 18px 12px;
-                padding: 14px 12px 10px;
+                margin: 0 16px 8px;
+                padding: 10px 10px 8px;
                 border-radius: 14px;
                 border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 16%, var(--tm-shop-item-border, #e2e8f0));
                 background:
@@ -38083,13 +38072,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 6px;
+                gap: 4px;
             }
             #tm-mascot-stats-modal .tm-mascot-care-preview[hidden] { display: none !important; }
             #tm-mascot-stats-modal .tm-mascot-care-preview-frame {
                 position: relative;
-                width: var(--tm-care-preview-size, 100px);
-                height: var(--tm-care-preview-size, 100px);
+                width: var(--tm-care-preview-size, 96px);
+                height: var(--tm-care-preview-size, 96px);
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -38103,7 +38092,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                /* Static — infinite bob forced continuous GPU repaints of the SVG */
             }
             #tm-mascot-stats-modal .tm-mascot-care-preview-sprite .tm-mascot-preview-robot,
             #tm-mascot-stats-modal .tm-mascot-care-preview-sprite svg {
@@ -38129,25 +38117,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 10px;
-                flex-wrap: wrap;
                 width: 100%;
-            }
-            #tm-mascot-stats-modal .tm-mascot-care-preview-caption {
-                margin: 0;
-                font-size: 11px;
-                font-weight: 600;
-                letter-spacing: 0.04em;
-                text-transform: uppercase;
-                color: color-mix(in srgb, var(--tm-shop-item-text, #64748b) 85%, #94a3b8);
             }
             #tm-mascot-stats-modal .tm-mascot-age-preview-btn {
                 border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 35%, var(--tm-shop-item-border, #cbd5e1));
                 background: color-mix(in srgb, var(--tm-primary-color, #007bff) 10%, var(--tm-shop-item-bg, #fff));
                 color: var(--tm-primary-color, #1d4ed8);
                 border-radius: 999px;
-                padding: 5px 12px;
-                font-size: 11.5px;
+                padding: 4px 12px;
+                font-size: 11px;
                 font-weight: 700;
                 cursor: pointer;
                 line-height: 1.2;
@@ -38155,35 +38133,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             #tm-mascot-stats-modal .tm-mascot-age-preview-btn:hover {
                 background: color-mix(in srgb, var(--tm-primary-color, #007bff) 18%, var(--tm-shop-item-bg, #fff));
             }
-            #tm-mascot-stats-modal .tm-mascot-name {
-                margin: 0 0 4px; font-size: 1.15rem; font-weight: 700;
-                color: var(--tm-shop-item-text, #0f172a); line-height: 1.25;
-            }
-            #tm-mascot-stats-modal .tm-mascot-meta {
-                margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
-                font-size: 12px; color: color-mix(in srgb, var(--tm-shop-item-text, #64748b) 80%, #64748b);
-            }
-            #tm-mascot-stats-modal .tm-mascot-stage-pill {
-                display: inline-flex; padding: 2px 8px; border-radius: 999px;
-                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 12%, transparent);
-                color: var(--tm-primary-color, #007bff); font-weight: 600; font-size: 11px;
-            }
-            #tm-mascot-stats-modal .tm-mascot-close-btn {
-                width: 34px; height: 34px; border: none; border-radius: 10px; cursor: pointer;
-                background: var(--tm-shop-item-bg, #f1f5f9);
-                color: var(--tm-shop-item-text, #334155); font-size: 16px;
-                display: flex; align-items: center; justify-content: center;
-                transition: background 0.15s, color 0.15s;
-            }
-            #tm-mascot-stats-modal .tm-mascot-close-btn:hover {
-                background: #fee2e2; color: #b91c1c;
-            }
             #tm-mascot-stats-modal .tm-mascot-tip {
-                margin: 0 18px 10px; padding: 12px 14px; border-radius: 12px;
-                display: flex; align-items: flex-start; gap: 10px;
-                font-size: 13px; line-height: 1.4; font-weight: 500;
+                margin: 0 16px 8px; padding: 10px 12px; border-radius: 12px;
+                display: flex; align-items: flex-start; gap: 8px;
+                font-size: 12.5px; line-height: 1.35; font-weight: 500;
             }
-            #tm-mascot-stats-modal .tm-tip-icon { font-size: 18px; line-height: 1.2; }
+            #tm-mascot-stats-modal .tm-mascot-tip[hidden] { display: none !important; }
+            #tm-mascot-stats-modal .tm-tip-icon { font-size: 16px; line-height: 1.2; }
             #tm-mascot-stats-modal .tm-tip-ok {
                 background: color-mix(in srgb, #22c55e 12%, var(--tm-shop-item-bg, #f8fafc));
                 border: 1px solid color-mix(in srgb, #22c55e 28%, transparent); color: #166534;
@@ -38202,23 +38158,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 border: 1px solid color-mix(in srgb, #ef4444 30%, transparent); color: #991b1b;
             }
             #tm-mascot-stats-modal .tm-mascot-daily-coins-row {
-                margin: 0 18px 12px;
+                margin: 0 16px 8px;
             }
             #tm-mascot-stats-modal .tm-action-daily-coins {
                 width: 100%;
                 flex-direction: row;
                 justify-content: flex-start;
-                gap: 12px;
-                padding: 12px 14px;
+                gap: 10px;
+                padding: 8px 12px;
                 text-align: left;
             }
+            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-icon { font-size: 18px; }
             #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-copy {
-                display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0;
+                display: flex; flex-direction: row; align-items: baseline; gap: 8px; min-width: 0; flex-wrap: wrap;
             }
             #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-label,
             #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-hint {
                 text-align: left;
             }
+            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-hint { margin: 0; }
             #tm-mascot-stats-modal .tm-action-daily-coins.tm-daily-claimed {
                 opacity: 0.72;
                 cursor: default;
@@ -38234,41 +38192,31 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             #tm-mascot-stats-modal .tm-action-daily-coins:disabled {
                 pointer-events: none;
             }
-            #tm-mascot-stats-modal .tm-mascot-alerts {
-                padding: 0 18px; display: flex; flex-direction: column; gap: 8px;
-                margin-bottom: 4px;
-            }
-            #tm-mascot-stats-modal .tm-mascot-alerts:empty { display: none; margin: 0; }
-            #tm-mascot-stats-modal .tm-mascot-alert {
-                display: flex; align-items: center; gap: 8px;
-                padding: 10px 12px; border-radius: 10px; font-size: 12.5px; font-weight: 500;
-            }
-            #tm-mascot-stats-modal .tm-alert-warning {
-                background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
-            }
-            #tm-mascot-stats-modal .tm-alert-danger {
-                background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
-            }
-            #tm-mascot-stats-modal .tm-alert-info {
-                background: #ecfeff; border: 1px solid #a5f3fc; color: #0e7490;
-            }
             #tm-mascot-stats-modal .tm-mascot-stats-block {
-                padding: 8px 18px 14px; display: flex; flex-direction: column; gap: 12px;
+                padding: 4px 16px 8px;
+            }
+            #tm-mascot-stats-modal .tm-vitals-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px 12px;
+            }
+            #tm-mascot-stats-modal .tm-vitals-compact {
+                display: flex; flex-direction: column; gap: 8px;
             }
             #tm-mascot-stats-modal .tm-stat-row-top {
                 display: flex; justify-content: space-between; align-items: baseline;
-                margin-bottom: 5px; gap: 8px;
+                margin-bottom: 3px; gap: 6px;
             }
             #tm-mascot-stats-modal .tm-stat-label {
-                font-size: 12.5px; font-weight: 600;
+                font-size: 11.5px; font-weight: 600;
                 color: var(--tm-shop-item-text, #334155);
             }
             #tm-mascot-stats-modal .tm-stat-value {
-                font-size: 12px; font-weight: 700;
+                font-size: 11px; font-weight: 700;
                 color: var(--tm-primary-color, #007bff); font-variant-numeric: tabular-nums;
             }
             #tm-mascot-stats-modal .tm-stat-bar {
-                height: 10px; border-radius: 999px; overflow: hidden;
+                height: 7px; border-radius: 999px; overflow: hidden;
                 background: var(--tm-shop-item-bg, #e2e8f0);
             }
             #tm-mascot-stats-modal .tm-stat-fill {
@@ -38278,73 +38226,60 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             #tm-mascot-stats-modal .tm-fill-happy { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
             #tm-mascot-stats-modal .tm-fill-food { background: linear-gradient(90deg, #4ade80, #16a34a); }
             #tm-mascot-stats-modal .tm-fill-health { background: linear-gradient(90deg, #f87171, #dc2626); }
-            #tm-mascot-stats-modal .tm-fill-weight { background: linear-gradient(90deg, #38bdf8, #0284c7); }
-            #tm-mascot-stats-modal .tm-fill-weight[data-band="over"] { background: linear-gradient(90deg, #fbbf24, #d97706); }
-            #tm-mascot-stats-modal .tm-fill-weight[data-band="obese"],
-            #tm-mascot-stats-modal .tm-fill-weight[data-band="critical"] { background: linear-gradient(90deg, #fb7185, #e11d48); }
-            #tm-mascot-stats-modal .tm-fill-weight[data-band="under"] { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
             #tm-mascot-stats-modal .tm-fill-disc { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
             #tm-mascot-stats-modal .tm-fill-hatch { background: linear-gradient(90deg, #2dd4bf, #0d9488); }
             #tm-mascot-stats-modal .tm-mascot-status-chips {
-                display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px;
+                display: flex; flex-wrap: wrap; gap: 5px;
+                padding: 0 16px 10px;
             }
             #tm-mascot-stats-modal .tm-status-chip {
-                font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 999px;
+                font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 999px;
                 background: var(--tm-shop-item-bg, #f1f5f9);
                 color: var(--tm-shop-item-text, #475569);
                 border: 1px solid var(--tm-shop-item-border, #e2e8f0);
             }
             #tm-mascot-stats-modal .tm-mascot-actions-section {
-                padding: 4px 18px 14px;
-            }
-            #tm-mascot-stats-modal .tm-actions-title {
-                margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
-                text-transform: uppercase; color: color-mix(in srgb, var(--tm-shop-item-text, #64748b) 90%, #64748b);
+                padding: 0 16px 10px;
             }
             #tm-mascot-stats-modal .tm-mascot-actions {
-                display: grid; gap: 8px;
+                display: grid; gap: 7px;
             }
             #tm-mascot-stats-modal .tm-actions-primary {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            #tm-mascot-stats-modal .tm-actions-secondary {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            #tm-mascot-stats-modal .tm-actions-compact {
                 grid-template-columns: repeat(3, 1fr);
             }
-            #tm-mascot-stats-modal .tm-mascot-settings-row {
-                padding-top: 0;
+            #tm-mascot-stats-modal .tm-actions-egg {
+                grid-template-columns: repeat(3, 1fr);
             }
-            #tm-mascot-stats-modal .tm-actions-compact .tm-action-btn {
-                padding: 8px 4px 6px;
+            #tm-mascot-stats-modal .tm-actions-secondary {
+                grid-template-columns: repeat(3, 1fr);
             }
-            #tm-mascot-stats-modal .tm-actions-compact .tm-action-icon { font-size: 18px; }
-            #tm-mascot-stats-modal .tm-actions-compact .tm-action-label { font-size: 11px; }
+            #tm-mascot-stats-modal .tm-actions-more {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            #tm-mascot-stats-modal .tm-mascot-more-details,
             #tm-mascot-stats-modal .tm-mascot-extra-details {
-                margin: 0 18px 10px; padding: 10px 12px;
+                margin: 0 16px 8px; padding: 8px 10px;
                 border-radius: 12px; border: 1px solid var(--tm-shop-item-border, #e2e8f0);
                 background: var(--tm-shop-item-bg, #f8fafc);
             }
+            #tm-mascot-stats-modal .tm-mascot-more-details summary,
             #tm-mascot-stats-modal .tm-mascot-extra-details summary {
                 cursor: pointer; font-size: 12px; font-weight: 700; color: var(--tm-shop-item-text, #475569);
                 list-style: none; display: flex; align-items: center; gap: 6px;
             }
+            #tm-mascot-stats-modal .tm-mascot-more-details summary::-webkit-details-marker,
             #tm-mascot-stats-modal .tm-mascot-extra-details summary::-webkit-details-marker { display: none; }
+            #tm-mascot-stats-modal .tm-mascot-more-details summary::before,
             #tm-mascot-stats-modal .tm-mascot-extra-details summary::before { content: '▸'; font-size: 10px; opacity: 0.7; }
+            #tm-mascot-stats-modal .tm-mascot-more-details[open] summary::before,
             #tm-mascot-stats-modal .tm-mascot-extra-details[open] summary::before { content: '▾'; }
-            #tm-mascot-stats-modal .tm-mascot-extra-details[open] summary { margin-bottom: 10px; }
-            #tm-mascot-stats-modal .tm-mascot-extra-details .tm-mascot-actions-section {
-                padding: 0 0 8px;
-            }
-            #tm-mascot-stats-modal .tm-mascot-extra-details .tm-actions-title {
-                margin-top: 8px;
-            }
+            #tm-mascot-stats-modal .tm-mascot-more-details[open] summary,
+            #tm-mascot-stats-modal .tm-mascot-extra-details[open] summary { margin-bottom: 8px; }
             #tm-mascot-stats-modal .tm-action-btn {
                 appearance: none; border: 1px solid var(--tm-shop-item-border, #e2e8f0);
                 background: var(--tm-shop-item-bg, #f8fafc);
-                border-radius: 12px; padding: 10px 6px 8px;
-                display: flex; flex-direction: column; align-items: center; gap: 2px;
+                border-radius: 11px; padding: 8px 4px 6px;
+                display: flex; flex-direction: column; align-items: center; gap: 1px;
                 cursor: pointer; color: var(--tm-shop-item-text, #1e293b);
                 transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.1s;
             }
@@ -38359,16 +38294,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 background: color-mix(in srgb, #f59e0b 12%, #ffffff);
                 box-shadow: 0 0 0 2px color-mix(in srgb, #f59e0b 18%, transparent);
             }
-            #tm-mascot-stats-modal .tm-action-icon { font-size: 22px; line-height: 1.2; }
+            #tm-mascot-stats-modal .tm-action-icon { font-size: 20px; line-height: 1.2; }
             #tm-mascot-stats-modal .tm-action-label {
-                font-size: 12px; font-weight: 700; text-align: center;
+                font-size: 11.5px; font-weight: 700; text-align: center;
             }
             #tm-mascot-stats-modal .tm-action-hint {
-                font-size: 10px; font-weight: 500; text-align: center;
+                font-size: 9.5px; font-weight: 500; text-align: center;
                 color: color-mix(in srgb, var(--tm-shop-item-text, #94a3b8) 85%, #94a3b8);
             }
             #tm-mascot-stats-modal .tm-mascot-danger-details {
-                margin: 4px 18px 18px; padding: 10px 12px;
+                margin: 2px 16px 14px; padding: 8px 10px;
                 border-radius: 12px; border: 1px dashed #fca5a5;
                 background: #fffafa;
             }
@@ -38397,8 +38332,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
             }
             @media (max-width: 420px) {
-                #tm-mascot-stats-modal .tm-actions-primary {
-                    grid-template-columns: repeat(2, 1fr);
+                #tm-mascot-stats-modal .tm-actions-primary,
+                #tm-mascot-stats-modal .tm-actions-more,
+                #tm-mascot-stats-modal .tm-actions-secondary {
+                    grid-template-columns: repeat(3, 1fr);
+                }
+                #tm-mascot-stats-modal .tm-vitals-grid {
+                    grid-template-columns: 1fr 1fr;
                 }
             }
         `;
@@ -38416,8 +38356,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             const tipEl = modal.querySelector('#tm-mascot-care-tip');
             if (!tipEl) return;
             const next = getCareTip();
+            const show = tamagotchiStage === 'egg' || next.level === 'warn' || next.level === 'danger';
             tipEl.className = 'tm-mascot-tip tm-tip-' + next.level;
             tipEl.innerHTML = '<span class="tm-tip-icon">' + next.icon + '</span><span class="tm-tip-text">' + next.text + '</span>';
+            tipEl.hidden = !show;
         }
 
         function refreshDailyCoinsButton() {
@@ -38471,17 +38413,22 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             const metaWeight = modal.querySelector('#tm-mascot-meta-weight');
             if (metaWeight) metaWeight.textContent = formatTamagotchiWeightKg();
             const metaAge = modal.querySelector('#tm-mascot-meta-age');
-            if (metaAge) metaAge.textContent = `Εξέλιξη: ${getMascotEvolutionDisplayName(tamagotchiCharacterType, tamagotchiStage)}`;
+            if (metaAge) metaAge.textContent = getMascotEvolutionDisplayName(tamagotchiCharacterType, tamagotchiStage);
             const stagePill = modal.querySelector('.tm-mascot-stage-pill');
             if (stagePill) stagePill.textContent = getMascotEvolutionDisplayName(tamagotchiCharacterType, tamagotchiStage);
 
             const chips = modal.querySelector('#tm-mascot-status-chips');
             if (chips) {
                 const inv = getMascotInventoryCounts(STORAGE_KEYS);
+                const feathers = (tamagotchiCharacterType === 'phoenix' && typeof getPhoenixFeatherUniqueCount === 'function')
+                    ? ` 🪶${getPhoenixFeatherUniqueCount(STORAGE_KEYS)}/5`
+                    : '';
+                const band = getTamagotchiWeightBand();
                 chips.innerHTML =
+                    '<span class="tm-status-chip" id="tm-modal-val-weight">⚖️ ' + formatTamagotchiWeightKg() + ' · ' + band.label + '</span>' +
                     '<span class="tm-status-chip">' + (tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό') + '</span>' +
                     '<span class="tm-status-chip">' + (tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά') + '</span>' +
-                    '<span class="tm-status-chip" id="tm-mascot-inv-chip">🍖' + inv.food + ' 🍪' + inv.treats + '</span>';
+                    '<span class="tm-status-chip" id="tm-mascot-inv-chip">🍖' + inv.food + ' 🍪' + inv.treats + feathers + '</span>';
             }
 
             const mealHint = modal.querySelector('#tm-action-meal .tm-action-hint');
