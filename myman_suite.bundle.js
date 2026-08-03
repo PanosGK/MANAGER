@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v364 / Custom Ver. 41.8 — generated, do not edit */
+/* MyManager Suite bundle v365 / Custom Ver. 41.9 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '364',
+        version: '365',
         loaderVersion: '41',
-        silentVersion: '8',
-        displayVersion: '41.8',
+        silentVersion: '9',
+        displayVersion: '41.9',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -22504,6 +22504,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function updateChatStatusUi() {
         const el = document.getElementById('tm-chat-status');
+        const liveDot = document.getElementById('tm-chat-live-dot');
+        if (liveDot) liveDot.dataset.status = chatStatus;
         if (!el) return;
         const labels = {
             idle: 'Ανενεργό',
@@ -22513,6 +22515,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             disabled: 'Απενεργοποιημένο',
         };
         const label = labels[chatStatus] || chatStatus;
+        // Keep message area tall: only show status banner when not healthy
+        const showBanner = chatStatus === 'error' || chatStatus === 'connecting' || chatStatus === 'disabled'
+            || (chatStatus === 'online' && !!chatStatusDetail && !/^(realtime|poll)/i.test(chatStatusDetail));
+        el.classList.toggle('is-visible', showBanner);
         el.innerHTML = `<span class="tm-chat-status-dot" aria-hidden="true"></span>`
             + `<span class="tm-chat-status-text">${escapeHtml(chatStatusDetail ? `${label}: ${chatStatusDetail}` : label)}</span>`;
         el.dataset.status = chatStatus;
@@ -23116,7 +23122,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             await fetchMessages(STORAGE_KEYS);
             const realtimeOk = await tryStartRealtime(STORAGE_KEYS);
             startPolling(STORAGE_KEYS);
-            setChatStatus('online', realtimeOk ? 'realtime+poll' : 'poll');
+            setChatStatus('online');
             return { ok: true, realtime: realtimeOk };
         } catch (err) {
             setChatStatus('error', err?.message || 'Σύνδεση απέτυχε');
@@ -23178,13 +23184,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 --tm-chat-ink: #0f172a;
                 --tm-chat-muted: #64748b;
                 --tm-chat-line: #e2e8f0;
-                position: fixed; bottom: 60px; right: 20px; z-index: 9997;
-                width: min(380px, calc(100vw - 24px));
-                height: min(560px, calc(100vh - 88px));
+                position: fixed; bottom: 52px; right: 12px; z-index: 9997;
+                width: min(400px, calc(100vw - 16px));
+                height: min(92vh, calc(100vh - 56px));
                 display: none; flex-direction: column;
                 background: var(--tm-chat-surface);
                 border: 1px solid var(--tm-chat-line);
-                border-radius: 18px;
+                border-radius: 14px;
                 box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18), 0 2px 8px rgba(15, 23, 42, 0.06);
                 overflow: hidden;
                 font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -23196,37 +23202,38 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
             }
             #tm-chat-header {
-                display: flex; align-items: center; gap: 10px;
-                padding: 12px 12px 10px;
-                background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+                display: flex; align-items: center; gap: 6px;
+                padding: 6px 8px;
+                flex-shrink: 0;
+                background: #f8fafc;
                 border-bottom: 1px solid var(--tm-chat-line);
                 user-select: none; cursor: move;
             }
             .tm-chat-header-brand {
-                display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; cursor: move;
+                display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; cursor: move;
             }
             .tm-chat-header-icon {
-                width: 34px; height: 34px; border-radius: 12px;
+                width: 24px; height: 24px; border-radius: 8px;
                 display: grid; place-items: center;
                 background: color-mix(in srgb, var(--tm-chat-accent) 14%, #fff);
                 color: var(--tm-chat-accent);
-                font-size: 16px; flex-shrink: 0;
+                font-size: 13px; flex-shrink: 0;
             }
-            #tm-chat-title-wrap { min-width: 0; }
+            #tm-chat-title-wrap {
+                min-width: 0; display: flex; align-items: center; gap: 6px;
+            }
             #tm-chat-title {
-                display: block; font-weight: 700; font-size: 14px;
+                display: block; font-weight: 700; font-size: 13px;
                 color: var(--tm-chat-ink); line-height: 1.2;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             }
-            #tm-chat-subtitle {
-                display: block; font-size: 11px; color: var(--tm-chat-muted);
-                margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            }
-            .tm-chat-header-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+            #tm-chat-subtitle { display: none; }
+            .tm-chat-header-actions { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
             #tm-chat-header button {
                 background: transparent; border: none; cursor: pointer;
                 color: var(--tm-chat-muted);
-                width: 32px; height: 32px; border-radius: 10px;
-                font-size: 15px; line-height: 1;
+                width: 28px; height: 28px; border-radius: 8px;
+                font-size: 14px; line-height: 1;
                 display: grid; place-items: center;
                 transition: background 0.15s ease, color 0.15s ease;
             }
@@ -23234,24 +23241,39 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 background: #e2e8f0; color: var(--tm-chat-ink);
             }
             #tm-chat-header button.is-muted { color: #ef4444; }
+            /* Status: hidden when healthy — frees a full row for messages */
             #tm-chat-status {
-                display: flex; align-items: center; gap: 8px;
-                font-size: 11px; padding: 6px 14px;
+                display: none; align-items: center; gap: 6px;
+                font-size: 11px; padding: 4px 10px;
                 color: var(--tm-chat-muted);
                 border-bottom: 1px solid var(--tm-chat-line);
-                background: #f8fafc;
+                background: #fff7ed;
+                flex-shrink: 0;
             }
+            #tm-chat-status.is-visible { display: flex; }
             .tm-chat-status-dot {
-                width: 8px; height: 8px; border-radius: 50%;
+                width: 7px; height: 7px; border-radius: 50%;
                 background: #94a3b8; flex-shrink: 0;
             }
-            #tm-chat-status[data-status="online"] { color: #15803d; }
+            #tm-chat-header .tm-chat-live-dot {
+                width: 7px; height: 7px; border-radius: 50%;
+                background: #94a3b8; flex-shrink: 0;
+            }
+            #tm-chat-header .tm-chat-live-dot[data-status="online"] {
+                background: #22c55e; box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+            }
+            #tm-chat-header .tm-chat-live-dot[data-status="error"] { background: #ef4444; }
+            #tm-chat-header .tm-chat-live-dot[data-status="connecting"] {
+                background: #3b82f6;
+                animation: tm-chat-pulse-dot 1s ease-in-out infinite;
+            }
+            #tm-chat-status[data-status="online"] { color: #15803d; background: #f0fdf4; }
             #tm-chat-status[data-status="online"] .tm-chat-status-dot {
                 background: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
             }
-            #tm-chat-status[data-status="error"] { color: #dc2626; }
+            #tm-chat-status[data-status="error"] { color: #dc2626; background: #fef2f2; }
             #tm-chat-status[data-status="error"] .tm-chat-status-dot { background: #ef4444; }
-            #tm-chat-status[data-status="connecting"] { color: #2563eb; }
+            #tm-chat-status[data-status="connecting"] { color: #2563eb; background: #eff6ff; }
             #tm-chat-status[data-status="connecting"] .tm-chat-status-dot {
                 background: #3b82f6;
                 animation: tm-chat-pulse-dot 1s ease-in-out infinite;
@@ -23261,34 +23283,35 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 50% { opacity: 0.45; transform: scale(0.85); }
             }
             #tm-chat-store-row {
-                display: flex; align-items: center; gap: 8px;
-                padding: 8px 12px; border-bottom: 1px solid var(--tm-chat-line);
-                background: #fff;
+                display: flex; align-items: center; gap: 6px;
+                padding: 4px 8px; border-bottom: 1px solid var(--tm-chat-line);
+                background: #fff; flex-shrink: 0;
             }
             #tm-chat-store-row.is-locked { background: #f8fafc; }
             #tm-chat-store-row label {
-                font-size: 11px; font-weight: 600; color: #475569; white-space: nowrap;
+                font-size: 10px; font-weight: 600; color: #64748b; white-space: nowrap;
             }
             #tm-chat-store-select {
-                flex: 1; min-width: 0; font-size: 12px;
-                border: 1px solid var(--tm-chat-line); border-radius: 10px;
-                padding: 6px 8px; background: #fff; color: var(--tm-chat-ink);
-                outline: none;
+                flex: 1; min-width: 0; font-size: 11px;
+                border: 1px solid var(--tm-chat-line); border-radius: 8px;
+                padding: 3px 6px; background: #fff; color: var(--tm-chat-ink);
+                outline: none; height: 26px;
             }
             #tm-chat-store-select:focus {
                 border-color: color-mix(in srgb, var(--tm-chat-accent) 55%, #fff);
-                box-shadow: 0 0 0 3px color-mix(in srgb, var(--tm-chat-accent) 18%, transparent);
+                box-shadow: 0 0 0 2px color-mix(in srgb, var(--tm-chat-accent) 18%, transparent);
             }
             #tm-chat-store-select.is-locked,
             #tm-chat-store-select:disabled {
                 opacity: 0.95; cursor: not-allowed; background: #f1f5f9; color: var(--tm-chat-ink);
             }
             #tm-chat-store-lock {
-                font-size: 12px; line-height: 1; flex-shrink: 0;
+                font-size: 11px; line-height: 1; flex-shrink: 0;
             }
             #tm-chat-messages {
-                flex: 1; overflow-y: auto; padding: 14px 12px;
-                display: flex; flex-direction: column; gap: 10px;
+                flex: 1 1 auto; min-height: 0; overflow-y: auto;
+                padding: 8px 8px 10px;
+                display: flex; flex-direction: column; gap: 6px;
                 background:
                     radial-gradient(ellipse at top left, color-mix(in srgb, var(--tm-chat-accent) 8%, transparent), transparent 55%),
                     var(--tm-chat-bg);
@@ -23296,19 +23319,19 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 scrollbar-color: #cbd5e1 transparent;
             }
             .tm-chat-empty {
-                margin: auto; text-align: center; padding: 24px 16px;
-                color: var(--tm-chat-muted); max-width: 240px;
+                margin: auto; text-align: center; padding: 16px 12px;
+                color: var(--tm-chat-muted); max-width: 220px;
             }
             .tm-chat-empty-icon {
-                font-size: 34px; line-height: 1; margin-bottom: 10px;
+                font-size: 28px; line-height: 1; margin-bottom: 8px;
             }
             .tm-chat-empty-title {
-                font-size: 14px; font-weight: 700; color: var(--tm-chat-ink); margin-bottom: 4px;
+                font-size: 13px; font-weight: 700; color: var(--tm-chat-ink); margin-bottom: 3px;
             }
-            .tm-chat-empty-sub { font-size: 12px; line-height: 1.45; }
+            .tm-chat-empty-sub { font-size: 11px; line-height: 1.4; }
             .tm-chat-msg {
-                display: flex; align-items: flex-end; gap: 8px;
-                max-width: 92%; align-self: flex-start;
+                display: flex; align-items: flex-end; gap: 6px;
+                max-width: 94%; align-self: flex-start;
                 background: transparent; border: none; padding: 0;
             }
             .tm-chat-msg.is-new {
@@ -23322,10 +23345,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 align-self: flex-end; flex-direction: row-reverse;
             }
             .tm-chat-msg-avatar {
-                width: 28px; height: 28px; border-radius: 10px;
+                width: 24px; height: 24px; border-radius: 8px;
                 display: grid; place-items: center; flex-shrink: 0;
                 background: #e2e8f0; color: #334155;
-                font-size: 11px; font-weight: 700;
+                font-size: 10px; font-weight: 700;
             }
             .tm-chat-msg.is-mine .tm-chat-msg-avatar {
                 background: color-mix(in srgb, var(--tm-chat-accent) 18%, #fff);
@@ -23335,34 +23358,34 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 min-width: 0;
                 background: #fff;
                 border: 1px solid var(--tm-chat-line);
-                border-radius: 16px 16px 16px 6px;
-                padding: 8px 10px;
+                border-radius: 12px 12px 12px 4px;
+                padding: 5px 8px;
                 box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
             }
             .tm-chat-msg.is-mine .tm-chat-msg-bubble {
                 background: color-mix(in srgb, var(--tm-chat-accent) 12%, #fff);
                 border-color: color-mix(in srgb, var(--tm-chat-accent) 28%, #fff);
-                border-radius: 16px 16px 6px 16px;
+                border-radius: 12px 12px 4px 12px;
             }
             .tm-chat-msg-meta {
-                display: flex; justify-content: space-between; gap: 8px;
-                font-size: 10px; color: var(--tm-chat-muted); margin-bottom: 3px;
+                display: flex; justify-content: space-between; gap: 6px;
+                font-size: 9px; color: var(--tm-chat-muted); margin-bottom: 2px;
             }
             .tm-chat-msg-who {
-                display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px;
+                display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 5px;
                 min-width: 0;
             }
             .tm-chat-msg-name { font-weight: 700; color: #334155; }
             .tm-chat-msg-store {
                 font-weight: 600; color: var(--tm-chat-accent);
                 background: color-mix(in srgb, var(--tm-chat-accent) 12%, #fff);
-                border-radius: 999px; padding: 0 6px; line-height: 1.5;
-                max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+                border-radius: 999px; padding: 0 5px; line-height: 1.4;
+                max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
             }
             .tm-chat-msg-time { flex-shrink: 0; opacity: 0.9; }
             .tm-chat-msg-text {
-                font-size: 13px; color: var(--tm-chat-ink);
-                white-space: pre-wrap; word-break: break-word; line-height: 1.4;
+                font-size: 12.5px; color: var(--tm-chat-ink);
+                white-space: pre-wrap; word-break: break-word; line-height: 1.35;
             }
             .tm-chat-msg-link {
                 color: var(--tm-chat-accent);
@@ -23377,7 +23400,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 max-width: 240px; border: 1px solid var(--tm-chat-line);
             }
             .tm-chat-msg-image {
-                display: block; width: 100%; max-height: 220px; object-fit: cover;
+                display: block; width: 100%; max-height: 160px; object-fit: cover;
                 background: #e2e8f0;
             }
             .tm-chat-msg-file {
@@ -23400,10 +23423,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             .tm-chat-msg-file-hint { font-size: 10px; color: var(--tm-chat-muted); }
             #tm-chat-pending-file {
-                display: none; align-items: center; gap: 8px;
-                margin-bottom: 8px; padding: 6px 8px;
-                border-radius: 10px; background: #f1f5f9; border: 1px solid var(--tm-chat-line);
-                font-size: 12px; color: var(--tm-chat-ink);
+                display: none; align-items: center; gap: 6px;
+                margin-bottom: 4px; padding: 4px 6px;
+                border-radius: 8px; background: #f1f5f9; border: 1px solid var(--tm-chat-line);
+                font-size: 11px; color: var(--tm-chat-ink);
             }
             #tm-chat-pending-file.is-visible { display: flex; }
             #tm-chat-pending-file .tm-chat-pending-icon { flex-shrink: 0; }
@@ -23414,16 +23437,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-chat-pending-file .tm-chat-pending-size { color: var(--tm-chat-muted); flex-shrink: 0; }
             #tm-chat-pending-clear {
                 border: none; background: transparent; cursor: pointer;
-                color: var(--tm-chat-muted); font-size: 16px; line-height: 1;
-                width: 24px; height: 24px; border-radius: 8px;
+                color: var(--tm-chat-muted); font-size: 14px; line-height: 1;
+                width: 22px; height: 22px; border-radius: 6px;
             }
             #tm-chat-pending-clear:hover { background: #e2e8f0; color: #0f172a; }
             #tm-chat-attach-btn {
-                width: 38px; height: 38px; flex-shrink: 0;
+                width: 32px; height: 32px; flex-shrink: 0;
                 border: 1px solid var(--tm-chat-line);
-                border-radius: 12px;
+                border-radius: 10px;
                 background: #f8fafc;
-                cursor: pointer; font-size: 16px;
+                cursor: pointer; font-size: 14px;
                 display: grid; place-items: center;
                 color: var(--tm-chat-muted);
                 transition: background 0.15s ease, border-color 0.15s ease;
@@ -23457,18 +23480,19 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 position: relative;
                 border-top: 1px solid var(--tm-chat-line);
                 background: #fff;
-                padding: 10px;
+                padding: 6px 8px 8px;
+                flex-shrink: 0;
             }
             #tm-chat-emoji-picker {
                 display: none;
                 position: absolute;
-                left: 10px; right: 10px; bottom: calc(100% - 2px);
-                max-height: 180px; overflow-y: auto;
+                left: 8px; right: 8px; bottom: calc(100% - 2px);
+                max-height: 160px; overflow-y: auto;
                 background: #fff;
                 border: 1px solid var(--tm-chat-line);
-                border-radius: 14px;
+                border-radius: 12px;
                 box-shadow: 0 10px 30px rgba(15, 23, 42, 0.14);
-                padding: 8px;
+                padding: 6px;
                 z-index: 2;
                 scrollbar-width: thin;
             }
@@ -23480,7 +23504,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             .tm-chat-emoji-btn {
                 border: none; background: transparent; cursor: pointer;
-                font-size: 20px; line-height: 1;
+                font-size: 18px; line-height: 1;
                 width: 100%; aspect-ratio: 1;
                 border-radius: 8px;
                 display: grid; place-items: center;
@@ -23490,14 +23514,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 background: #f1f5f9; transform: scale(1.08);
             }
             #tm-chat-composer {
-                display: flex; align-items: flex-end; gap: 6px;
+                display: flex; align-items: center; gap: 4px;
             }
             #tm-chat-emoji-toggle {
-                width: 38px; height: 38px; flex-shrink: 0;
+                width: 32px; height: 32px; flex-shrink: 0;
                 border: 1px solid var(--tm-chat-line);
-                border-radius: 12px;
+                border-radius: 10px;
                 background: #f8fafc;
-                cursor: pointer; font-size: 18px;
+                cursor: pointer; font-size: 15px;
                 display: grid; place-items: center;
                 color: var(--tm-chat-muted);
                 transition: background 0.15s ease, border-color 0.15s ease;
@@ -23509,22 +23533,22 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 color: var(--tm-chat-accent);
             }
             #tm-chat-input {
-                flex: 1; resize: none; min-height: 38px; max-height: 96px;
-                border: 1px solid var(--tm-chat-line); border-radius: 12px;
-                padding: 8px 10px; font-size: 13px; font-family: inherit;
+                flex: 1; resize: none; min-height: 32px; max-height: 72px;
+                border: 1px solid var(--tm-chat-line); border-radius: 10px;
+                padding: 6px 8px; font-size: 13px; font-family: inherit;
                 color: var(--tm-chat-ink); background: #f8fafc;
-                outline: none; line-height: 1.35;
+                outline: none; line-height: 1.3;
             }
             #tm-chat-input:focus {
                 background: #fff;
                 border-color: color-mix(in srgb, var(--tm-chat-accent) 55%, #fff);
-                box-shadow: 0 0 0 3px color-mix(in srgb, var(--tm-chat-accent) 16%, transparent);
+                box-shadow: 0 0 0 2px color-mix(in srgb, var(--tm-chat-accent) 16%, transparent);
             }
             #tm-chat-send {
-                border: none; border-radius: 12px;
-                min-width: 42px; height: 38px; padding: 0 12px;
+                border: none; border-radius: 10px;
+                min-width: 36px; height: 32px; padding: 0 10px;
                 background: var(--tm-chat-accent); color: #fff;
-                font-weight: 700; cursor: pointer; font-size: 16px;
+                font-weight: 700; cursor: pointer; font-size: 14px;
                 display: grid; place-items: center;
                 transition: filter 0.15s ease, transform 0.12s ease;
             }
@@ -23533,9 +23557,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-chat-send:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
             @media (max-width: 420px) {
                 #tm-chat-panel {
-                    width: calc(100vw - 16px);
-                    right: 8px; left: 8px;
-                    height: min(70vh, calc(100vh - 72px));
+                    width: calc(100vw - 8px);
+                    right: 4px; left: 4px;
+                    height: min(88vh, calc(100vh - 48px));
+                    bottom: 44px;
                 }
                 .tm-chat-emoji-grid { grid-template-columns: repeat(7, 1fr); }
             }
@@ -23552,8 +23577,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 <div class="tm-chat-header-brand">
                     <div class="tm-chat-header-icon" aria-hidden="true">💬</div>
                     <div id="tm-chat-title-wrap">
+                        <span class="tm-chat-live-dot" id="tm-chat-live-dot" data-status="idle" title="Κατάσταση" aria-hidden="true"></span>
                         <span id="tm-chat-title">Office Chat</span>
-                        <span id="tm-chat-subtitle">Ομαδική συνομιλία καταστημάτων</span>
                     </div>
                 </div>
                 <div class="tm-chat-header-actions">
@@ -23567,7 +23592,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 <span class="tm-chat-status-text">Ανενεργό</span>
             </div>
             <div id="tm-chat-store-row">
-                <label for="tm-chat-store-select">Κατάστημα</label>
+                <label for="tm-chat-store-select">Κατ.</label>
                 <select id="tm-chat-store-select" title="Από το κατάστημα/προφίλ του MyManager login"></select>
             </div>
             <div id="tm-chat-messages"></div>
@@ -23584,7 +23609,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 <div id="tm-chat-composer">
                     <button type="button" id="tm-chat-attach-btn" title="Επισύναψη αρχείου" aria-label="Επισύναψη αρχείου">📎</button>
                     <button type="button" id="tm-chat-emoji-toggle" title="Emoji" aria-label="Emoji" aria-expanded="false">😊</button>
-                    <textarea id="tm-chat-input" maxlength="${CHAT_MAX_LEN}" placeholder="Γράψε μήνυμα… (Enter αποστολή)" rows="2"></textarea>
+                    <textarea id="tm-chat-input" maxlength="${CHAT_MAX_LEN}" placeholder="Μήνυμα… Enter" rows="1"></textarea>
                     <button type="button" id="tm-chat-send" title="Αποστολή" aria-label="Αποστολή">➤</button>
                 </div>
                 <input type="file" id="tm-chat-file-input" class="tm-chat-file-input" tabindex="-1" aria-hidden="true" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,image/jpeg,image/png,image/webp,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
@@ -23854,13 +23879,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '4';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '5';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '4');
+            panel.setAttribute('data-tm-chat-ui', '5');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);
@@ -23932,8 +23957,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function clampChatPanelPosition(panel, left, top) {
         const rect = panel.getBoundingClientRect();
-        const w = rect.width || 380;
-        const h = rect.height || 560;
+        const w = rect.width || 400;
+        const h = rect.height || Math.min(window.innerHeight * 0.92, window.innerHeight - 56);
         const margin = 8;
         const maxLeft = Math.max(margin, window.innerWidth - w - margin);
         const maxTop = Math.max(margin, window.innerHeight - h - margin);

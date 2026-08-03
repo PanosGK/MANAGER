@@ -1,11 +1,11 @@
 {
-  "version": "364",
+  "version": "365",
   "loaderVersion": "41",
-  "silentVersion": "8",
-  "displayVersion": "41.8",
+  "silentVersion": "9",
+  "displayVersion": "41.9",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Hide native file input; keep only paperclip attach button",
+  "releaseNotes": "Compact chat UI to maximize message list vertical space",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
