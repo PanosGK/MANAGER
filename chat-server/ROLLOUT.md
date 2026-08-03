@@ -32,7 +32,7 @@ Optional: **Settings → Chat** — enable/disable, profile photo, sound, connec
 | @mentions | `@` button filters / jumps to messages that tagged you |
 | Repair cards | `#12345` in a message loads status / tech / store mini-card |
 | Read receipts | ✓✓ on your messages when peers opened chat |
-| Shared order history | PocketBase `order_history` per store; panel Server button |
+| Shared order history | PocketBase `order_history` per store; panel Server button (**works with Chat disabled**) |
 
 ## Troubleshooting
 
@@ -49,4 +49,5 @@ Optional: **Settings → Chat** — enable/disable, profile photo, sound, connec
 | Auth failed / old manual password | Open Chat once on a PC that still has the old password, or delete user in Admin |
 | Auth failed after create | Disable email verification on users |
 | Network denied | Update loader / allow `@connect` |
+| Order history Server fails / no shared rows | Create `order_history` + unique `dedupeKey` + unlock List/Create/Update. Does **not** need Chat enabled. |
 | Chat button missing | Settings → Chat → enable |

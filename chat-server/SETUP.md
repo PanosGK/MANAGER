@@ -178,6 +178,8 @@ Leave **Delete** empty.
 
 The suite upserts only changed rows (fingerprint delta), filters by login `storeKey`, and merges into the Order History panel. Clear in the UI wipes **local cache only**, not the store server history.
 
+Shared order history auth uses the same silent PocketBase account as chat, but **does not require Chat to be enabled** in Settings — sync / Server button work with Chat off.
+
 ## 8. Backups
 
 Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots.

@@ -10,6 +10,7 @@
 // @grant        GM_deleteValue
 // @grant        GM_xmlhttpRequest
 // @connect      thefixers.mymanager.gr
+// @connect      mngerchat.littlejol.mywire.org
 // ==/UserScript==
 
 (function() {
@@ -43,26 +44,38 @@
     
     const MAX_HISTORY_ITEMS = 100; // Keep last 100 orders per page (local cache)
     const OH_PB_BASE = 'https://mngerchat.littlejol.mywire.org';
+    // Same silent password salt as office chat — shared PB user, independent of chat UI toggle
+    const OH_PB_PASS_SECRET = 'myman-office-chat-v1';
+    const OH_TOKEN_CACHE_KEY = 'tm_chat_token_cache';
+    const OH_USER_KEY = 'tm_chat_user';
+    const OH_PASS_KEY = 'tm_chat_pass';
     const OH_SYNC_FP_KEY = 'tm_oh_sync_fp_v1';
     const OH_MIGRATED_KEY = 'tm_oh_migrated_stores_v1';
     const OH_SYNC_QUEUE_MAX = 40;
     const OH_SYNC_FLUSH_MS = 2500;
     let ohServerUnsupported = false;
     let ohServerHintShown = false;
+    let ohAuthToken = null;
+    let ohAuthExpires = 0;
     let ohSyncQueue = [];
     let ohSyncFlushTimer = null;
     let ohSyncBusy = false;
 
+    /** Store for shared history — never depends on chat being enabled. */
     function ohGetStoreName() {
         try {
-            if (typeof window.getCurrentStoreName === 'function') {
-                const n = String(window.getCurrentStoreName() || '').trim();
+            if (typeof window.getConnectedStoreCached === 'function') {
+                const n = String(window.getConnectedStoreCached() || '').trim();
                 if (n) return n.slice(0, 64);
             }
         } catch (_) { /* ignore */ }
         try {
-            if (typeof window.getOfficeChatStoreName === 'function') {
-                const n = String(window.getOfficeChatStoreName(window.STORAGE_KEYS) || '').trim();
+            const connected = String(GM_getValue('tm_connected_store_v1', '') || '').trim();
+            if (connected) return connected.slice(0, 64);
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof window.getCurrentStoreName === 'function') {
+                const n = String(window.getCurrentStoreName() || '').trim();
                 if (n) return n.slice(0, 64);
             }
         } catch (_) { /* ignore */ }
@@ -73,6 +86,12 @@
         try {
             const cached = String(GM_getValue('tm_phone_my_store_name_v1', '') || '').trim();
             if (cached) return cached.slice(0, 64);
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof window.captureConnectedStoreFromPage === 'function') {
+                const live = String(window.captureConnectedStoreFromPage(document) || '').trim();
+                if (live) return live.slice(0, 64);
+            }
         } catch (_) { /* ignore */ }
         return '';
     }
@@ -198,15 +217,165 @@
         });
     }
 
+    function ohAutoPassword(email) {
+        const input = `${OH_PB_PASS_SECRET}|${String(email || '').toLowerCase()}`;
+        let h = 5381;
+        for (let i = 0; i < input.length; i++) h = ((h << 5) + h) ^ input.charCodeAt(i);
+        let h2 = 0;
+        for (let i = 0; i < input.length; i++) h2 = (h2 * 33 + input.charCodeAt(i)) >>> 0;
+        return `Mm${Math.abs(h).toString(36)}${h2.toString(36)}9x`.slice(0, 28);
+    }
+
+    function ohSuggestEmail() {
+        if (typeof window.suggestOfficeChatEmail === 'function') {
+            const mail = String(window.suggestOfficeChatEmail() || '').trim().toLowerCase();
+            if (mail.includes('@')) return mail;
+        }
+        let local = '';
+        if (typeof window.greekToLatinSlug === 'function') {
+            local = window.greekToLatinSlug(ohDisplayName());
+        }
+        if (!local || local.length < 2) {
+            local = String(ohDisplayName() || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, '')
+                .slice(0, 32);
+        }
+        if (!local || local.length < 2) local = `tech${Date.now().toString(36).slice(-6)}`;
+        return `${local}@myman.chat`;
+    }
+
+    function ohLoadCachedToken() {
+        try {
+            const raw = GM_getValue(OH_TOKEN_CACHE_KEY, '');
+            const parsed = typeof raw === 'string' ? JSON.parse(raw || 'null') : raw;
+            if (parsed?.token && Number(parsed.expires) > Date.now() + 60_000) return parsed;
+        } catch (_) { /* ignore */ }
+        return null;
+    }
+
+    function ohSaveCachedToken(token, expires) {
+        try {
+            GM_setValue(OH_TOKEN_CACHE_KEY, JSON.stringify({
+                token,
+                expires: Number(expires) || 0,
+                savedAt: Date.now(),
+            }));
+        } catch (_) { /* ignore */ }
+    }
+
+    function ohClearCachedToken() {
+        ohAuthToken = null;
+        ohAuthExpires = 0;
+        try { GM_setValue(OH_TOKEN_CACHE_KEY, ''); } catch (_) { /* ignore */ }
+    }
+
+    async function ohAuthWithPassword(email, password) {
+        const url = `${OH_PB_BASE.replace(/\/$/, '')}/api/collections/users/auth-with-password`;
+        const { status, body } = await ohRequestJson({
+            method: 'POST',
+            url,
+            headers: { 'Content-Type': 'application/json' },
+            data: JSON.stringify({ identity: email, password }),
+            timeout: 12000,
+        });
+        if (status < 200 || status >= 300 || !body?.token) {
+            throw new Error(body?.message || `Auth failed (${status})`);
+        }
+        const now = Date.now();
+        let expires = now + 12 * 60 * 60 * 1000;
+        try {
+            const payload = JSON.parse(atob(String(body.token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            if (payload?.exp) expires = Number(payload.exp) * 1000;
+        } catch (_) { /* ignore */ }
+        ohAuthToken = body.token;
+        ohAuthExpires = expires;
+        ohSaveCachedToken(body.token, expires);
+        try {
+            GM_setValue(OH_USER_KEY, email);
+            GM_setValue(OH_PASS_KEY, password);
+        } catch (_) { /* ignore */ }
+        return body.token;
+    }
+
+    async function ohRegisterUser(email, password) {
+        const url = `${OH_PB_BASE.replace(/\/$/, '')}/api/collections/users/records`;
+        const local = String(email || '').split('@')[0] || 'tech';
+        const { status, body } = await ohRequestJson({
+            method: 'POST',
+            url,
+            headers: { 'Content-Type': 'application/json' },
+            data: JSON.stringify({
+                email,
+                password,
+                passwordConfirm: password,
+                username: local,
+            }),
+            timeout: 15000,
+        });
+        if (status >= 200 && status < 300) return { ok: true };
+        return { ok: false, message: body?.message || `Register failed (${status})` };
+    }
+
+    /** Standalone PocketBase auth — works with office chat UI disabled. */
+    async function ohEnsureAuthStandalone() {
+        const now = Date.now();
+        if (ohAuthToken && ohAuthExpires > now + 60_000) return ohAuthToken;
+        const cached = ohLoadCachedToken();
+        if (cached?.token) {
+            ohAuthToken = cached.token;
+            ohAuthExpires = Number(cached.expires) || 0;
+            return ohAuthToken;
+        }
+
+        const mail = ohSuggestEmail();
+        const autoPass = ohAutoPassword(mail);
+        if (!mail || !autoPass) throw new Error('Δεν βρέθηκε όνομα login MyManager.');
+
+        try {
+            return await ohAuthWithPassword(mail, autoPass);
+        } catch (_) { /* try legacy / register */ }
+
+        const legacyPass = String(GM_getValue(OH_PASS_KEY, '') || '');
+        if (legacyPass && legacyPass !== autoPass && legacyPass.length >= 8) {
+            try {
+                return await ohAuthWithPassword(mail, legacyPass);
+            } catch (_) { /* register */ }
+        }
+
+        const created = await ohRegisterUser(mail, autoPass);
+        if (!created.ok) {
+            try {
+                return await ohAuthWithPassword(mail, autoPass);
+            } catch (err) {
+                throw new Error(created.message || err.message || 'PB auth failed');
+            }
+        }
+        return ohAuthWithPassword(mail, autoPass);
+    }
+
+    /**
+     * Auth for shared order history. Independent of Settings → Chat enabled.
+     * Prefers shared suite helper when present; otherwise self-contained login/register.
+     */
     async function ohEnsureAuthToken() {
-        if (typeof window.ensureOfficeChatAuthToken === 'function') {
-            return window.ensureOfficeChatAuthToken(window.STORAGE_KEYS);
+        try {
+            if (typeof window.ensureMymanPocketBaseAuth === 'function') {
+                return await window.ensureMymanPocketBaseAuth(window.STORAGE_KEYS);
+            }
+        } catch (err) {
+            console.warn('[MMS Order History] shared PB auth failed, using standalone', err);
         }
-        if (typeof window.ensureOfficeChatAccount === 'function') {
-            const ensured = await window.ensureOfficeChatAccount(window.STORAGE_KEYS);
-            if (!ensured?.ok) throw new Error(ensured?.message || 'Chat account failed');
+        try {
+            if (typeof window.ensureOfficeChatAuthToken === 'function') {
+                return await window.ensureOfficeChatAuthToken(window.STORAGE_KEYS);
+            }
+        } catch (err) {
+            console.warn('[MMS Order History] chat auth helper failed, using standalone', err);
         }
-        throw new Error('Office chat auth unavailable');
+        return ohEnsureAuthStandalone();
     }
 
     function ohHint(msg) {
@@ -225,7 +394,11 @@
         const orderId = ohExtractOrderId(order);
         if (!orderId || !storeKey) return null;
         const nowIso = new Date().toISOString();
-        const captured = order.timestamp ? new Date(order.timestamp).toISOString() : nowIso;
+        let captured = nowIso;
+        if (order.timestamp) {
+            const ts = new Date(order.timestamp);
+            if (!Number.isNaN(ts.getTime())) captured = ts.toISOString();
+        }
         let payload = '';
         try {
             payload = JSON.stringify(order.allColumns || {}).slice(0, 5000);
@@ -297,7 +470,8 @@
             return { ok: false, unsupported: true };
         }
         if (listed.status === 403 || listed.status === 401) {
-            ohHint('Order history: ξεκλείδωσε List/Create/Update στο order_history');
+            if (listed.status === 401) ohClearCachedToken();
+            ohHint('Order history: ξεκλείδωσε List/Create/Update στο order_history (ή ξανασύνδεση auth)');
             return { ok: false, status: listed.status };
         }
 
@@ -383,25 +557,66 @@
         if (ohSyncBusy || ohServerUnsupported || !ohSyncQueue.length) return;
         ohSyncBusy = true;
         const batch = ohSyncQueue.splice(0, OH_SYNC_QUEUE_MAX);
+        const retry = [];
         try {
             const token = await ohEnsureAuthToken();
             const fps = ohLoadFingerprints();
+            let okCount = 0;
+            let failCount = 0;
             for (const item of batch) {
-                if (ohServerUnsupported) break;
+                if (ohServerUnsupported) {
+                    retry.push(item);
+                    continue;
+                }
                 const result = await ohUpsertRecord(token, item.record);
-                if (result.unsupported) break;
+                if (result.unsupported) {
+                    retry.push(item);
+                    break;
+                }
                 if (result.ok && item.fpKey) {
                     fps[item.fpKey] = item.fingerprint;
+                    okCount += 1;
+                    continue;
+                }
+                failCount += 1;
+                const attempts = Number(item.attempts || 0) + 1;
+                const detail = result.body?.message
+                    || result.body?.data
+                    || result.status
+                    || 'unknown';
+                console.warn('[MMS Order History] upsert failed', item.record?.dedupeKey, detail, result.body || '');
+                if (attempts < 5) {
+                    retry.push({ ...item, attempts });
+                } else {
+                    ohHint(`Order history sync failed: ${typeof detail === 'string' ? detail : JSON.stringify(detail).slice(0, 120)}`);
                 }
             }
             ohSaveFingerprints(fps);
+            if (okCount) {
+                console.log(`[MMS Order History] synced ${okCount} row(s) to server` + (failCount ? ` (${failCount} failed)` : ''));
+                try {
+                    GM_setValue('tm_oh_last_sync_ok_v1', JSON.stringify({
+                        at: Date.now(),
+                        store: ohGetStoreName(),
+                        storeKey: ohStoreKey(),
+                        okCount,
+                    }));
+                } catch (_) { /* ignore */ }
+            }
         } catch (err) {
             console.warn('[MMS Order History] sync flush failed', err);
-            // re-queue a bit
-            ohSyncQueue = batch.concat(ohSyncQueue).slice(0, 120);
+            ohHint(`Order history auth/sync: ${err?.message || err}`);
+            // re-queue whole batch
+            retry.push(...batch.map((item) => ({
+                ...item,
+                attempts: Number(item.attempts || 0) + 1,
+            })).filter((item) => Number(item.attempts || 0) < 8));
         } finally {
+            if (retry.length) {
+                ohSyncQueue = retry.concat(ohSyncQueue).slice(0, 120);
+            }
             ohSyncBusy = false;
-            if (ohSyncQueue.length) scheduleOhSyncFlush(800);
+            if (ohSyncQueue.length) scheduleOhSyncFlush(1200);
         }
     }
 
@@ -412,29 +627,44 @@
         }, delayMs == null ? OH_SYNC_FLUSH_MS : delayMs);
     }
 
-    function queueOrdersForServerSync(orders) {
-        if (ohServerUnsupported || !orders?.length) return;
+    function queueOrdersForServerSync(orders, { force = false } = {}) {
+        if (ohServerUnsupported || !orders?.length) return 0;
+        // Refresh connected store if possible before deciding
+        try { window.captureConnectedStoreFromPage?.(document); } catch (_) { /* ignore */ }
         const store = ohGetStoreName();
         const storeKey = ohStoreKey(store);
         if (!storeKey) {
             console.log('[MMS Order History] skip server sync — no store');
-            return;
+            return 0;
         }
         const fps = ohLoadFingerprints();
         let queued = 0;
+        let skippedNoId = 0;
         orders.forEach((order) => {
             const record = ohRecordFromLocal(order, store, storeKey);
-            if (!record) return;
+            if (!record) {
+                skippedNoId += 1;
+                return;
+            }
             const fingerprint = ohOrderFingerprint(order);
             const fpKey = record.dedupeKey;
-            if (fps[fpKey] === fingerprint) return; // unchanged
+            if (!force && fps[fpKey] === fingerprint) return; // unchanged
+            if (force) delete fps[fpKey];
             // Replace existing queue item with same key
             ohSyncQueue = ohSyncQueue.filter((q) => q.fpKey !== fpKey);
-            ohSyncQueue.push({ record, fingerprint, fpKey });
+            ohSyncQueue.push({ record, fingerprint, fpKey, attempts: 0 });
             queued += 1;
         });
+        if (force) ohSaveFingerprints(fps);
         if (ohSyncQueue.length > 120) ohSyncQueue = ohSyncQueue.slice(-120);
-        if (queued) scheduleOhSyncFlush();
+        if (queued) scheduleOhSyncFlush(force ? 400 : undefined);
+        if (skippedNoId) {
+            console.warn(`[MMS Order History] ${skippedNoId} local row(s) skipped (no orderId)`);
+        }
+        if (queued) {
+            console.log(`[MMS Order History] queued ${queued} row(s) for store ${storeKey}`);
+        }
+        return queued;
     }
 
     async function fetchStoreOrderHistoryFromServer(kind) {
@@ -518,10 +748,14 @@
         return added;
     }
 
-    async function migrateLocalOrderHistoryOnce() {
+    async function migrateLocalOrderHistoryOnce({ force = false } = {}) {
+        try { window.captureConnectedStoreFromPage?.(document); } catch (_) { /* ignore */ }
         const store = ohGetStoreName();
         const storeKey = ohStoreKey(store);
-        if (!storeKey || ohServerUnsupported) return;
+        if (!storeKey || ohServerUnsupported) {
+            console.log('[MMS Order History] migration skip — no store yet');
+            return { ok: false, reason: 'no-store' };
+        }
         let migrated = {};
         try {
             const raw = GM_getValue(OH_MIGRATED_KEY, '{}');
@@ -529,7 +763,8 @@
         } catch (_) {
             migrated = {};
         }
-        if (migrated[storeKey]) return;
+        if (!force && migrated[storeKey]) return { ok: true, skipped: true };
+
         try {
             const service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]'));
             const parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]'));
@@ -537,23 +772,29 @@
                 ...(Array.isArray(service) ? service : []),
                 ...(Array.isArray(parts) ? parts : []),
             ];
-            if (all.length) {
-                // Force upload by clearing fps for these keys temporarily via queue without fp skip
-                const fps = ohLoadFingerprints();
-                all.forEach((order) => {
-                    const record = ohRecordFromLocal(order, store, storeKey);
-                    if (!record) return;
-                    delete fps[record.dedupeKey];
-                });
-                ohSaveFingerprints(fps);
-                queueOrdersForServerSync(all);
-                scheduleOhSyncFlush(500);
+            if (!all.length) {
+                migrated[storeKey] = Date.now();
+                GM_setValue(OH_MIGRATED_KEY, JSON.stringify(migrated));
+                console.log(`[MMS Order History] nothing local to migrate for ${storeKey}`);
+                return { ok: true, queued: 0 };
             }
+            const fps = ohLoadFingerprints();
+            all.forEach((order) => {
+                const record = ohRecordFromLocal(order, store, storeKey);
+                if (!record) return;
+                delete fps[record.dedupeKey];
+            });
+            ohSaveFingerprints(fps);
+            const queued = queueOrdersForServerSync(all, { force: true });
+            scheduleOhSyncFlush(400);
+            // Mark only after we successfully queued something (or had zero usable rows)
             migrated[storeKey] = Date.now();
             GM_setValue(OH_MIGRATED_KEY, JSON.stringify(migrated));
-            console.log(`[MMS Order History] queued local migration for store ${storeKey} (${all.length} rows)`);
+            console.log(`[MMS Order History] queued local migration for store ${storeKey} (${queued}/${all.length} rows)`);
+            return { ok: true, queued, total: all.length, store, storeKey };
         } catch (err) {
             console.warn('[MMS Order History] migration failed', err);
+            return { ok: false, error: err };
         }
     }
 
@@ -2203,7 +2444,7 @@
                             <span class="tm-oh-stat-label">Εμφανίζονται</span>
                         </div>
                         <div class="tm-oh-toolbar">
-                            <button type="button" id="tm-order-sync-btn" class="tm-oh-tool-btn" title="Ανανέωση από server καταστήματος">
+                            <button type="button" id="tm-order-sync-btn" class="tm-oh-tool-btn" title="Κοινό ιστορικό καταστήματος (δουλεύει και με απενεργοποιημένο Chat)">
                                 <span>☁</span><span>Server</span>
                             </button>
                             <button type="button" id="tm-order-rescan-btn" class="tm-oh-tool-btn" title="Ανασάρωση τρέχουσας σελίδας">
@@ -2666,16 +2907,18 @@
                     window.showNegativeMessage(remote.unsupported
                         ? 'Λείπει collection order_history στο PocketBase'
                         : (remote.reason === 'no-store'
-                            ? 'Δεν βρέθηκε κατάστημα login — δεν φορτώνει κοινό ιστορικό'
+                            ? 'Δεν βρέθηκε κατάστημα (σελίδα/login) — δεν φορτώνει κοινό ιστορικό'
                             : 'Αποτυχία φόρτωσης από server'));
                 }
                 return false;
             }
             mergeServerOrdersIntoLocal(kind, remote.orders);
-            // Also push any local-only rows (delta)
+            // Push local rows (force when server empty so first sync always uploads)
             try {
                 const localNow = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
-                queueOrdersForServerSync(Array.isArray(localNow) ? localNow : []);
+                const force = !remote.orders?.length;
+                const queued = queueOrdersForServerSync(Array.isArray(localNow) ? localNow : [], { force });
+                if (force && queued) scheduleOhSyncFlush(300);
             } catch (_) { /* ignore */ }
             const newPageHistory = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
             sortedPageHistory.length = 0;
@@ -3063,10 +3306,15 @@
         // Always start background fetcher (runs on all pages)
         initOrderHistoryBackgroundFetcher();
 
-        // One-time push of local histories into the current store bucket
-        setTimeout(() => {
-            migrateLocalOrderHistoryOnce().catch(() => {});
-        }, 2500);
+        // Push local histories into the current store bucket (retry if store not ready yet)
+        const tryMigrate = (attempt = 0) => {
+            migrateLocalOrderHistoryOnce().then((res) => {
+                if (res?.reason === 'no-store' && attempt < 8) {
+                    setTimeout(() => tryMigrate(attempt + 1), 1500);
+                }
+            }).catch(() => {});
+        };
+        setTimeout(() => tryMigrate(0), 2000);
 
         // The rest of the logic only applies when we're actually on an orders list page
         if (!onOrdersPage) {
@@ -3091,18 +3339,61 @@
     // Make functions globally accessible
     window.showOrderHistoryModal = showOrderHistoryModal;
     window.initOrderHistory = initOrderHistory;
-    window.syncOrderHistoryToServer = () => {
+    window.syncOrderHistoryToServer = ({ force = true } = {}) => {
         try {
             const service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]'));
             const parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]'));
-            queueOrdersForServerSync([...(service || []), ...(parts || [])]);
+            const queued = queueOrdersForServerSync([...(service || []), ...(parts || [])], { force });
             scheduleOhSyncFlush(300);
-            return true;
-        } catch (_) {
-            return false;
+            return { ok: true, queued };
+        } catch (err) {
+            return { ok: false, error: err };
         }
     };
     window.refreshOrderHistoryFromServer = fetchStoreOrderHistoryFromServer;
+    window.migrateOrderHistoryToServer = (opts) => migrateLocalOrderHistoryOnce({ force: true, ...(opts || {}) });
+    window.debugOrderHistorySync = async function debugOrderHistorySync() {
+        try { window.captureConnectedStoreFromPage?.(document); } catch (_) { /* ignore */ }
+        const store = ohGetStoreName();
+        const storeKey = ohStoreKey(store);
+        let service = [];
+        let parts = [];
+        try { service = JSON.parse(GM_getValue('tm_srvorders_page_history', '[]')) || []; } catch (_) { /* ignore */ }
+        try { parts = JSON.parse(GM_getValue('tm_partsorders_page_history', '[]')) || []; } catch (_) { /* ignore */ }
+        const withId = [...service, ...parts].filter((o) => !!ohExtractOrderId(o)).length;
+        let authOk = false;
+        let authError = '';
+        let token = '';
+        try {
+            token = await ohEnsureAuthToken();
+            authOk = !!token;
+        } catch (err) {
+            authError = String(err?.message || err);
+        }
+        let remoteCount = null;
+        if (authOk && storeKey) {
+            const remote = await fetchStoreOrderHistoryFromServer('service');
+            remoteCount = remote.ok ? remote.orders.length : `fail:${remote.reason || remote.status || 'err'}`;
+        }
+        const report = {
+            store,
+            storeKey,
+            connected: GM_getValue('tm_connected_store_v1', ''),
+            login: GM_getValue('tm_login_store_v1', ''),
+            localService: Array.isArray(service) ? service.length : 0,
+            localParts: Array.isArray(parts) ? parts.length : 0,
+            localWithOrderId: withId,
+            queue: ohSyncQueue.length,
+            unsupported: ohServerUnsupported,
+            authOk,
+            authError,
+            remoteServiceCount: remoteCount,
+            lastSyncOk: GM_getValue('tm_oh_last_sync_ok_v1', ''),
+            migrated: GM_getValue(OH_MIGRATED_KEY, ''),
+        };
+        console.log('[MMS Order History] debug', report);
+        return report;
+    };
     
     // Auto-initialize
     if (document.readyState === 'loading') {

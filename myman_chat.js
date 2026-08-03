@@ -5708,11 +5708,15 @@
     window.connectOfficeChat = connectChat;
     window.ensureOfficeChatAccount = ensureOfficeChatAccount;
     window.getOfficeChatSettings = getChatSettings;
-    window.ensureOfficeChatAuthToken = async function ensureOfficeChatAuthToken(STORAGE_KEYS) {
+    /** PocketBase auth for suite features (order history, etc). Works even when Chat UI is disabled. */
+    window.ensureMymanPocketBaseAuth = async function ensureMymanPocketBaseAuth(STORAGE_KEYS) {
         const keys = STORAGE_KEYS || window.STORAGE_KEYS || {};
         const ensured = await ensureOfficeChatAccount(keys);
-        if (!ensured?.ok) throw new Error(ensured?.message || 'Chat auth failed');
+        if (!ensured?.ok) throw new Error(ensured?.message || 'PocketBase auth failed');
         return ensureAuth(keys);
+    };
+    window.ensureOfficeChatAuthToken = async function ensureOfficeChatAuthToken(STORAGE_KEYS) {
+        return window.ensureMymanPocketBaseAuth(STORAGE_KEYS);
     };
     window.getOfficeChatStoreName = function getOfficeChatStoreName(STORAGE_KEYS) {
         return getChatStoreName(STORAGE_KEYS || window.STORAGE_KEYS) || detectLoginStoreName() || '';
