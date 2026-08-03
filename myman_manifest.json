@@ -1,11 +1,11 @@
 {
-  "version": "358",
+  "version": "359",
   "loaderVersion": "41",
-  "silentVersion": "2",
-  "displayVersion": "41.2",
+  "silentVersion": "3",
+  "displayVersion": "41.3",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Use login auto-store for phone catalog My store (locked when captured)",
+  "releaseNotes": "Modern chat UI with emoji picker and clickable links",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

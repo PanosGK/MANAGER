@@ -44,6 +44,16 @@
     /** Once PB rejects unknown `store` field, stop sending it until reload. */
     let chatStoreFieldUnsupported = false;
 
+    const CHAT_EMOJI_LIST = [
+        '😀','😁','😂','🤣','😊','😍','😘','😎','🤔','😅',
+        '😢','😭','😡','👍','👎','👏','🙏','🔥','✨','💯',
+        '❤️','💙','💚','💛','🧡','💜','🖤','🤍','💪','👌',
+        '✌️','🤝','👋','🙌','🎉','🎊','✅','❌','⚠️','📌',
+        '⏰','☕','🍕','🍺','🏠','🚗','💼','📱','💻','📦',
+        '🧾','🛠️','🛒','🏪','📞','💬','👀','🫡','😴','🤢'
+    ];
+
+
     function chatKeys(STORAGE_KEYS) {
         const k = STORAGE_KEYS || window.STORAGE_KEYS || {};
         return {
@@ -90,6 +100,30 @@
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
+    }
+
+    /** Turn http(s)/www URLs into safe clickable links; everything else stays escaped. */
+    function formatChatMessageHtml(text) {
+        const raw = String(text || '');
+        if (!raw) return '';
+        const urlRe = /(?:https?:\/\/|www\.)[^\s<>"']+/gi;
+        let out = '';
+        let last = 0;
+        let match;
+        while ((match = urlRe.exec(raw)) !== null) {
+            out += escapeHtml(raw.slice(last, match.index));
+            let url = match[0];
+            let trailing = '';
+            while (/[).,;:!?\]]$/.test(url)) {
+                trailing = url.slice(-1) + trailing;
+                url = url.slice(0, -1);
+            }
+            const href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+            out += `<a class="tm-chat-msg-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>${escapeHtml(trailing)}`;
+            last = match.index + match[0].length;
+        }
+        out += escapeHtml(raw.slice(last));
+        return out;
     }
 
     function getChatSettings(STORAGE_KEYS) {
@@ -782,10 +816,55 @@
             error: 'Σφάλμα',
             disabled: 'Απενεργοποιημένο',
         };
-        el.textContent = chatStatusDetail
-            ? `${labels[chatStatus] || chatStatus}: ${chatStatusDetail}`
-            : (labels[chatStatus] || chatStatus);
+        const label = labels[chatStatus] || chatStatus;
+        el.innerHTML = `<span class="tm-chat-status-dot" aria-hidden="true"></span>`
+            + `<span class="tm-chat-status-text">${escapeHtml(chatStatusDetail ? `${label}: ${chatStatusDetail}` : label)}</span>`;
         el.dataset.status = chatStatus;
+    }
+
+    function chatAvatarLetter(name) {
+        const s = String(name || '?').trim();
+        return (s[0] || '?').toUpperCase();
+    }
+
+    function renderMessages() {
+        const list = document.getElementById('tm-chat-messages');
+        if (!list) return;
+        const sorted = chatMessages.slice().sort((a, b) => {
+            const ta = new Date(a.created || 0).getTime();
+            const tb = new Date(b.created || 0).getTime();
+            return ta - tb;
+        });
+        const me = getDisplayName();
+        if (!sorted.length) {
+            list.innerHTML = `<div class="tm-chat-empty">
+                <div class="tm-chat-empty-icon">💬</div>
+                <div class="tm-chat-empty-title">Δεν υπάρχουν μηνύματα ακόμα</div>
+                <div class="tm-chat-empty-sub">Γράψε κάτι για να ξεκινήσει η συζήτηση</div>
+            </div>`;
+            return;
+        }
+        list.innerHTML = sorted.map((m) => {
+            const mine = String(m.displayName || '') === me;
+            const storeHtml = m.store
+                ? `<span class="tm-chat-msg-store">${escapeHtml(m.store)}</span>`
+                : '';
+            const name = m.displayName || '?';
+            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}" data-id="${escapeHtml(m.id)}">
+                <div class="tm-chat-msg-avatar" aria-hidden="true">${escapeHtml(chatAvatarLetter(name))}</div>
+                <div class="tm-chat-msg-bubble">
+                    <div class="tm-chat-msg-meta">
+                        <span class="tm-chat-msg-who">
+                            <span class="tm-chat-msg-name">${escapeHtml(name)}</span>
+                            ${storeHtml}
+                        </span>
+                        <span class="tm-chat-msg-time">${escapeHtml(formatMsgTime(m.created))}</span>
+                    </div>
+                    <div class="tm-chat-msg-text">${formatChatMessageHtml(m.text || '')}</div>
+                </div>
+            </div>`;
+        }).join('');
+        list.scrollTop = list.scrollHeight;
     }
 
     function updateUnreadBadge() {
@@ -864,34 +943,6 @@
         } catch (_) {
             return '';
         }
-    }
-
-    function renderMessages() {
-        const list = document.getElementById('tm-chat-messages');
-        if (!list) return;
-        const sorted = chatMessages.slice().sort((a, b) => {
-            const ta = new Date(a.created || 0).getTime();
-            const tb = new Date(b.created || 0).getTime();
-            return ta - tb;
-        });
-        const me = getDisplayName();
-        list.innerHTML = sorted.map((m) => {
-            const mine = String(m.displayName || '') === me;
-            const storeHtml = m.store
-                ? `<span class="tm-chat-msg-store">${escapeHtml(m.store)}</span>`
-                : '';
-            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}" data-id="${escapeHtml(m.id)}">
-                <div class="tm-chat-msg-meta">
-                    <span class="tm-chat-msg-who">
-                        <span class="tm-chat-msg-name">${escapeHtml(m.displayName || '?')}</span>
-                        ${storeHtml}
-                    </span>
-                    <span class="tm-chat-msg-time">${escapeHtml(formatMsgTime(m.created))}</span>
-                </div>
-                <div class="tm-chat-msg-text">${escapeHtml(m.text || '')}</div>
-            </div>`;
-        }).join('');
-        list.scrollTop = list.scrollHeight;
     }
 
     function upsertMessages(records, { fromPollOrRealtime } = {}) {
@@ -1220,7 +1271,8 @@
     }
 
     function injectChatStyles() {
-        if (document.getElementById('tm-chat-styles')) return;
+        const existing = document.getElementById('tm-chat-styles');
+        if (existing) existing.remove();
         const style = document.createElement('style');
         style.id = 'tm-chat-styles';
         style.textContent = `
@@ -1231,21 +1283,21 @@
             #tm-chat-toggle-btn .tm-chat-unread {
                 position: absolute; top: -6px; right: -6px;
                 min-width: 18px; height: 18px; padding: 0 5px;
-                border-radius: 999px; background: #dc3545; color: #fff;
+                border-radius: 999px; background: #ef4444; color: #fff;
                 font-size: 10px; font-weight: 700; line-height: 18px; text-align: center;
-                box-shadow: 0 0 0 2px rgba(255,255,255,0.85);
+                box-shadow: 0 0 0 2px #fff;
                 pointer-events: none;
             }
             #tm-chat-toggle-btn.tm-chat-has-unread {
-                box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.55);
+                box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.55);
                 animation: tm-chat-unread-glow 1.6s ease-in-out infinite;
             }
             #tm-chat-toggle-btn.tm-chat-ping {
                 animation: tm-chat-unread-ping 0.7s ease-out 0s 3;
             }
             @keyframes tm-chat-unread-glow {
-                0%, 100% { box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.35); }
-                50% { box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.7); }
+                0%, 100% { box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.35); }
+                50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.75); }
             }
             @keyframes tm-chat-unread-ping {
                 0% { transform: scale(1); }
@@ -1253,105 +1305,447 @@
                 100% { transform: scale(1); }
             }
             #tm-chat-panel {
+                --tm-chat-accent: var(--tm-primary-color, #2563eb);
+                --tm-chat-surface: #ffffff;
+                --tm-chat-bg: #f1f5f9;
+                --tm-chat-ink: #0f172a;
+                --tm-chat-muted: #64748b;
+                --tm-chat-line: #e2e8f0;
                 position: fixed; bottom: 60px; right: 20px; z-index: 9997;
-                width: 340px; height: 420px; max-height: calc(100vh - 80px);
+                width: min(380px, calc(100vw - 24px));
+                height: min(560px, calc(100vh - 88px));
                 display: none; flex-direction: column;
-                background: #fff; border: 1px solid #ccc; border-radius: 10px;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.18); overflow: hidden;
-                font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+                background: var(--tm-chat-surface);
+                border: 1px solid var(--tm-chat-line);
+                border-radius: 18px;
+                box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18), 0 2px 8px rgba(15, 23, 42, 0.06);
+                overflow: hidden;
+                font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+                color: var(--tm-chat-ink);
             }
             #tm-chat-panel.is-open { display: flex; }
-            #tm-chat-panel.is-dragging { opacity: 0.95; box-shadow: 0 12px 32px rgba(0,0,0,0.28); }
+            #tm-chat-panel.is-dragging {
+                opacity: 0.97;
+                box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+            }
             #tm-chat-header {
-                display: flex; align-items: center; gap: 8px;
-                padding: 8px 10px; background: #e9ecef; border-bottom: 1px solid #ccc;
+                display: flex; align-items: center; gap: 10px;
+                padding: 12px 12px 10px;
+                background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+                border-bottom: 1px solid var(--tm-chat-line);
                 user-select: none; cursor: move;
             }
-            #tm-chat-title { font-weight: 700; font-size: 13px; color: #333; flex: 1; cursor: move; }
+            .tm-chat-header-brand {
+                display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; cursor: move;
+            }
+            .tm-chat-header-icon {
+                width: 34px; height: 34px; border-radius: 12px;
+                display: grid; place-items: center;
+                background: color-mix(in srgb, var(--tm-chat-accent) 14%, #fff);
+                color: var(--tm-chat-accent);
+                font-size: 16px; flex-shrink: 0;
+            }
+            #tm-chat-title-wrap { min-width: 0; }
+            #tm-chat-title {
+                display: block; font-weight: 700; font-size: 14px;
+                color: var(--tm-chat-ink); line-height: 1.2;
+            }
+            #tm-chat-subtitle {
+                display: block; font-size: 11px; color: var(--tm-chat-muted);
+                margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }
+            .tm-chat-header-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
             #tm-chat-header button {
-                background: none; border: none; cursor: pointer; color: #555;
-                font-size: 14px; padding: 2px 6px; border-radius: 4px;
+                background: transparent; border: none; cursor: pointer;
+                color: var(--tm-chat-muted);
+                width: 32px; height: 32px; border-radius: 10px;
+                font-size: 15px; line-height: 1;
+                display: grid; place-items: center;
+                transition: background 0.15s ease, color 0.15s ease;
             }
-            #tm-chat-header button:hover { background: #d4d9de; color: #000; }
-            #tm-chat-header button.is-muted { color: #dc3545; }
+            #tm-chat-header button:hover {
+                background: #e2e8f0; color: var(--tm-chat-ink);
+            }
+            #tm-chat-header button.is-muted { color: #ef4444; }
             #tm-chat-status {
-                font-size: 11px; padding: 4px 10px; color: #6c757d;
-                border-bottom: 1px solid #eee; background: #f8f9fa;
+                display: flex; align-items: center; gap: 8px;
+                font-size: 11px; padding: 6px 14px;
+                color: var(--tm-chat-muted);
+                border-bottom: 1px solid var(--tm-chat-line);
+                background: #f8fafc;
             }
-            #tm-chat-status[data-status="online"] { color: #198754; }
-            #tm-chat-status[data-status="error"] { color: #dc3545; }
-            #tm-chat-status[data-status="connecting"] { color: #0d6efd; }
+            .tm-chat-status-dot {
+                width: 8px; height: 8px; border-radius: 50%;
+                background: #94a3b8; flex-shrink: 0;
+            }
+            #tm-chat-status[data-status="online"] { color: #15803d; }
+            #tm-chat-status[data-status="online"] .tm-chat-status-dot {
+                background: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+            }
+            #tm-chat-status[data-status="error"] { color: #dc2626; }
+            #tm-chat-status[data-status="error"] .tm-chat-status-dot { background: #ef4444; }
+            #tm-chat-status[data-status="connecting"] { color: #2563eb; }
+            #tm-chat-status[data-status="connecting"] .tm-chat-status-dot {
+                background: #3b82f6;
+                animation: tm-chat-pulse-dot 1s ease-in-out infinite;
+            }
+            @keyframes tm-chat-pulse-dot {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.45; transform: scale(0.85); }
+            }
             #tm-chat-store-row {
                 display: flex; align-items: center; gap: 8px;
-                padding: 6px 10px; border-bottom: 1px solid #eee; background: #fff;
+                padding: 8px 12px; border-bottom: 1px solid var(--tm-chat-line);
+                background: #fff;
             }
-            #tm-chat-store-row.is-locked {
-                background: #f8f9fa;
-            }
+            #tm-chat-store-row.is-locked { background: #f8fafc; }
             #tm-chat-store-row label {
-                font-size: 11px; font-weight: 600; color: #495057; white-space: nowrap;
+                font-size: 11px; font-weight: 600; color: #475569; white-space: nowrap;
             }
             #tm-chat-store-select {
                 flex: 1; min-width: 0; font-size: 12px;
-                border: 1px solid #ccc; border-radius: 6px; padding: 4px 6px;
-                background: #fff; color: #212529;
+                border: 1px solid var(--tm-chat-line); border-radius: 10px;
+                padding: 6px 8px; background: #fff; color: var(--tm-chat-ink);
+                outline: none;
+            }
+            #tm-chat-store-select:focus {
+                border-color: color-mix(in srgb, var(--tm-chat-accent) 55%, #fff);
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--tm-chat-accent) 18%, transparent);
             }
             #tm-chat-store-select.is-locked,
             #tm-chat-store-select:disabled {
-                opacity: 0.9; cursor: not-allowed; background: #e9ecef; color: #212529;
+                opacity: 0.95; cursor: not-allowed; background: #f1f5f9; color: var(--tm-chat-ink);
             }
             #tm-chat-store-lock {
                 font-size: 12px; line-height: 1; flex-shrink: 0;
             }
             #tm-chat-messages {
-                flex: 1; overflow-y: auto; padding: 10px; display: flex;
-                flex-direction: column; gap: 8px; background: #fafbfc;
+                flex: 1; overflow-y: auto; padding: 14px 12px;
+                display: flex; flex-direction: column; gap: 10px;
+                background:
+                    radial-gradient(ellipse at top left, color-mix(in srgb, var(--tm-chat-accent) 8%, transparent), transparent 55%),
+                    var(--tm-chat-bg);
+                scrollbar-width: thin;
+                scrollbar-color: #cbd5e1 transparent;
             }
+            .tm-chat-empty {
+                margin: auto; text-align: center; padding: 24px 16px;
+                color: var(--tm-chat-muted); max-width: 240px;
+            }
+            .tm-chat-empty-icon {
+                font-size: 34px; line-height: 1; margin-bottom: 10px;
+            }
+            .tm-chat-empty-title {
+                font-size: 14px; font-weight: 700; color: var(--tm-chat-ink); margin-bottom: 4px;
+            }
+            .tm-chat-empty-sub { font-size: 12px; line-height: 1.45; }
             .tm-chat-msg {
+                display: flex; align-items: flex-end; gap: 8px;
                 max-width: 92%; align-self: flex-start;
-                background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
-                padding: 6px 8px;
+                background: transparent; border: none; padding: 0;
+                animation: tm-chat-msg-in 0.22s ease-out;
+            }
+            @keyframes tm-chat-msg-in {
+                from { opacity: 0; transform: translateY(6px); }
+                to { opacity: 1; transform: none; }
             }
             .tm-chat-msg.is-mine {
-                align-self: flex-end; background: #e7f1ff; border-color: #cfe2ff;
+                align-self: flex-end; flex-direction: row-reverse;
+            }
+            .tm-chat-msg-avatar {
+                width: 28px; height: 28px; border-radius: 10px;
+                display: grid; place-items: center; flex-shrink: 0;
+                background: #e2e8f0; color: #334155;
+                font-size: 11px; font-weight: 700;
+            }
+            .tm-chat-msg.is-mine .tm-chat-msg-avatar {
+                background: color-mix(in srgb, var(--tm-chat-accent) 18%, #fff);
+                color: var(--tm-chat-accent);
+            }
+            .tm-chat-msg-bubble {
+                min-width: 0;
+                background: #fff;
+                border: 1px solid var(--tm-chat-line);
+                border-radius: 16px 16px 16px 6px;
+                padding: 8px 10px;
+                box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+            }
+            .tm-chat-msg.is-mine .tm-chat-msg-bubble {
+                background: color-mix(in srgb, var(--tm-chat-accent) 12%, #fff);
+                border-color: color-mix(in srgb, var(--tm-chat-accent) 28%, #fff);
+                border-radius: 16px 16px 6px 16px;
             }
             .tm-chat-msg-meta {
                 display: flex; justify-content: space-between; gap: 8px;
-                font-size: 10px; color: #6c757d; margin-bottom: 2px;
+                font-size: 10px; color: var(--tm-chat-muted); margin-bottom: 3px;
             }
             .tm-chat-msg-who {
                 display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px;
                 min-width: 0;
             }
-            .tm-chat-msg-name { font-weight: 700; color: #495057; }
+            .tm-chat-msg-name { font-weight: 700; color: #334155; }
             .tm-chat-msg-store {
-                font-weight: 600; color: #0d6efd; background: #e7f1ff;
+                font-weight: 600; color: var(--tm-chat-accent);
+                background: color-mix(in srgb, var(--tm-chat-accent) 12%, #fff);
                 border-radius: 999px; padding: 0 6px; line-height: 1.5;
                 max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
             }
-            .tm-chat-msg.is-mine .tm-chat-msg-store {
-                color: #084298; background: #cfe2ff;
-            }
+            .tm-chat-msg-time { flex-shrink: 0; opacity: 0.9; }
             .tm-chat-msg-text {
-                font-size: 13px; color: #212529; white-space: pre-wrap; word-break: break-word;
+                font-size: 13px; color: var(--tm-chat-ink);
+                white-space: pre-wrap; word-break: break-word; line-height: 1.4;
+            }
+            .tm-chat-msg-link {
+                color: var(--tm-chat-accent);
+                text-decoration: underline;
+                text-underline-offset: 2px;
+                word-break: break-all;
+            }
+            .tm-chat-msg-link:hover { filter: brightness(0.9); }
+            .tm-chat-msg.is-mine .tm-chat-msg-link { color: #1d4ed8; }
+            #tm-chat-composer-wrap {
+                position: relative;
+                border-top: 1px solid var(--tm-chat-line);
+                background: #fff;
+                padding: 10px;
+            }
+            #tm-chat-emoji-picker {
+                display: none;
+                position: absolute;
+                left: 10px; right: 10px; bottom: calc(100% - 2px);
+                max-height: 180px; overflow-y: auto;
+                background: #fff;
+                border: 1px solid var(--tm-chat-line);
+                border-radius: 14px;
+                box-shadow: 0 10px 30px rgba(15, 23, 42, 0.14);
+                padding: 8px;
+                z-index: 2;
+                scrollbar-width: thin;
+            }
+            #tm-chat-emoji-picker.is-open { display: block; }
+            .tm-chat-emoji-grid {
+                display: grid;
+                grid-template-columns: repeat(8, 1fr);
+                gap: 2px;
+            }
+            .tm-chat-emoji-btn {
+                border: none; background: transparent; cursor: pointer;
+                font-size: 20px; line-height: 1;
+                width: 100%; aspect-ratio: 1;
+                border-radius: 8px;
+                display: grid; place-items: center;
+                transition: background 0.12s ease, transform 0.12s ease;
+            }
+            .tm-chat-emoji-btn:hover {
+                background: #f1f5f9; transform: scale(1.08);
             }
             #tm-chat-composer {
-                display: flex; gap: 6px; padding: 8px; border-top: 1px solid #ccc; background: #fff;
+                display: flex; align-items: flex-end; gap: 6px;
+            }
+            #tm-chat-emoji-toggle {
+                width: 38px; height: 38px; flex-shrink: 0;
+                border: 1px solid var(--tm-chat-line);
+                border-radius: 12px;
+                background: #f8fafc;
+                cursor: pointer; font-size: 18px;
+                display: grid; place-items: center;
+                color: var(--tm-chat-muted);
+                transition: background 0.15s ease, border-color 0.15s ease;
+            }
+            #tm-chat-emoji-toggle:hover,
+            #tm-chat-emoji-toggle.is-open {
+                background: color-mix(in srgb, var(--tm-chat-accent) 10%, #fff);
+                border-color: color-mix(in srgb, var(--tm-chat-accent) 35%, #fff);
+                color: var(--tm-chat-accent);
             }
             #tm-chat-input {
-                flex: 1; resize: none; min-height: 38px; max-height: 80px;
-                border: 1px solid #ccc; border-radius: 8px; padding: 6px 8px;
-                font-size: 13px; font-family: inherit;
+                flex: 1; resize: none; min-height: 38px; max-height: 96px;
+                border: 1px solid var(--tm-chat-line); border-radius: 12px;
+                padding: 8px 10px; font-size: 13px; font-family: inherit;
+                color: var(--tm-chat-ink); background: #f8fafc;
+                outline: none; line-height: 1.35;
+            }
+            #tm-chat-input:focus {
+                background: #fff;
+                border-color: color-mix(in srgb, var(--tm-chat-accent) 55%, #fff);
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--tm-chat-accent) 16%, transparent);
             }
             #tm-chat-send {
-                border: none; border-radius: 8px; padding: 0 14px;
-                background: var(--tm-primary-color, #0d6efd); color: #fff;
-                font-weight: 700; cursor: pointer;
+                border: none; border-radius: 12px;
+                min-width: 42px; height: 38px; padding: 0 12px;
+                background: var(--tm-chat-accent); color: #fff;
+                font-weight: 700; cursor: pointer; font-size: 16px;
+                display: grid; place-items: center;
+                transition: filter 0.15s ease, transform 0.12s ease;
             }
-            #tm-chat-send:hover { filter: brightness(0.95); }
-            #tm-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+            #tm-chat-send:hover { filter: brightness(1.05); }
+            #tm-chat-send:active { transform: scale(0.97); }
+            #tm-chat-send:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+            @media (max-width: 420px) {
+                #tm-chat-panel {
+                    width: calc(100vw - 16px);
+                    right: 8px; left: 8px;
+                    height: min(70vh, calc(100vh - 72px));
+                }
+                .tm-chat-emoji-grid { grid-template-columns: repeat(7, 1fr); }
+            }
         `;
         document.head.appendChild(style);
+    }
+
+    function buildChatPanelHtml() {
+        const emojiButtons = CHAT_EMOJI_LIST.map((emoji) => (
+            `<button type="button" class="tm-chat-emoji-btn" data-emoji="${emoji}" title="${emoji}" aria-label="Insert ${emoji}">${emoji}</button>`
+        )).join('');
+        return `
+            <div id="tm-chat-header">
+                <div class="tm-chat-header-brand">
+                    <div class="tm-chat-header-icon" aria-hidden="true">💬</div>
+                    <div id="tm-chat-title-wrap">
+                        <span id="tm-chat-title">Office Chat</span>
+                        <span id="tm-chat-subtitle">Ομαδική συνομιλία καταστημάτων</span>
+                    </div>
+                </div>
+                <div class="tm-chat-header-actions">
+                    <button type="button" id="tm-chat-mute-btn" title="Σίγαση υπενθύμισης">🔔</button>
+                    <button type="button" id="tm-chat-refresh-btn" title="Ανανέωση">↻</button>
+                    <button type="button" id="tm-chat-close-btn" title="Κλείσιμο">&times;</button>
+                </div>
+            </div>
+            <div id="tm-chat-status" data-status="idle">
+                <span class="tm-chat-status-dot" aria-hidden="true"></span>
+                <span class="tm-chat-status-text">Ανενεργό</span>
+            </div>
+            <div id="tm-chat-store-row">
+                <label for="tm-chat-store-select">Κατάστημα</label>
+                <select id="tm-chat-store-select" title="Από το κατάστημα/προφίλ του MyManager login"></select>
+            </div>
+            <div id="tm-chat-messages"></div>
+            <div id="tm-chat-composer-wrap">
+                <div id="tm-chat-emoji-picker" role="dialog" aria-label="Emoji picker" hidden>
+                    <div class="tm-chat-emoji-grid">${emojiButtons}</div>
+                </div>
+                <div id="tm-chat-composer">
+                    <button type="button" id="tm-chat-emoji-toggle" title="Emoji" aria-label="Emoji" aria-expanded="false">😊</button>
+                    <textarea id="tm-chat-input" maxlength="${CHAT_MAX_LEN}" placeholder="Γράψε μήνυμα… (Enter αποστολή)" rows="2"></textarea>
+                    <button type="button" id="tm-chat-send" title="Αποστολή" aria-label="Αποστολή">➤</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function setChatEmojiPickerOpen(open) {
+        const picker = document.getElementById('tm-chat-emoji-picker');
+        const toggle = document.getElementById('tm-chat-emoji-toggle');
+        if (!picker || !toggle) return;
+        picker.classList.toggle('is-open', !!open);
+        picker.hidden = !open;
+        toggle.classList.toggle('is-open', !!open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    function insertChatEmoji(emoji) {
+        const input = document.getElementById('tm-chat-input');
+        if (!input || !emoji) return;
+        const start = input.selectionStart ?? input.value.length;
+        const end = input.selectionEnd ?? input.value.length;
+        const next = input.value.slice(0, start) + emoji + input.value.slice(end);
+        if (next.length > CHAT_MAX_LEN) return;
+        input.value = next;
+        const caret = start + emoji.length;
+        input.focus();
+        try { input.setSelectionRange(caret, caret); } catch (_) { /* ignore */ }
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function wireChatEmojiPicker() {
+        const wrap = document.getElementById('tm-chat-composer-wrap');
+        const toggle = document.getElementById('tm-chat-emoji-toggle');
+        const picker = document.getElementById('tm-chat-emoji-picker');
+        if (!wrap || !toggle || !picker || wrap.dataset.tmChatEmojiWired === '1') return;
+        wrap.dataset.tmChatEmojiWired = '1';
+
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setChatEmojiPickerOpen(!picker.classList.contains('is-open'));
+        });
+
+        picker.addEventListener('click', (e) => {
+            const btn = e.target.closest('.tm-chat-emoji-btn');
+            if (!btn) return;
+            e.preventDefault();
+            insertChatEmoji(btn.getAttribute('data-emoji') || btn.textContent || '');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!picker.classList.contains('is-open')) return;
+            if (e.target.closest('#tm-chat-composer-wrap')) return;
+            setChatEmojiPickerOpen(false);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && picker.classList.contains('is-open')) {
+                setChatEmojiPickerOpen(false);
+            }
+        });
+    }
+
+    function wireChatPanelControls(panel, STORAGE_KEYS) {
+        if (!panel || panel.dataset.tmChatControlsWired === '1') return;
+        panel.dataset.tmChatControlsWired = '1';
+        panel.querySelector('#tm-chat-close-btn')?.addEventListener('click', () => {
+            setChatEmojiPickerOpen(false);
+            closeChatPanel();
+        });
+        panel.querySelector('#tm-chat-refresh-btn')?.addEventListener('click', () => {
+            connectChat(STORAGE_KEYS);
+        });
+        const muteBtn = panel.querySelector('#tm-chat-mute-btn');
+        if (muteBtn) {
+            const syncMute = () => {
+                muteBtn.textContent = chatMuted ? '🔕' : '🔔';
+                muteBtn.classList.toggle('is-muted', chatMuted);
+                muteBtn.title = chatMuted ? 'Άρση σίγασης υπενθύμισης' : 'Σίγαση υπενθύμισης';
+                updateUnreadBadge();
+            };
+            syncMute();
+            muteBtn.addEventListener('click', () => {
+                chatMuted = !chatMuted;
+                const keys = chatKeys(STORAGE_KEYS);
+                GM_setValue(keys.muted, chatMuted);
+                syncMute();
+            });
+        }
+        wireComposer(STORAGE_KEYS);
+        wireChatEmojiPicker();
+        wireChatStoreSelect(STORAGE_KEYS);
+        wireChatPanelDrag(panel, STORAGE_KEYS);
+        applyChatPanelGeometry(panel, STORAGE_KEYS);
+        updateChatStatusUi();
+    }
+
+    function ensureChatPanel(STORAGE_KEYS) {
+        let panel = document.getElementById('tm-chat-panel');
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '2';
+        if (needsRebuild) {
+            const wasOpen = !!(panel && panel.classList.contains('is-open'));
+            if (panel) panel.remove();
+            panel = document.createElement('div');
+            panel.id = 'tm-chat-panel';
+            panel.setAttribute('data-tm-chat-ui', '2');
+            panel.innerHTML = buildChatPanelHtml();
+            document.body.appendChild(panel);
+            wireChatPanelControls(panel, STORAGE_KEYS);
+            if (wasOpen) {
+                panel.classList.add('is-open');
+                chatPanelOpen = true;
+                renderMessages();
+            }
+        } else {
+            wireChatPanelControls(panel, STORAGE_KEYS);
+        }
+        return panel;
     }
 
     function ensureChatFooterHost() {
@@ -1411,8 +1805,8 @@
 
     function clampChatPanelPosition(panel, left, top) {
         const rect = panel.getBoundingClientRect();
-        const w = rect.width || 340;
-        const h = rect.height || 420;
+        const w = rect.width || 380;
+        const h = rect.height || 560;
         const margin = 8;
         const maxLeft = Math.max(margin, window.innerWidth - w - margin);
         const maxTop = Math.max(margin, window.innerHeight - h - margin);
@@ -1521,6 +1915,7 @@
     function closeChatPanel() {
         const panel = document.getElementById('tm-chat-panel');
         if (!panel) return;
+        setChatEmojiPickerOpen(false);
         panel.classList.remove('is-open');
         chatPanelOpen = false;
         updateUnreadBadge();
@@ -1534,7 +1929,8 @@
     function wireComposer(STORAGE_KEYS) {
         const input = document.getElementById('tm-chat-input');
         const sendBtn = document.getElementById('tm-chat-send');
-        if (!input || !sendBtn) return;
+        if (!input || !sendBtn || input.dataset.tmChatComposerWired === '1') return;
+        input.dataset.tmChatComposerWired = '1';
 
         const doSend = async () => {
             const text = input.value;
@@ -1543,6 +1939,7 @@
             try {
                 const result = await sendChatMessage(STORAGE_KEYS, text);
                 if (result.ok) {
+                    setChatEmojiPickerOpen(false);
                     input.value = '';
                 } else if (result.reason === 'rate') {
                     setChatStatus('online', 'Περίμενε λίγο…');
@@ -1595,69 +1992,7 @@
             }, 250);
         }
 
-        if (!document.getElementById('tm-chat-panel')) {
-            const panel = document.createElement('div');
-            panel.id = 'tm-chat-panel';
-            panel.innerHTML = `
-                <div id="tm-chat-header">
-                    <span id="tm-chat-title">Office Chat</span>
-                    <button type="button" id="tm-chat-mute-btn" title="Σίγαση υπενθύμισης">🔔</button>
-                    <button type="button" id="tm-chat-refresh-btn" title="Ανανέωση">↻</button>
-                    <button type="button" id="tm-chat-close-btn" title="Κλείσιμο">&times;</button>
-                </div>
-                <div id="tm-chat-status">Ανενεργό</div>
-                <div id="tm-chat-store-row">
-                    <label for="tm-chat-store-select">Κατάστημα</label>
-                    <select id="tm-chat-store-select" title="Από το κατάστημα/προφίλ του MyManager login"></select>
-                </div>
-                <div id="tm-chat-messages"></div>
-                <div id="tm-chat-composer">
-                    <textarea id="tm-chat-input" maxlength="${CHAT_MAX_LEN}" placeholder="Μήνυμα… (Enter αποστολή)" rows="2"></textarea>
-                    <button type="button" id="tm-chat-send">Αποστολή</button>
-                </div>
-            `;
-            document.body.appendChild(panel);
-
-            panel.querySelector('#tm-chat-close-btn')?.addEventListener('click', closeChatPanel);
-            panel.querySelector('#tm-chat-refresh-btn')?.addEventListener('click', () => {
-                connectChat(STORAGE_KEYS);
-            });
-            const muteBtn = panel.querySelector('#tm-chat-mute-btn');
-            if (muteBtn) {
-                const syncMute = () => {
-                    muteBtn.textContent = chatMuted ? '🔕' : '🔔';
-                    muteBtn.classList.toggle('is-muted', chatMuted);
-                    muteBtn.title = chatMuted ? 'Άρση σίγασης υπενθύμισης' : 'Σίγαση υπενθύμισης';
-                    updateUnreadBadge();
-                };
-                syncMute();
-                muteBtn.addEventListener('click', () => {
-                    chatMuted = !chatMuted;
-                    const keys = chatKeys(STORAGE_KEYS);
-                    GM_setValue(keys.muted, chatMuted);
-                    syncMute();
-                });
-            }
-            wireComposer(STORAGE_KEYS);
-            wireChatStoreSelect(STORAGE_KEYS);
-            wireChatPanelDrag(panel, STORAGE_KEYS);
-            applyChatPanelGeometry(panel, STORAGE_KEYS);
-        } else {
-            const existing = document.getElementById('tm-chat-panel');
-            if (existing && !existing.querySelector('#tm-chat-store-row')) {
-                const statusEl = existing.querySelector('#tm-chat-status');
-                const row = document.createElement('div');
-                row.id = 'tm-chat-store-row';
-                row.innerHTML = `
-                    <label for="tm-chat-store-select">Κατάστημα</label>
-                    <select id="tm-chat-store-select" title="Από το κατάστημα/προφίλ του MyManager login"></select>
-                `;
-                if (statusEl) statusEl.insertAdjacentElement('afterend', row);
-            }
-            wireChatStoreSelect(STORAGE_KEYS);
-            wireChatPanelDrag(existing, STORAGE_KEYS);
-            applyChatPanelGeometry(existing, STORAGE_KEYS);
-        }
+        ensureChatPanel(STORAGE_KEYS);
 
         // Background connect so unread works with panel closed
         connectChat(STORAGE_KEYS);
