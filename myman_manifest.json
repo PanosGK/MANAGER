@@ -1,11 +1,11 @@
 {
-  "version": "374",
+  "version": "375",
   "loaderVersion": "41",
-  "silentVersion": "18",
-  "displayVersion": "41.18",
+  "silentVersion": "19",
+  "displayVersion": "41.19",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix chat pin feedback and always-visible online presence",
+  "releaseNotes": "Persist chat replies locally; hide store room tabs for now",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

@@ -16,6 +16,11 @@
 
     const CHAT_ROOM_OFFICE = 'office';
     const CHAT_ROOM = CHAT_ROOM_OFFICE;
+    /**
+     * Store channel tab (Όλοι / Κατάστημα). Off for now — everyone shares `office`.
+     * Set to true to show the store room tab again.
+     */
+    const CHAT_STORE_ROOMS_ENABLED = false;
     let chatActiveRoom = CHAT_ROOM_OFFICE;
     let chatReplyTarget = null;
     let chatSearchQuery = '';
@@ -31,6 +36,9 @@
     /** Local pin ids (fallback when PocketBase `pinned` field is missing). */
     let chatLocalPinIds = new Set();
     const CHAT_LOCAL_PINS_KEY = 'tm_chat_local_pins_v1';
+    /** Local reply metadata (fallback when PocketBase reply fields are missing). */
+    let chatLocalReplies = Object.create(null);
+    const CHAT_LOCAL_REPLIES_KEY = 'tm_chat_local_replies_v1';
     const CHAT_PRESENCE_MS = 25000;
     const CHAT_REPAIR_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=';
     const CHAT_MAX_LEN = 500;
@@ -126,6 +134,10 @@
     }
 
     function loadChatRoomPreference(STORAGE_KEYS) {
+        if (!CHAT_STORE_ROOMS_ENABLED) {
+            chatActiveRoom = CHAT_ROOM_OFFICE;
+            return chatActiveRoom;
+        }
         const keys = chatKeys(STORAGE_KEYS);
         const saved = String(GM_getValue(keys.room, CHAT_ROOM_OFFICE) || CHAT_ROOM_OFFICE);
         chatActiveRoom = saved === 'store' ? getStoreChatRoom(STORAGE_KEYS) : CHAT_ROOM_OFFICE;
@@ -133,6 +145,11 @@
     }
 
     function setChatRoomMode(STORAGE_KEYS, mode) {
+        if (!CHAT_STORE_ROOMS_ENABLED) {
+            chatActiveRoom = CHAT_ROOM_OFFICE;
+            updateChatRoomTabsUi();
+            return;
+        }
         const keys = chatKeys(STORAGE_KEYS);
         const next = mode === 'store' ? 'store' : 'office';
         GM_setValue(keys.room, next);
@@ -146,6 +163,20 @@
         renderMessages({ force: true });
         const sk = STORAGE_KEYS || chatStorageKeys;
         if (sk) fetchMessages(sk).catch(() => {});
+    }
+
+    function updateChatRoomTabsUi() {
+        const rooms = document.getElementById('tm-chat-rooms');
+        const officeBtn = document.getElementById('tm-chat-room-office');
+        const storeBtn = document.getElementById('tm-chat-room-store');
+        if (rooms) rooms.hidden = !CHAT_STORE_ROOMS_ENABLED;
+        if (!CHAT_STORE_ROOMS_ENABLED || !officeBtn || !storeBtn) return;
+        const isStore = String(getChatRoom()).startsWith('store_');
+        officeBtn.classList.toggle('is-active', !isStore);
+        storeBtn.classList.toggle('is-active', isStore);
+        const storeName = getChatStoreName(chatStorageKeys) || 'Κατάστημα';
+        storeBtn.title = `Κανάλι: ${storeName}`;
+        storeBtn.textContent = storeName.length > 14 ? `${storeName.slice(0, 12)}…` : storeName;
     }
 
     function messageMentionsMe(text) {
@@ -229,18 +260,6 @@
         bar.querySelector('#tm-chat-reply-clear')?.addEventListener('click', () => setChatReplyTarget(null));
     }
 
-    function updateChatRoomTabsUi() {
-        const officeBtn = document.getElementById('tm-chat-room-office');
-        const storeBtn = document.getElementById('tm-chat-room-store');
-        if (!officeBtn || !storeBtn) return;
-        const isStore = String(getChatRoom()).startsWith('store_');
-        officeBtn.classList.toggle('is-active', !isStore);
-        storeBtn.classList.toggle('is-active', isStore);
-        const storeName = getChatStoreName(chatStorageKeys) || 'Κατάστημα';
-        storeBtn.title = `Κανάλι: ${storeName}`;
-        storeBtn.textContent = storeName.length > 14 ? `${storeName.slice(0, 12)}…` : storeName;
-    }
-
     function renderPinnedStrip() {
         const strip = document.getElementById('tm-chat-pinned');
         if (!strip) return;
@@ -279,6 +298,55 @@
         try {
             GM_setValue(CHAT_LOCAL_PINS_KEY, JSON.stringify([...chatLocalPinIds].slice(-80)));
         } catch (_) { /* ignore */ }
+    }
+
+    function loadLocalChatReplies() {
+        try {
+            const raw = GM_getValue(CHAT_LOCAL_REPLIES_KEY, '{}');
+            const obj = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            chatLocalReplies = (obj && typeof obj === 'object') ? obj : Object.create(null);
+        } catch (_) {
+            chatLocalReplies = Object.create(null);
+        }
+    }
+
+    function saveLocalChatReplies() {
+        try {
+            const ids = Object.keys(chatLocalReplies);
+            if (ids.length > 120) {
+                ids.slice(0, ids.length - 100).forEach((id) => { delete chatLocalReplies[id]; });
+            }
+            GM_setValue(CHAT_LOCAL_REPLIES_KEY, JSON.stringify(chatLocalReplies));
+        } catch (_) { /* ignore */ }
+    }
+
+    function rememberLocalReply(messageId, meta) {
+        const id = String(messageId || '');
+        if (!id || !meta?.replyTo) return;
+        chatLocalReplies[id] = {
+            replyTo: String(meta.replyTo),
+            replyPreview: String(meta.replyPreview || '').slice(0, 120),
+            replyName: String(meta.replyName || '').slice(0, 64),
+        };
+        saveLocalChatReplies();
+    }
+
+    function applyLocalReplyToMapped(mapped) {
+        if (!mapped?.id) return mapped;
+        if (mapped.replyTo) {
+            // Server has it — drop local copy if present
+            if (chatLocalReplies[mapped.id]) {
+                delete chatLocalReplies[mapped.id];
+                saveLocalChatReplies();
+            }
+            return mapped;
+        }
+        const local = chatLocalReplies[mapped.id];
+        if (!local?.replyTo) return mapped;
+        mapped.replyTo = local.replyTo;
+        mapped.replyPreview = local.replyPreview || mapped.replyPreview || '';
+        mapped.replyName = local.replyName || mapped.replyName || '';
+        return mapped;
     }
 
     function isMessagePinned(m) {
@@ -392,7 +460,7 @@
     }
 
     function mapChatRecord(rec) {
-        return {
+        const mapped = {
             id: rec.id,
             text: rec.text,
             displayName: rec.displayName,
@@ -406,11 +474,13 @@
             avatar: normalizePbFileName(rec.avatar),
             replyTo: String(rec.replyTo || '').trim(),
             replyPreview: String(rec.replyPreview || '').trim(),
+            replyName: String(rec.replyName || '').trim(),
             pinned: !!rec.pinned,
             deleted: !!rec.deleted || isChatDeletedTombstoneText(rec.text),
             deletedBy: String(rec.deletedBy || '').trim(),
             edited: !!rec.edited,
         };
+        return applyLocalReplyToMapped(mapped);
     }
 
     function isChatDeletedTombstoneText(text) {
@@ -1772,6 +1842,8 @@
                     m.pbUserId || '',
                     m.avatar || '',
                     m.replyTo || '',
+                    m.replyPreview || '',
+                    m.replyName || '',
                     m.pinned ? '1' : '0',
                     chatLocalPinIds.has(String(m.id)) ? 'L1' : 'L0',
                     m.deleted ? '1' : '0',
@@ -1861,7 +1933,7 @@
                 || (isFilePlaceholder ? '' : escapeHtml(rawText));
             const replyHtml = m.replyTo
                 ? `<button type="button" class="tm-chat-msg-reply" data-jump="${escapeHtml(m.replyTo)}">
-                    <strong>${escapeHtml((findChatMessageById(m.replyTo)?.displayName) || 'Μήνυμα')}</strong>
+                    <strong>${escapeHtml(m.replyName || (findChatMessageById(m.replyTo)?.displayName) || 'Μήνυμα')}</strong>
                     <span>${escapeHtml(m.replyPreview || '…')}</span>
                 </button>`
                 : '';
@@ -2240,9 +2312,16 @@
         if (!chatSelfPbUserId || (chatSelfAvatarFile === '' && !chatMsgAvatarFieldsUnsupported)) {
             try { await fetchOwnChatUserRecord(STORAGE_KEYS); } catch (_) { /* optional */ }
         }
+        const pendingReply = chatReplyTarget
+            ? {
+                id: chatReplyTarget.id,
+                preview: chatReplyTarget.preview,
+                displayName: chatReplyTarget.displayName,
+            }
+            : null;
         let includeStore = true;
         let includeAvatar = !chatMsgAvatarFieldsUnsupported;
-        let includeReply = !chatReplyFieldsUnsupported && !!chatReplyTarget?.id;
+        let includeReply = !chatReplyFieldsUnsupported && !!pendingReply?.id;
         let fields = buildFields(textValue, includeStore, includeAvatar, includeReply);
 
         let { status, body, raw } = await postJson(fields);
@@ -2296,9 +2375,19 @@
             if (!saved.pbUserId) saved.pbUserId = chatSelfPbUserId;
             if (!saved.avatar) saved.avatar = chatSelfAvatarFile;
         }
-        if (saved && includeReply && chatReplyTarget?.id) {
-            if (!saved.replyTo) saved.replyTo = chatReplyTarget.id;
-            if (!saved.replyPreview) saved.replyPreview = chatReplyTarget.preview;
+        // Always keep reply quote locally (server may strip/reject reply fields)
+        if (pendingReply?.id) {
+            if (!saved.replyTo) {
+                chatReplyFieldsUnsupported = true;
+                saved.replyTo = pendingReply.id;
+            }
+            if (!saved.replyPreview) saved.replyPreview = pendingReply.preview || '';
+            if (!saved.replyName) saved.replyName = pendingReply.displayName || '';
+            rememberLocalReply(saved.id, {
+                replyTo: saved.replyTo,
+                replyPreview: saved.replyPreview,
+                replyName: saved.replyName,
+            });
         }
 
         if (attachFile && saved && saved.id) {
@@ -3325,6 +3414,7 @@
                 display: flex; gap: 6px; padding: 6px 10px 0;
                 background: var(--tm-chat-surface);
             }
+            #tm-chat-rooms[hidden] { display: none !important; }
             .tm-chat-room-btn {
                 flex: 1; border: 1px solid var(--tm-chat-line); background: #f8fafc;
                 border-radius: 8px; padding: 5px 8px; font-size: 11px; font-weight: 600;
@@ -3471,7 +3561,7 @@
                 <span class="tm-chat-status-dot" aria-hidden="true"></span>
                 <span class="tm-chat-status-text">Ανενεργό</span>
             </div>
-            <div id="tm-chat-rooms" role="tablist" aria-label="Κανάλια">
+            <div id="tm-chat-rooms" role="tablist" aria-label="Κανάλια" ${CHAT_STORE_ROOMS_ENABLED ? '' : 'hidden'}>
                 <button type="button" id="tm-chat-room-office" class="tm-chat-room-btn is-active" role="tab">Όλοι</button>
                 <button type="button" id="tm-chat-room-store" class="tm-chat-room-btn" role="tab">Κατάστημα</button>
             </div>
@@ -3895,8 +3985,10 @@
         const panel = document.getElementById('tm-chat-panel');
         if (!panel || panel.dataset.tmChatRoomsWired === '1') return;
         panel.dataset.tmChatRoomsWired = '1';
-        panel.querySelector('#tm-chat-room-office')?.addEventListener('click', () => setChatRoomMode(STORAGE_KEYS, 'office'));
-        panel.querySelector('#tm-chat-room-store')?.addEventListener('click', () => setChatRoomMode(STORAGE_KEYS, 'store'));
+        if (CHAT_STORE_ROOMS_ENABLED) {
+            panel.querySelector('#tm-chat-room-office')?.addEventListener('click', () => setChatRoomMode(STORAGE_KEYS, 'office'));
+            panel.querySelector('#tm-chat-room-store')?.addEventListener('click', () => setChatRoomMode(STORAGE_KEYS, 'store'));
+        }
         const search = panel.querySelector('#tm-chat-search');
         search?.addEventListener('input', () => {
             chatSearchQuery = String(search.value || '');
@@ -3994,7 +4086,7 @@
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '12';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '13';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
             hideChatMessageContextMenu();
@@ -4002,7 +4094,7 @@
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '12');
+            panel.setAttribute('data-tm-chat-ui', '13');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);
@@ -4414,6 +4506,7 @@
         chatSoundEnabled = settings.sound !== false;
         loadChatRoomPreference(STORAGE_KEYS);
         loadLocalChatPins();
+        loadLocalChatReplies();
         loadCachedSelfAvatar();
         injectChatStyles();
 
