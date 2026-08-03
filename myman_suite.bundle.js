@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v373 / Custom Ver. 41.17 — generated, do not edit */
+/* MyManager Suite bundle v374 / Custom Ver. 41.18 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '373',
+        version: '374',
         loaderVersion: '41',
-        silentVersion: '17',
-        displayVersion: '41.17',
+        silentVersion: '18',
+        displayVersion: '41.18',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -21667,11 +21667,15 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     let chatPresenceList = [];
     let chatPresenceTimer = null;
     let chatPresenceUnsupported = false;
+    let chatPresenceHintShown = false;
     let chatReplyFieldsUnsupported = false;
     let chatPinFieldUnsupported = false;
     let chatSoftDeleteUnsupported = false;
     let chatEditFieldUnsupported = false;
     let chatSoundEnabled = true;
+    /** Local pin ids (fallback when PocketBase `pinned` field is missing). */
+    let chatLocalPinIds = new Set();
+    const CHAT_LOCAL_PINS_KEY = 'tm_chat_local_pins_v1';
     const CHAT_PRESENCE_MS = 25000;
     const CHAT_REPAIR_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=';
     const CHAT_MAX_LEN = 500;
@@ -21887,7 +21891,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (!strip) return;
         const room = getChatRoom();
         const pinned = chatMessages
-            .filter((m) => m.pinned && !isChatMessageDeleted(m) && String(m.room || room) === room)
+            .filter((m) => isMessagePinned(m) && !isChatMessageDeleted(m) && String(m.room || room) === room)
             .sort((a, b) => new Date(b.created || 0) - new Date(a.created || 0));
         if (!pinned.length) {
             strip.hidden = true;
@@ -21906,23 +21910,118 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         </div>`;
     }
 
+    function loadLocalChatPins() {
+        try {
+            const raw = GM_getValue(CHAT_LOCAL_PINS_KEY, '[]');
+            const arr = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            chatLocalPinIds = new Set(Array.isArray(arr) ? arr.map(String) : []);
+        } catch (_) {
+            chatLocalPinIds = new Set();
+        }
+    }
+
+    function saveLocalChatPins() {
+        try {
+            GM_setValue(CHAT_LOCAL_PINS_KEY, JSON.stringify([...chatLocalPinIds].slice(-80)));
+        } catch (_) { /* ignore */ }
+    }
+
+    function isMessagePinned(m) {
+        if (!m?.id) return false;
+        if (m.pinned) return true;
+        return chatLocalPinIds.has(String(m.id));
+    }
+
+    function setLocalMessagePinned(messageId, pinned) {
+        const id = String(messageId || '');
+        if (!id) return;
+        if (pinned) chatLocalPinIds.add(id);
+        else chatLocalPinIds.delete(id);
+        saveLocalChatPins();
+    }
+
+    function formatChatPresenceTime(value) {
+        const d = value instanceof Date ? value : new Date(value || Date.now());
+        if (Number.isNaN(d.getTime())) return new Date().toISOString();
+        // PocketBase date fields accept RFC3339 / ISO
+        return d.toISOString();
+    }
+
+    function collectRecentActivePresence() {
+        const cutoff = Date.now() - 5 * 60 * 1000;
+        const byName = new Map();
+        chatMessages.forEach((m) => {
+            if (!m?.displayName || isChatMessageDeleted(m)) return;
+            const t = new Date(m.created || 0).getTime();
+            if (!t || t < cutoff) return;
+            const prev = byName.get(m.displayName) || 0;
+            if (t > prev) byName.set(m.displayName, t);
+        });
+        const me = getDisplayName();
+        if (me && (chatStatus === 'online' || chatStatus === 'connecting')) {
+            byName.set(me, Date.now());
+        }
+        return Array.from(byName.entries()).map(([displayName, ts]) => ({
+            displayName,
+            lastSeen: new Date(ts).toISOString(),
+            _fromMessages: true,
+        }));
+    }
+
+    function getOnlinePresenceList() {
+        const cutoff = Date.now() - 90 * 1000;
+        const byName = new Map();
+        (chatPresenceList || []).forEach((p) => {
+            const name = String(p?.displayName || '').trim();
+            if (!name) return;
+            const t = new Date(p.lastSeen || 0).getTime();
+            if (!t || t < cutoff) return;
+            byName.set(name, p);
+        });
+        // Fallback/merge: recent message authors (works without presence collection)
+        collectRecentActivePresence().forEach((p) => {
+            if (!byName.has(p.displayName)) byName.set(p.displayName, p);
+        });
+        return Array.from(byName.values()).sort((a, b) => (
+            new Date(b.lastSeen || 0) - new Date(a.lastSeen || 0)
+        ));
+    }
+
     function renderPresenceUi() {
         const el = document.getElementById('tm-chat-presence');
         if (!el) return;
-        const cutoff = Date.now() - 90 * 1000;
-        const online = (chatPresenceList || []).filter((p) => {
-            const t = new Date(p.lastSeen || 0).getTime();
-            return t >= cutoff && p.displayName;
-        });
-        if (!online.length) {
-            el.hidden = true;
-            el.textContent = '';
+        const online = getOnlinePresenceList();
+        const countEl = document.getElementById('tm-chat-online-count');
+
+        if (chatPresenceUnsupported && !online.length) {
+            el.hidden = false;
+            el.innerHTML = `<span class="tm-chat-presence-dot is-warn" aria-hidden="true"></span>Online: — <span class="tm-chat-presence-hint">(πρόσθεσε collection presence)</span>`;
+            if (countEl) {
+                countEl.hidden = true;
+                countEl.textContent = '';
+            }
             return;
         }
+
+        if (!online.length) {
+            el.hidden = false;
+            el.innerHTML = `<span class="tm-chat-presence-dot is-idle" aria-hidden="true"></span>Online: —`;
+            if (countEl) {
+                countEl.hidden = true;
+                countEl.textContent = '';
+            }
+            return;
+        }
+
         el.hidden = false;
         const names = online.slice(0, 8).map((p) => p.displayName).join(', ');
         const more = online.length > 8 ? ` +${online.length - 8}` : '';
-        el.innerHTML = `<span class="tm-chat-presence-dot" aria-hidden="true"></span>Online: ${escapeHtml(names)}${escapeHtml(more)}`;
+        el.innerHTML = `<span class="tm-chat-presence-dot" aria-hidden="true"></span><strong>${online.length}</strong> online · ${escapeHtml(names)}${escapeHtml(more)}`;
+        if (countEl) {
+            countEl.hidden = false;
+            countEl.textContent = String(online.length);
+            countEl.title = `Online: ${names}${more}`;
+        }
     }
 
     function peersHaveReadMessage(m) {
@@ -23319,6 +23418,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     m.avatar || '',
                     m.replyTo || '',
                     m.pinned ? '1' : '0',
+                    chatLocalPinIds.has(String(m.id)) ? 'L1' : 'L0',
                     m.deleted ? '1' : '0',
                     m.edited ? '1' : '0',
                     av ? `${av.userId}:${av.filename}` : '',
@@ -23411,11 +23511,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 </button>`
                 : '';
             const editedHtml = m.edited ? `<span class="tm-chat-msg-edited">επεξεργ.</span>` : '';
-            const pinMark = m.pinned ? `<span class="tm-chat-msg-pinmark" title="Καρφιτσωμένο">📌</span>` : '';
+            const pinMark = isMessagePinned(m) ? `<span class="tm-chat-msg-pinmark" title="Καρφιτσωμένο">📌</span>` : '';
             const seenHtml = mine && peersHaveReadMessage(m)
                 ? `<span class="tm-chat-msg-seen" title="Διαβάστηκε">✓✓</span>`
                 : (mine ? `<span class="tm-chat-msg-seen is-sent" title="Στάλθηκε">✓</span>` : '');
-            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}${isNew ? ' is-new' : ''}${m.pinned ? ' is-pinned' : ''}" data-id="${escapeHtml(m.id)}" title="Δεξί κλικ για επιλογές">
+            return `<div class="tm-chat-msg${mine ? ' is-mine' : ''}${isNew ? ' is-new' : ''}${isMessagePinned(m) ? ' is-pinned' : ''}" data-id="${escapeHtml(m.id)}" title="Δεξί κλικ για επιλογές">
                 ${formatChatAvatarHtml(m)}
                 <div class="tm-chat-msg-bubble">
                     <div class="tm-chat-msg-meta">
@@ -23572,6 +23672,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
         if (changed) {
             renderMessages({ newIds: newlyAdded.map((m) => m.id) });
+            renderPresenceUi();
         }
         if (chatHydrated && fromPollOrRealtime && added > 0) {
             if (!chatPanelOpen) {
@@ -23918,16 +24019,54 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     async function togglePinChatMessage(STORAGE_KEYS, messageId) {
         const msg = findChatMessageById(messageId);
-        if (!msg || chatPinFieldUnsupported) {
-            setChatStatus('error', 'Πρόσθεσε πεδίο pinned στο messages (PocketBase)');
-            return { ok: false };
+        if (!msg || isChatMessageDeleted(msg)) return { ok: false };
+        const next = !isMessagePinned(msg);
+
+        // Optimistic local pin so UI always reacts immediately
+        setLocalMessagePinned(messageId, next);
+        upsertMessages([{ ...msg, pinned: next || !!msg.pinned }]);
+        renderPinnedStrip();
+        renderMessages({ force: true });
+
+        if (chatPinFieldUnsupported) {
+            setChatStatus('online', next ? 'Καρφιτσώθηκε (τοπικά)' : 'Ξεκαρφιτσώθηκε');
+            setTimeout(() => setChatStatus('online'), 1200);
+            return { ok: true, local: true };
         }
-        const next = !msg.pinned;
+
         const result = await patchChatMessage(STORAGE_KEYS, messageId, { pinned: next });
-        if (!result.ok && /pinned/i.test(JSON.stringify(result.body || {}) + (result.message || ''))) {
-            chatPinFieldUnsupported = true;
-            setChatStatus('error', 'Πρόσθεσε πεδίο pinned (Bool) στο messages');
+        const errBlob = `${JSON.stringify(result.body || {})}\n${result.message || ''}`;
+        if (result.ok) {
+            if (next) chatLocalPinIds.delete(String(messageId)); // server is source of truth when field works
+            else setLocalMessagePinned(messageId, false);
+            saveLocalChatPins();
+            // Ensure server flag sticks in memory
+            const saved = findChatMessageById(messageId);
+            if (saved) {
+                saved.pinned = next;
+                upsertMessages([saved]);
+            }
+            renderPinnedStrip();
+            setChatStatus('online', next ? 'Καρφιτσώθηκε' : 'Ξεκαρφιτσώθηκε');
+            setTimeout(() => setChatStatus('online'), 1200);
+            return result;
         }
+
+        if (/pinned|unknown field|failed to find|validation/i.test(errBlob) || result.status === 400) {
+            chatPinFieldUnsupported = true;
+            setChatStatus('online', next
+                ? 'Καρφιτσώθηκε τοπικά — πρόσθεσε Bool pinned στο messages'
+                : 'Ξεκαρφιτσώθηκε τοπικά');
+            setTimeout(() => setChatStatus('online'), 2500);
+            return { ok: true, local: true };
+        }
+
+        // Revert local on unexpected failure
+        setLocalMessagePinned(messageId, !next);
+        upsertMessages([{ ...msg, pinned: !!msg.pinned }]);
+        renderPinnedStrip();
+        renderMessages({ force: true });
+        setChatStatus('error', result.message || 'Το καρφίτσωμα απέτυχε');
         return result;
     }
 
@@ -24010,7 +24149,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     async function upsertOwnPresence(STORAGE_KEYS, { markRead } = {}) {
-        if (chatPresenceUnsupported) return false;
+        if (chatPresenceUnsupported) {
+            renderPresenceUi();
+            return false;
+        }
         try {
             const token = await ensureAuth(STORAGE_KEYS);
             const base = OFFICE_CHAT_BASE_URL.replace(/\/$/, '');
@@ -24018,8 +24160,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             if (!chatSelfPbUserId) {
                 try { await fetchOwnChatUserRecord(STORAGE_KEYS); } catch (_) { /* optional */ }
             }
-            if (!chatSelfPbUserId) return false;
-            const nowIso = new Date().toISOString();
+            if (!chatSelfPbUserId) {
+                renderPresenceUi();
+                return false;
+            }
+            const nowIso = formatChatPresenceTime(Date.now());
             const payload = {
                 userId: chatSelfPbUserId,
                 displayName: getDisplayName(),
@@ -24036,8 +24181,18 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 headers: { Authorization: token },
                 timeout: 10000,
             });
-            if (listed.status === 404 || (listed.status >= 400 && /collection|presence/i.test(JSON.stringify(listed.body || {})))) {
+            const listedBlob = JSON.stringify(listed.body || {});
+            if (
+                listed.status === 404
+                || (listed.status >= 400 && /collection|presence|not found|missing/i.test(listedBlob + (listed.body?.message || '')))
+            ) {
                 chatPresenceUnsupported = true;
+                if (!chatPresenceHintShown) {
+                    chatPresenceHintShown = true;
+                    setChatStatus('online', 'Presence: δημιούργησε collection presence στο PocketBase');
+                    setTimeout(() => setChatStatus('online'), 3500);
+                }
+                renderPresenceUi();
                 return false;
             }
             let result;
@@ -24060,13 +24215,42 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 });
             }
             if (result.status >= 400) {
-                if (/presence|collection|unknown/i.test(JSON.stringify(result.body || {}))) {
+                const err = JSON.stringify(result.body || {});
+                // Retry without optional fields / alternate date if schema differs
+                if (/lastReadAt|unknown field/i.test(err)) {
+                    delete payload.lastReadAt;
+                    result = existingId
+                        ? await chatRequestJson({
+                            method: 'PATCH',
+                            url: `${base}/api/collections/presence/records/${encodeURIComponent(existingId)}`,
+                            headers: { Authorization: token, 'Content-Type': 'application/json' },
+                            data: JSON.stringify(payload),
+                            timeout: 10000,
+                        })
+                        : await chatRequestJson({
+                            method: 'POST',
+                            url: `${base}/api/collections/presence/records`,
+                            headers: { Authorization: token, 'Content-Type': 'application/json' },
+                            data: JSON.stringify(payload),
+                            timeout: 10000,
+                        });
+                }
+            }
+            if (result.status >= 400) {
+                if (/presence|collection|unknown|not found|missing/i.test(JSON.stringify(result.body || {}))) {
                     chatPresenceUnsupported = true;
                 }
+                renderPresenceUi();
                 return false;
             }
+            // Reflect self immediately
+            const selfRec = result.body || { ...payload, id: existingId || result.body?.id };
+            const others = (chatPresenceList || []).filter((p) => String(p.userId || '') !== chatSelfPbUserId);
+            chatPresenceList = [selfRec, ...others];
+            renderPresenceUi();
             return true;
         } catch (_) {
+            renderPresenceUi();
             return false;
         }
     }
@@ -24080,26 +24264,39 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         try {
             const token = await ensureAuth(STORAGE_KEYS);
             const base = OFFICE_CHAT_BASE_URL.replace(/\/$/, '');
-            const since = new Date(Date.now() - 3 * 60 * 1000).toISOString();
-            const filter = encodeURIComponent(`lastSeen>="${since}"`);
-            const { status, body } = await chatRequestJson({
+            const since = formatChatPresenceTime(Date.now() - 3 * 60 * 1000);
+            let status;
+            let body;
+            ({ status, body } = await chatRequestJson({
                 method: 'GET',
-                url: `${base}/api/collections/presence/records?page=1&perPage=100&sort=-lastSeen&filter=${filter}`,
+                url: `${base}/api/collections/presence/records?page=1&perPage=100&sort=-lastSeen&filter=${encodeURIComponent(`lastSeen>="${since}"`)}`,
                 headers: { Authorization: token },
                 timeout: 10000,
-            });
-            if (status === 404 || (status >= 400 && /collection|presence/i.test(JSON.stringify(body || {})))) {
+            }));
+            if (status >= 400) {
+                // Fallback: list without date filter (schema / type mismatches)
+                ({ status, body } = await chatRequestJson({
+                    method: 'GET',
+                    url: `${base}/api/collections/presence/records?page=1&perPage=100&sort=-lastSeen`,
+                    headers: { Authorization: token },
+                    timeout: 10000,
+                }));
+            }
+            if (status === 404 || (status >= 400 && /collection|presence|not found|missing/i.test(JSON.stringify(body || {})))) {
                 chatPresenceUnsupported = true;
                 chatPresenceList = [];
                 renderPresenceUi();
                 return false;
             }
-            if (status < 200 || status >= 300) return false;
+            if (status < 200 || status >= 300) {
+                renderPresenceUi();
+                return false;
+            }
             chatPresenceList = Array.isArray(body?.items) ? body.items : [];
             renderPresenceUi();
-            renderMessages({ force: true });
             return true;
         } catch (_) {
+            renderPresenceUi();
             return false;
         }
     }
@@ -24431,6 +24628,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 flex-shrink: 0;
             }
             .tm-chat-store-chip[hidden] { display: none !important; }
+            .tm-chat-online-count {
+                display: inline-flex; align-items: center; justify-content: center;
+                min-width: 18px; height: 18px; padding: 0 5px;
+                border-radius: 999px; font-size: 10px; font-weight: 700;
+                background: #dcfce7; color: #166534;
+                border: 1px solid #86efac;
+            }
+            .tm-chat-online-count[hidden] { display: none !important; }
             #tm-chat-subtitle { display: none; }
             .tm-chat-header-actions { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
             #tm-chat-header button {
@@ -24774,14 +24979,21 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 background: color-mix(in srgb, var(--tm-chat-accent) 14%, #fff);
                 color: var(--tm-chat-accent); border-color: color-mix(in srgb, var(--tm-chat-accent) 35%, #e2e8f0);
             }
-            #tm-chat-presence {
-                padding: 4px 12px; font-size: 11px; color: var(--tm-chat-muted);
-                display: flex; align-items: center; gap: 6px;
-            }
             .tm-chat-presence-dot {
                 width: 7px; height: 7px; border-radius: 50%; background: #22c55e;
                 box-shadow: 0 0 0 2px rgba(34,197,94,.2);
             }
+            .tm-chat-presence-dot.is-idle { background: #94a3b8; box-shadow: none; }
+            .tm-chat-presence-dot.is-warn { background: #f59e0b; box-shadow: 0 0 0 2px rgba(245,158,11,.25); }
+            .tm-chat-presence-hint { opacity: 0.75; font-size: 10px; }
+            #tm-chat-presence {
+                padding: 4px 12px; font-size: 11px; color: var(--tm-chat-muted);
+                display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+                border-bottom: 1px solid var(--tm-chat-line);
+                background: #f8fafc;
+            }
+            #tm-chat-presence[hidden] { display: none !important; }
+            #tm-chat-presence strong { color: #166534; font-weight: 700; }
             #tm-chat-search-row { padding: 4px 10px 6px; background: var(--tm-chat-surface); }
             #tm-chat-search {
                 width: 100%; border: 1px solid var(--tm-chat-line); border-radius: 8px;
@@ -24890,6 +25102,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     <div id="tm-chat-title-wrap">
                         <span class="tm-chat-live-dot" id="tm-chat-live-dot" data-status="idle" title="Κατάσταση" aria-hidden="true"></span>
                         <span id="tm-chat-title">Office Chat</span>
+                        <span id="tm-chat-online-count" class="tm-chat-online-count" hidden title="Online"></span>
                         <span id="tm-chat-store-chip" class="tm-chat-store-chip" hidden title="Κατάστημα από login"></span>
                     </div>
                 </div>
@@ -25242,7 +25455,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
         menu.dataset.msgId = id;
         const canManage = isOwnChatMessage(msg);
-        const pinLabel = msg.pinned ? 'Ξεκαρφίτσωμα' : 'Καρφίτσωμα';
+        const pinLabel = isMessagePinned(msg) ? 'Ξεκαρφίτσωμα' : 'Καρφίτσωμα';
         menu.innerHTML = `
             <button type="button" class="tm-chat-ctx-item" role="menuitem" data-act="reply">
                 <span class="tm-chat-ctx-ico" aria-hidden="true">↩</span><span>Απάντηση</span>
@@ -25426,7 +25639,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '11';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '12';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
             hideChatMessageContextMenu();
@@ -25434,7 +25647,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '11');
+            panel.setAttribute('data-tm-chat-ui', '12');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);
@@ -25442,6 +25655,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 panel.classList.add('is-open');
                 chatPanelOpen = true;
                 renderMessages();
+                renderPresenceUi();
             }
         } else {
             wireChatPanelControls(panel, STORAGE_KEYS);
@@ -25844,6 +26058,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         chatMuted = settings.muted;
         chatSoundEnabled = settings.sound !== false;
         loadChatRoomPreference(STORAGE_KEYS);
+        loadLocalChatPins();
         loadCachedSelfAvatar();
         injectChatStyles();
 

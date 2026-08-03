@@ -1,11 +1,11 @@
 {
-  "version": "373",
+  "version": "374",
   "loaderVersion": "41",
-  "silentVersion": "17",
-  "displayVersion": "41.17",
+  "silentVersion": "18",
+  "displayVersion": "41.18",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Show locked store as compact header chip instead of dropdown row",
+  "releaseNotes": "Fix chat pin feedback and always-visible online presence",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
