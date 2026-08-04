@@ -1,11 +1,11 @@
 {
-  "version": "385",
+  "version": "386",
   "loaderVersion": "41",
-  "silentVersion": "29",
-  "displayVersion": "41.29",
+  "silentVersion": "30",
+  "displayVersion": "41.30",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Preserve tech display name casing when login block is missing",
+  "releaseNotes": "Chat avatar click opens larger profile photo preview",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

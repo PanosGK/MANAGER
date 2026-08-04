@@ -714,7 +714,7 @@
         const title = store ? `${name} · ${store}` : name;
         if (resolved?.userId && resolved?.filename) {
             const url = getChatUserAvatarUrl(resolved.userId, resolved.filename);
-            return `<span class="tm-chat-presence-avatar is-photo" title="${escapeHtml(title)}" data-letter="${escapeHtml(letter)}"><img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="var p=this.parentElement;if(p){p.classList.remove('is-photo');p.textContent=p.getAttribute('data-letter')||'?';}"></span>`;
+            return `<span class="tm-chat-presence-avatar is-photo tm-chat-avatar-previewable" title="${escapeHtml(title)} · προεπισκόπηση" role="button" tabindex="0" data-letter="${escapeHtml(letter)}" data-avatar-url="${escapeHtml(url)}" data-avatar-name="${escapeHtml(name)}"><img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="var p=this.parentElement;if(p){p.classList.remove('is-photo','tm-chat-avatar-previewable');p.removeAttribute('role');p.removeAttribute('tabindex');p.textContent=p.getAttribute('data-letter')||'?';}"></span>`;
         }
         return `<span class="tm-chat-presence-avatar" title="${escapeHtml(title)}">${escapeHtml(letter)}</span>`;
     }
@@ -1393,7 +1393,7 @@
         const resolved = resolveChatMessageAvatar(m);
         if (resolved?.userId && resolved?.filename) {
             const url = getChatUserAvatarUrl(resolved.userId, resolved.filename);
-            return `<div class="tm-chat-msg-avatar is-photo" data-letter="${escapeHtml(letter)}" aria-hidden="true"><img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="var p=this.parentElement;if(p){p.classList.remove('is-photo');p.textContent=p.getAttribute('data-letter')||'?';}"></div>`;
+            return `<div class="tm-chat-msg-avatar is-photo tm-chat-avatar-previewable" role="button" tabindex="0" title="Προεπισκόπηση φωτογραφίας" data-letter="${escapeHtml(letter)}" data-avatar-url="${escapeHtml(url)}" data-avatar-name="${escapeHtml(name)}"><img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="var p=this.parentElement;if(p){p.classList.remove('is-photo','tm-chat-avatar-previewable');p.removeAttribute('role');p.removeAttribute('tabindex');p.textContent=p.getAttribute('data-letter')||'?';}"></div>`;
         }
         return `<div class="tm-chat-msg-avatar" aria-hidden="true">${escapeHtml(letter)}</div>`;
     }
@@ -4158,6 +4158,67 @@
             .tm-chat-msg-avatar.is-photo img {
                 width: 100%; height: 100%; object-fit: cover; display: block;
             }
+            .tm-chat-avatar-previewable {
+                cursor: zoom-in;
+            }
+            .tm-chat-avatar-previewable:focus-visible {
+                outline: 2px solid var(--tm-chat-accent);
+                outline-offset: 2px;
+            }
+            #tm-chat-avatar-preview {
+                position: fixed; inset: 0; z-index: 1000300;
+                display: flex; align-items: center; justify-content: center;
+                padding: 24px; opacity: 0; pointer-events: none;
+                transition: opacity 0.16s ease;
+            }
+            #tm-chat-avatar-preview.is-open {
+                opacity: 1; pointer-events: auto;
+            }
+            #tm-chat-avatar-preview[hidden] { display: none !important; }
+            .tm-chat-avatar-preview-backdrop {
+                position: absolute; inset: 0; border: 0; padding: 0;
+                background: rgba(15, 23, 42, 0.62);
+                cursor: zoom-out;
+            }
+            .tm-chat-avatar-preview-card {
+                position: relative; z-index: 1;
+                display: flex; flex-direction: column; align-items: center; gap: 10px;
+                max-width: min(420px, calc(100vw - 32px));
+                transform: scale(0.92);
+                transition: transform 0.18s ease;
+            }
+            #tm-chat-avatar-preview.is-open .tm-chat-avatar-preview-card {
+                transform: scale(1);
+            }
+            .tm-chat-avatar-preview-img {
+                width: min(320px, calc(100vw - 48px));
+                height: min(320px, calc(100vw - 48px));
+                max-height: min(70vh, 420px);
+                object-fit: cover;
+                border-radius: 22px;
+                background: #cbd5e1;
+                box-shadow: 0 24px 60px rgba(15, 23, 42, 0.45);
+                border: 3px solid rgba(255, 255, 255, 0.92);
+            }
+            .tm-chat-avatar-preview-name {
+                color: #fff;
+                font-size: 14px;
+                font-weight: 700;
+                text-shadow: 0 1px 8px rgba(15, 23, 42, 0.55);
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .tm-chat-avatar-preview-close {
+                position: absolute; top: -10px; right: -10px;
+                width: 32px; height: 32px; border-radius: 999px;
+                border: 0; cursor: pointer;
+                background: #fff; color: #0f172a;
+                font-size: 20px; line-height: 1;
+                box-shadow: 0 4px 14px rgba(15, 23, 42, 0.28);
+            }
+            .tm-chat-avatar-preview-close:hover { background: #f1f5f9; }
             .tm-chat-msg.is-mine .tm-chat-msg-avatar {
                 background: color-mix(in srgb, var(--tm-chat-accent) 18%, #fff);
                 color: var(--tm-chat-accent);
@@ -4798,6 +4859,113 @@
         }
     }
 
+    function hideChatAvatarPreview() {
+        const overlay = document.getElementById('tm-chat-avatar-preview');
+        if (!overlay) return;
+        overlay.classList.remove('is-open');
+        overlay.setAttribute('hidden', '');
+        overlay.setAttribute('aria-hidden', 'true');
+        const img = overlay.querySelector('.tm-chat-avatar-preview-img');
+        if (img) {
+            img.removeAttribute('src');
+            img.alt = '';
+        }
+        const nameEl = overlay.querySelector('.tm-chat-avatar-preview-name');
+        if (nameEl) nameEl.textContent = '';
+    }
+
+    function ensureChatAvatarPreviewOverlay() {
+        let overlay = document.getElementById('tm-chat-avatar-preview');
+        if (overlay) return overlay;
+        overlay = document.createElement('div');
+        overlay.id = 'tm-chat-avatar-preview';
+        overlay.setAttribute('hidden', '');
+        overlay.setAttribute('aria-hidden', 'true');
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-label', 'Προεπισκόπηση φωτογραφίας');
+        overlay.innerHTML = `
+            <button type="button" class="tm-chat-avatar-preview-backdrop" aria-label="Κλείσιμο"></button>
+            <div class="tm-chat-avatar-preview-card">
+                <img class="tm-chat-avatar-preview-img" alt="">
+                <div class="tm-chat-avatar-preview-name"></div>
+                <button type="button" class="tm-chat-avatar-preview-close" title="Κλείσιμο" aria-label="Κλείσιμο">&times;</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const close = () => hideChatAvatarPreview();
+        overlay.querySelector('.tm-chat-avatar-preview-backdrop')?.addEventListener('click', close);
+        overlay.querySelector('.tm-chat-avatar-preview-close')?.addEventListener('click', close);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) close();
+        });
+        return overlay;
+    }
+
+    function showChatAvatarPreview(url, name) {
+        const src = String(url || '').trim();
+        if (!src) return;
+        const overlay = ensureChatAvatarPreviewOverlay();
+        const img = overlay.querySelector('.tm-chat-avatar-preview-img');
+        const nameEl = overlay.querySelector('.tm-chat-avatar-preview-name');
+        if (img) {
+            img.src = src;
+            img.alt = String(name || 'Φωτογραφία προφίλ');
+        }
+        if (nameEl) nameEl.textContent = String(name || '').trim();
+        overlay.removeAttribute('hidden');
+        overlay.setAttribute('aria-hidden', 'false');
+        // Force reflow so the open transition runs
+        void overlay.offsetWidth;
+        overlay.classList.add('is-open');
+        try { overlay.querySelector('.tm-chat-avatar-preview-close')?.focus(); } catch (_) { /* ignore */ }
+    }
+
+    function wireChatAvatarPreview(panel) {
+        if (!panel || panel.dataset.tmChatAvatarPreviewWired === '1') return;
+        panel.dataset.tmChatAvatarPreviewWired = '1';
+
+        const openFromEl = (el) => {
+            if (!el || !el.classList.contains('is-photo')) return;
+            const url = el.getAttribute('data-avatar-url')
+                || el.querySelector('img')?.currentSrc
+                || el.querySelector('img')?.src
+                || '';
+            const name = el.getAttribute('data-avatar-name')
+                || el.getAttribute('title')
+                || '';
+            if (!url) return;
+            showChatAvatarPreview(url, String(name).replace(/\s*·\s*προεπισκόπηση$/i, '').trim());
+        };
+
+        panel.addEventListener('click', (e) => {
+            const el = e.target.closest('.tm-chat-avatar-previewable');
+            if (!el || !panel.contains(el)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            openFromEl(el);
+        });
+
+        panel.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            const el = e.target.closest?.('.tm-chat-avatar-previewable');
+            if (!el || !panel.contains(el)) return;
+            e.preventDefault();
+            openFromEl(el);
+        });
+
+        if (!wireChatAvatarPreview._escWired) {
+            wireChatAvatarPreview._escWired = true;
+            document.addEventListener('keydown', (e) => {
+                if (e.key !== 'Escape') return;
+                const overlay = document.getElementById('tm-chat-avatar-preview');
+                if (!overlay || !overlay.classList.contains('is-open')) return;
+                e.preventDefault();
+                hideChatAvatarPreview();
+            });
+        }
+    }
+
     function wireChatFileAttach(STORAGE_KEYS) {
         void STORAGE_KEYS;
         const panel = document.getElementById('tm-chat-panel');
@@ -5221,6 +5389,7 @@
         wireComposer(STORAGE_KEYS);
         wireChatEmojiPicker();
         wireChatFileAttach(STORAGE_KEYS);
+        wireChatAvatarPreview(panel);
         wireChatPasteDrop(STORAGE_KEYS);
         wireChatStoreSelect(STORAGE_KEYS);
         wireChatRoomsAndSearch(STORAGE_KEYS);
@@ -5587,6 +5756,7 @@
         setChatEmojiPickerOpen(false);
         hideChatMentionMenu();
         hideChatMessageContextMenu();
+        hideChatAvatarPreview();
         panel.classList.remove('is-open');
         chatPanelOpen = false;
         updateUnreadBadge();
