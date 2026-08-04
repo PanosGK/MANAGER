@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v386 / Custom Ver. 41.30 — generated, do not edit */
+/* MyManager Suite bundle v387 / Custom Ver. 41.31 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '386',
+        version: '387',
         loaderVersion: '41',
-        silentVersion: '30',
-        displayVersion: '41.30',
+        silentVersion: '31',
+        displayVersion: '41.31',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -20646,7 +20646,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     /** Local reactions map: messageId → { "👍": ["Name"], "❤️": ["Name"] }. */
     let chatLocalReactions = Object.create(null);
     const CHAT_LOCAL_REACTIONS_KEY = 'tm_chat_local_reactions_v1';
-    const CHAT_REACTION_EMOJIS = ['👍', '❤️'];
+    const CHAT_REACTION_EMOJIS = ['👍', '👎', '❤️', '😂', '😮', '😢', '🙏', '🔥', '🎉', '👀', '✅', '❌'];
     const CHAT_PRESENCE_MS = 25000;
     const CHAT_DEFAULT_WORK_START = '09:00';
     const CHAT_DEFAULT_WORK_END = '18:00';
@@ -25165,7 +25165,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .tm-chat-msg-ctx {
                 position: fixed;
                 z-index: 1000200;
-                min-width: 168px;
+                min-width: 220px;
                 padding: 4px;
                 border-radius: 10px;
                 background: #fff;
@@ -25187,6 +25187,28 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .tm-chat-ctx-ico { width: 18px; text-align: center; flex-shrink: 0; }
             .tm-chat-ctx-sep {
                 height: 1px; margin: 4px 6px; background: #e2e8f0;
+            }
+            .tm-chat-ctx-reacts {
+                display: grid;
+                grid-template-columns: repeat(6, 1fr);
+                gap: 4px;
+                padding: 4px 6px 6px;
+            }
+            .tm-chat-ctx-react {
+                display: grid; place-items: center;
+                width: 100%; min-height: 32px;
+                border: 1px solid transparent;
+                border-radius: 8px;
+                background: transparent;
+                font-size: 18px; line-height: 1;
+                cursor: pointer;
+            }
+            .tm-chat-ctx-react:hover, .tm-chat-ctx-react:focus {
+                background: #f1f5f9; outline: none;
+            }
+            .tm-chat-ctx-react.is-mine {
+                background: color-mix(in srgb, var(--tm-chat-accent, #2563eb) 14%, #fff);
+                border-color: color-mix(in srgb, var(--tm-chat-accent, #2563eb) 35%, #fff);
             }
             .tm-chat-msg.is-ctx-target .tm-chat-msg-bubble {
                 outline: 2px solid color-mix(in srgb, var(--tm-chat-accent) 45%, transparent);
@@ -25686,7 +25708,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         menu.style.top = `${Math.round(top)}px`;
     }
 
-    async function runChatMessageAction(STORAGE_KEYS, act, messageId) {
+    async function runChatMessageAction(STORAGE_KEYS, act, messageId, extra = null) {
         const msg = findChatMessageById(messageId);
         if (!msg || isChatMessageDeleted(msg)) return;
         if (act === 'reply') {
@@ -25697,8 +25719,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             await copyChatMessageText(messageId);
             return;
         }
-        if (act === 'react-up' || act === 'react-heart') {
-            await toggleChatReaction(STORAGE_KEYS, messageId, act === 'react-up' ? '👍' : '❤️');
+        if (act === 'react') {
+            const emoji = String(extra?.emoji || '').trim();
+            if (emoji) await toggleChatReaction(STORAGE_KEYS, messageId, emoji);
             return;
         }
         if (act === 'pin') {
@@ -25742,8 +25765,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         const canManage = isOwnChatMessage(msg);
         const reactions = getMessageReactions(msg);
         const me = getDisplayName();
-        const hasUp = me && (reactions['👍'] || []).includes(me);
-        const hasHeart = me && (reactions['❤️'] || []).includes(me);
+        const reactButtons = CHAT_REACTION_EMOJIS.map((emoji) => {
+            const mine = me && (reactions[emoji] || []).includes(me);
+            return `<button type="button" class="tm-chat-ctx-react${mine ? ' is-mine' : ''}" role="menuitem" data-act="react" data-emoji="${escapeHtml(emoji)}" title="${mine ? `Αφαίρεση ${emoji}` : emoji}" aria-label="${mine ? `Αφαίρεση ${emoji}` : emoji}">${emoji}</button>`;
+        }).join('');
         menu.innerHTML = `
             <button type="button" class="tm-chat-ctx-item" role="menuitem" data-act="reply">
                 <span class="tm-chat-ctx-ico" aria-hidden="true">↩</span><span>Απάντηση</span>
@@ -25752,12 +25777,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 <span class="tm-chat-ctx-ico" aria-hidden="true">📋</span><span>Αντιγραφή</span>
             </button>
             <div class="tm-chat-ctx-sep" role="separator"></div>
-            <button type="button" class="tm-chat-ctx-item" role="menuitem" data-act="react-up">
-                <span class="tm-chat-ctx-ico" aria-hidden="true">👍</span><span>${hasUp ? 'Αφαίρεση 👍' : '👍'}</span>
-            </button>
-            <button type="button" class="tm-chat-ctx-item" role="menuitem" data-act="react-heart">
-                <span class="tm-chat-ctx-ico" aria-hidden="true">❤️</span><span>${hasHeart ? 'Αφαίρεση ❤️' : '❤️'}</span>
-            </button>
+            <div class="tm-chat-ctx-reacts" role="group" aria-label="Reactions">${reactButtons}</div>
             ${CHAT_PIN_ENABLED ? `<div class="tm-chat-ctx-sep" role="separator"></div>
             <button type="button" class="tm-chat-ctx-item" role="menuitem" data-act="pin">
                 <span class="tm-chat-ctx-ico" aria-hidden="true">📌</span><span>${escapeHtml(isMessagePinned(msg) ? 'Ξεκαρφίτσωμα' : 'Καρφίτσωμα')}</span>
@@ -25772,7 +25792,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             </button>` : ''}
         `;
         positionChatContextMenu(menu, clientX, clientY);
-        menu.querySelector('.tm-chat-ctx-item')?.focus();
+        menu.querySelector('.tm-chat-ctx-item, .tm-chat-ctx-react')?.focus();
     }
 
     function wireChatMessageActions(STORAGE_KEYS) {
@@ -25811,13 +25831,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (menu && menu.dataset.tmChatCtxWired !== '1') {
             menu.dataset.tmChatCtxWired = '1';
             menu.addEventListener('click', async (e) => {
-                const item = e.target.closest('.tm-chat-ctx-item');
+                const item = e.target.closest('.tm-chat-ctx-item, .tm-chat-ctx-react');
                 if (!item) return;
                 e.preventDefault();
                 const act = item.getAttribute('data-act');
                 const id = menu.dataset.msgId;
+                const emoji = item.getAttribute('data-emoji') || '';
                 hideChatMessageContextMenu();
-                if (act && id) await runChatMessageAction(STORAGE_KEYS, act, id);
+                if (act && id) await runChatMessageAction(STORAGE_KEYS, act, id, { emoji });
             });
             menu.addEventListener('contextmenu', (e) => e.preventDefault());
         }
