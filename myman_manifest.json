@@ -1,11 +1,11 @@
 {
-  "version": "382",
+  "version": "383",
   "loaderVersion": "41",
-  "silentVersion": "26",
-  "displayVersion": "41.26",
+  "silentVersion": "27",
+  "displayVersion": "41.27",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Advanced Search uses shared server order history",
+  "releaseNotes": "Swap repair Reminder and Back-to-list button positions",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

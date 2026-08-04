@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v382 / Custom Ver. 41.26 — generated, do not edit */
+/* MyManager Suite bundle v383 / Custom Ver. 41.27 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '382',
+        version: '383',
         loaderVersion: '41',
-        silentVersion: '26',
-        displayVersion: '41.26',
+        silentVersion: '27',
+        displayVersion: '41.27',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -72273,7 +72273,21 @@ if (typeof window !== 'undefined') {
             </div>
         `;
 
-        anchor.appendChild(wrap);
+        const backToListBtn = Array.from(anchor.querySelectorAll('a, button, input[type="button"], input[type="submit"]'))
+            .find((el) => {
+                const text = String(el.textContent || el.value || el.title || '').toLowerCase();
+                const href = String(el.getAttribute?.('href') || '').toLowerCase();
+                return /back\s*to\s*list|επιστροφή|λιστα|λίστα/.test(text)
+                    || /_list\.php/.test(href);
+            });
+
+        if (backToListBtn) {
+            // Put reminder where "Back to list" was, then move "Back to list" to reminder's old end spot.
+            anchor.insertBefore(wrap, backToListBtn);
+            anchor.appendChild(backToListBtn);
+        } else {
+            anchor.appendChild(wrap);
+        }
         document.body.appendChild(backdrop);
         document.body.appendChild(pop);
 

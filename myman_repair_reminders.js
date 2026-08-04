@@ -540,7 +540,21 @@
             </div>
         `;
 
-        anchor.appendChild(wrap);
+        const backToListBtn = Array.from(anchor.querySelectorAll('a, button, input[type="button"], input[type="submit"]'))
+            .find((el) => {
+                const text = String(el.textContent || el.value || el.title || '').toLowerCase();
+                const href = String(el.getAttribute?.('href') || '').toLowerCase();
+                return /back\s*to\s*list|επιστροφή|λιστα|λίστα/.test(text)
+                    || /_list\.php/.test(href);
+            });
+
+        if (backToListBtn) {
+            // Put reminder where "Back to list" was, then move "Back to list" to reminder's old end spot.
+            anchor.insertBefore(wrap, backToListBtn);
+            anchor.appendChild(backToListBtn);
+        } else {
+            anchor.appendChild(wrap);
+        }
         document.body.appendChild(backdrop);
         document.body.appendChild(pop);
 
