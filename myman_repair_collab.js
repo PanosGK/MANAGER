@@ -296,7 +296,7 @@
     }
 
     function formatWhisperMeta(rec) {
-        if (!rec) return 'Κοινό σημείωμα για όλους τους τεχνικούς';
+        if (!rec) return '';
         const who = String(rec.updatedBy || '').trim();
         let when = '';
         try {
@@ -307,56 +307,87 @@
                 });
             }
         } catch (_) { /* ignore */ }
-        if (who && when) return `Τελευταία ενημέρωση: ${who} · ${when}`;
-        if (who) return `Τελευταία ενημέρωση: ${who}`;
-        return 'Κοινό σημείωμα για όλους τους τεχνικούς';
+        if (who && when) return `${who} · ${when}`;
+        if (who) return who;
+        return '';
+    }
+
+    function whisperPreviewText(text) {
+        const t = String(text || '').replace(/\s+/g, ' ').trim();
+        if (!t) return 'κενό';
+        return t.length > 48 ? `${t.slice(0, 48)}…` : t;
     }
 
     function injectWhisperStyles() {
-        if (document.getElementById('tm-repair-collab-styles')) return;
-        const style = document.createElement('style');
-        style.id = 'tm-repair-collab-styles';
+        let style = document.getElementById('tm-repair-collab-styles');
+        if (!style) {
+            style = document.createElement('style');
+            style.id = 'tm-repair-collab-styles';
+            document.head.appendChild(style);
+        }
         style.textContent = `
             #tm-repair-whisper {
-                margin: 8px 0 12px;
-                padding: 10px 12px;
-                border: 1px solid #fbbf24;
-                border-radius: 12px;
-                background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
-                box-shadow: 0 1px 3px rgba(146, 64, 14, 0.08);
+                margin: 0 0 4px;
+                padding: 0;
+                border: 0;
+                background: transparent;
                 font-family: "Segoe UI", system-ui, sans-serif;
+                max-width: 420px;
             }
-            #tm-repair-whisper.is-empty { opacity: 0.92; }
-            .tm-rw-head {
-                display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
-                margin-bottom: 6px; flex-wrap: wrap;
+            .tm-rw-toggle {
+                display: inline-flex; align-items: center; gap: 5px;
+                max-width: 100%;
+                border: 0; background: transparent; padding: 1px 2px;
+                color: #94a3b8; font-size: 11px; line-height: 1.3;
+                cursor: pointer; border-radius: 4px;
             }
-            .tm-rw-title { font-weight: 800; font-size: 13px; color: #92400e; }
-            .tm-rw-meta { font-size: 11px; color: #a16207; }
+            .tm-rw-toggle:hover { color: #64748b; background: rgba(148, 163, 184, 0.12); }
+            #tm-repair-whisper.has-note .tm-rw-toggle { color: #64748b; }
+            .tm-rw-ico { font-size: 11px; opacity: 0.75; }
+            .tm-rw-label { font-weight: 600; letter-spacing: 0.01em; }
+            .tm-rw-preview {
+                min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+                max-width: 260px; font-weight: 400; opacity: 0.85;
+            }
+            .tm-rw-chevron { font-size: 9px; opacity: 0.7; margin-left: 2px; }
+            #tm-repair-whisper.is-open .tm-rw-chevron { transform: rotate(180deg); }
+            .tm-rw-body {
+                display: none;
+                margin-top: 4px;
+                padding: 6px 7px;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                background: #f8fafc;
+            }
+            #tm-repair-whisper.is-open .tm-rw-body { display: block; }
             #tm-repair-whisper-text {
-                width: 100%; box-sizing: border-box; min-height: 64px;
-                border: 1px solid #f59e0b; border-radius: 8px;
-                padding: 8px 10px; font-size: 13px; line-height: 1.35;
-                background: #fff; color: #0f172a; resize: vertical;
+                width: 100%; box-sizing: border-box; min-height: 44px; max-height: 120px;
+                border: 1px solid #e2e8f0; border-radius: 6px;
+                padding: 5px 7px; font-size: 12px; line-height: 1.35;
+                background: #fff; color: #334155; resize: vertical;
+            }
+            #tm-repair-whisper-text:focus {
+                outline: none; border-color: #cbd5e1;
             }
             .tm-rw-actions {
-                display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap;
+                display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap;
             }
             .tm-rw-save, .tm-rw-clear {
-                border: 0; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700;
-                cursor: pointer;
+                border: 0; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600;
+                cursor: pointer; background: transparent;
             }
-            .tm-rw-save { background: #d97706; color: #fff; }
-            .tm-rw-save:hover { background: #b45309; }
-            .tm-rw-save:disabled { opacity: 0.6; cursor: wait; }
-            .tm-rw-clear { background: transparent; color: #92400e; text-decoration: underline; }
-            .tm-rw-status { font-size: 11px; color: #a16207; min-height: 14px; }
+            .tm-rw-save { color: #475569; border: 1px solid #cbd5e1; background: #fff; }
+            .tm-rw-save:hover { background: #f1f5f9; }
+            .tm-rw-save:disabled { opacity: 0.55; cursor: wait; }
+            .tm-rw-clear { color: #94a3b8; }
+            .tm-rw-clear:hover { color: #64748b; }
+            .tm-rw-status { font-size: 10px; color: #94a3b8; min-height: 12px; }
+            .tm-rw-meta { font-size: 10px; color: #94a3b8; margin-top: 3px; }
             #tm-repair-watch-btn.is-watching {
                 background: color-mix(in srgb, #2563eb 16%, #fff) !important;
                 outline: 2px solid color-mix(in srgb, #2563eb 45%, transparent);
             }
         `;
-        document.head.appendChild(style);
     }
 
     function findWhisperMount() {
@@ -378,16 +409,21 @@
         box.id = 'tm-repair-whisper';
         box.className = 'is-empty';
         box.innerHTML = `
-            <div class="tm-rw-head">
-                <span class="tm-rw-title">💬 Whisper · #${escapeHtml(ids.invoiceNumber)}</span>
-                <span class="tm-rw-meta" id="tm-repair-whisper-meta">Φόρτωση…</span>
-            </div>
-            <textarea id="tm-repair-whisper-text" maxlength="${RC_WHISPER_MAX}"
-                placeholder="Κοινό σημείωμα για την επισκευή (το βλέπουν όλοι οι τεχνικοί)…"></textarea>
-            <div class="tm-rw-actions">
-                <button type="button" class="tm-rw-save" id="tm-repair-whisper-save">Αποθήκευση</button>
-                <button type="button" class="tm-rw-clear" id="tm-repair-whisper-clear">Καθαρισμός</button>
-                <span class="tm-rw-status" id="tm-repair-whisper-status"></span>
+            <button type="button" class="tm-rw-toggle" id="tm-repair-whisper-toggle" title="Κοινό σημείωμα επισκευής" aria-expanded="false">
+                <span class="tm-rw-ico" aria-hidden="true">💬</span>
+                <span class="tm-rw-label">Whisper</span>
+                <span class="tm-rw-preview" id="tm-repair-whisper-preview">…</span>
+                <span class="tm-rw-chevron" aria-hidden="true">▾</span>
+            </button>
+            <div class="tm-rw-body">
+                <textarea id="tm-repair-whisper-text" maxlength="${RC_WHISPER_MAX}"
+                    placeholder="Σύντομο κοινό σημείωμα…"></textarea>
+                <div class="tm-rw-actions">
+                    <button type="button" class="tm-rw-save" id="tm-repair-whisper-save">Αποθήκευση</button>
+                    <button type="button" class="tm-rw-clear" id="tm-repair-whisper-clear">Καθαρισμός</button>
+                    <span class="tm-rw-status" id="tm-repair-whisper-status"></span>
+                </div>
+                <div class="tm-rw-meta" id="tm-repair-whisper-meta"></div>
             </div>
         `;
 
@@ -397,6 +433,8 @@
             mount.insertAdjacentElement('afterbegin', box);
         }
 
+        const toggleBtn = box.querySelector('#tm-repair-whisper-toggle');
+        const previewEl = box.querySelector('#tm-repair-whisper-preview');
         const textEl = box.querySelector('#tm-repair-whisper-text');
         const metaEl = box.querySelector('#tm-repair-whisper-meta');
         const statusEl = box.querySelector('#tm-repair-whisper-status');
@@ -405,6 +443,22 @@
         let saveTimer = null;
         let lastSaved = '';
 
+        function setOpen(open) {
+            box.classList.toggle('is-open', !!open);
+            toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (open) {
+                window.setTimeout(() => textEl.focus(), 30);
+            }
+        }
+
+        function refreshPreview(text, rec) {
+            const trimmed = String(text || '').trim();
+            box.classList.toggle('is-empty', !trimmed);
+            box.classList.toggle('has-note', !!trimmed);
+            if (previewEl) previewEl.textContent = whisperPreviewText(trimmed);
+            if (metaEl) metaEl.textContent = formatWhisperMeta(rec);
+        }
+
         function setStatus(msg) {
             if (statusEl) statusEl.textContent = msg || '';
         }
@@ -412,30 +466,34 @@
         async function persist(forceClear) {
             const token = await rcEnsureAuth(STORAGE_KEYS);
             if (!token) {
-                setStatus('Χωρίς σύνδεση chat server');
+                setStatus('Χωρίς σύνδεση');
                 return;
             }
             saveBtn.disabled = true;
-            setStatus('Αποθήκευση…');
+            setStatus('…');
             const value = forceClear ? '' : String(textEl.value || '');
             const result = await saveWhisper(token, ids, value);
             saveBtn.disabled = false;
             if (result.missingCollection) {
                 hintMissingCollections();
-                setStatus('Λείπουν collections στο PocketBase');
+                setStatus('Λείπουν collections');
                 return;
             }
             if (!result.ok) {
-                setStatus('Αποτυχία αποθήκευσης');
+                setStatus('Αποτυχία');
                 return;
             }
             lastSaved = String(value || '').trim();
-            box.classList.toggle('is-empty', !lastSaved);
-            if (metaEl) metaEl.textContent = formatWhisperMeta(result.body);
-            setStatus(lastSaved ? 'Αποθηκεύτηκε' : 'Καθαρίστηκε');
-            window.setTimeout(() => setStatus(''), 1800);
+            refreshPreview(lastSaved, result.body);
+            setStatus(lastSaved ? 'OK' : 'Καθαρίστηκε');
+            window.setTimeout(() => setStatus(''), 1400);
+            if (!lastSaved) setOpen(false);
         }
 
+        toggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            setOpen(!box.classList.contains('is-open'));
+        });
         saveBtn.addEventListener('click', (e) => {
             e.preventDefault();
             persist(false);
@@ -446,6 +504,7 @@
             persist(true);
         });
         textEl.addEventListener('input', () => {
+            if (previewEl) previewEl.textContent = whisperPreviewText(textEl.value);
             window.clearTimeout(saveTimer);
             saveTimer = window.setTimeout(() => {
                 if (String(textEl.value || '').trim() === lastSaved) return;
@@ -455,21 +514,23 @@
 
         const token = await rcEnsureAuth(STORAGE_KEYS);
         if (!token) {
-            if (metaEl) metaEl.textContent = 'Χωρίς σύνδεση — δοκίμασε αργότερα';
+            refreshPreview('', null);
+            if (previewEl) previewEl.textContent = 'εκτός σύνδεσης';
             return;
         }
         const loaded = await fetchWhisper(token, ids.invoiceLinesId);
         if (loaded.missingCollection) {
             hintMissingCollections();
-            if (metaEl) metaEl.textContent = 'Λείπει collection repair_whispers';
+            if (previewEl) previewEl.textContent = 'setup PB';
             return;
         }
         const rec = loaded.record;
         const text = String(rec?.text || '');
         textEl.value = text;
         lastSaved = text.trim();
-        box.classList.toggle('is-empty', !lastSaved);
-        if (metaEl) metaEl.textContent = formatWhisperMeta(rec);
+        refreshPreview(lastSaved, rec);
+        // Stay collapsed — only a one-line preview when a note exists
+        setOpen(false);
     }
 
     // ─── Watch ─────────────────────────────────────────────────────────────
