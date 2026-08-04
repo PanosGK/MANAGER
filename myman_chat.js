@@ -29,6 +29,9 @@
     let chatActiveRoom = CHAT_ROOM_OFFICE;
     let chatReplyTarget = null;
     let chatSearchQuery = '';
+    let chatFilterImages = false;
+    let chatFilterRepairs = false;
+    let chatFilterFrom = '';
     let chatPresenceList = [];
     let chatPresenceTimer = null;
     let chatPresenceUnsupported = false;
@@ -372,6 +375,105 @@
             gain.gain.exponentialRampToValueAtTime(0.0001, t0 + (mention ? 0.22 : 0.12));
             osc.stop(t0 + (mention ? 0.24 : 0.14));
         } catch (_) { /* ignore */ }
+    }
+
+    function requestChatDesktopNotifyPermission() {
+        if (typeof Notification === 'undefined') return;
+        if (Notification.permission !== 'default') return;
+        if (requestChatDesktopNotifyPermission._asked) return;
+        requestChatDesktopNotifyPermission._asked = true;
+        try {
+            const req = Notification.requestPermission();
+            if (req && typeof req.then === 'function') req.catch(() => {});
+        } catch (_) { /* ignore */ }
+    }
+
+    /** OS toast only when the MyManager tab is in the background. */
+    function showChatMentionDesktopNotification(msg) {
+        if (!document.hidden) return;
+        if (isChatNotifyMuted()) return;
+        if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+        if (!msg?.id || isOwnChatMessage(msg) || !messageMentionsMe(msg.text)) return;
+        const who = String(msg.displayName || 'Chat').trim() || 'Chat';
+        const body = `${who}: ${chatMessagePreviewText(msg)}`.slice(0, 160);
+        try {
+            const n = new Notification('Σε ανέφεραν στο Office Chat', {
+                body,
+                tag: 'tm-chat-mention',
+                renotify: true,
+                silent: true,
+            });
+            n.onclick = () => {
+                try { window.focus(); } catch (_) { /* ignore */ }
+                try {
+                    if (chatStorageKeys) openChatPanel(chatStorageKeys);
+                    window.setTimeout(() => jumpToChatMessage(msg.id), 60);
+                } catch (_) { /* ignore */ }
+                try { n.close(); } catch (_) { /* ignore */ }
+            };
+        } catch (_) { /* ignore */ }
+    }
+
+    function collectChatFilterFromNames() {
+        const names = new Set();
+        const room = getChatRoom();
+        chatMessages.forEach((m) => {
+            if (String(m.room || room) !== room) return;
+            const n = String(m?.displayName || '').trim();
+            if (n) names.add(n);
+        });
+        return Array.from(names).sort((a, b) => a.localeCompare(b, 'el'));
+    }
+
+    function messageHasChatImage(m) {
+        const att = normalizeChatAttachmentName(m);
+        return !!(att && isChatImageFileName(att));
+    }
+
+    function messageHasChatRepair(m) {
+        return extractChatRepairNumbers(m?.text || '').length > 0;
+    }
+
+    function messageMatchesChatFilters(m) {
+        if (chatFilterImages && !messageHasChatImage(m)) return false;
+        if (chatFilterRepairs && !messageHasChatRepair(m)) return false;
+        if (chatFilterFrom) {
+            if (String(m?.displayName || '').trim() !== chatFilterFrom) return false;
+        }
+        return true;
+    }
+
+    function chatFiltersActive() {
+        return !!(chatFilterImages || chatFilterRepairs || chatFilterFrom);
+    }
+
+    function updateChatFilterUi() {
+        const row = document.getElementById('tm-chat-filter-row');
+        if (!row) return;
+        row.querySelectorAll('[data-chat-filter]').forEach((btn) => {
+            const key = btn.getAttribute('data-chat-filter');
+            const on = key === 'images' ? chatFilterImages
+                : (key === 'repairs' ? chatFilterRepairs : false);
+            btn.classList.toggle('is-active', !!on);
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        const select = document.getElementById('tm-chat-filter-from');
+        if (select) {
+            const names = collectChatFilterFromNames();
+            const key = names.join('\u0001');
+            if (select.dataset.tmNamesKey !== key) {
+                select.dataset.tmNamesKey = key;
+                const prev = chatFilterFrom;
+                select.innerHTML = [`<option value="">Από: Όλοι</option>`]
+                    .concat(names.map((n) => (
+                        `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`
+                    )))
+                    .join('');
+                if (prev && !names.includes(prev)) chatFilterFrom = '';
+            }
+            select.value = chatFilterFrom || '';
+            select.classList.toggle('is-active', !!chatFilterFrom);
+        }
     }
 
     function collectChatMentionNames() {
@@ -2566,10 +2668,15 @@
         if (chatMentionsOnly) {
             sorted = sorted.filter((m) => messageMentionsMe(m.text));
         }
-        const nextKey = chatMessagesFingerprint(sorted) + `\u0003${q}\u0003${room}\u0003${chatMentionsOnly ? '1' : '0'}\u0003${chatPresenceList.map((p) => p.lastReadAt || '').join(',')}`;
+        if (chatFiltersActive()) {
+            sorted = sorted.filter((m) => messageMatchesChatFilters(m));
+        }
+        const filterKey = `${chatFilterImages ? '1' : '0'}${chatFilterRepairs ? '1' : '0'}:${chatFilterFrom}`;
+        const nextKey = chatMessagesFingerprint(sorted) + `\u0003${q}\u0003${room}\u0003${chatMentionsOnly ? '1' : '0'}\u0003${filterKey}\u0003${chatPresenceList.map((p) => p.lastReadAt || '').join(',')}`;
         if (!force && nextKey === chatMessagesRenderKey && list.childElementCount > 0) {
             if (CHAT_PIN_ENABLED) renderPinnedStrip();
             hydrateChatRepairCards(list);
+            updateChatFilterUi();
             return;
         }
         const stickToBottom = force || isChatMessagesNearBottom(list) || !chatMessagesRenderKey;
@@ -2585,11 +2692,21 @@
                 strip.innerHTML = '';
             }
         }
+        updateChatFilterUi();
         if (!sorted.length) {
+            const filterHint = chatFiltersActive()
+                ? 'Δοκίμασε να καθαρίσεις τα φίλτρα αναζήτησης'
+                : (q ? 'Δοκίμασε άλλο όρο αναζήτησης' : 'Γράψε κάτι για να ξεκινήσει η συζήτηση');
+            const emptyTitle = chatMentionsOnly
+                ? 'Καμία αναφορά @'
+                : ((q || chatFiltersActive()) ? 'Κανένα αποτέλεσμα' : 'Δεν υπάρχουν μηνύματα ακόμα');
+            const emptySub = chatMentionsOnly
+                ? 'Όταν σε αναφέρουν με @ θα εμφανιστούν εδώ'
+                : filterHint;
             list.innerHTML = `<div class="tm-chat-empty">
                 <div class="tm-chat-empty-icon">💬</div>
-                <div class="tm-chat-empty-title">${chatMentionsOnly ? 'Καμία αναφορά @' : (q ? 'Κανένα αποτέλεσμα' : 'Δεν υπάρχουν μηνύματα ακόμα')}</div>
-                <div class="tm-chat-empty-sub">${chatMentionsOnly ? 'Όταν σε αναφέρουν με @ θα εμφανιστούν εδώ' : (q ? 'Δοκίμασε άλλο όρο αναζήτησης' : 'Γράψε κάτι για να ξεκινήσει η συζήτηση')}</div>
+                <div class="tm-chat-empty-title">${emptyTitle}</div>
+                <div class="tm-chat-empty-sub">${emptySub}</div>
             </div>`;
             return;
         }
@@ -2719,6 +2836,11 @@
         const mentioned = incoming.some((m) => messageMentionsMe(m.text));
         rememberUnreadMentions(incoming);
         playChatNotifySound({ mention: mentioned });
+        if (mentioned) {
+            const mentionMsg = [...incoming].reverse().find((m) => messageMentionsMe(m.text))
+                || incoming[incoming.length - 1];
+            showChatMentionDesktopNotification(mentionMsg);
+        }
 
         const btn = document.getElementById('tm-chat-toggle-btn');
         if (!btn) return;
@@ -4497,6 +4619,44 @@
                 border: 1px solid var(--tm-chat-line); border-radius: 8px;
                 padding: 6px 10px; font-size: 12px; background: #f8fafc; color: var(--tm-chat-ink);
             }
+            #tm-chat-filter-row {
+                display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+                padding: 0 10px 6px; background: var(--tm-chat-surface);
+                border-bottom: 1px solid var(--tm-chat-line);
+            }
+            .tm-chat-filter-chip {
+                border: 1px solid var(--tm-chat-line);
+                background: #f8fafc;
+                color: #64748b;
+                border-radius: 999px;
+                padding: 3px 9px;
+                font-size: 11px;
+                font-weight: 650;
+                cursor: pointer;
+                line-height: 1.3;
+            }
+            .tm-chat-filter-chip:hover { background: #eff6ff; color: var(--tm-chat-accent); }
+            .tm-chat-filter-chip.is-active {
+                background: color-mix(in srgb, var(--tm-chat-accent) 14%, #fff);
+                border-color: color-mix(in srgb, var(--tm-chat-accent) 40%, #fff);
+                color: var(--tm-chat-accent);
+            }
+            #tm-chat-filter-from {
+                max-width: 140px;
+                border: 1px solid var(--tm-chat-line);
+                background: #f8fafc;
+                color: #64748b;
+                border-radius: 999px;
+                padding: 3px 8px;
+                font-size: 11px;
+                font-weight: 650;
+                cursor: pointer;
+            }
+            #tm-chat-filter-from.is-active {
+                background: color-mix(in srgb, var(--tm-chat-accent) 14%, #fff);
+                border-color: color-mix(in srgb, var(--tm-chat-accent) 40%, #fff);
+                color: var(--tm-chat-accent);
+            }
             #tm-chat-mentions-btn {
                 position: relative;
                 width: 30px; height: 30px; flex-shrink: 0;
@@ -4733,6 +4893,13 @@
             <div id="tm-chat-search-row">
                 <input type="search" id="tm-chat-search" placeholder="Αναζήτηση… @όνομα · #επισκευή" autocomplete="off" spellcheck="false">
                 <button type="button" id="tm-chat-mentions-btn" title="Αναφορές @" aria-label="Αναφορές">@</button>
+            </div>
+            <div id="tm-chat-filter-row" aria-label="Φίλτρα αναζήτησης">
+                <button type="button" class="tm-chat-filter-chip" data-chat-filter="images" aria-pressed="false" title="Μόνο μηνύματα με εικόνες">📷 Εικόνες</button>
+                <button type="button" class="tm-chat-filter-chip" data-chat-filter="repairs" aria-pressed="false" title="Μόνο μηνύματα με #επισκευή"># Επισκευές</button>
+                <select id="tm-chat-filter-from" title="Μόνο από χρήστη" aria-label="Μόνο από χρήστη">
+                    <option value="">Από: Όλοι</option>
+                </select>
             </div>
             <div id="tm-chat-pinned" hidden ${CHAT_PIN_ENABLED ? '' : 'data-disabled="1"'}></div>
             <div id="tm-chat-messages"></div>
@@ -5297,6 +5464,20 @@
             chatSearchQuery = String(search.value || '');
             renderMessages({ force: true });
         });
+        panel.querySelectorAll('[data-chat-filter]').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const key = btn.getAttribute('data-chat-filter');
+                if (key === 'images') chatFilterImages = !chatFilterImages;
+                else if (key === 'repairs') chatFilterRepairs = !chatFilterRepairs;
+                renderMessages({ force: true });
+            });
+        });
+        const fromSelect = panel.querySelector('#tm-chat-filter-from');
+        fromSelect?.addEventListener('change', () => {
+            chatFilterFrom = String(fromSelect.value || '').trim();
+            renderMessages({ force: true });
+        });
         const mentionsBtn = panel.querySelector('#tm-chat-mentions-btn');
         mentionsBtn?.addEventListener('click', (e) => {
             e.preventDefault();
@@ -5318,6 +5499,7 @@
         });
         updateChatRoomTabsUi();
         updateChatMentionsBtnUi();
+        updateChatFilterUi();
     }
 
     function hideChatMentionMenu() {
@@ -5428,7 +5610,7 @@
 
     function ensureChatPanel(STORAGE_KEYS) {
         let panel = document.getElementById('tm-chat-panel');
-        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '17';
+        const needsRebuild = !panel || panel.getAttribute('data-tm-chat-ui') !== '18';
         if (needsRebuild) {
             const wasOpen = !!(panel && panel.classList.contains('is-open'));
             hideChatMessageContextMenu();
@@ -5436,7 +5618,7 @@
             if (panel) panel.remove();
             panel = document.createElement('div');
             panel.id = 'tm-chat-panel';
-            panel.setAttribute('data-tm-chat-ui', '17');
+            panel.setAttribute('data-tm-chat-ui', '18');
             panel.innerHTML = buildChatPanelHtml();
             document.body.appendChild(panel);
             wireChatPanelControls(panel, STORAGE_KEYS);
@@ -5755,6 +5937,7 @@
         chatPanelOpen = true;
         chatUnread = 0;
         updateUnreadBadge();
+        requestChatDesktopNotifyPermission();
         renderMessages({ force: true });
         restoreChatDraftToInput(STORAGE_KEYS);
         document.getElementById('tm-chat-input')?.focus();

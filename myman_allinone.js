@@ -4390,14 +4390,28 @@
         // Check if we should delay script initialization
         shouldDelayInitialization: function() {
             const isFormCreating = GM_getValue('TM_FORM_CREATING', false);
+            if (!isFormCreating) return false;
+
             const hasCommentForm = document.querySelector('textarea[id*="value_strNotes_"]');
-            
-            if (this.debugMode && isFormCreating) {
+            if (hasCommentForm) return false;
+
+            // Stale flag after navigating to list/add pages (e.g. srvorders_add via «Εισαγωγή»).
+            // Only keep delaying on repair edit/view contexts where inline notes can appear.
+            const path = String(location.pathname || '').toLowerCase();
+            const onRepairEdit = /service_edit|serviceview|service_view|srvnotes/i.test(path);
+            const hasInlineAdd = !!document.querySelector('a.rnr-button[id^="inlineAdd"], a.rnr-button[name^="inlineAdd"]');
+            if (!onRepairEdit && !hasInlineAdd) {
+                this.clearFormCreating();
+                window.TM_COMMENT_FORM_CREATING = false;
+                return false;
+            }
+
+            if (this.debugMode) {
                 console.log('[MMS Debug] Form creation in progress, checking if we should delay...');
                 console.log('[MMS Debug] Has comment form:', !!hasCommentForm);
             }
-            
-            return isFormCreating && !hasCommentForm;
+
+            return true;
         },
         
         // Clear persistent state when form is detected
@@ -4706,41 +4720,55 @@
     
     // Add click detection for comment buttons to proactively hide overlays
     (function() {
-        // Monitor for comment button clicks
+        function isInlineCommentAddButton(el) {
+            if (!el) return false;
+            const target = el.closest ? el.closest('a.rnr-button') : null;
+            if (!target || target.tagName !== 'A') return false;
+
+            const href = String(target.getAttribute('href') || '');
+            // List/page "Εισαγωγή" links (srvorders_add.php, etc.) — never treat as comment add
+            if (/_add\.php/i.test(href) || /^[a-z0-9_-]*add\.php/i.test(href.split('?')[0] || '')) {
+                return false;
+            }
+            if (target.id === 'addButton1' || /^addButton\d+$/i.test(target.id || '')) {
+                return false;
+            }
+            if (target.closest('.rnr-b-recordcontrols_new, .rnr-b-recordcontrols')) {
+                // Top-level record "new" controls are page navigation, not inline notes
+                if (!/inlineAdd/i.test(String(target.id || '') + String(target.getAttribute('name') || ''))) {
+                    return false;
+                }
+            }
+
+            const id = String(target.id || '');
+            const name = String(target.getAttribute('name') || target.name || '');
+            // Runner inline-add for details/notes only
+            return /^inlineAdd/i.test(id) || /^inlineAdd/i.test(name);
+        }
+
         function setupCommentButtonDetection() {
-            // Use event delegation to catch dynamically created buttons
             document.addEventListener('click', function(event) {
                 const target = event.target;
-                
-                // Check if clicked element is a comment button
-                const isCommentButton = (
-                    target.tagName === 'A' &&
-                    target.classList.contains('rnr-button') &&
-                    (target.name === 'inlineAdd_2' || target.id === 'inlineAdd2' || 
-                     target.textContent.includes('Εισαγωγή') || target.textContent.includes('Add'))
-                );
-                
-                if (isCommentButton) {
-                    if (COMMENT_FORM_MANAGER.debugMode) {
-                        console.log('[MMS Debug] Comment button clicked, proactively hiding overlays');
-                        console.log('[MMS Debug] Button details:', {
-                            id: target.id,
-                            name: target.name,
-                            className: target.className,
-                            text: target.textContent
-                        });
-                    }
-                    
-                    // Immediately hide overlays when comment button is clicked
-                    COMMENT_FORM_MANAGER.setFormCreating(true);
-                    COMMENT_FORM_MANAGER.hideOverlays();
-                    
-                    // Start monitoring for the form creation
-                    setTimeout(() => {
-                        COMMENT_FORM_MANAGER.waitForFormAndRestore();
-                    }, 100);
+                if (!isInlineCommentAddButton(target)) return;
+
+                const btn = target.closest('a.rnr-button');
+                if (COMMENT_FORM_MANAGER.debugMode) {
+                    console.log('[MMS Debug] Comment button clicked, proactively hiding overlays');
+                    console.log('[MMS Debug] Button details:', {
+                        id: btn?.id,
+                        name: btn?.getAttribute('name'),
+                        className: btn?.className,
+                        text: btn?.textContent
+                    });
                 }
-            }, true); // Use capture phase to catch early
+
+                COMMENT_FORM_MANAGER.setFormCreating(true);
+                COMMENT_FORM_MANAGER.hideOverlays();
+
+                setTimeout(() => {
+                    COMMENT_FORM_MANAGER.waitForFormAndRestore();
+                }, 100);
+            }, true);
         }
         
         // Initialize after DOM is ready
@@ -4889,15 +4917,19 @@
 
                 revealMmsBody();
 
-                // Monitor for comment form completion
+                // Monitor for comment form completion (with hard timeout so we never stay stuck)
+                const startedAt = Date.now();
+                const MAX_DELAY_MS = 8000;
                 const checkAndInit = () => {
                     const hasCommentForm = document.querySelector('textarea[id*="value_strNotes_"]');
-                    if (hasCommentForm || !GM_getValue('TM_FORM_CREATING', false)) {
+                    const stillCreating = GM_getValue('TM_FORM_CREATING', false);
+                    if (hasCommentForm || !stillCreating || (Date.now() - startedAt) >= MAX_DELAY_MS) {
                         if (COMMENT_FORM_MANAGER.debugMode) {
                             console.log('[MMS Debug] Comment form detected or timeout, proceeding with initialization');
                         }
                         COMMENT_FORM_MANAGER.clearFormCreating();
-                        setTimeout(initializeScript, 1000);
+                        window.TM_COMMENT_FORM_CREATING = false;
+                        setTimeout(initializeScript, 200);
                     } else {
                         setTimeout(checkAndInit, 200);
                     }
