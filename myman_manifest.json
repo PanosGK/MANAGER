@@ -1,11 +1,11 @@
 {
-  "version": "384",
+  "version": "385",
   "loaderVersion": "41",
-  "silentVersion": "28",
-  "displayVersion": "41.28",
+  "silentVersion": "29",
+  "displayVersion": "41.29",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Remove scratchpad feature entirely",
+  "releaseNotes": "Preserve tech display name casing when login block is missing",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

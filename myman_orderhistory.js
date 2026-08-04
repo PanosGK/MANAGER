@@ -241,7 +241,18 @@
             }
         } catch (_) { /* ignore */ }
         const el = document.querySelector('#login_block1 b, .rnr-b-loggedas b');
-        if (el) return String(el.textContent || '').replace(/^.*ως\s+/i, '').trim().slice(0, 64);
+        if (el) {
+            const n = String(el.textContent || '').replace(/^.*ως\s+/i, '').trim();
+            if (n) return n.slice(0, 64);
+        }
+        const fallback = String(
+            window.tmCurrentUser
+            || window.config?.currentUser
+            || window.config?.profileLabel
+            || window.MMS_PROFILES?.getActiveProfileLabel?.()
+            || ''
+        ).trim();
+        if (fallback && fallback !== '_unknown') return fallback.slice(0, 64);
         return 'Τεχνικός';
     }
 
