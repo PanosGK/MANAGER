@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v383 / Custom Ver. 41.27 — generated, do not edit */
+/* MyManager Suite bundle v384 / Custom Ver. 41.28 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '383',
+        version: '384',
         loaderVersion: '41',
-        silentVersion: '27',
-        displayVersion: '41.27',
+        silentVersion: '28',
+        displayVersion: '41.28',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -3337,10 +3337,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         DAILY_STATS: 'tm_daily_stats_v2',
         DAILY_QUESTS: 'tm_daily_quests',
         USER_REROLL_TOKENS: 'tm_user_reroll_tokens',
-        // New Scratchpad Keys
-        SCRATCHPAD_NOTES: 'tm_scratchpad_notes_v2',
-        SCRATCHPAD_ACTIVE_NOTE_ID: 'tm_scratchpad_active_note_id',
-        SCRATCHPAD_TEMPLATES: 'tm_scratchpad_templates',
         // New Talent System Keys
         USER_TALENT_POINTS: 'tm_user_talent_points',
         UNLOCKED_TALENTS: 'tm_unlocked_talents',
@@ -3467,7 +3463,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         printOrder: 25, // For printing an order/repair ticket
         viewTechStats: 10, // For opening the technician stats modal
         viewCustomerHistory: 10, // For opening the customer history modal
-        setScratchpadReminder: 20, // For setting a reminder in the scratchpad
         feedMascot: 5, // For feeding the interactive mascot
         petMascot: 5, // For petting the interactive mascot
         memoryGame: 15, // Base XP for playing the memory mini-game
@@ -3711,9 +3706,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         [
-            // Scratchpad UI / legacy single-note
+            // Scratchpad UI / legacy (feature removed)
+            'tm_scratchpad_notes_v2', 'tm_scratchpad_active_note_id', 'tm_scratchpad_templates',
             'tm_user_scratchpad_text', 'tm_user_scratchpad_geometry', 'tm_user_scratchpad_is_open',
             'tm_user_scratchpad_font_size', 'tm_user_scratchpad_last_edited', 'tm_user_scratchpad_is_maximized',
+            'scratchpadEnabled',
             // Search + dashboard history
             'tm_search_history', 'tm_favorite_searches', 'tm_daily_stats_history', 'tm_stats_history_7days',
             'tm_daily_stipend_date',
@@ -16024,18 +16021,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             where: 'Εφαρμόζεται στη συμπεριφορά auto-refresh (όχι ορατό UI στη λίστα).',
             when: 'Η ανανέωση τρέχει μόνο μέσα στο παράθυρο που ορίζετε εδώ.',
         },
-        scratchpad: {
-            title: 'Σημειωματάριο',
-            what: 'Γρήγορο σημειωματάριο για checklists και προσωρινές σημειώσεις κατά τη δουλειά.',
-            where: 'Panel σημειωματαρίου του suite (κουμπί / overlay).',
-            when: 'Όποτε θέλετε να κρατήσετε σημειώσεις χωρίς να φύγετε από τη σελίδα.',
-        },
-        scratchpad_templates: {
-            title: 'Πρότυπα σημειωματαρίου',
-            what: 'Έτοιμα πρότυπα κειμένου για γρήγορη εισαγωγή στο σημειωματάριο.',
-            where: 'Μέσα στο σημειωματάριο.',
-            when: 'Όταν επιλέγετε πρότυπο αντί να γράφετε από την αρχή.',
-        },
         office_chat: {
             title: 'Office Chat',
             what: 'Κοινό chat γραφείου μέσω https://mngerchat.littlejol.mywire.org. Λογαριασμός δημιουργείται αυτόματα από το όνομα login — χωρίς κωδικό στις ρυθμίσεις. Νέα μηνύματα υπενθυμίζονται στο κουμπί του footer (όχι στο notification center). Μπορείς να ανεβάσεις φωτογραφία προφίλ από Ρυθμίσεις → Chat.',
@@ -16287,10 +16272,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 STORAGE_KEYS.DAILY_QUESTS,
                 STORAGE_KEYS.USER_REROLL_TOKENS,
                 
-                // Scratchpad
-                STORAGE_KEYS.SCRATCHPAD_NOTES,
-                STORAGE_KEYS.SCRATCHPAD_ACTIVE_NOTE_ID,
-                STORAGE_KEYS.SCRATCHPAD_TEMPLATES,
+                // Legacy scratchpad data (feature removed)
+                'tm_scratchpad_notes_v2',
+                'tm_scratchpad_active_note_id',
+                'tm_scratchpad_templates',
                 'tm_user_scratchpad_text', 'tm_user_scratchpad_geometry', 'tm_user_scratchpad_is_open', 
                 'tm_user_scratchpad_font_size', 'tm_user_scratchpad_last_edited', 'tm_user_scratchpad_is_maximized',
                 
@@ -16500,9 +16485,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             saveNumber('tm-setting-search-history-max', 'searchMaxHistory');
             saveCheckbox('tm-setting-quick-search-enabled', 'quickSearchEnabled');
 
-            // --- Save Scratchpad Settings ---
-            saveCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
-
             // --- Save Gamification/Fun Settings ---
             saveCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
             saveCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
@@ -16562,24 +16544,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             });
             GM_setValue('priceOptions', JSON.stringify(newPriceOptions));
             config.priceOptions = newPriceOptions;
-
-            // --- Save Scratchpad Templates ---
-            const newTemplates = [];
-            document.querySelectorAll('#tm-scratchpad-templates-editor .tm-template-row').forEach(row => {
-                const titleInput = row.querySelector('input[data-type="title"]');
-                const contentInput = row.querySelector('textarea[data-type="content"]');
-                if (titleInput.value.trim() && contentInput.value.trim()) {
-                    newTemplates.push({
-                        id: row.dataset.id || `template_${Date.now()}`,
-                        title: titleInput.value.trim(),
-                        content: contentInput.value.trim()
-                    });
-                }
-            });
-            GM_setValue(STORAGE_KEYS.SCRATCHPAD_TEMPLATES, JSON.stringify(newTemplates));
-
-            // --- Save Scratchpad Settings ---
-            saveCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
 
             // --- Save Office Chat ---
             const chatEnabledEl = document.getElementById('tm-setting-chat-enabled');
@@ -17186,45 +17150,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             `;
         }
 
-        function getScratchpadTemplatesEditorHTML() {
-            const info = tmSettingsInfoBtn;
-            return `
-                <div class="tm-settings-section">
-                    <header class="tm-settings-section-head">
-                        <div class="tm-setting-label-row">
-                            <h3>Πρότυπα</h3>
-                            ${info('scratchpad_templates')}
-                        </div>
-                        <p class="tm-settings-section-desc">Γρήγορη εισαγωγή checklists ή επαναλαμβανόμενων σημειώσεων.</p>
-                    </header>
-                    <div id="tm-scratchpad-templates-editor" class="tm-settings-editor"></div>
-                    <button type="button" id="tm-scratchpad-template-add-btn" class="tm-settings-ghost-btn">Προσθήκη προτύπου</button>
-                </div>
-            `;
-        }
-
-        function getScratchpadSettingsHTML() {
-            const info = tmSettingsInfoBtn;
-            return `
-                <div class="tm-settings-section">
-                    <header class="tm-settings-section-head">
-                        <h3>Σημειωματάριο</h3>
-                        <p class="tm-settings-section-desc">Γρήγορες σημειώσεις κατά την εργασία.</p>
-                    </header>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-scratchpad-enabled">Ενεργοποίηση</label>
-                                ${info('scratchpad')}
-                            </div>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-scratchpad-enabled"></div>
-                    </div>
-                </div>
-                ${getScratchpadTemplatesEditorHTML()}
-            `;
-        }
-
         function getOfficeChatSettingsHTML() {
             const info = tmSettingsInfoBtn;
             return `
@@ -17606,7 +17531,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <ul class="tm-nav">
                                 <li><a href="#sec-general"><span class="tm-nav-icon" aria-hidden="true">⚙️</span><span class="tm-nav-label">Γενικές</span></a></li>
                                 <li><a href="#sec-search"><span class="tm-nav-icon" aria-hidden="true">🔍</span><span class="tm-nav-label">Εργαλεία</span></a></li>
-                                <li><a href="#sec-scratchpad"><span class="tm-nav-icon" aria-hidden="true">📝</span><span class="tm-nav-label">Σημειωματάριο</span></a></li>
                                 <li><a href="#sec-chat"><span class="tm-nav-icon" aria-hidden="true">💬</span><span class="tm-nav-label">Chat</span></a></li>
                                 <li><a href="#sec-gamification"><span class="tm-nav-icon" aria-hidden="true">🎮</span><span class="tm-nav-label">Παιχνίδι</span></a></li>
                                 <li><a href="#sec-updates"><span class="tm-nav-icon" aria-hidden="true">↻</span><span class="tm-nav-label">Ενημερώσεις</span></a></li>
@@ -17617,7 +17541,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         <main class="tm-settings-main" id="tm-settings-content">
                             <section id="sec-general">${getGeneralUISettingsHTML()}</section>
                             <section id="sec-search">${getSearchSettingsHTML()}${getQuickSearchEditorHTML()}${getPriceOptionsEditorHTML()}${getAutoRefreshSettingsHTML()}</section>
-                            <section id="sec-scratchpad">${getScratchpadSettingsHTML()}</section>
                             <section id="sec-chat">${getOfficeChatSettingsHTML()}</section>
                             <section id="sec-gamification">${window.getGamificationSettingsHTML(STORAGE_KEYS)}</section>
                             <section id="sec-debug">${getDebugSettingsHTML()}</section>
@@ -17767,7 +17690,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             populateCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
             populateCheckbox('tm-setting-search-enabled', 'searchFeatureEnabled');
             populateCheckbox('tm-setting-quick-search-enabled', 'quickSearchEnabled');
-            populateCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
             const chatEnabledBox = document.getElementById('tm-setting-chat-enabled');
             if (chatEnabledBox) {
                 const stored = GM_getValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', true);
@@ -18114,38 +18036,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 });
             }
 
-            // --- Populate and manage Scratchpad Templates Editor ---
-            const templatesEditorContainer = overlay.querySelector('#tm-scratchpad-templates-editor');
-            const savedTemplates = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_TEMPLATES, '[]'));
-
-            function renderScratchpadTemplateRows() {
-                templatesEditorContainer.innerHTML = ''; // Clear existing rows
-                savedTemplates.forEach(template => {
-                    addNewScratchpadTemplateRow(template);
-                });
-            }
-
-            function addNewScratchpadTemplateRow(template = { id: '', title: '', content: '' }) {
-                const row = document.createElement('div');
-                row.className = 'tm-template-row';
-                row.dataset.id = template.id;
-                row.style.marginBottom = '15px';
-                row.innerHTML = `
-                    <input type="text" placeholder="Τίτλος Προτύπου" data-type="title" value="${template.title}" style="width: 100%; padding: 8px; box-sizing: border-box; margin-bottom: 5px;">
-                    <textarea placeholder="Περιεχόμενο Προτύπου..." data-type="content" style="width: 100%; min-height: 80px; padding: 8px; box-sizing: border-box; font-family: monospace;">${template.content}</textarea>
-                    <button class="tm-template-remove-btn" title="Αφαίρεση Προτύπου" style="background: var(--tm-danger-color); color: white; border: none; border-radius: 4px; cursor: pointer; float: right; margin-top: 5px;">&times;</button>
-                `;
-                templatesEditorContainer.appendChild(row);
-                row.querySelector('.tm-template-remove-btn').addEventListener('click', (e) => {
-                    e.target.closest('.tm-template-row').remove();
-                });
-            }
-
-            overlay.querySelector('#tm-scratchpad-template-add-btn').addEventListener('click', (e) => {
-                e.preventDefault();
-                addNewScratchpadTemplateRow();
-            });
-
             // Attach listener for the Quick Search "Add" button now that it's in the DOM
             overlay.querySelector('#tm-quick-search-add-btn')?.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -18192,7 +18082,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 addNewPriceOptionRow();
             });
 
-            renderScratchpadTemplateRows();
             renderQuickSearchRows(); // Initial render
             renderPriceOptionsRows(); // Initial render for price options
 
@@ -18555,7 +18444,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
         }
         function addSettingsButton() {
-            // --- Notification Bell (always: repair reminders, scratchpad, achievements, etc.) ---
+            // --- Notification Bell (always: repair reminders, achievements, etc.) ---
             const bellWrapper = document.createElement('div');
             bellWrapper.id = 'tm-notification-bell-wrapper';
             bellWrapper.innerHTML = `
@@ -19447,7 +19336,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             document.body.appendChild(container);
             console.log('[MMS] Right-side panel container created.');
         }
-        createRightSidePanel(); // Ensure the panel exists (scratchpad / auxiliary slide-outs)
+        createRightSidePanel(); // Ensure the panel exists for auxiliary slide-outs
 
         const SEARCH_MENU_ID = 'tm-search-menu-item';
         let searchKeyboardShortcutsBound = false;
@@ -20646,1094 +20535,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     window.initSearchFeature = initSearchFeature;
-
-})();
-
-// ----- myman_scratchpad.js -----
-
-(function() {
-    'use strict';
-
-    /**
-     * Initializes the persistent scratchpad feature, which includes a draggable,
-     * resizable text area whose content and geometry are saved.
-     */
-    function initScratchpadFeature(config, STORAGE_KEYS) {
-        if (!config?.scratchpadEnabled) return;
-        if (document.getElementById('tm-scratchpad-container')) return;
-
-        function escapeHtml(str) {
-            if (str == null) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
-
-        const SCRATCHPAD_STORAGE_KEY_IS_MAXIMIZED = 'tm_user_scratchpad_is_maximized';
-
-        // --- UI Creation ---
-        // 1. Create the Scratchpad Panel
-        const container = document.createElement('div');
-        container.id = 'tm-scratchpad-container';
-        container.innerHTML = `
-            <div id="tm-scratchpad-tabs-container">
-                <div id="tm-scratchpad-tabs"></div>
-                <button id="tm-scratchpad-new-tab-btn" title="Νέα Σημείωση">+</button>
-            </div>
-            <div id="tm-scratchpad-header">
-                <span id="tm-scratchpad-title">Σημειωματάριο</span>
-                <div id="tm-scratchpad-header-controls">
-                    <input type="search" id="tm-scratchpad-search" placeholder="Αναζήτηση...">
-                    <span id="tm-scratchpad-last-edited" style="display:none;"></span>
-                    <button id="tm-scratchpad-template-btn" title="Εισαγωγή Προτύπου">📋</button>
-                    <button id="tm-scratchpad-reminder-btn" title="Ορισμός Υπενθύμισης">🔔</button>
-                    <button id="tm-scratchpad-clear-btn" title="Καθαρισμός τρέχουσας σημείωσης">&#128465;</button>
-                    <button id="tm-scratchpad-font-size-down" title="Μείωση Μεγέθους Γραμματοσειράς">A-</button>
-                    <button id="tm-scratchpad-font-size-up" title="Αύξηση Μεγέθους Γραμματοσειράς">A+</button>
-                    <button id="tm-scratchpad-maximize-btn" title="Μεγιστοποίηση/Επαναφορά">&#x26F6;</button>
-                    <button id="tm-scratchpad-close-btn" title="Κλείσιμο Σημειωματαρίου">&times;</button>
-                </div>
-            </div>
-            <div id="tm-scratchpad-toolbar">
-                <button data-command="insertUnorderedList" title="Bulleted List">●</button>
-                <button data-command="insertOrderedList" title="Numbered List">1.</button>
-                <div class="tm-toolbar-separator"></div>
-                <button data-command="formatBlock" data-value="h1" title="Heading 1">H1</button>
-                <button data-command="formatBlock" data-value="p" title="Paragraph">P</button>
-                <div class="tm-toolbar-separator"></div>
-                <button data-command="bold" title="Bold (Ctrl+B)"><b>B</b></button>
-                <button data-command="italic" title="Italic (Ctrl+I)"><i>I</i></button>
-                <button data-command="underline" title="Underline (Ctrl+U)"><u>U</u></button>
-                <button data-command="strikeThrough" title="Strikethrough"><s>S</s></button>
-                <div class="tm-toolbar-separator"></div>
-                <button data-command="createLink" title="Insert Link">🔗</button>
-                <button data-command="removeFormat" title="Clear Formatting">🧹</button>
-            </div>
-            <div id="tm-scratchpad-editor" contenteditable="true" spellcheck="false" placeholder="Προσωρινές σημειώσεις..."></div>
-            <div id="tm-scratchpad-reminder-popover">
-                <h5>Ορισμός Υπενθύμισης</h5>
-                <label class="tm-sp-reminder-label" for="tm-scratchpad-reminder-title">Τίτλος</label>
-                <input type="text" id="tm-scratchpad-reminder-title" placeholder="Σύντομος τίτλος">
-                <label class="tm-sp-reminder-label" for="tm-scratchpad-reminder-notes">Σημειώσεις</label>
-                <textarea id="tm-scratchpad-reminder-notes" rows="3" placeholder="Περισσότερες λεπτομέρειες…"></textarea>
-                <input type="datetime-local" id="tm-scratchpad-reminder-datetime">
-                <select id="tm-scratchpad-reminder-recurrence">
-                    <option value="none">Χωρίς επανάληψη</option>
-                    <option value="daily">Καθημερινά</option>
-                    <option value="weekly">Εβδομαδιαία</option>
-                </select>
-                <div id="tm-scratchpad-reminder-controls">
-                    <button id="tm-scratchpad-set-reminder-btn">Ορισμός</button>
-                    <button id="tm-scratchpad-reminder-1hr-btn">Σε 1 Ώρα</button>
-                </div>
-                <button id="tm-scratchpad-reminder-cancel-btn">Ακύρωση</button>
-                <div id="tm-scratchpad-active-reminder"></div>
-            </div>
-            <div id="tm-scratchpad-template-popover" class="tm-scratchpad-popover">
-                <h5>Εισαγωγή Προτύπου</h5>
-                <div id="tm-scratchpad-template-list"></div>
-            </div>
-        `;
-        document.body.appendChild(container);
-
-        // 2. Find or create the main search button container and add the toggle button there.
-        let rightSideContainer = document.getElementById('tm-search-container');
-        if (rightSideContainer && (rightSideContainer.getAttribute('data-tm-ui-shell') === '1'
-            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(rightSideContainer)))) {
-            rightSideContainer.remove();
-            rightSideContainer = null;
-        }
-        if (!rightSideContainer) {
-            rightSideContainer = document.createElement('div');
-            rightSideContainer.id = 'tm-search-container';
-            document.body.appendChild(rightSideContainer);
-        }
-
-        let toggleButton = document.getElementById('tm-scratchpad-toggle-btn');
-        if (toggleButton && (toggleButton.getAttribute('data-tm-ui-shell') === '1'
-            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(toggleButton)))) {
-            toggleButton.remove();
-            toggleButton = null;
-        }
-        if (!toggleButton) {
-            toggleButton = document.createElement('button');
-            toggleButton.id = 'tm-scratchpad-toggle-btn';
-            toggleButton.className = 'tm-slide-out-btn';
-            toggleButton.textContent = '🗒️ Σημειωματάριο';
-            rightSideContainer.appendChild(toggleButton);
-        }
-
-        const editor = container.querySelector('#tm-scratchpad-editor');
-        const header = container.querySelector('#tm-scratchpad-header');
-        const searchInput = container.querySelector('#tm-scratchpad-search');
-        const clearBtn = container.querySelector('#tm-scratchpad-clear-btn');
-        const fontSizeDownBtn = container.querySelector('#tm-scratchpad-font-size-down');
-        const fontSizeUpBtn = container.querySelector('#tm-scratchpad-font-size-up');
-        const maximizeBtn = container.querySelector('#tm-scratchpad-maximize-btn');
-        const closeBtn = container.querySelector('#tm-scratchpad-close-btn');
-        const lastEditedSpan = container.querySelector('#tm-scratchpad-last-edited');
-        const reminderBtn = container.querySelector('#tm-scratchpad-reminder-btn');
-        const reminderTitleInput = container.querySelector('#tm-scratchpad-reminder-title');
-        const reminderNotesInput = container.querySelector('#tm-scratchpad-reminder-notes');
-        const reminderPopover = container.querySelector('#tm-scratchpad-reminder-popover');
-        const reminderDateTimeInput = container.querySelector('#tm-scratchpad-reminder-datetime');
-        const reminderRecurrenceSelect = container.querySelector('#tm-scratchpad-reminder-recurrence');
-        const setReminderBtn = container.querySelector('#tm-scratchpad-set-reminder-btn');
-        const setReminder1hrBtn = container.querySelector('#tm-scratchpad-reminder-1hr-btn');
-        const cancelReminderBtn = container.querySelector('#tm-scratchpad-reminder-cancel-btn');
-        const activeReminderDiv = container.querySelector('#tm-scratchpad-active-reminder');
-        const newTabBtn = container.querySelector('#tm-scratchpad-new-tab-btn');
-        const tabsContainer = container.querySelector('#tm-scratchpad-tabs');
-        const templateBtn = container.querySelector('#tm-scratchpad-template-btn');
-        const templatePopover = container.querySelector('#tm-scratchpad-template-popover');
-        const templateList = container.querySelector('#tm-scratchpad-template-list');
-        const toolbar = container.querySelector('#tm-scratchpad-toolbar');
-
-
-        // --- Data Access Functions ---
-        function getNotes() {
-            const notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]'));
-            if (notes.length === 0) {
-                const firstNote = { id: `note_${Date.now()}`, title: 'Σημείωση 1', content: '', reminder: null, isPinned: false, lastEdited: null, fontSize: 13 };
-                return [firstNote];
-            }
-            return notes;
-        }
-
-        function saveNotes(notes) {
-            GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
-        }
-
-        function getActiveNoteId() {
-            const notes = getNotes();
-            let activeId = GM_getValue(STORAGE_KEYS.SCRATCHPAD_ACTIVE_NOTE_ID);
-            // Ensure the active ID is valid
-            if (!activeId || !notes.some(n => n.id === activeId)) {
-                activeId = notes[0]?.id;
-                GM_setValue(STORAGE_KEYS.SCRATCHPAD_ACTIVE_NOTE_ID, activeId);
-            }
-            return activeId;
-        }
-
-        function getActiveNote() {
-            const notes = getNotes();
-            const activeId = getActiveNoteId();
-            return notes.find(n => n.id === activeId) || notes[0];
-        }
-
-        function updateActiveNote(props) {
-            let notes = getNotes();
-            const activeId = getActiveNoteId();
-            const noteIndex = notes.findIndex(n => n.id === activeId);
-            if (noteIndex !== -1) {
-                notes[noteIndex] = { ...notes[noteIndex], ...props };
-                saveNotes(notes);
-            }
-        }
-
-        // --- Load saved state ---
-        function loadActiveNote(preserveCursor = false) {
-            const note = getActiveNote();
-            if (!note) return;
-
-            const cursorPos = preserveCursor ? saveCursorPosition() : null;
-
-            editor.innerHTML = note.content || '';
-            renderCheckboxesInEditor();
-            updateLastEditedDisplay(note.lastEdited);
-            editor.style.fontSize = `${note.fontSize || 13}px`;
-            highlightSearchTermsInEditor(); // Highlight after loading
-            updateReminderDisplay();
-            
-            if (preserveCursor && cursorPos !== null) {
-                restoreCursorPosition(cursorPos);
-            } else if (!preserveCursor) {
-                // When switching notes, focus at the end
-                editor.focus();
-                const range = document.createRange();
-                const sel = window.getSelection();
-                if (editor.childNodes.length > 0) {
-                    range.selectNodeContents(editor);
-                    range.collapse(false);
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                }
-            }
-        }
-
-        // --- Toolbar Logic ---
-        toolbar.addEventListener('click', (e) => {
-            const button = e.target.closest('button');
-            if (!button) return;
-
-            const command = button.dataset.command;
-            const value = button.dataset.value || null;
-
-            e.preventDefault(); // Prevent button from taking focus away from the editor
-            editor.focus();
-
-            if (command === 'createLink') {
-                const url = prompt('Εισάγετε τη διεύθυνση URL:');
-                if (url) {
-                    document.execCommand(command, false, url);
-                }
-            } else {
-                document.execCommand(command, false, value);
-            }
-            debouncedSaveText(); // Save changes after formatting
-        });
-
-        // Load visibility state
-        const wasOpen = GM_getValue('tm_user_scratchpad_is_open', false);
-        if (wasOpen) {
-            container.style.display = 'flex';
-        }
-
-        // Load saved position and size
-        const savedGeometryJSON = GM_getValue('tm_user_scratchpad_geometry');
-        if (savedGeometryJSON) {
-            try {
-                const geo = JSON.parse(savedGeometryJSON);
-                if (geo.top && geo.left) {
-                    container.style.top = geo.top;
-                    container.style.left = geo.left;
-                    container.style.bottom = 'auto';
-                    container.style.right = 'auto';
-                }
-                if (geo.width && geo.height) {
-                    container.style.width = geo.width;
-                    container.style.height = geo.height;
-                }
-            } catch (e) { console.error('[MMS] Could not parse saved scratchpad geometry.', e); }
-        }
-
-        // Load maximized state
-        let isMaximized = GM_getValue(SCRATCHPAD_STORAGE_KEY_IS_MAXIMIZED, false);
-        let originalGeometry = null;
-        if (isMaximized) {
-            toggleMaximize(); // Apply maximized state
-        }
-
-        // --- Logic ---
-        function updateLastEditedDisplay(timestamp) {
-            if (timestamp) {
-                const date = new Date(timestamp);
-                lastEditedSpan.textContent = `Τελευταία επεξεργασία: ${date.toLocaleDateString('el-GR')} ${date.toLocaleTimeString('el-GR')}`;
-                lastEditedSpan.style.display = 'inline';
-            } else {
-                lastEditedSpan.textContent = '';
-                lastEditedSpan.style.display = 'none';
-            }
-        }
-
-        clearBtn.addEventListener('click', () => {
-            if (!confirm('Καθαρισμός τρέχουσας σημείωσης;')) return;
-            editor.innerHTML = '';
-            const now = new Date().toISOString();
-            updateActiveNote({ content: '', lastEdited: now });
-            updateLastEditedDisplay(now);
-            renderCheckboxesInEditor();
-        });
-
-        // Show/Hide Logic
-        toggleButton.addEventListener('click', () => {
-            const willBeVisible = container.style.display === 'none';
-            container.style.display = willBeVisible ? 'flex' : 'none';
-            GM_setValue('tm_user_scratchpad_is_open', willBeVisible);
-        });
-
-        closeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            container.style.display = 'none';
-            GM_setValue('tm_user_scratchpad_is_open', false);
-        });
-
-        // Save text on input
-        const debouncedSaveText = window.debounce((e) => {
-            // Skip saving if we just processed an Enter key to avoid cursor issues
-            if (isProcessingEnter) {
-                return;
-            }
-            const content = editor.innerHTML;
-            const now = new Date().toISOString();
-            updateActiveNote({ content: content, lastEdited: now });
-            updateLastEditedDisplay(now);
-        }, 500);
-        editor.addEventListener('input', debouncedSaveText);
-        
-        // Make debouncedSaveText globally accessible for sendToScratchpad
-        window.debouncedSaveText = debouncedSaveText;
-
-        // Flag to prevent cursor jumping when Enter is pressed
-        let isProcessingEnter = false;
-        let enterProcessingTimeout = null;
-        
-        // Handle Enter key to prevent cursor jumping
-        // Use keydown to set the flag immediately
-        editor.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                // Clear any existing timeout
-                if (enterProcessingTimeout) {
-                    clearTimeout(enterProcessingTimeout);
-                }
-                isProcessingEnter = true;
-            }
-        });
-        
-        // Use keyup to clear the flag after input events have been processed
-        editor.addEventListener('keyup', (e) => {
-            if (e.key === 'Enter') {
-                // Use requestAnimationFrame to wait for browser to fully process Enter and input events
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        // Wait additional time to ensure all debounced input handlers have had a chance to check the flag
-                        // The longest debounce is 700ms, so we need to wait at least that long
-                        enterProcessingTimeout = setTimeout(() => {
-                            isProcessingEnter = false;
-                            enterProcessingTimeout = null;
-                        }, 800);
-                    });
-                });
-            }
-        });
-
-        // --- Helper Functions for Cursor Position ---
-        function saveCursorPosition() {
-            const selection = window.getSelection();
-            if (selection.rangeCount === 0) return null;
-            
-            const range = selection.getRangeAt(0);
-            const preCaretRange = range.cloneRange();
-            preCaretRange.selectNodeContents(editor);
-            preCaretRange.setEnd(range.endContainer, range.endOffset);
-            const caretOffset = preCaretRange.toString().length;
-            
-            return caretOffset;
-        }
-        
-        function restoreCursorPosition(caretOffset) {
-            if (caretOffset === null) return;
-            
-            const selection = window.getSelection();
-            const range = document.createRange();
-            
-            let charCount = 0;
-            let foundPosition = false;
-            
-            function traverseNodes(node) {
-                if (foundPosition) return;
-                
-                if (node.nodeType === Node.TEXT_NODE) {
-                    const nextCharCount = charCount + node.length;
-                    if (caretOffset >= charCount && caretOffset <= nextCharCount) {
-                        range.setStart(node, caretOffset - charCount);
-                        range.collapse(true);
-                        foundPosition = true;
-                        return;
-                    }
-                    charCount = nextCharCount;
-                } else {
-                    for (let i = 0; i < node.childNodes.length; i++) {
-                        traverseNodes(node.childNodes[i]);
-                        if (foundPosition) return;
-                    }
-                }
-            }
-            
-            try {
-                traverseNodes(editor);
-                if (foundPosition) {
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-            } catch (e) {
-                // If restoration fails, just log and continue
-                console.log('[MMS] Could not restore cursor position:', e);
-            }
-        }
-
-        // --- Markdown Formatting ---
-        const applyMarkdownFormatting = window.debounce(() => {
-            // Skip formatting if we just processed an Enter key to avoid cursor issues
-            if (isProcessingEnter) {
-                return;
-            }
-            
-            // Save cursor position before modifying content
-            const cursorPos = saveCursorPosition();
-            
-            // This is a simple implementation. More complex scenarios might need a proper parser.
-            let content = editor.innerHTML;
-            // Use more specific regex to avoid matching inside tags. The `>` ensures we are not inside a tag.
-            content = content.replace(/&gt; \*\*([^\*]+)\*\*/g, '> <strong>$1</strong>'); // Bold
-            content = content.replace(/&gt; \*([^\*]+)\*/g, '> <em>$1</em>');     // Italic
-            content = content.replace(/&gt; ~([^~]+)~/g, '> <s>$1</s>');         // Strikethrough
-
-            // For headings, it's safer to use formatBlock if possible, but this is a simple regex way.
-            // This is fragile and for demonstration. A real implementation would be more complex.
-            if (content.includes('<div># ')) {
-                content = content.replace(/<div># (.+?)<\/div>/g, '<h1>$1</h1>');
-            }
-            if (content.includes('<div>## ')) {
-                content = content.replace(/<div>## (.+?)<\/div>/g, '<h2>$1</h2>');
-            }
-
-            // Only update if content actually changed to avoid unnecessary cursor resets
-            if (content !== editor.innerHTML) {
-            editor.innerHTML = content;
-                // Restore cursor position after updating content
-                restoreCursorPosition(cursorPos);
-            }
-        }, 700);
-        editor.addEventListener('input', applyMarkdownFormatting);
-
-        // --- Tabs Logic ---
-        function renderTabs() {
-            const allNotes = getNotes();
-            const activeId = getActiveNoteId();
-            const query = searchInput.value.toLowerCase().trim();
-            let notes = allNotes;
-
-            if (query) {
-                notes = allNotes.filter(note => {
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = note.content || '';
-                    const textContent = tempDiv.innerText.toLowerCase();
-                    const reminderBlob = [
-                        note.reminder?.title,
-                        note.reminder?.text,
-                        note.reminder?.notes,
-                    ].filter(Boolean).join(' ').toLowerCase();
-                    return note.title.toLowerCase().includes(query)
-                        || textContent.includes(query)
-                        || reminderBlob.includes(query);
-                });
-                const activeNote = allNotes.find((n) => n.id === activeId);
-                if (activeNote && !notes.some((n) => n.id === activeId)) {
-                    notes = [activeNote, ...notes];
-                }
-            }
-
-            // Sort notes so pinned ones are first
-            notes.sort((a, b) => {
-                if (a.isPinned !== b.isPinned) return b.isPinned - a.isPinned;
-                return (a.order || 0) - (b.order || 0);
-            });
-
-            tabsContainer.innerHTML = '';
-            if (notes.length === 0 && query) {
-                tabsContainer.innerHTML = '<span class="tm-scratchpad-tabs-empty">Δεν βρέθηκαν σημειώσεις.</span>';
-            }
-            notes.forEach(note => {
-                const tab = document.createElement('div');
-                tab.className = 'tm-scratchpad-tab';
-                tab.dataset.noteId = note.id;
-                tab.draggable = true; // Make tabs draggable
-                if (note.id === activeId) tab.classList.add('active');
-                if (note.isPinned) tab.classList.add('pinned');
-
-                const pinIcon = note.isPinned ? '📌' : '📍';
-                tab.innerHTML = `<button class="tm-scratchpad-tab-pin" title="Καρφίτσωμα">${pinIcon}</button><span class="tm-scratchpad-tab-title" title="Διπλό κλικ για μετονομασία">${escapeHtml(note.title)}</span><button class="tm-scratchpad-tab-close" title="Διαγραφή">&times;</button>`;
-                tabsContainer.appendChild(tab);
-            });
-        }
-
-        newTabBtn.addEventListener('click', () => {
-            let notes = getNotes();
-            const newNote = { id: `note_${Date.now()}`, title: `Σημείωση ${notes.length + 1}`, content: '', reminder: null, isPinned: false, lastEdited: null, fontSize: 13 };
-            notes.push(newNote);
-            saveNotes(notes);
-            GM_setValue(STORAGE_KEYS.SCRATCHPAD_ACTIVE_NOTE_ID, newNote.id);
-            renderTabs();
-            loadActiveNote();
-        });
-
-        // --- Drag and Drop Tab Reordering ---
-        let draggedTab = null;
-
-        tabsContainer.addEventListener('dragstart', (e) => {
-            if (e.target.classList.contains('tm-scratchpad-tab')) {
-                draggedTab = e.target;
-                setTimeout(() => {
-                    e.target.classList.add('dragging');
-                }, 0);
-            }
-        });
-
-        tabsContainer.addEventListener('dragend', (e) => {
-            if (draggedTab) {
-                draggedTab.classList.remove('dragging');
-                draggedTab = null;
-
-                // Save the new order
-                const orderedIds = Array.from(tabsContainer.querySelectorAll('.tm-scratchpad-tab')).map(tab => tab.dataset.noteId);
-                let notes = getNotes();
-                notes.forEach(note => {
-                    const newIndex = orderedIds.indexOf(note.id);
-                    note.order = newIndex !== -1 ? newIndex : 999; // Assign order, put missing ones at the end
-                });
-                saveNotes(notes);
-                renderTabs(); // Re-render to solidify the order
-            }
-        });
-
-        tabsContainer.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            const afterElement = getDragAfterElement(tabsContainer, e.clientX);
-            if (draggedTab) {
-                if (afterElement == null) {
-                    tabsContainer.appendChild(draggedTab);
-                } else {
-                    tabsContainer.insertBefore(draggedTab, afterElement);
-                }
-            }
-        });
-
-        function getDragAfterElement(container, x) {
-            const draggableElements = [...container.querySelectorAll('.tm-scratchpad-tab:not(.dragging)')];
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = x - box.left - box.width / 2;
-                return (offset < 0 && offset > closest.offset) ? { offset: offset, element: child } : closest;
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-        }
-        // --- New, more robust click handling to differentiate single vs. double clicks ---
-        let clickTimer = null;
-        tabsContainer.addEventListener('click', (e) => {
-            const tab = e.target.closest('.tm-scratchpad-tab');
-            if (!tab) return;
-
-            // If a timer is already running, it means this is the second click (a double-click)
-            if (clickTimer) {
-                clearTimeout(clickTimer);
-                clickTimer = null;
-
-                // --- Double-click logic ---
-                const titleSpan = e.target.closest('.tm-scratchpad-tab-title');
-                if (titleSpan) {
-                    const noteId = titleSpan.parentElement.dataset.noteId;
-                    const currentNote = getNotes().find(n => n.id === noteId);
-                    const newTitle = prompt('Νέος τίτλος σημείωσης:', currentNote.title);
-                    if (newTitle && newTitle.trim()) {
-                        let notes = getNotes();
-                        const noteToUpdate = notes.find(n => n.id === noteId);
-                        if (noteToUpdate) {
-                            noteToUpdate.title = newTitle.trim();
-                            saveNotes(notes);
-                            renderTabs();
-                        }
-                    }
-                }
-            } else {
-                // This is the first click. Start a timer.
-                clickTimer = setTimeout(() => {
-                    clickTimer = null; // Reset timer
-
-                    // --- Single-click logic (runs after 250ms if no second click) ---
-                    const noteId = tab.dataset.noteId;
-                    if (e.target.classList.contains('tm-scratchpad-tab-pin')) {
-                        let notes = getNotes();
-                        const note = notes.find(n => n.id === noteId);
-                        if (note) { note.isPinned = !note.isPinned; saveNotes(notes); renderTabs(); }
-                    } else if (e.target.classList.contains('tm-scratchpad-tab-close')) {
-                        if (getNotes().length <= 1) { window.showPositiveMessage('Δεν μπορείτε να διαγράψετε την τελευταία σημείωση.'); return; }
-                        if (confirm(`Διαγραφή της σημείωσης "${tab.querySelector('.tm-scratchpad-tab-title').textContent}";`)) {
-                            let notes = getNotes().filter(n => n.id !== noteId);
-                            saveNotes(notes);
-                            if (getActiveNoteId() === noteId) { GM_setValue(STORAGE_KEYS.SCRATCHPAD_ACTIVE_NOTE_ID, notes[0].id); }
-                            renderTabs(); loadActiveNote();
-                        }
-                    } else { // Switch tab
-                        GM_setValue(STORAGE_KEYS.SCRATCHPAD_ACTIVE_NOTE_ID, noteId);
-                        renderTabs(); loadActiveNote();
-                    }
-                }, 250); // 250ms delay to wait for a potential second click
-            }
-        });
-
-        // --- Search Logic ---
-        searchInput.addEventListener('input', window.debounce(() => {
-            renderTabs();
-            // Also re-apply highlighting to the currently visible editor content
-            highlightSearchTermsInEditor();
-        }, 200));
-
-        // --- Highlighting Logic for Search ---
-        function highlightSearchTermsInEditor() {
-            // Skip highlighting if we just processed an Enter key to avoid cursor issues
-            if (isProcessingEnter) {
-                return;
-            }
-            
-            const query = searchInput.value.trim();
-            
-            // Save cursor position before modifications
-            const cursorPos = saveCursorPosition();
-            
-            // First, remove any existing highlights
-            editor.querySelectorAll('mark.tm-search-highlight').forEach(mark => {
-                mark.outerHTML = mark.innerHTML; // Unwrap the text
-            });
-            // Normalize the editor's HTML to merge adjacent text nodes
-            editor.normalize();
-
-            if (!query) {
-                // Restore cursor if we just removed highlights
-                if (cursorPos !== null) restoreCursorPosition(cursorPos);
-                return;
-            }
-
-            const regex = new RegExp(`(${query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
-            const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
-            let node;
-            const nodesToReplace = [];
-
-            while (node = walker.nextNode()) {
-                if (node.parentElement.tagName === 'MARK') continue; // Don't search within highlights
-                if (regex.test(node.nodeValue)) {
-                    nodesToReplace.push(node);
-                }
-            }
-
-            nodesToReplace.forEach(textNode => {
-                const newHTML = textNode.nodeValue.replace(regex, '<mark class="tm-search-highlight">$1</mark>');
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = newHTML;
-                const fragment = document.createDocumentFragment();
-                while (tempDiv.firstChild) {
-                    fragment.appendChild(tempDiv.firstChild);
-                }
-                textNode.parentNode.replaceChild(fragment, textNode);
-            });
-            
-            // Restore cursor position after highlighting
-            if (cursorPos !== null) {
-                restoreCursorPosition(cursorPos);
-            }
-        }
-
-        // --- Interactive Checklists Logic ---
-        function renderCheckboxesInEditor() {
-            // Skip rendering if we just processed an Enter key to avoid cursor issues
-            if (isProcessingEnter) {
-                return;
-            }
-            
-            // Save cursor position before modifications
-            const cursorPos = saveCursorPosition();
-            
-            // Use a more robust method that doesn't rely on simple string replacement
-            const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
-            let node;
-            const nodesToProcess = [];
-            
-            // First, collect all nodes that need processing
-            while (node = walker.nextNode()) {
-                const text = node.nodeValue;
-                if (text.includes('[ ]') || text.includes('[x]')) {
-                    nodesToProcess.push(node);
-                }
-            }
-            
-            // Then process them
-            nodesToProcess.forEach(textNode => {
-                const text = textNode.nodeValue;
-                    const fragment = document.createDocumentFragment();
-                const parts = text.split(/(\[ \]|\[x\])/g); // Split by checkbox syntax
-                    parts.forEach(part => {
-                        if (part === '[ ]') {
-                            const cb = document.createElement('input');
-                            cb.type = 'checkbox';
-                            cb.className = 'tm-scratchpad-checkbox';
-                            fragment.appendChild(cb);
-                        } else if (part === '[x]') {
-                            const cb = document.createElement('input');
-                            cb.type = 'checkbox';
-                            cb.className = 'tm-scratchpad-checkbox';
-                            cb.checked = true;
-                            fragment.appendChild(cb);
-                    } else if (part) {
-                            fragment.appendChild(document.createTextNode(part));
-                        }
-                    });
-                textNode.parentNode.replaceChild(fragment, textNode);
-            });
-            
-            // Restore cursor position after rendering checkboxes
-            if (cursorPos !== null) {
-                restoreCursorPosition(cursorPos);
-            }
-        }
-
-        editor.addEventListener('input', window.debounce(renderCheckboxesInEditor, 300));
-
-        editor.addEventListener('change', (e) => {
-            if (e.target.matches('.tm-scratchpad-checkbox')) {
-                // This is tricky because the innerHTML doesn't update on checkbox change.
-                // We need to reconstruct the text representation and save it.
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = editor.innerHTML;
-                tempDiv.querySelectorAll('.tm-scratchpad-checkbox').forEach(cb => {
-                    // Replace the checkbox input with its text equivalent
-                    const textNode = document.createTextNode(cb.checked ? '[x]' : '[ ]');
-                    cb.parentNode.replaceChild(textNode, cb);
-                });
-                const newContent = tempDiv.innerHTML;
-                updateActiveNote({ content: newContent });
-                // The 'input' event listener will re-render the checkboxes visually.
-            }
-        });
-
-        // --- Template Logic ---
-        templateBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const templates = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_TEMPLATES, '[]'));
-            if (templates.length === 0) {
-                window.showPositiveMessage('Δεν υπάρχουν πρότυπα. Προσθέστε από τις ρυθμίσεις.');
-                return;
-            }
-            templateList.innerHTML = templates.map((t) => {
-                const safeTitle = escapeHtml(t.title);
-                const safeContent = encodeURIComponent(t.content || '');
-                return `<button type="button" data-content="${safeContent}">${safeTitle}</button>`;
-            }).join('');
-            templatePopover.style.display = 'block';
-            reminderPopover.style.display = 'none';
-        });
-
-        templateList.addEventListener('click', (e) => {
-            if (e.target.tagName === 'BUTTON') {
-                const content = decodeURIComponent(e.target.dataset.content);
-                document.execCommand('insertHTML', false, `<br>${content}`);
-                templatePopover.style.display = 'none';
-                renderCheckboxesInEditor();
-            }
-        });
-
-        // Hide popovers on outside click
-        reminderPopover.addEventListener('click', (e) => e.stopPropagation());
-        templatePopover.addEventListener('click', (e) => e.stopPropagation());
-
-        document.addEventListener('click', (e) => {
-            if (!templatePopover.contains(e.target) && e.target !== templateBtn) {
-                templatePopover.style.display = 'none';
-            }
-            if (!reminderPopover.contains(e.target) && e.target !== reminderBtn) {
-                reminderPopover.style.display = 'none';
-            }
-        });
-
-        // Font Size Controls
-        fontSizeDownBtn.addEventListener('click', () => {
-            let note = getActiveNote();
-            let newSize = (note.fontSize || 13) - 1;
-            if (newSize >= 8) {
-                editor.style.fontSize = `${newSize}px`;
-                updateActiveNote({ fontSize: newSize });
-            }
-        });
-
-        fontSizeUpBtn.addEventListener('click', () => {
-            let note = getActiveNote();
-            let newSize = (note.fontSize || 13) + 1;
-            if (newSize <= 30) {
-                editor.style.fontSize = `${newSize}px`;
-                updateActiveNote({ fontSize: newSize });
-            }
-        });
-
-        // Maximize/Restore Logic
-        function toggleMaximize() {
-            if (!isMaximized) {
-                // Save current geometry before maximizing
-                const rect = container.getBoundingClientRect();
-                originalGeometry = {
-                    top: container.style.top,
-                    left: container.style.left,
-                    width: `${rect.width}px`,
-                    height: container.style.height
-                };
-                container.classList.add('maximized');
-                container.style.top = '10px';
-                container.style.left = '10px';
-                container.style.width = 'calc(100vw - 20px)';
-                container.style.height = 'calc(100vh - 20px)';
-            } else {
-                // Restore original geometry
-                container.classList.remove('maximized');
-                if (originalGeometry) {
-                    container.style.top = originalGeometry.top;
-                    container.style.left = originalGeometry.left;
-                    container.style.width = originalGeometry.width;
-                    container.style.height = originalGeometry.height;
-                }
-            }
-            isMaximized = !isMaximized;
-            GM_setValue(SCRATCHPAD_STORAGE_KEY_IS_MAXIMIZED, isMaximized);
-        }
-        maximizeBtn.addEventListener('click', toggleMaximize);
-
-        function fmtReminderDateTime(dt) {
-            const y = dt.getFullYear();
-            const m = String(dt.getMonth() + 1).padStart(2, '0');
-            const d = String(dt.getDate()).padStart(2, '0');
-            const h = String(dt.getHours()).padStart(2, '0');
-            const min = String(dt.getMinutes()).padStart(2, '0');
-            return `${y}-${m}-${d}T${h}:${min}`;
-        }
-
-        function updateReminderDisplay() {
-            const note = getActiveNote();
-            const reminder = note?.reminder;
-            if (reminder && reminder.dueTime) {
-                const dueDate = new Date(reminder.dueTime);
-                let recurrenceText = '';
-                if (reminder.recurrence === 'daily') recurrenceText = ' (Καθημερινά)';
-                if (reminder.recurrence === 'weekly') recurrenceText = ' (Εβδομαδιαία)';
-                const title = reminder.title || reminder.text || note.title || 'Υπενθύμιση';
-                const notes = reminder.notes || '';
-
-                activeReminderDiv.innerHTML = `
-                    <span style="font-weight:bold; display:block; margin-bottom: 3px;">${escapeHtml(title)}</span>
-                    ${notes ? `<span style="font-weight:normal; display:block; margin-bottom: 3px; opacity:0.9;">${escapeHtml(notes)}</span>` : ''}
-                    ${escapeHtml(dueDate.toLocaleString('el-GR'))}${escapeHtml(recurrenceText)}
-                    <button type="button" id="tm-scratchpad-clear-reminder-btn">Καθαρισμός</button>
-                `;
-                activeReminderDiv.querySelector('#tm-scratchpad-clear-reminder-btn').addEventListener('click', clearReminder);
-                reminderBtn.classList.add('active');
-            } else {
-                activeReminderDiv.innerHTML = '';
-                reminderBtn.classList.remove('active');
-            }
-        }
-
-        function saveReminder(dueTime, recurrence, title, notes) {
-            if (!title) {
-                alert('Παρακαλώ εισάγετε τίτλο για την υπενθύμιση.');
-                return;
-            }
-
-            if (window.Notification && Notification.permission !== 'granted') {
-                Notification.requestPermission();
-            }
-
-            const newReminder = {
-                title,
-                notes: notes || '',
-                text: title,
-                dueTime,
-                recurrence,
-                createdAt: Date.now()
-            };
-            updateActiveNote({ reminder: newReminder });
-            updateReminderDisplay();
-            reminderPopover.style.display = 'none';
-            if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
-                window.refreshActiveAlertsPanelIfOpen();
-            }
-            if (typeof window.trackDailyStat === 'function') {
-                window.trackDailyStat(config, STORAGE_KEYS, 'setScratchpadReminder');
-            }
-        }
-
-        function clearReminder() {
-            const note = getActiveNote();
-            if (note?.reminder && typeof window.appendReminderHistory === 'function') {
-                window.appendReminderHistory({
-                    source: 'scratchpad',
-                    action: 'cancelled',
-                    title: note.reminder.title || note.reminder.text || note.title || 'Σημείωση',
-                    message: note.reminder.notes || '',
-                    dueTime: note.reminder.dueTime,
-                    noteId: note.id,
-                    recurrence: note.reminder.recurrence || 'none',
-                });
-            }
-            updateActiveNote({ reminder: null });
-            updateReminderDisplay();
-            if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
-                window.refreshActiveAlertsPanelIfOpen();
-            }
-        }
-
-        reminderBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const willShow = reminderPopover.style.display !== 'flex';
-            reminderPopover.style.display = willShow ? 'flex' : 'none';
-            templatePopover.style.display = 'none';
-            if (willShow) {
-                const note = getActiveNote();
-                const reminder = note?.reminder;
-                reminderTitleInput.value = reminder?.title || reminder?.text || note?.title || '';
-                reminderNotesInput.value = reminder?.notes || '';
-                reminderRecurrenceSelect.value = reminder?.recurrence || 'none';
-                if (reminder?.dueTime) {
-                    reminderDateTimeInput.value = fmtReminderDateTime(new Date(reminder.dueTime));
-                } else {
-                    reminderDateTimeInput.value = fmtReminderDateTime(new Date(Date.now() + 60 * 60 * 1000));
-                }
-            }
-        });
-
-        cancelReminderBtn.addEventListener('click', () => {
-            reminderPopover.style.display = 'none';
-        });
-
-        setReminderBtn.addEventListener('click', () => {
-            const dueTime = new Date(reminderDateTimeInput.value).getTime();
-            if (!reminderDateTimeInput.value || Number.isNaN(dueTime) || dueTime <= Date.now()) {
-                alert('Παρακαλώ επιλέξτε μια μελλοντική ημερομηνία και ώρα.');
-                return;
-            }
-            saveReminder(
-                dueTime,
-                reminderRecurrenceSelect.value,
-                reminderTitleInput.value.trim(),
-                reminderNotesInput.value.trim()
-            );
-        });
-
-        setReminder1hrBtn.addEventListener('click', () => {
-            const dueTime = Date.now() + 60 * 60 * 1000;
-            reminderDateTimeInput.value = fmtReminderDateTime(new Date(dueTime));
-            saveReminder(
-                dueTime,
-                reminderRecurrenceSelect.value,
-                reminderTitleInput.value.trim(),
-                reminderNotesInput.value.trim()
-            );
-        });
-
-        window.refreshScratchpadReminderUI = updateReminderDisplay;
-
-        // --- Dragging and Sizing Logic ---
-        let isDragging = false;
-        let offsetX, offsetY;
-
-        const saveGeometry = window.debounce(() => {
-            const rect = container.getBoundingClientRect();
-            const geometry = {
-                top: `${rect.top}px`,
-                left: `${rect.left}px`,
-                width: `${rect.width}px`,
-                height: `${rect.height}px`
-            };
-            GM_setValue('tm_user_scratchpad_geometry', JSON.stringify(geometry));
-            console.log('[MMS] Saved scratchpad geometry:', geometry);
-        }, 500);
-
-        header.addEventListener('mousedown', (e) => {
-            if (e.target.closest('button, input, select, textarea') || isMaximized) return;
-
-            isDragging = true;
-            offsetX = e.clientX - container.getBoundingClientRect().left;
-            offsetY = e.clientY - container.getBoundingClientRect().top;
-            container.style.transition = 'none'; // Disable transitions during drag
-            document.body.style.userSelect = 'none';
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (isMaximized) return; // No dragging when maximized
-            if (!isDragging) return;
-            let newX = e.clientX - offsetX;
-            let newY = e.clientY - offsetY;
-
-            container.style.left = `${newX}px`;
-            container.style.top = `${newY}px`;
-            container.style.bottom = 'auto';
-            container.style.right = 'auto';
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                container.style.transition = '';
-                document.body.style.userSelect = '';
-                if (!isMaximized) saveGeometry();
-            }
-        });
-
-        // Use a ResizeObserver to save geometry when the user resizes the panel
-        if (window.ResizeObserver) {
-            const resizeObserver = new ResizeObserver(() => {
-                if (container.style.display === 'flex' && !isMaximized) {
-                    saveGeometry();
-                }
-            });
-            resizeObserver.observe(container);
-        }
-
-        // --- "Send to Scratchpad" Integration ---
-        window.sendToScratchpad = (text, sourceUrl = null) => {
-            // Get DOM elements directly
-            const scratchpadContainer = document.getElementById('tm-scratchpad-container');
-            const toggleButton = document.getElementById('tm-scratchpad-toggle-btn');
-            const editor = document.getElementById('tm-scratchpad-editor');
-            
-            // Check if elements exist
-            if (!scratchpadContainer || !toggleButton || !editor) {
-                console.error('[MMS] Scratchpad elements not found. Make sure scratchpad is initialized.');
-                return;
-            }
-            
-            // Ensure scratchpad is open
-            if (scratchpadContainer.style.display !== 'flex') {
-                toggleButton.click();
-            }
-            
-            // Debug: Log what we're receiving
-            console.log('[MMS] sendToScratchpad called with:', { text, sourceUrl });
-            
-            // Add source link if provided
-            const sourceLinkHTML = sourceUrl
-                ? `<a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener" class="tm-scratchpad-source-link">🔗 Πηγή</a>`
-                : '';
-
-            // Append text to the current note
-            // Only add text if it's not empty
-            const currentContent = editor.innerHTML;
-            let newContent;
-            
-            if (text && text.trim()) {
-                // Text is provided, add it with the link
-                newContent = currentContent ? `${currentContent}<br><br>${text}${sourceLinkHTML}` : `${text}${sourceLinkHTML}`;
-            } else if (sourceUrl) {
-                // Only link provided, add just the link
-                newContent = currentContent ? `${currentContent}<br><br>${sourceLinkHTML}` : sourceLinkHTML;
-            } else {
-                // Nothing to add
-                console.warn('[MMS] sendToScratchpad called with no text or link');
-                return;
-            }
-            
-            editor.innerHTML = newContent;
-            
-            // Save the changes using the global debouncedSaveText function
-            if (typeof window.debouncedSaveText === 'function') {
-                window.debouncedSaveText();
-            }
-            
-            window.showPositiveMessage('Προστέθηκε στο σημειωματάριο!');
-        };
-
-        // Add a click listener to the editor to handle links inside contenteditable
-        editor.addEventListener('click', (e) => {
-            // Check if the clicked element is an anchor tag with an href
-            if (e.target.tagName === 'A' && e.target.href) {
-                e.preventDefault(); // Prevent the default contenteditable behavior (like placing a cursor)
-                window.open(e.target.href, '_blank'); // Manually open the link in a new tab
-            }
-        });
-
-        // Initial Load
-        renderTabs();
-        loadActiveNote();
-    }
-
-    // Make the main initializer function globally accessible
-    window.initScratchpadFeature = initScratchpadFeature;
 
 })();
 
@@ -48978,7 +47779,6 @@ const XP_CONFIG = {
     printOrder: 25, // For printing an order/repair ticket
     viewTechStats: 10, // For opening the technician stats modal
     viewCustomerHistory: 10, // For opening the customer history modal
-    setScratchpadReminder: 20, // For setting a reminder in the scratchpad
     feedMascot: 5, // For feeding the interactive mascot
     petMascot: 5, // For petting the interactive mascot
     memoryGame: 15, // Base XP for playing the memory mini-game
@@ -49010,7 +47810,6 @@ const QUEST_POOL = [
     { id: 'print_2_orders', description: 'Print 2 order tickets', targetStat: 'printOrder', targetCount: 2, rewardXp: 50, rewardCoins: 15 },
     { id: 'view_3_histories', description: 'View customer history 3 times', targetStat: 'viewCustomerHistory', targetCount: 3, rewardXp: 40, rewardCoins: 10 },
     { id: 'view_5_histories', description: 'View customer history 5 times', targetStat: 'viewCustomerHistory', targetCount: 5, rewardXp: 60, rewardCoins: 15 },
-    { id: 'set_2_scratchpad_reminders', description: 'Set 2 scratchpad reminders', targetStat: 'setScratchpadReminder', targetCount: 2, rewardXp: 55, rewardCoins: 15 },
     // ── Mascot ──
     { id: 'pet_mascot_5_times', description: 'Pet the mascot 5 times', targetStat: 'petMascot', targetCount: 5, rewardXp: 50, rewardCoins: 10, requiresFeature: 'mascot' },
     { id: 'feed_mascot_3_times', description: 'Feed the mascot 3 times', targetStat: 'feedMascot', targetCount: 3, rewardXp: 40, rewardCoins: 10, requiresFeature: 'mascot' },
@@ -50639,7 +49438,6 @@ function trackDailyStat(config, STORAGE_KEYS, statName, value = 1) {
         printOrder: 0,
         viewTechStats: 0,
         viewCustomerHistory: 0,
-        setScratchpadReminder: 0,
         feedMascot: 0,
         petMascot: 0,
         memoryGame: 0,
@@ -73208,7 +72006,6 @@ if (typeof window !== 'undefined') {
             { label: 'Battery', term: 'BATTERY' },
             { label: 'Back Cover', term: 'Back Cover' },
         ],
-        scratchpadEnabled: true,
         officeChatEnabled: true, // auto-provision PocketBase account from MyManager login
         scrollToTopEnabled: true,
         technicianStatsEnabled: true,
@@ -73749,7 +72546,6 @@ if (typeof window !== 'undefined') {
     }
 
     function getReminderSourceLabel(kindOrSource) {
-        if (kindOrSource === 'scratchpad') return 'Σημειωματάριο';
         if (kindOrSource === 'repair_scheduled' || kindOrSource === 'repair' || kindOrSource === 'repair_banner') {
             return 'Επισκευή';
         }
@@ -73812,7 +72608,6 @@ if (typeof window !== 'undefined') {
 
     function getReminderHistoryIcon(source) {
         if (source === 'repair' || source === 'repair_banner') return '🔧';
-        if (source === 'scratchpad') return '📝';
         return '🔔';
     }
 
@@ -73912,53 +72707,6 @@ if (typeof window !== 'undefined') {
 
     window.refreshReminderHistoryPanelIfOpen = refreshReminderHistoryPanelIfOpen;
 
-    function getScratchpadAlerts() {
-        if (!config.scratchpadEnabled) return [];
-        try {
-            const notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
-            return notes
-                .filter((n) => n && n.reminder && n.reminder.dueTime && !n.reminder.awaitingAction)
-                .map((n) => ({
-                    type: 'scratchpad',
-                    id: n.id,
-                    title: n.reminder.title || n.reminder.text || n.title || 'Σημείωση',
-                    message: n.reminder.notes || '',
-                    dueTime: n.reminder.dueTime,
-                    recurrence: n.reminder.recurrence || 'none',
-                }));
-        } catch {
-            return [];
-        }
-    }
-
-    function cancelScratchpadAlert(noteId) {
-        let notes;
-        try {
-            notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
-        } catch {
-            return;
-        }
-        const note = notes.find((n) => n.id === noteId);
-        if (!note) return;
-        if (note.reminder) {
-            appendReminderHistory({
-                source: 'scratchpad',
-                action: 'cancelled',
-                title: note.reminder.title || note.reminder.text || note.title || 'Σημείωση',
-                message: note.reminder.notes || '',
-                dueTime: note.reminder.dueTime,
-                noteId: note.id,
-                recurrence: note.reminder.recurrence || 'none',
-            });
-        }
-        note.reminder = null;
-        GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
-        if (typeof window.refreshScratchpadReminderUI === 'function') {
-            window.refreshScratchpadReminderUI();
-        }
-        refreshActiveAlertsPanelIfOpen();
-    }
-
     function collectActiveAlerts() {
         const alerts = [];
         const now = Date.now();
@@ -73997,19 +72745,6 @@ if (typeof window !== 'undefined') {
                 });
             });
         }
-
-        getScratchpadAlerts().forEach((a) => {
-            alerts.push({
-                kind: 'scratchpad',
-                id: a.id,
-                icon: '📝',
-                title: a.title,
-                dueTime: a.dueTime,
-                message: a.message,
-                recurrence: a.recurrence,
-                overdue: a.dueTime && a.dueTime <= now,
-            });
-        });
 
         alerts.sort((a, b) => (a.dueTime || 0) - (b.dueTime || 0));
         return alerts;
@@ -74073,8 +72808,6 @@ if (typeof window !== 'undefined') {
             window.cancelRepairReminder(STORAGE_KEYS, id);
         } else if (kind === 'repair_banner' && typeof window.dismissRepairReminderBanner === 'function') {
             window.dismissRepairReminderBanner(STORAGE_KEYS, id);
-        } else if (kind === 'scratchpad') {
-            cancelScratchpadAlert(id);
         }
         refreshActiveAlertsPanelIfOpen();
     }
@@ -74272,197 +73005,9 @@ if (typeof window !== 'undefined') {
     
     // Make toggleNotificationPanel globally accessible for external scripts
     window.toggleNotificationPanel = toggleNotificationPanel;
-    // ===================================================================
-    // === 6. FEATURE: REMINDER SYSTEM
-    // ===================================================================
-    function initReminderSystem() {
-        if (!config?.scratchpadEnabled) return;
-
-        function finalizeScratchpadReminder(noteId, firedReminder) {
-            let notes;
-            try {
-                notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
-            } catch {
-                return;
-            }
-            const note = notes.find((n) => n.id === noteId);
-            if (!note || !note.reminder) return;
-
-            const now = Date.now();
-            if (firedReminder.recurrence === 'none') {
-                note.reminder = null;
-            } else {
-                let nextDueTime = new Date(firedReminder.dueTime);
-                if (firedReminder.recurrence === 'daily') {
-                    nextDueTime.setDate(nextDueTime.getDate() + 1);
-                } else if (firedReminder.recurrence === 'weekly') {
-                    nextDueTime.setDate(nextDueTime.getDate() + 7);
-                }
-                while (nextDueTime.getTime() < now) {
-                    if (firedReminder.recurrence === 'daily') nextDueTime.setDate(nextDueTime.getDate() + 1);
-                    if (firedReminder.recurrence === 'weekly') nextDueTime.setDate(nextDueTime.getDate() + 7);
-                }
-                note.reminder = {
-                    ...note.reminder,
-                    dueTime: nextDueTime.getTime(),
-                    awaitingAction: false,
-                };
-            }
-
-            GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
-            if (typeof window.refreshScratchpadReminderUI === 'function') {
-                window.refreshScratchpadReminderUI();
-            }
-            refreshActiveAlertsPanelIfOpen();
-        }
-
-        function snoozeScratchpadReminder(noteId, minutes, meta) {
-            let notes;
-            try {
-                notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
-            } catch {
-                return;
-            }
-            const note = notes.find((n) => n.id === noteId);
-            if (!note || !note.reminder) return;
-
-            const newDue = Date.now() + minutes * 60 * 1000;
-            note.reminder = { ...note.reminder, dueTime: newDue, awaitingAction: false };
-            GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
-
-            appendReminderHistory({
-                source: 'scratchpad',
-                action: 'snoozed',
-                title: meta.title,
-                message: meta.message,
-                dueTime: newDue,
-                noteId,
-                recurrence: meta.recurrence || 'none',
-            });
-
-            if (typeof window.refreshScratchpadReminderUI === 'function') {
-                window.refreshScratchpadReminderUI();
-            }
-            refreshActiveAlertsPanelIfOpen();
-        }
-
-        function checkReminders() {
-            const now = Date.now();
-            let notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]'));
-
-            notes.forEach(note => {
-                const reminder = note.reminder;
-                if (!reminder || !reminder.dueTime || reminder.awaitingAction) {
-                    return;
-                }
-                if (reminder.dueTime > now) {
-                    return;
-                }
-
-                const noteId = note.id;
-                const firedReminder = { ...reminder };
-                const title = reminder.title || reminder.text || note.title || 'Σημείωση';
-                const message = reminder.notes || '';
-
-                note.reminder.awaitingAction = true;
-                GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
-
-                console.log(`[MMS] Reminder is due for note "${note.title}":`, reminder);
-                appendReminderHistory({
-                    source: 'scratchpad',
-                    action: 'fired',
-                    title,
-                    message,
-                    dueTime: reminder.dueTime,
-                    noteId,
-                    recurrence: reminder.recurrence || 'none',
-                });
-
-                showNotification(`Υπενθύμιση: ${title}`, message, {
-                    snoozeMinutes: [1, 3, 5, 10],
-                    onSnooze: (mins) => snoozeScratchpadReminder(noteId, mins, {
-                        title,
-                        message,
-                        recurrence: firedReminder.recurrence,
-                    }),
-                    onDismiss: () => finalizeScratchpadReminder(noteId, firedReminder),
-                });
-            });
-        }
-
-        // Check for reminders every 30 seconds
-        setInterval(checkReminders, 30 * 1000);
-        if (config?.debugEnabled) {
-        console.log('[MMS] Reminder check system initialized.');
-        }
-    }
 
     // showTitlesModal function now loaded from myman_gamification.js
-    
-    /**
-     * Adds "Send to Scratchpad" buttons on relevant pages.
-     */
-    function initScratchpadIntegration() {
-        if (!config.scratchpadEnabled) return;
 
-        // On service list page, add button to each row
-        if (window.location.pathname.includes('/mymanagerservice/service_list.php')) {
-            const gridTable = document.querySelector('table.rnr-b-grid');
-            if (!gridTable) return;
-
-            // Get headers once for all rows
-            const headers = Array.from(gridTable.querySelectorAll('thead th')).map(th => th.innerText.trim());
-
-            gridTable.querySelectorAll('tbody tr[id^="gridRow"]').forEach(row => {
-                const firstCell = row.cells[0];
-                if (firstCell) {
-                    const button = document.createElement('button');
-                    button.innerHTML = '🗒️';
-                    button.title = 'Αποστολή στο σημειωματάριο';
-                    button.className = 'tm-quick-action-btn';
-                    button.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const orderLink = findOrderLink(row, window.location.href);
-                        // Pass config
-                        // Create a key-value string from headers and cell content
-                        const rowData = [];
-                        Array.from(row.cells).forEach((cell, index) => {
-                                const header = headers[index];
-                                const text = cell.innerText.trim();
-                                // Skip the first column (checkbox) and any empty cells
-                            if (index === 0 || !text) {
-                                return;
-                            }
-                            // Include header if available, otherwise just use the text
-                            if (header) {
-                                rowData.push(`${header}: ${text}`);
-                            } else {
-                                rowData.push(text);
-                            }
-                        });
-                        
-                        const rowText = rowData.join('<br>');
-
-                        // Debug: Log what we're sending
-                        console.log('[MMS] Sending to scratchpad:', { 
-                            rowText, 
-                            orderLink, 
-                            rowCells: row.cells.length, 
-                            headers: headers.length,
-                            rowData: rowData
-                        });
-
-                        if (typeof window.sendToScratchpad === 'function') {
-                            window.sendToScratchpad(rowText, orderLink);
-                        } else {
-                            console.error('[MMS] sendToScratchpad function not found!');
-                        }
-                    });
-                    firstCell.appendChild(button);
-                }
-            });
-        }
-    }
     // ===================================================================
     /**
      * Initializes a "Scroll to Top" button that appears on long pages.
@@ -76601,17 +75146,6 @@ if (typeof window !== 'undefined') {
                 return;
             }
             
-            // Shift + S → Scratchpad (only if enabled)
-            if (matchesShortcut(e, 's') && config?.scratchpadEnabled) {
-                const btn = document.getElementById('tm-scratchpad-toggle-btn');
-                if (btn) {
-                    e.preventDefault();
-                    btn.click();
-                } else if (config?.debugEnabled) {
-                    console.log('[MMS] Shortcut: Scratchpad toggle button not found (tm-scratchpad-toggle-btn).');
-                }
-                return;
-            }
         };
         
         // Attach on both capture and bubble to fight site handlers
@@ -76619,7 +75153,7 @@ if (typeof window !== 'undefined') {
         document.addEventListener('keydown', handler, false);
         
         if (config?.debugEnabled) {
-            console.log('[MMS] Keyboard shortcuts initialized (Shift+F Search, Shift+S Scratchpad).');
+            console.log('[MMS] Keyboard shortcuts initialized (Shift+F Search).');
         }
     }
 
@@ -77835,7 +76369,6 @@ if (typeof window !== 'undefined') {
             // Use specific selectors first (more efficient) before broad ones
             const specificSelectors = [
                 '#tm-search-container',
-                '#tm-scratchpad-container', 
                 '#tm-settings-panel',
                 '#tm-notification-panel',
                 '#tm-notification-backdrop',
@@ -78601,9 +77134,6 @@ if (typeof window !== 'undefined') {
         }
         window.initSearchFeature();
         }
-        if (config?.scratchpadEnabled) {
-        window.initScratchpadFeature(config, STORAGE_KEYS); // Pass config
-        }
         if (typeof window.initOfficeChatFeature === 'function') {
             window.initOfficeChatFeature(config, STORAGE_KEYS);
         }
@@ -78616,9 +77146,6 @@ if (typeof window !== 'undefined') {
         if (typeof window.initRepairReminderFeature === 'function') {
             window.initRepairReminderFeature(config, STORAGE_KEYS);
         }
-        if (config?.scratchpadEnabled) {
-        initReminderSystem(STORAGE_KEYS);
-        }
         if (config?.statusTrackingEnabled !== false) {
             initStatusCounterTracking(); // Status transfer counters
         }
@@ -78627,7 +77154,6 @@ if (typeof window !== 'undefined') {
         }
         initFunFeatures(config); // Handles confetti and other event-based interactions
         initMascotPageReactions(config); // Mascot reactions to page events.
-        initScratchpadIntegration();
         fetchWeatherAndReact(config); // Check the weather for the mascot
         initCustomerHistoryFeature(config); // Pass config
         updateBuffTimersUI(config, STORAGE_KEYS);

@@ -117,7 +117,6 @@
             { label: 'Battery', term: 'BATTERY' },
             { label: 'Back Cover', term: 'Back Cover' },
         ],
-        scratchpadEnabled: true,
         officeChatEnabled: true, // auto-provision PocketBase account from MyManager login
         scrollToTopEnabled: true,
         technicianStatsEnabled: true,
@@ -658,7 +657,6 @@
     }
 
     function getReminderSourceLabel(kindOrSource) {
-        if (kindOrSource === 'scratchpad') return 'Σημειωματάριο';
         if (kindOrSource === 'repair_scheduled' || kindOrSource === 'repair' || kindOrSource === 'repair_banner') {
             return 'Επισκευή';
         }
@@ -721,7 +719,6 @@
 
     function getReminderHistoryIcon(source) {
         if (source === 'repair' || source === 'repair_banner') return '🔧';
-        if (source === 'scratchpad') return '📝';
         return '🔔';
     }
 
@@ -821,53 +818,6 @@
 
     window.refreshReminderHistoryPanelIfOpen = refreshReminderHistoryPanelIfOpen;
 
-    function getScratchpadAlerts() {
-        if (!config.scratchpadEnabled) return [];
-        try {
-            const notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
-            return notes
-                .filter((n) => n && n.reminder && n.reminder.dueTime && !n.reminder.awaitingAction)
-                .map((n) => ({
-                    type: 'scratchpad',
-                    id: n.id,
-                    title: n.reminder.title || n.reminder.text || n.title || 'Σημείωση',
-                    message: n.reminder.notes || '',
-                    dueTime: n.reminder.dueTime,
-                    recurrence: n.reminder.recurrence || 'none',
-                }));
-        } catch {
-            return [];
-        }
-    }
-
-    function cancelScratchpadAlert(noteId) {
-        let notes;
-        try {
-            notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
-        } catch {
-            return;
-        }
-        const note = notes.find((n) => n.id === noteId);
-        if (!note) return;
-        if (note.reminder) {
-            appendReminderHistory({
-                source: 'scratchpad',
-                action: 'cancelled',
-                title: note.reminder.title || note.reminder.text || note.title || 'Σημείωση',
-                message: note.reminder.notes || '',
-                dueTime: note.reminder.dueTime,
-                noteId: note.id,
-                recurrence: note.reminder.recurrence || 'none',
-            });
-        }
-        note.reminder = null;
-        GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
-        if (typeof window.refreshScratchpadReminderUI === 'function') {
-            window.refreshScratchpadReminderUI();
-        }
-        refreshActiveAlertsPanelIfOpen();
-    }
-
     function collectActiveAlerts() {
         const alerts = [];
         const now = Date.now();
@@ -906,19 +856,6 @@
                 });
             });
         }
-
-        getScratchpadAlerts().forEach((a) => {
-            alerts.push({
-                kind: 'scratchpad',
-                id: a.id,
-                icon: '📝',
-                title: a.title,
-                dueTime: a.dueTime,
-                message: a.message,
-                recurrence: a.recurrence,
-                overdue: a.dueTime && a.dueTime <= now,
-            });
-        });
 
         alerts.sort((a, b) => (a.dueTime || 0) - (b.dueTime || 0));
         return alerts;
@@ -982,8 +919,6 @@
             window.cancelRepairReminder(STORAGE_KEYS, id);
         } else if (kind === 'repair_banner' && typeof window.dismissRepairReminderBanner === 'function') {
             window.dismissRepairReminderBanner(STORAGE_KEYS, id);
-        } else if (kind === 'scratchpad') {
-            cancelScratchpadAlert(id);
         }
         refreshActiveAlertsPanelIfOpen();
     }
@@ -1181,197 +1116,9 @@
     
     // Make toggleNotificationPanel globally accessible for external scripts
     window.toggleNotificationPanel = toggleNotificationPanel;
-    // ===================================================================
-    // === 6. FEATURE: REMINDER SYSTEM
-    // ===================================================================
-    function initReminderSystem() {
-        if (!config?.scratchpadEnabled) return;
-
-        function finalizeScratchpadReminder(noteId, firedReminder) {
-            let notes;
-            try {
-                notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
-            } catch {
-                return;
-            }
-            const note = notes.find((n) => n.id === noteId);
-            if (!note || !note.reminder) return;
-
-            const now = Date.now();
-            if (firedReminder.recurrence === 'none') {
-                note.reminder = null;
-            } else {
-                let nextDueTime = new Date(firedReminder.dueTime);
-                if (firedReminder.recurrence === 'daily') {
-                    nextDueTime.setDate(nextDueTime.getDate() + 1);
-                } else if (firedReminder.recurrence === 'weekly') {
-                    nextDueTime.setDate(nextDueTime.getDate() + 7);
-                }
-                while (nextDueTime.getTime() < now) {
-                    if (firedReminder.recurrence === 'daily') nextDueTime.setDate(nextDueTime.getDate() + 1);
-                    if (firedReminder.recurrence === 'weekly') nextDueTime.setDate(nextDueTime.getDate() + 7);
-                }
-                note.reminder = {
-                    ...note.reminder,
-                    dueTime: nextDueTime.getTime(),
-                    awaitingAction: false,
-                };
-            }
-
-            GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
-            if (typeof window.refreshScratchpadReminderUI === 'function') {
-                window.refreshScratchpadReminderUI();
-            }
-            refreshActiveAlertsPanelIfOpen();
-        }
-
-        function snoozeScratchpadReminder(noteId, minutes, meta) {
-            let notes;
-            try {
-                notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
-            } catch {
-                return;
-            }
-            const note = notes.find((n) => n.id === noteId);
-            if (!note || !note.reminder) return;
-
-            const newDue = Date.now() + minutes * 60 * 1000;
-            note.reminder = { ...note.reminder, dueTime: newDue, awaitingAction: false };
-            GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
-
-            appendReminderHistory({
-                source: 'scratchpad',
-                action: 'snoozed',
-                title: meta.title,
-                message: meta.message,
-                dueTime: newDue,
-                noteId,
-                recurrence: meta.recurrence || 'none',
-            });
-
-            if (typeof window.refreshScratchpadReminderUI === 'function') {
-                window.refreshScratchpadReminderUI();
-            }
-            refreshActiveAlertsPanelIfOpen();
-        }
-
-        function checkReminders() {
-            const now = Date.now();
-            let notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]'));
-
-            notes.forEach(note => {
-                const reminder = note.reminder;
-                if (!reminder || !reminder.dueTime || reminder.awaitingAction) {
-                    return;
-                }
-                if (reminder.dueTime > now) {
-                    return;
-                }
-
-                const noteId = note.id;
-                const firedReminder = { ...reminder };
-                const title = reminder.title || reminder.text || note.title || 'Σημείωση';
-                const message = reminder.notes || '';
-
-                note.reminder.awaitingAction = true;
-                GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
-
-                console.log(`[MMS] Reminder is due for note "${note.title}":`, reminder);
-                appendReminderHistory({
-                    source: 'scratchpad',
-                    action: 'fired',
-                    title,
-                    message,
-                    dueTime: reminder.dueTime,
-                    noteId,
-                    recurrence: reminder.recurrence || 'none',
-                });
-
-                showNotification(`Υπενθύμιση: ${title}`, message, {
-                    snoozeMinutes: [1, 3, 5, 10],
-                    onSnooze: (mins) => snoozeScratchpadReminder(noteId, mins, {
-                        title,
-                        message,
-                        recurrence: firedReminder.recurrence,
-                    }),
-                    onDismiss: () => finalizeScratchpadReminder(noteId, firedReminder),
-                });
-            });
-        }
-
-        // Check for reminders every 30 seconds
-        setInterval(checkReminders, 30 * 1000);
-        if (config?.debugEnabled) {
-        console.log('[MMS] Reminder check system initialized.');
-        }
-    }
 
     // showTitlesModal function now loaded from myman_gamification.js
-    
-    /**
-     * Adds "Send to Scratchpad" buttons on relevant pages.
-     */
-    function initScratchpadIntegration() {
-        if (!config.scratchpadEnabled) return;
 
-        // On service list page, add button to each row
-        if (window.location.pathname.includes('/mymanagerservice/service_list.php')) {
-            const gridTable = document.querySelector('table.rnr-b-grid');
-            if (!gridTable) return;
-
-            // Get headers once for all rows
-            const headers = Array.from(gridTable.querySelectorAll('thead th')).map(th => th.innerText.trim());
-
-            gridTable.querySelectorAll('tbody tr[id^="gridRow"]').forEach(row => {
-                const firstCell = row.cells[0];
-                if (firstCell) {
-                    const button = document.createElement('button');
-                    button.innerHTML = '🗒️';
-                    button.title = 'Αποστολή στο σημειωματάριο';
-                    button.className = 'tm-quick-action-btn';
-                    button.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const orderLink = findOrderLink(row, window.location.href);
-                        // Pass config
-                        // Create a key-value string from headers and cell content
-                        const rowData = [];
-                        Array.from(row.cells).forEach((cell, index) => {
-                                const header = headers[index];
-                                const text = cell.innerText.trim();
-                                // Skip the first column (checkbox) and any empty cells
-                            if (index === 0 || !text) {
-                                return;
-                            }
-                            // Include header if available, otherwise just use the text
-                            if (header) {
-                                rowData.push(`${header}: ${text}`);
-                            } else {
-                                rowData.push(text);
-                            }
-                        });
-                        
-                        const rowText = rowData.join('<br>');
-
-                        // Debug: Log what we're sending
-                        console.log('[MMS] Sending to scratchpad:', { 
-                            rowText, 
-                            orderLink, 
-                            rowCells: row.cells.length, 
-                            headers: headers.length,
-                            rowData: rowData
-                        });
-
-                        if (typeof window.sendToScratchpad === 'function') {
-                            window.sendToScratchpad(rowText, orderLink);
-                        } else {
-                            console.error('[MMS] sendToScratchpad function not found!');
-                        }
-                    });
-                    firstCell.appendChild(button);
-                }
-            });
-        }
-    }
     // ===================================================================
     /**
      * Initializes a "Scroll to Top" button that appears on long pages.
@@ -3510,17 +3257,6 @@
                 return;
             }
             
-            // Shift + S → Scratchpad (only if enabled)
-            if (matchesShortcut(e, 's') && config?.scratchpadEnabled) {
-                const btn = document.getElementById('tm-scratchpad-toggle-btn');
-                if (btn) {
-                    e.preventDefault();
-                    btn.click();
-                } else if (config?.debugEnabled) {
-                    console.log('[MMS] Shortcut: Scratchpad toggle button not found (tm-scratchpad-toggle-btn).');
-                }
-                return;
-            }
         };
         
         // Attach on both capture and bubble to fight site handlers
@@ -3528,7 +3264,7 @@
         document.addEventListener('keydown', handler, false);
         
         if (config?.debugEnabled) {
-            console.log('[MMS] Keyboard shortcuts initialized (Shift+F Search, Shift+S Scratchpad).');
+            console.log('[MMS] Keyboard shortcuts initialized (Shift+F Search).');
         }
     }
 
@@ -4744,7 +4480,6 @@
             // Use specific selectors first (more efficient) before broad ones
             const specificSelectors = [
                 '#tm-search-container',
-                '#tm-scratchpad-container', 
                 '#tm-settings-panel',
                 '#tm-notification-panel',
                 '#tm-notification-backdrop',
@@ -5510,9 +5245,6 @@
         }
         window.initSearchFeature();
         }
-        if (config?.scratchpadEnabled) {
-        window.initScratchpadFeature(config, STORAGE_KEYS); // Pass config
-        }
         if (typeof window.initOfficeChatFeature === 'function') {
             window.initOfficeChatFeature(config, STORAGE_KEYS);
         }
@@ -5525,9 +5257,6 @@
         if (typeof window.initRepairReminderFeature === 'function') {
             window.initRepairReminderFeature(config, STORAGE_KEYS);
         }
-        if (config?.scratchpadEnabled) {
-        initReminderSystem(STORAGE_KEYS);
-        }
         if (config?.statusTrackingEnabled !== false) {
             initStatusCounterTracking(); // Status transfer counters
         }
@@ -5536,7 +5265,6 @@
         }
         initFunFeatures(config); // Handles confetti and other event-based interactions
         initMascotPageReactions(config); // Mascot reactions to page events.
-        initScratchpadIntegration();
         fetchWeatherAndReact(config); // Check the weather for the mascot
         initCustomerHistoryFeature(config); // Pass config
         updateBuffTimersUI(config, STORAGE_KEYS);

@@ -52,7 +52,7 @@
             document.body.appendChild(container);
             console.log('[MMS] Right-side panel container created.');
         }
-        createRightSidePanel(); // Ensure the panel exists (scratchpad / auxiliary slide-outs)
+        createRightSidePanel(); // Ensure the panel exists for auxiliary slide-outs
 
         const SEARCH_MENU_ID = 'tm-search-menu-item';
         let searchKeyboardShortcutsBound = false;

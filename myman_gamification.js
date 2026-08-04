@@ -257,7 +257,6 @@ const XP_CONFIG = {
     printOrder: 25, // For printing an order/repair ticket
     viewTechStats: 10, // For opening the technician stats modal
     viewCustomerHistory: 10, // For opening the customer history modal
-    setScratchpadReminder: 20, // For setting a reminder in the scratchpad
     feedMascot: 5, // For feeding the interactive mascot
     petMascot: 5, // For petting the interactive mascot
     memoryGame: 15, // Base XP for playing the memory mini-game
@@ -289,7 +288,6 @@ const QUEST_POOL = [
     { id: 'print_2_orders', description: 'Print 2 order tickets', targetStat: 'printOrder', targetCount: 2, rewardXp: 50, rewardCoins: 15 },
     { id: 'view_3_histories', description: 'View customer history 3 times', targetStat: 'viewCustomerHistory', targetCount: 3, rewardXp: 40, rewardCoins: 10 },
     { id: 'view_5_histories', description: 'View customer history 5 times', targetStat: 'viewCustomerHistory', targetCount: 5, rewardXp: 60, rewardCoins: 15 },
-    { id: 'set_2_scratchpad_reminders', description: 'Set 2 scratchpad reminders', targetStat: 'setScratchpadReminder', targetCount: 2, rewardXp: 55, rewardCoins: 15 },
     // ── Mascot ──
     { id: 'pet_mascot_5_times', description: 'Pet the mascot 5 times', targetStat: 'petMascot', targetCount: 5, rewardXp: 50, rewardCoins: 10, requiresFeature: 'mascot' },
     { id: 'feed_mascot_3_times', description: 'Feed the mascot 3 times', targetStat: 'feedMascot', targetCount: 3, rewardXp: 40, rewardCoins: 10, requiresFeature: 'mascot' },
@@ -1918,7 +1916,6 @@ function trackDailyStat(config, STORAGE_KEYS, statName, value = 1) {
         printOrder: 0,
         viewTechStats: 0,
         viewCustomerHistory: 0,
-        setScratchpadReminder: 0,
         feedMascot: 0,
         petMascot: 0,
         memoryGame: 0,

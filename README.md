@@ -1,6 +1,6 @@
 # MyManager All-in-One Suite
 
-Tampermonkey userscript suite that enhances [MyManager](https://thefixers.mymanager.gr/) with search, gamification, phone catalog, scratchpad, and more.
+Tampermonkey userscript suite that enhances [MyManager](https://thefixers.mymanager.gr/) with search, gamification, phone catalog, and more.
 
 ## Install (recommended — auto-updates)
 

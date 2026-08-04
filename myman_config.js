@@ -16,10 +16,10 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '383',
+        version: '384',
         loaderVersion: '41',
-        silentVersion: '27',
-        displayVersion: '41.27',
+        silentVersion: '28',
+        displayVersion: '41.28',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -43,10 +43,6 @@
         DAILY_STATS: 'tm_daily_stats_v2',
         DAILY_QUESTS: 'tm_daily_quests',
         USER_REROLL_TOKENS: 'tm_user_reroll_tokens',
-        // New Scratchpad Keys
-        SCRATCHPAD_NOTES: 'tm_scratchpad_notes_v2',
-        SCRATCHPAD_ACTIVE_NOTE_ID: 'tm_scratchpad_active_note_id',
-        SCRATCHPAD_TEMPLATES: 'tm_scratchpad_templates',
         // New Talent System Keys
         USER_TALENT_POINTS: 'tm_user_talent_points',
         UNLOCKED_TALENTS: 'tm_unlocked_talents',
@@ -173,7 +169,6 @@
         printOrder: 25, // For printing an order/repair ticket
         viewTechStats: 10, // For opening the technician stats modal
         viewCustomerHistory: 10, // For opening the customer history modal
-        setScratchpadReminder: 20, // For setting a reminder in the scratchpad
         feedMascot: 5, // For feeding the interactive mascot
         petMascot: 5, // For petting the interactive mascot
         memoryGame: 15, // Base XP for playing the memory mini-game

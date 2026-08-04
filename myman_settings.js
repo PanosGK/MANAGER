@@ -165,18 +165,6 @@
             where: 'Εφαρμόζεται στη συμπεριφορά auto-refresh (όχι ορατό UI στη λίστα).',
             when: 'Η ανανέωση τρέχει μόνο μέσα στο παράθυρο που ορίζετε εδώ.',
         },
-        scratchpad: {
-            title: 'Σημειωματάριο',
-            what: 'Γρήγορο σημειωματάριο για checklists και προσωρινές σημειώσεις κατά τη δουλειά.',
-            where: 'Panel σημειωματαρίου του suite (κουμπί / overlay).',
-            when: 'Όποτε θέλετε να κρατήσετε σημειώσεις χωρίς να φύγετε από τη σελίδα.',
-        },
-        scratchpad_templates: {
-            title: 'Πρότυπα σημειωματαρίου',
-            what: 'Έτοιμα πρότυπα κειμένου για γρήγορη εισαγωγή στο σημειωματάριο.',
-            where: 'Μέσα στο σημειωματάριο.',
-            when: 'Όταν επιλέγετε πρότυπο αντί να γράφετε από την αρχή.',
-        },
         office_chat: {
             title: 'Office Chat',
             what: 'Κοινό chat γραφείου μέσω https://mngerchat.littlejol.mywire.org. Λογαριασμός δημιουργείται αυτόματα από το όνομα login — χωρίς κωδικό στις ρυθμίσεις. Νέα μηνύματα υπενθυμίζονται στο κουμπί του footer (όχι στο notification center). Μπορείς να ανεβάσεις φωτογραφία προφίλ από Ρυθμίσεις → Chat.',
@@ -428,10 +416,10 @@
                 STORAGE_KEYS.DAILY_QUESTS,
                 STORAGE_KEYS.USER_REROLL_TOKENS,
                 
-                // Scratchpad
-                STORAGE_KEYS.SCRATCHPAD_NOTES,
-                STORAGE_KEYS.SCRATCHPAD_ACTIVE_NOTE_ID,
-                STORAGE_KEYS.SCRATCHPAD_TEMPLATES,
+                // Legacy scratchpad data (feature removed)
+                'tm_scratchpad_notes_v2',
+                'tm_scratchpad_active_note_id',
+                'tm_scratchpad_templates',
                 'tm_user_scratchpad_text', 'tm_user_scratchpad_geometry', 'tm_user_scratchpad_is_open', 
                 'tm_user_scratchpad_font_size', 'tm_user_scratchpad_last_edited', 'tm_user_scratchpad_is_maximized',
                 
@@ -641,9 +629,6 @@
             saveNumber('tm-setting-search-history-max', 'searchMaxHistory');
             saveCheckbox('tm-setting-quick-search-enabled', 'quickSearchEnabled');
 
-            // --- Save Scratchpad Settings ---
-            saveCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
-
             // --- Save Gamification/Fun Settings ---
             saveCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
             saveCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
@@ -703,24 +688,6 @@
             });
             GM_setValue('priceOptions', JSON.stringify(newPriceOptions));
             config.priceOptions = newPriceOptions;
-
-            // --- Save Scratchpad Templates ---
-            const newTemplates = [];
-            document.querySelectorAll('#tm-scratchpad-templates-editor .tm-template-row').forEach(row => {
-                const titleInput = row.querySelector('input[data-type="title"]');
-                const contentInput = row.querySelector('textarea[data-type="content"]');
-                if (titleInput.value.trim() && contentInput.value.trim()) {
-                    newTemplates.push({
-                        id: row.dataset.id || `template_${Date.now()}`,
-                        title: titleInput.value.trim(),
-                        content: contentInput.value.trim()
-                    });
-                }
-            });
-            GM_setValue(STORAGE_KEYS.SCRATCHPAD_TEMPLATES, JSON.stringify(newTemplates));
-
-            // --- Save Scratchpad Settings ---
-            saveCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
 
             // --- Save Office Chat ---
             const chatEnabledEl = document.getElementById('tm-setting-chat-enabled');
@@ -1327,45 +1294,6 @@
             `;
         }
 
-        function getScratchpadTemplatesEditorHTML() {
-            const info = tmSettingsInfoBtn;
-            return `
-                <div class="tm-settings-section">
-                    <header class="tm-settings-section-head">
-                        <div class="tm-setting-label-row">
-                            <h3>Πρότυπα</h3>
-                            ${info('scratchpad_templates')}
-                        </div>
-                        <p class="tm-settings-section-desc">Γρήγορη εισαγωγή checklists ή επαναλαμβανόμενων σημειώσεων.</p>
-                    </header>
-                    <div id="tm-scratchpad-templates-editor" class="tm-settings-editor"></div>
-                    <button type="button" id="tm-scratchpad-template-add-btn" class="tm-settings-ghost-btn">Προσθήκη προτύπου</button>
-                </div>
-            `;
-        }
-
-        function getScratchpadSettingsHTML() {
-            const info = tmSettingsInfoBtn;
-            return `
-                <div class="tm-settings-section">
-                    <header class="tm-settings-section-head">
-                        <h3>Σημειωματάριο</h3>
-                        <p class="tm-settings-section-desc">Γρήγορες σημειώσεις κατά την εργασία.</p>
-                    </header>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-scratchpad-enabled">Ενεργοποίηση</label>
-                                ${info('scratchpad')}
-                            </div>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-scratchpad-enabled"></div>
-                    </div>
-                </div>
-                ${getScratchpadTemplatesEditorHTML()}
-            `;
-        }
-
         function getOfficeChatSettingsHTML() {
             const info = tmSettingsInfoBtn;
             return `
@@ -1747,7 +1675,6 @@
                             <ul class="tm-nav">
                                 <li><a href="#sec-general"><span class="tm-nav-icon" aria-hidden="true">⚙️</span><span class="tm-nav-label">Γενικές</span></a></li>
                                 <li><a href="#sec-search"><span class="tm-nav-icon" aria-hidden="true">🔍</span><span class="tm-nav-label">Εργαλεία</span></a></li>
-                                <li><a href="#sec-scratchpad"><span class="tm-nav-icon" aria-hidden="true">📝</span><span class="tm-nav-label">Σημειωματάριο</span></a></li>
                                 <li><a href="#sec-chat"><span class="tm-nav-icon" aria-hidden="true">💬</span><span class="tm-nav-label">Chat</span></a></li>
                                 <li><a href="#sec-gamification"><span class="tm-nav-icon" aria-hidden="true">🎮</span><span class="tm-nav-label">Παιχνίδι</span></a></li>
                                 <li><a href="#sec-updates"><span class="tm-nav-icon" aria-hidden="true">↻</span><span class="tm-nav-label">Ενημερώσεις</span></a></li>
@@ -1758,7 +1685,6 @@
                         <main class="tm-settings-main" id="tm-settings-content">
                             <section id="sec-general">${getGeneralUISettingsHTML()}</section>
                             <section id="sec-search">${getSearchSettingsHTML()}${getQuickSearchEditorHTML()}${getPriceOptionsEditorHTML()}${getAutoRefreshSettingsHTML()}</section>
-                            <section id="sec-scratchpad">${getScratchpadSettingsHTML()}</section>
                             <section id="sec-chat">${getOfficeChatSettingsHTML()}</section>
                             <section id="sec-gamification">${window.getGamificationSettingsHTML(STORAGE_KEYS)}</section>
                             <section id="sec-debug">${getDebugSettingsHTML()}</section>
@@ -1908,7 +1834,6 @@
             populateCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
             populateCheckbox('tm-setting-search-enabled', 'searchFeatureEnabled');
             populateCheckbox('tm-setting-quick-search-enabled', 'quickSearchEnabled');
-            populateCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
             const chatEnabledBox = document.getElementById('tm-setting-chat-enabled');
             if (chatEnabledBox) {
                 const stored = GM_getValue(STORAGE_KEYS.CHAT_ENABLED || 'tm_chat_enabled', true);
@@ -2255,38 +2180,6 @@
                 });
             }
 
-            // --- Populate and manage Scratchpad Templates Editor ---
-            const templatesEditorContainer = overlay.querySelector('#tm-scratchpad-templates-editor');
-            const savedTemplates = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_TEMPLATES, '[]'));
-
-            function renderScratchpadTemplateRows() {
-                templatesEditorContainer.innerHTML = ''; // Clear existing rows
-                savedTemplates.forEach(template => {
-                    addNewScratchpadTemplateRow(template);
-                });
-            }
-
-            function addNewScratchpadTemplateRow(template = { id: '', title: '', content: '' }) {
-                const row = document.createElement('div');
-                row.className = 'tm-template-row';
-                row.dataset.id = template.id;
-                row.style.marginBottom = '15px';
-                row.innerHTML = `
-                    <input type="text" placeholder="Τίτλος Προτύπου" data-type="title" value="${template.title}" style="width: 100%; padding: 8px; box-sizing: border-box; margin-bottom: 5px;">
-                    <textarea placeholder="Περιεχόμενο Προτύπου..." data-type="content" style="width: 100%; min-height: 80px; padding: 8px; box-sizing: border-box; font-family: monospace;">${template.content}</textarea>
-                    <button class="tm-template-remove-btn" title="Αφαίρεση Προτύπου" style="background: var(--tm-danger-color); color: white; border: none; border-radius: 4px; cursor: pointer; float: right; margin-top: 5px;">&times;</button>
-                `;
-                templatesEditorContainer.appendChild(row);
-                row.querySelector('.tm-template-remove-btn').addEventListener('click', (e) => {
-                    e.target.closest('.tm-template-row').remove();
-                });
-            }
-
-            overlay.querySelector('#tm-scratchpad-template-add-btn').addEventListener('click', (e) => {
-                e.preventDefault();
-                addNewScratchpadTemplateRow();
-            });
-
             // Attach listener for the Quick Search "Add" button now that it's in the DOM
             overlay.querySelector('#tm-quick-search-add-btn')?.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -2333,7 +2226,6 @@
                 addNewPriceOptionRow();
             });
 
-            renderScratchpadTemplateRows();
             renderQuickSearchRows(); // Initial render
             renderPriceOptionsRows(); // Initial render for price options
 
@@ -2696,7 +2588,7 @@
             }
         }
         function addSettingsButton() {
-            // --- Notification Bell (always: repair reminders, scratchpad, achievements, etc.) ---
+            // --- Notification Bell (always: repair reminders, achievements, etc.) ---
             const bellWrapper = document.createElement('div');
             bellWrapper.id = 'tm-notification-bell-wrapper';
             bellWrapper.innerHTML = `

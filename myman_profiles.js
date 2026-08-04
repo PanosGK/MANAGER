@@ -178,9 +178,11 @@
         }
 
         [
-            // Scratchpad UI / legacy single-note
+            // Scratchpad UI / legacy (feature removed)
+            'tm_scratchpad_notes_v2', 'tm_scratchpad_active_note_id', 'tm_scratchpad_templates',
             'tm_user_scratchpad_text', 'tm_user_scratchpad_geometry', 'tm_user_scratchpad_is_open',
             'tm_user_scratchpad_font_size', 'tm_user_scratchpad_last_edited', 'tm_user_scratchpad_is_maximized',
+            'scratchpadEnabled',
             // Search + dashboard history
             'tm_search_history', 'tm_favorite_searches', 'tm_daily_stats_history', 'tm_stats_history_7days',
             'tm_daily_stipend_date',
