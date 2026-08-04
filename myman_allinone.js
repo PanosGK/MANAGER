@@ -140,6 +140,7 @@
         recentRepairsEnabled: true,
         repairListQuickViewEnabled: true,
         repairAgeIndicatorEnabled: true,
+        repairCollabEnabled: true, // Whisper note + status watch on repair page
         recentRepairsMaxItems: 5,
         // Weather Widget
         weatherWidgetEnabled: true,
@@ -5289,7 +5290,7 @@
         if (typeof window.initRepairReminderFeature === 'function') {
             window.initRepairReminderFeature(config, STORAGE_KEYS);
         }
-        if (typeof window.initRepairCollabFeature === 'function') {
+        if (typeof window.initRepairCollabFeature === 'function' && config?.repairCollabEnabled !== false) {
             window.initRepairCollabFeature(config, STORAGE_KEYS);
         }
         if (config?.statusTrackingEnabled !== false) {

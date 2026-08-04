@@ -873,8 +873,20 @@
         rcPollTimer = window.setInterval(tick, RC_WATCH_POLL_MS);
     }
 
+    window.stopRepairCollabFeature = function stopRepairCollabFeature() {
+        if (rcPollTimer) {
+            window.clearInterval(rcPollTimer);
+            rcPollTimer = null;
+        }
+        document.getElementById('tm-repair-whisper')?.remove();
+        document.getElementById('tm-repair-watch-wrap')?.remove();
+    };
+
     window.initRepairCollabFeature = function initRepairCollabFeature(config, STORAGE_KEYS) {
-        if (!config) return;
+        if (!config || config.repairCollabEnabled === false) {
+            window.stopRepairCollabFeature();
+            return;
+        }
         startWatchPolling(STORAGE_KEYS);
 
         if (!window.location.pathname.includes('service_edit.php')) return;

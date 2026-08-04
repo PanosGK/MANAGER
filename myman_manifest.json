@@ -1,11 +1,11 @@
 {
-  "version": "390",
+  "version": "391",
   "loaderVersion": "41",
-  "silentVersion": "34",
-  "displayVersion": "41.34",
+  "silentVersion": "35",
+  "displayVersion": "41.35",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Minimal collapsed whisper note on repair page",
+  "releaseNotes": "Settings toggle to disable Whisper and Watch",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

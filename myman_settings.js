@@ -93,6 +93,12 @@
             where: 'Λίστα επισκευών (service list).',
             when: 'Όταν σκανάρετε τη λίστα και θέλετε γρήγορη ματιά σε λεπτομέρειες.',
         },
+        repair_collab: {
+            title: 'Whisper & Παρακολούθηση',
+            what: 'Κοινό σημείωμα (Whisper) στη σελίδα επισκευής και κουμπί παρακολούθησης αλλαγών status με ειδοποιήσεις.',
+            where: 'Σελίδα επεξεργασίας επισκευής (service_edit) · ειδοποιήσεις σε όλες τις σελίδες όσο παρακολουθείτε.',
+            when: 'Όταν συνεργάζεστε σε ticket. Απενεργοποιήστε αν δεν θέλετε το UI ή τα pings.',
+        },
         recent_repairs_max: {
             title: 'Αριθμός πρόσφατων επισκευών',
             what: 'Πόσες επισκευές κρατάει η λίστα «Πρόσφατες» (1–20).',
@@ -587,6 +593,7 @@
             saveCheckbox('tm-setting-customer-history-enabled', 'customerHistoryEnabled');
             saveCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
             saveCheckbox('tm-setting-repair-list-quickview-enabled', 'repairListQuickViewEnabled');
+            saveCheckbox('tm-setting-repair-collab-enabled', 'repairCollabEnabled');
             saveNumber('tm-setting-recent-repairs-max', 'recentRepairsMaxItems');
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             saveCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
@@ -1112,6 +1119,16 @@
                             <p class="tm-setting-description">Προεπισκόπηση χωρίς αλλαγή σελίδας.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-repair-list-quickview-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-repair-collab-enabled">Whisper &amp; Παρακολούθηση</label>
+                                ${info('repair_collab')}
+                            </div>
+                            <p class="tm-setting-description">Κοινό σημείωμα και ειδοποιήσεις αλλαγής status στην επισκευή.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-repair-collab-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -1984,6 +2001,7 @@
             });
             populateCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
             populateCheckbox('tm-setting-repair-list-quickview-enabled', 'repairListQuickViewEnabled');
+            populateCheckbox('tm-setting-repair-collab-enabled', 'repairCollabEnabled');
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             populateCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
@@ -2037,6 +2055,22 @@
                     config.repairListQuickViewEnabled = value;
                     if (typeof window.updateRepairListQuickViewVisibility === 'function') {
                         window.updateRepairListQuickViewVisibility(config);
+                    }
+                });
+            }
+
+            const repairCollabCheckbox = document.getElementById('tm-setting-repair-collab-enabled');
+            if (repairCollabCheckbox) {
+                repairCollabCheckbox.addEventListener('change', () => {
+                    const value = repairCollabCheckbox.checked;
+                    GM_setValue('repairCollabEnabled', value);
+                    config.repairCollabEnabled = value;
+                    if (value) {
+                        if (typeof window.initRepairCollabFeature === 'function') {
+                            window.initRepairCollabFeature(config, STORAGE_KEYS);
+                        }
+                    } else if (typeof window.stopRepairCollabFeature === 'function') {
+                        window.stopRepairCollabFeature();
                     }
                 });
             }

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v390 / Custom Ver. 41.34 — generated, do not edit */
+/* MyManager Suite bundle v391 / Custom Ver. 41.35 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '390',
+        version: '391',
         loaderVersion: '41',
-        silentVersion: '34',
-        displayVersion: '41.34',
+        silentVersion: '35',
+        displayVersion: '41.35',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -16008,6 +16008,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             where: 'Λίστα επισκευών (service list).',
             when: 'Όταν σκανάρετε τη λίστα και θέλετε γρήγορη ματιά σε λεπτομέρειες.',
         },
+        repair_collab: {
+            title: 'Whisper & Παρακολούθηση',
+            what: 'Κοινό σημείωμα (Whisper) στη σελίδα επισκευής και κουμπί παρακολούθησης αλλαγών status με ειδοποιήσεις.',
+            where: 'Σελίδα επεξεργασίας επισκευής (service_edit) · ειδοποιήσεις σε όλες τις σελίδες όσο παρακολουθείτε.',
+            when: 'Όταν συνεργάζεστε σε ticket. Απενεργοποιήστε αν δεν θέλετε το UI ή τα pings.',
+        },
         recent_repairs_max: {
             title: 'Αριθμός πρόσφατων επισκευών',
             what: 'Πόσες επισκευές κρατάει η λίστα «Πρόσφατες» (1–20).',
@@ -16502,6 +16508,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             saveCheckbox('tm-setting-customer-history-enabled', 'customerHistoryEnabled');
             saveCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
             saveCheckbox('tm-setting-repair-list-quickview-enabled', 'repairListQuickViewEnabled');
+            saveCheckbox('tm-setting-repair-collab-enabled', 'repairCollabEnabled');
             saveNumber('tm-setting-recent-repairs-max', 'recentRepairsMaxItems');
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             saveCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
@@ -17027,6 +17034,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <p class="tm-setting-description">Προεπισκόπηση χωρίς αλλαγή σελίδας.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-repair-list-quickview-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-repair-collab-enabled">Whisper &amp; Παρακολούθηση</label>
+                                ${info('repair_collab')}
+                            </div>
+                            <p class="tm-setting-description">Κοινό σημείωμα και ειδοποιήσεις αλλαγής status στην επισκευή.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-repair-collab-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -17899,6 +17916,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             });
             populateCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
             populateCheckbox('tm-setting-repair-list-quickview-enabled', 'repairListQuickViewEnabled');
+            populateCheckbox('tm-setting-repair-collab-enabled', 'repairCollabEnabled');
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             populateCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
@@ -17952,6 +17970,22 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     config.repairListQuickViewEnabled = value;
                     if (typeof window.updateRepairListQuickViewVisibility === 'function') {
                         window.updateRepairListQuickViewVisibility(config);
+                    }
+                });
+            }
+
+            const repairCollabCheckbox = document.getElementById('tm-setting-repair-collab-enabled');
+            if (repairCollabCheckbox) {
+                repairCollabCheckbox.addEventListener('change', () => {
+                    const value = repairCollabCheckbox.checked;
+                    GM_setValue('repairCollabEnabled', value);
+                    config.repairCollabEnabled = value;
+                    if (value) {
+                        if (typeof window.initRepairCollabFeature === 'function') {
+                            window.initRepairCollabFeature(config, STORAGE_KEYS);
+                        }
+                    } else if (typeof window.stopRepairCollabFeature === 'function') {
+                        window.stopRepairCollabFeature();
                     }
                 });
             }
@@ -72620,8 +72654,20 @@ if (typeof window !== 'undefined') {
         rcPollTimer = window.setInterval(tick, RC_WATCH_POLL_MS);
     }
 
+    window.stopRepairCollabFeature = function stopRepairCollabFeature() {
+        if (rcPollTimer) {
+            window.clearInterval(rcPollTimer);
+            rcPollTimer = null;
+        }
+        document.getElementById('tm-repair-whisper')?.remove();
+        document.getElementById('tm-repair-watch-wrap')?.remove();
+    };
+
     window.initRepairCollabFeature = function initRepairCollabFeature(config, STORAGE_KEYS) {
-        if (!config) return;
+        if (!config || config.repairCollabEnabled === false) {
+            window.stopRepairCollabFeature();
+            return;
+        }
         startWatchPolling(STORAGE_KEYS);
 
         if (!window.location.pathname.includes('service_edit.php')) return;
@@ -73355,6 +73401,7 @@ if (typeof window !== 'undefined') {
         recentRepairsEnabled: true,
         repairListQuickViewEnabled: true,
         repairAgeIndicatorEnabled: true,
+        repairCollabEnabled: true, // Whisper note + status watch on repair page
         recentRepairsMaxItems: 5,
         // Weather Widget
         weatherWidgetEnabled: true,
@@ -78504,7 +78551,7 @@ if (typeof window !== 'undefined') {
         if (typeof window.initRepairReminderFeature === 'function') {
             window.initRepairReminderFeature(config, STORAGE_KEYS);
         }
-        if (typeof window.initRepairCollabFeature === 'function') {
+        if (typeof window.initRepairCollabFeature === 'function' && config?.repairCollabEnabled !== false) {
             window.initRepairCollabFeature(config, STORAGE_KEYS);
         }
         if (config?.statusTrackingEnabled !== false) {
