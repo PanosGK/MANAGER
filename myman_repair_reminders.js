@@ -773,6 +773,7 @@
     window.getScheduledRepairReminders = getScheduledRepairReminders;
     window.getActiveRepairReminderBanners = getActiveRepairReminderBanners;
     window.renderActiveReminderBanners = renderActiveReminderBanners;
+    window.getServiceIdsFromPage = getServiceIdsFromPage;
     window.isRepairReminderBannerActive = function () {
         return !!document.getElementById('tm-repair-reminder-banner-root');
     };

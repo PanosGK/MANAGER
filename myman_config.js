@@ -16,10 +16,10 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '388',
+        version: '389',
         loaderVersion: '41',
-        silentVersion: '32',
-        displayVersion: '41.32',
+        silentVersion: '33',
+        displayVersion: '41.33',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -147,6 +147,8 @@
         REPAIR_REMINDERS: 'tm_repair_reminders_v1',
         REPAIR_REMINDER_BANNERS: 'tm_repair_reminder_active_banners_v1',
         REMINDER_HISTORY: 'tm_reminder_history_v1',
+        // Local cache of watched repairs (PocketBase is source of truth)
+        REPAIR_WATCHES_LOCAL: 'tm_repair_watches_local_v1',
 
         // Script update preferences (per profile) — loaderVersion only (not bundle)
         SKIPPED_UPDATE_VERSION: 'tm_skipped_loader_version',

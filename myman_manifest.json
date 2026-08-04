@@ -1,11 +1,11 @@
 {
-  "version": "388",
+  "version": "389",
   "loaderVersion": "41",
-  "silentVersion": "32",
-  "displayVersion": "41.32",
+  "silentVersion": "33",
+  "displayVersion": "41.33",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix order Add button disabling suite; chat mention desktop notify + search filters",
+  "releaseNotes": "Add repair whisper sticky notes and status watch pings",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
@@ -40,6 +40,7 @@
     "myman_weather.js",
     "myman_eod.js",
     "myman_repair_reminders.js",
+    "myman_repair_collab.js",
     "myman_repair_phone.js",
     "myman_footersearch.js"
   ]

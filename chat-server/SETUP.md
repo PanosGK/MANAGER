@@ -180,26 +180,76 @@ The suite upserts only changed rows (fingerprint delta), filters by login `store
 
 Shared order history auth uses the same silent PocketBase account as chat, but **does not require Chat to be enabled** in Settings — sync / Refresh work with Chat off.
 
-## 8. Backups
+## 8. Repair collab (`repair_whispers` / `repair_watches` / `repair_status`)
+
+Shared sticky notes (“Whisper”) and status watches on `service_edit.php`. Same silent auth as chat / order history (Chat toggle not required).
+
+### `repair_whispers` (one note per repair)
+
+| Field | Type | Options |
+| ----- | ---- | ------- |
+| `invoiceLinesId` | Text | **required**, max 32, **Unique** |
+| `invoiceNumber` | Text | optional, max 64 |
+| `text` | Text | optional, max **500** |
+| `updatedBy` | Text | optional, max 64 |
+| `updatedAt` | Date | optional |
+| `store` | Text | optional, max 64 |
+
+### `repair_watches` (one row per tech × repair)
+
+| Field | Type | Options |
+| ----- | ---- | ------- |
+| `watchKey` | Text | **required**, max 128, **Unique** (`userKey\|invoiceLinesId`) |
+| `invoiceLinesId` | Text | **required**, max 32 |
+| `invoiceNumber` | Text | optional, max 64 |
+| `userKey` | Text | **required**, max 64 (profile id / chat email) |
+| `displayName` | Text | optional, max 64 |
+| `lastSeenStatusId` | Text | optional, max 16 |
+| `createdAt` | Date | optional |
+
+Leave **Delete** unlocked for watches so techs can unsubscribe:
+
+- Delete: `@request.auth.id != ""`
+
+### `repair_status` (latest status per repair — for watch pings)
+
+| Field | Type | Options |
+| ----- | ---- | ------- |
+| `invoiceLinesId` | Text | **required**, max 32, **Unique** |
+| `invoiceNumber` | Text | optional, max 64 |
+| `statusId` | Text | **required**, max 16 |
+| `statusLabel` | Text | optional, max 64 |
+| `changedBy` | Text | optional, max 64 |
+| `changedAt` | Date | optional |
+
+### API rules (all three)
+
+Unlock **List / View / Create / Update** (and **Delete** on `repair_watches`) → `@request.auth.id != ""`.
+
+Optional: enable Realtime; the suite also polls watches ~every 45s.
+
+## 9. Backups
 
 Include `/mnt/NEW_APPS/APPS_MAIN/Mngr_Chat_DB` in TrueNAS periodic snapshots.
 
-## 9. Server checklist
+## 10. Server checklist
 
 - [ ] Admin UI loads
 - [ ] `messages` + attachment + avatar/pbUserId + reply/deleted/edited + **reactions** fields
 - [ ] `users.avatar` + Update/List/View rules
 - [ ] `presence` collection + rules (+ optional `avatar`, `typingUntil`)
 - [ ] `order_history` collection + unique `dedupeKey` + List/Create/Update rules
+- [ ] `repair_whispers` + `repair_watches` + `repair_status` (+ Delete on watches)
 - [ ] Realtime enabled for messages (and presence)
 - [ ] Snapshot covers chat DB dataset
 
-## 10. Suite (each tech)
+## 11. Suite (each tech)
 
 1. Update Tampermonkey loader if needed (`@connect` includes chat host).
 2. Chat is **on by default** — footer **💬 Chat**.
-3. Features in the panel: search, reply, reactions (👍/❤️), copy, @mentions, edit/delete own, presence, draft autosave, quiet hours, optional sound (Settings → Chat).
+3. Features in the panel: search, reply, reactions, copy, @mentions, edit/delete own, presence, draft autosave, quiet hours, optional sound (Settings → Chat).
 4. Profile photo: **Settings → Chat** (synced via `users.avatar` + message `pbUserId`/`avatar` + presence).
 5. Order History panel loads **only** from `order_history` (newest 200 per kind). Accept/scan upserts to the server; leftover local history migrates once then is cleared.
+6. On **repair edit**: yellow **Whisper** sticky note (shared) + **Παρακολούθηση** button (status-change pings).
 
 Display names come from the MyManager login name.

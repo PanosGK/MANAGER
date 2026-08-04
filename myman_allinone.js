@@ -5289,6 +5289,9 @@
         if (typeof window.initRepairReminderFeature === 'function') {
             window.initRepairReminderFeature(config, STORAGE_KEYS);
         }
+        if (typeof window.initRepairCollabFeature === 'function') {
+            window.initRepairCollabFeature(config, STORAGE_KEYS);
+        }
         if (config?.statusTrackingEnabled !== false) {
             initStatusCounterTracking(); // Status transfer counters
         }
