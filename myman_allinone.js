@@ -5213,13 +5213,36 @@
         // const bottomControlsContainer = document.createElement('div');
         // bottomControlsContainer.id = 'tm-bottom-center-container';
         // document.body.appendChild(bottomControlsContainer);
-        // Mascot: wait for a real user profile when login_block1 loads late (common on service_edit).
+        // Mascot: resolve persisted login name when «Είσοδος ως …» is missing (common on service_edit).
         const initMascotWhenProfileReady = () => {
+            if (typeof window.MMS_PROFILES?.activateProfileForCurrentUser === 'function') {
+                window.MMS_PROFILES.activateProfileForCurrentUser();
+            }
             const profileId = window.MMS_PROFILES?.getActiveProfileId?.()
-                || window.config?.profileId;
+                || window.config?.profileId
+                || window.tmGetActiveProfileId?.();
             if (profileId && profileId !== '_unknown') {
+                if (typeof window.refreshTamaLifespanScale === 'function') {
+                    window.refreshTamaLifespanScale();
+                }
                 initInteractiveMascot(config, STORAGE_KEYS);
                 return true;
+            }
+            // Last resort: cached display name → profile id (DOM header absent)
+            const savedName = window.tmGetLoggedInDisplayName?.({ fallback: null })
+                || window.MMS_PROFILES?.getLoggedInDisplayName?.({ fallback: null });
+            if (savedName) {
+                if (typeof window.MMS_PROFILES?.activateProfileForCurrentUser === 'function') {
+                    window.MMS_PROFILES.activateProfileForCurrentUser();
+                }
+                const retryId = window.MMS_PROFILES?.getActiveProfileId?.();
+                if (retryId && retryId !== '_unknown') {
+                    if (typeof window.refreshTamaLifespanScale === 'function') {
+                        window.refreshTamaLifespanScale();
+                    }
+                    initInteractiveMascot(config, STORAGE_KEYS);
+                    return true;
+                }
             }
             return false;
         };
@@ -5232,7 +5255,10 @@
             window.addEventListener('mms-profile-changed', onProfileReady);
             setTimeout(() => {
                 if (!window.__tmMascotInitialized) {
-                    initInteractiveMascot(config, STORAGE_KEYS);
+                    initMascotWhenProfileReady();
+                    if (!window.__tmMascotInitialized) {
+                        initInteractiveMascot(config, STORAGE_KEYS);
+                    }
                 }
             }, 2500);
         }

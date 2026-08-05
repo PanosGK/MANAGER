@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v394 / Custom Ver. 41.38 — generated, do not edit */
+/* MyManager Suite bundle v395 / Custom Ver. 41.39 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '394',
+        version: '395',
         loaderVersion: '41',
-        silentVersion: '38',
-        displayVersion: '41.38',
+        silentVersion: '39',
+        displayVersion: '41.39',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -3591,7 +3591,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function resolveProfileId(displayName) {
         const fromName = sanitizeProfileId(displayName);
-        if (fromName) return fromName;
+        if (fromName && fromName !== '_unknown') return fromName;
+        // Cached login name (pages without «Είσοδος ως …» still map to the same pet bucket)
+        const fromCache = sanitizeProfileId(loadLastDisplayName());
+        if (fromCache && fromCache !== '_unknown') return fromCache;
         // Prefer last real profile over a temporary `_unknown` bucket (avoids dual worlds).
         try {
             const last = sanitizeProfileId(NATIVE.get('tm_mms_last_profile_id', ''));
@@ -3671,27 +3674,48 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return String(text).replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
-    /** Name from #login_block1 → span → b (e.g. "Είσοδος ως Γκορόγιας" → "Γκορόγιας") */
-    function parseLoginBlockDisplayName() {
-        const loginBlock = document.getElementById('login_block1');
-        if (!loginBlock) return null;
+    /** "Είσοδος ως Γκορόγιας" → "Γκορόγιας" (also accepts a bare name). */
+    function extractLoginDisplayName(raw) {
+        const text = normalizeLoginBlockText(raw || '');
+        if (!text) return null;
+        const match = text.match(/(?:είσοδος|εισοδος)\s+ως\s+(.+)/i);
+        if (match?.[1]) return normalizeLoginBlockText(match[1]) || null;
+        if (/^(είσοδος|εισοδος)\b/i.test(text)) return null;
+        return text;
+    }
 
-        const bold = loginBlock.querySelector('b');
-        if (bold) {
-            const name = normalizeLoginBlockText(bold.textContent);
-            if (name) return name;
-        }
-
-        const span = loginBlock.querySelector('span');
-        if (span) {
-            const text = normalizeLoginBlockText(span.textContent);
-            const match = text.match(/(?:είσοδος|εισοδος)\s+ως\s+(.+)/i);
-            if (match && match[1]) {
-                return normalizeLoginBlockText(match[1]);
+    /**
+     * Live login name from the page header.
+     * Matches chat/catalog: #login_block1 and .rnr-b-loggedas (repair pages often omit the former).
+     */
+    function detectLoginDisplayNameFromDom() {
+        try {
+            const roots = [
+                document.getElementById('login_block1'),
+                document.querySelector('.rnr-b-loggedas'),
+            ].filter(Boolean);
+            for (const root of roots) {
+                const bold = root.querySelector('b');
+                if (bold) {
+                    const fromBold = extractLoginDisplayName(bold.textContent)
+                        || normalizeLoginBlockText(bold.textContent);
+                    if (fromBold) return fromBold;
+                }
+                const span = root.querySelector('span');
+                if (span) {
+                    const fromSpan = extractLoginDisplayName(span.textContent);
+                    if (fromSpan) return fromSpan;
+                }
+                const fromRoot = extractLoginDisplayName(root.textContent);
+                if (fromRoot) return fromRoot;
             }
-        }
-
+        } catch (_) { /* ignore */ }
         return null;
+    }
+
+    /** Name from #login_block1 / .rnr-b-loggedas only (no cache). */
+    function parseLoginBlockDisplayName() {
+        return detectLoginDisplayNameFromDom();
     }
 
     function loadLastDisplayName() {
@@ -3705,7 +3729,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function saveLastDisplayName(name) {
         const cleaned = normalizeLoginBlockText(name || '');
-        if (!cleaned || cleaned === '_unknown') return;
+        if (!cleaned || cleaned === '_unknown' || /^τεχνικ/i.test(cleaned)) return;
         try {
             NATIVE.set('tm_mms_last_display_name', cleaned);
         } catch (_) { /* ignore */ }
@@ -3730,8 +3754,43 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .join(' ');
     }
 
+    /**
+     * Canonical logged-in display name for chat, catalog, mascot, collab.
+     * Live DOM → persisted GM cache → runtime label. Persists whenever DOM has a name
+     * so repair pages without «Είσοδος ως …» still resolve the same user/pet.
+     */
+    function getLoggedInDisplayName(options = {}) {
+        const persist = options.persist !== false;
+        const fallback = options.fallback === undefined ? null : options.fallback;
+
+        const live = detectLoginDisplayNameFromDom();
+        if (live) {
+            if (persist) saveLastDisplayName(live);
+            return live.slice(0, 64);
+        }
+
+        const cached = loadLastDisplayName();
+        if (cached) return cached.slice(0, 64);
+
+        const runtime = extractLoginDisplayName(
+            window.tmCurrentUser
+            || activeProfileLabel
+            || window.config?.currentUser
+            || window.config?.profileLabel
+            || ''
+        );
+        if (runtime && runtime !== '_unknown') return runtime.slice(0, 64);
+
+        if (activeProfileId && activeProfileId !== '_unknown') {
+            const fromId = displayNameFromProfileId(activeProfileId);
+            if (fromId) return fromId.slice(0, 64);
+        }
+
+        return fallback;
+    }
+
     function resolveDisplayName(liveName, profileId) {
-        const live = normalizeLoginBlockText(liveName || '');
+        const live = extractLoginDisplayName(liveName || '') || normalizeLoginBlockText(liveName || '');
         if (live) {
             saveLastDisplayName(live);
             return live;
@@ -3748,7 +3807,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function detectLoggedInUser() {
-        const displayName = parseLoginBlockDisplayName();
+        // Prefer live header; otherwise the last saved login name (repair pages).
+        const displayName = getLoggedInDisplayName({ persist: true, fallback: null });
         return { displayName };
     }
 
@@ -3886,6 +3946,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         const previousProfileId = activeProfileId;
         setActiveProfile(profileId, label);
         migrateLegacyForProfile(profileId);
+
+        // Always persist identity so pages without the login header still load the right pet.
+        if (displayName) saveLastDisplayName(displayName);
+        if (profileId && profileId !== '_unknown') {
+            try { NATIVE.set('tm_mms_last_profile_id', profileId); } catch (_) { /* ignore */ }
+        }
 
         if (previousProfileId && previousProfileId !== profileId) {
             window.dispatchEvent(new CustomEvent('mms-profile-changed', {
@@ -4241,6 +4307,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         getActiveProfileLabel: () => activeProfileLabel,
         detectLoggedInUser,
         parseLoginBlockDisplayName,
+        detectLoginDisplayNameFromDom,
+        getLoggedInDisplayName,
+        loadLastDisplayName,
+        saveLastDisplayName,
         activateProfileForCurrentUser,
         syncUnscopedIntoActiveProfile,
         forceResyncFromUnscoped,
@@ -4257,6 +4327,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         listNativeStorageKeys
     };
 
+    // Aliases used by chat / repair collab / mascot init
+    window.tmGetActiveProfileId = () => activeProfileId;
+    window.tmGetLoggedInDisplayName = (options) => getLoggedInDisplayName(options);
+
     let loginBlockWatchStarted = false;
 
     function watchLoginBlock() {
@@ -4264,8 +4338,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         loginBlockWatchStarted = true;
 
         const tryActivate = () => {
-            const name = parseLoginBlockDisplayName();
+            const name = detectLoginDisplayNameFromDom();
             if (!name) return;
+            saveLastDisplayName(name);
             activateProfileForCurrentUser();
         };
 
@@ -4279,14 +4354,15 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         const scan = () => {
             attachToBlock(document.getElementById('login_block1'));
+            attachToBlock(document.querySelector('.rnr-b-loggedas'));
         };
 
         if (document.body) {
             scan();
-            if (!document.getElementById('login_block1')) {
+            if (!document.getElementById('login_block1') && !document.querySelector('.rnr-b-loggedas')) {
                 const bodyObserver = new MutationObserver(() => {
                     scan();
-                    if (document.getElementById('login_block1')) {
+                    if (document.getElementById('login_block1') || document.querySelector('.rnr-b-loggedas')) {
                         bodyObserver.disconnect();
                     }
                 });
@@ -22348,6 +22424,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function getLoginBlockDisplayName() {
         try {
+            if (typeof window.MMS_PROFILES?.getLoggedInDisplayName === 'function') {
+                const fromApi = window.MMS_PROFILES.getLoggedInDisplayName({ fallback: null });
+                const cleaned = extractLoginDisplayName(fromApi);
+                if (cleaned) return cleaned;
+            }
+        } catch (_) { /* ignore */ }
+        try {
             if (typeof window.MMS_PROFILES?.parseLoginBlockDisplayName === 'function') {
                 const fromApi = window.MMS_PROFILES.parseLoginBlockDisplayName();
                 const cleaned = extractLoginDisplayName(fromApi);
@@ -22381,6 +22464,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function getDisplayName() {
+        try {
+            if (typeof window.tmGetLoggedInDisplayName === 'function') {
+                const n = window.tmGetLoggedInDisplayName({ fallback: null });
+                if (n) return String(n).slice(0, 64);
+            }
+            if (typeof window.MMS_PROFILES?.getLoggedInDisplayName === 'function') {
+                const n = window.MMS_PROFILES.getLoggedInDisplayName({ fallback: null });
+                if (n) return String(n).slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
         const fromLogin = getLoginBlockDisplayName();
         if (fromLogin) return fromLogin.slice(0, 64);
         const name = window.tmCurrentUser
@@ -22611,8 +22704,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     function getProfileId() {
         try {
             if (typeof window.tmGetActiveProfileId === 'function') {
-                return String(window.tmGetActiveProfileId() || '').slice(0, 64);
+                const id = String(window.tmGetActiveProfileId() || '').slice(0, 64);
+                if (id && id !== '_unknown') return id;
             }
+        } catch (_) { /* ignore */ }
+        try {
+            const id = String(window.MMS_PROFILES?.getActiveProfileId?.() || window.config?.profileId || '').slice(0, 64);
+            if (id && id !== '_unknown') return id;
         } catch (_) { /* ignore */ }
         return '';
     }
@@ -65216,6 +65314,16 @@ if (document.body) {
 
     function ohDisplayName() {
         try {
+            if (typeof window.tmGetLoggedInDisplayName === 'function') {
+                const n = String(window.tmGetLoggedInDisplayName({ fallback: null }) || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+            if (typeof window.MMS_PROFILES?.getLoggedInDisplayName === 'function') {
+                const n = String(window.MMS_PROFILES.getLoggedInDisplayName({ fallback: null }) || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        try {
             if (typeof window.MMS_PROFILES?.parseLoginBlockDisplayName === 'function') {
                 const n = String(window.MMS_PROFILES.parseLoginBlockDisplayName() || '').trim();
                 if (n) return n.slice(0, 64);
@@ -71812,6 +71920,16 @@ if (typeof window !== 'undefined') {
     }
 
     function getDisplayName() {
+        try {
+            if (typeof window.tmGetLoggedInDisplayName === 'function') {
+                const n = String(window.tmGetLoggedInDisplayName({ fallback: null }) || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+            if (typeof window.MMS_PROFILES?.getLoggedInDisplayName === 'function') {
+                const n = String(window.MMS_PROFILES.getLoggedInDisplayName({ fallback: null }) || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
         try {
             if (typeof window.MMS_PROFILES?.parseLoginBlockDisplayName === 'function') {
                 const n = String(window.MMS_PROFILES.parseLoginBlockDisplayName() || '').trim();
@@ -78461,13 +78579,36 @@ if (typeof window !== 'undefined') {
         // const bottomControlsContainer = document.createElement('div');
         // bottomControlsContainer.id = 'tm-bottom-center-container';
         // document.body.appendChild(bottomControlsContainer);
-        // Mascot: wait for a real user profile when login_block1 loads late (common on service_edit).
+        // Mascot: resolve persisted login name when «Είσοδος ως …» is missing (common on service_edit).
         const initMascotWhenProfileReady = () => {
+            if (typeof window.MMS_PROFILES?.activateProfileForCurrentUser === 'function') {
+                window.MMS_PROFILES.activateProfileForCurrentUser();
+            }
             const profileId = window.MMS_PROFILES?.getActiveProfileId?.()
-                || window.config?.profileId;
+                || window.config?.profileId
+                || window.tmGetActiveProfileId?.();
             if (profileId && profileId !== '_unknown') {
+                if (typeof window.refreshTamaLifespanScale === 'function') {
+                    window.refreshTamaLifespanScale();
+                }
                 initInteractiveMascot(config, STORAGE_KEYS);
                 return true;
+            }
+            // Last resort: cached display name → profile id (DOM header absent)
+            const savedName = window.tmGetLoggedInDisplayName?.({ fallback: null })
+                || window.MMS_PROFILES?.getLoggedInDisplayName?.({ fallback: null });
+            if (savedName) {
+                if (typeof window.MMS_PROFILES?.activateProfileForCurrentUser === 'function') {
+                    window.MMS_PROFILES.activateProfileForCurrentUser();
+                }
+                const retryId = window.MMS_PROFILES?.getActiveProfileId?.();
+                if (retryId && retryId !== '_unknown') {
+                    if (typeof window.refreshTamaLifespanScale === 'function') {
+                        window.refreshTamaLifespanScale();
+                    }
+                    initInteractiveMascot(config, STORAGE_KEYS);
+                    return true;
+                }
             }
             return false;
         };
@@ -78480,7 +78621,10 @@ if (typeof window !== 'undefined') {
             window.addEventListener('mms-profile-changed', onProfileReady);
             setTimeout(() => {
                 if (!window.__tmMascotInitialized) {
-                    initInteractiveMascot(config, STORAGE_KEYS);
+                    initMascotWhenProfileReady();
+                    if (!window.__tmMascotInitialized) {
+                        initInteractiveMascot(config, STORAGE_KEYS);
+                    }
                 }
             }, 2500);
         }

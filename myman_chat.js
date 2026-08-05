@@ -1686,6 +1686,13 @@
 
     function getLoginBlockDisplayName() {
         try {
+            if (typeof window.MMS_PROFILES?.getLoggedInDisplayName === 'function') {
+                const fromApi = window.MMS_PROFILES.getLoggedInDisplayName({ fallback: null });
+                const cleaned = extractLoginDisplayName(fromApi);
+                if (cleaned) return cleaned;
+            }
+        } catch (_) { /* ignore */ }
+        try {
             if (typeof window.MMS_PROFILES?.parseLoginBlockDisplayName === 'function') {
                 const fromApi = window.MMS_PROFILES.parseLoginBlockDisplayName();
                 const cleaned = extractLoginDisplayName(fromApi);
@@ -1719,6 +1726,16 @@
     }
 
     function getDisplayName() {
+        try {
+            if (typeof window.tmGetLoggedInDisplayName === 'function') {
+                const n = window.tmGetLoggedInDisplayName({ fallback: null });
+                if (n) return String(n).slice(0, 64);
+            }
+            if (typeof window.MMS_PROFILES?.getLoggedInDisplayName === 'function') {
+                const n = window.MMS_PROFILES.getLoggedInDisplayName({ fallback: null });
+                if (n) return String(n).slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
         const fromLogin = getLoginBlockDisplayName();
         if (fromLogin) return fromLogin.slice(0, 64);
         const name = window.tmCurrentUser
@@ -1949,8 +1966,13 @@
     function getProfileId() {
         try {
             if (typeof window.tmGetActiveProfileId === 'function') {
-                return String(window.tmGetActiveProfileId() || '').slice(0, 64);
+                const id = String(window.tmGetActiveProfileId() || '').slice(0, 64);
+                if (id && id !== '_unknown') return id;
             }
+        } catch (_) { /* ignore */ }
+        try {
+            const id = String(window.MMS_PROFILES?.getActiveProfileId?.() || window.config?.profileId || '').slice(0, 64);
+            if (id && id !== '_unknown') return id;
         } catch (_) { /* ignore */ }
         return '';
     }

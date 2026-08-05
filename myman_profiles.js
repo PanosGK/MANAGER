@@ -61,7 +61,10 @@
 
     function resolveProfileId(displayName) {
         const fromName = sanitizeProfileId(displayName);
-        if (fromName) return fromName;
+        if (fromName && fromName !== '_unknown') return fromName;
+        // Cached login name (pages without «Είσοδος ως …» still map to the same pet bucket)
+        const fromCache = sanitizeProfileId(loadLastDisplayName());
+        if (fromCache && fromCache !== '_unknown') return fromCache;
         // Prefer last real profile over a temporary `_unknown` bucket (avoids dual worlds).
         try {
             const last = sanitizeProfileId(NATIVE.get('tm_mms_last_profile_id', ''));
@@ -141,27 +144,48 @@
         return String(text).replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
-    /** Name from #login_block1 → span → b (e.g. "Είσοδος ως Γκορόγιας" → "Γκορόγιας") */
-    function parseLoginBlockDisplayName() {
-        const loginBlock = document.getElementById('login_block1');
-        if (!loginBlock) return null;
+    /** "Είσοδος ως Γκορόγιας" → "Γκορόγιας" (also accepts a bare name). */
+    function extractLoginDisplayName(raw) {
+        const text = normalizeLoginBlockText(raw || '');
+        if (!text) return null;
+        const match = text.match(/(?:είσοδος|εισοδος)\s+ως\s+(.+)/i);
+        if (match?.[1]) return normalizeLoginBlockText(match[1]) || null;
+        if (/^(είσοδος|εισοδος)\b/i.test(text)) return null;
+        return text;
+    }
 
-        const bold = loginBlock.querySelector('b');
-        if (bold) {
-            const name = normalizeLoginBlockText(bold.textContent);
-            if (name) return name;
-        }
-
-        const span = loginBlock.querySelector('span');
-        if (span) {
-            const text = normalizeLoginBlockText(span.textContent);
-            const match = text.match(/(?:είσοδος|εισοδος)\s+ως\s+(.+)/i);
-            if (match && match[1]) {
-                return normalizeLoginBlockText(match[1]);
+    /**
+     * Live login name from the page header.
+     * Matches chat/catalog: #login_block1 and .rnr-b-loggedas (repair pages often omit the former).
+     */
+    function detectLoginDisplayNameFromDom() {
+        try {
+            const roots = [
+                document.getElementById('login_block1'),
+                document.querySelector('.rnr-b-loggedas'),
+            ].filter(Boolean);
+            for (const root of roots) {
+                const bold = root.querySelector('b');
+                if (bold) {
+                    const fromBold = extractLoginDisplayName(bold.textContent)
+                        || normalizeLoginBlockText(bold.textContent);
+                    if (fromBold) return fromBold;
+                }
+                const span = root.querySelector('span');
+                if (span) {
+                    const fromSpan = extractLoginDisplayName(span.textContent);
+                    if (fromSpan) return fromSpan;
+                }
+                const fromRoot = extractLoginDisplayName(root.textContent);
+                if (fromRoot) return fromRoot;
             }
-        }
-
+        } catch (_) { /* ignore */ }
         return null;
+    }
+
+    /** Name from #login_block1 / .rnr-b-loggedas only (no cache). */
+    function parseLoginBlockDisplayName() {
+        return detectLoginDisplayNameFromDom();
     }
 
     function loadLastDisplayName() {
@@ -175,7 +199,7 @@
 
     function saveLastDisplayName(name) {
         const cleaned = normalizeLoginBlockText(name || '');
-        if (!cleaned || cleaned === '_unknown') return;
+        if (!cleaned || cleaned === '_unknown' || /^τεχνικ/i.test(cleaned)) return;
         try {
             NATIVE.set('tm_mms_last_display_name', cleaned);
         } catch (_) { /* ignore */ }
@@ -200,8 +224,43 @@
             .join(' ');
     }
 
+    /**
+     * Canonical logged-in display name for chat, catalog, mascot, collab.
+     * Live DOM → persisted GM cache → runtime label. Persists whenever DOM has a name
+     * so repair pages without «Είσοδος ως …» still resolve the same user/pet.
+     */
+    function getLoggedInDisplayName(options = {}) {
+        const persist = options.persist !== false;
+        const fallback = options.fallback === undefined ? null : options.fallback;
+
+        const live = detectLoginDisplayNameFromDom();
+        if (live) {
+            if (persist) saveLastDisplayName(live);
+            return live.slice(0, 64);
+        }
+
+        const cached = loadLastDisplayName();
+        if (cached) return cached.slice(0, 64);
+
+        const runtime = extractLoginDisplayName(
+            window.tmCurrentUser
+            || activeProfileLabel
+            || window.config?.currentUser
+            || window.config?.profileLabel
+            || ''
+        );
+        if (runtime && runtime !== '_unknown') return runtime.slice(0, 64);
+
+        if (activeProfileId && activeProfileId !== '_unknown') {
+            const fromId = displayNameFromProfileId(activeProfileId);
+            if (fromId) return fromId.slice(0, 64);
+        }
+
+        return fallback;
+    }
+
     function resolveDisplayName(liveName, profileId) {
-        const live = normalizeLoginBlockText(liveName || '');
+        const live = extractLoginDisplayName(liveName || '') || normalizeLoginBlockText(liveName || '');
         if (live) {
             saveLastDisplayName(live);
             return live;
@@ -218,7 +277,8 @@
     }
 
     function detectLoggedInUser() {
-        const displayName = parseLoginBlockDisplayName();
+        // Prefer live header; otherwise the last saved login name (repair pages).
+        const displayName = getLoggedInDisplayName({ persist: true, fallback: null });
         return { displayName };
     }
 
@@ -356,6 +416,12 @@
         const previousProfileId = activeProfileId;
         setActiveProfile(profileId, label);
         migrateLegacyForProfile(profileId);
+
+        // Always persist identity so pages without the login header still load the right pet.
+        if (displayName) saveLastDisplayName(displayName);
+        if (profileId && profileId !== '_unknown') {
+            try { NATIVE.set('tm_mms_last_profile_id', profileId); } catch (_) { /* ignore */ }
+        }
 
         if (previousProfileId && previousProfileId !== profileId) {
             window.dispatchEvent(new CustomEvent('mms-profile-changed', {
@@ -711,6 +777,10 @@
         getActiveProfileLabel: () => activeProfileLabel,
         detectLoggedInUser,
         parseLoginBlockDisplayName,
+        detectLoginDisplayNameFromDom,
+        getLoggedInDisplayName,
+        loadLastDisplayName,
+        saveLastDisplayName,
         activateProfileForCurrentUser,
         syncUnscopedIntoActiveProfile,
         forceResyncFromUnscoped,
@@ -727,6 +797,10 @@
         listNativeStorageKeys
     };
 
+    // Aliases used by chat / repair collab / mascot init
+    window.tmGetActiveProfileId = () => activeProfileId;
+    window.tmGetLoggedInDisplayName = (options) => getLoggedInDisplayName(options);
+
     let loginBlockWatchStarted = false;
 
     function watchLoginBlock() {
@@ -734,8 +808,9 @@
         loginBlockWatchStarted = true;
 
         const tryActivate = () => {
-            const name = parseLoginBlockDisplayName();
+            const name = detectLoginDisplayNameFromDom();
             if (!name) return;
+            saveLastDisplayName(name);
             activateProfileForCurrentUser();
         };
 
@@ -749,14 +824,15 @@
 
         const scan = () => {
             attachToBlock(document.getElementById('login_block1'));
+            attachToBlock(document.querySelector('.rnr-b-loggedas'));
         };
 
         if (document.body) {
             scan();
-            if (!document.getElementById('login_block1')) {
+            if (!document.getElementById('login_block1') && !document.querySelector('.rnr-b-loggedas')) {
                 const bodyObserver = new MutationObserver(() => {
                     scan();
-                    if (document.getElementById('login_block1')) {
+                    if (document.getElementById('login_block1') || document.querySelector('.rnr-b-loggedas')) {
                         bodyObserver.disconnect();
                     }
                 });

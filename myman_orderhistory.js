@@ -235,6 +235,16 @@
 
     function ohDisplayName() {
         try {
+            if (typeof window.tmGetLoggedInDisplayName === 'function') {
+                const n = String(window.tmGetLoggedInDisplayName({ fallback: null }) || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+            if (typeof window.MMS_PROFILES?.getLoggedInDisplayName === 'function') {
+                const n = String(window.MMS_PROFILES.getLoggedInDisplayName({ fallback: null }) || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        try {
             if (typeof window.MMS_PROFILES?.parseLoginBlockDisplayName === 'function') {
                 const n = String(window.MMS_PROFILES.parseLoginBlockDisplayName() || '').trim();
                 if (n) return n.slice(0, 64);
