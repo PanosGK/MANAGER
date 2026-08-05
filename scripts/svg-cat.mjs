@@ -1,118 +1,138 @@
 /**
- * Moonfang Oracle — cat mascot SVG (dense cute epic v4 · feline boss)
- * Distinct from dragon/phoenix: triangular ears, slit pupils, pink nose,
- * whiskers, fluffy S-tail, midnight lunar palette (not orange fire).
- * Export for apply-cute-epic-svgs.mjs → myman_mascot.js
+ * Selene Line — CAT reimagined from scratch (v10)
+ *
+ * A creature born OF moonlight, not a cat wearing moon marks.
+ * New palette (ice-blue silver on midnight ink, no purple/pink),
+ * new anatomy, new silhouettes:
+ *   evo1 — Lunar Wisp:   moon-spirit kitten condensing from mist,
+ *                        lower body dissolves into curls of light
+ *   evo2 — Moon Warden:  slender upright sentinel (Bastet poise),
+ *                        tail wrapped around the base, glowing tip
+ *   evo3 — Selene Oracle: guardian feline enthroned before a full-moon
+ *                        halo, mane of light tongues, star-marked chest
+ *
+ * Run: node scripts/svg-cat.mjs
  */
+import fs from 'fs';
+
 const I = '                ';
-const I2 = I + '    ';
-const I3 = I2 + '    ';
-const I4 = I3 + '    ';
+const I2 = `${I}    `;
+const I3 = `${I2}    `;
+const I4 = `${I3}    `;
 
 const STAGES = ['evo1', 'evo2', 'evo3'];
-const STAGE_LABEL = {
-  baby: 'EVO1', evo1: 'KID', evo2: 'TEEN', evo3: 'EVO2', evo4: 'EVO3', evo5: 'OLD',
-};
+const HOOKS = [
+  'tm-animate-body', 'tm-animate-arm-left', 'tm-animate-arm-right',
+  'tm-animate-leg-left', 'tm-animate-leg-right', 'tm-animate-tail',
+  'tm-animate-wing-left', 'tm-animate-wing-right',
+  'tm-mascot-eye-open', 'tm-mascot-eye-closed',
+  'tm-mascot-mouth-happy', 'tm-mascot-mouth-sad',
+];
 
-function grad(id, stops, type = 'radial', attrs) {
+// ── Palette: midnight ink + ice moonlight ──────────────────────────
+const INK = '#070b1a';        // outline
+const LIGHT = '#dfe9ff';      // brightest moonlight
+const BEAM = '#9fc0ff';       // mid glow
+const FROST = '#7fd8ff';      // cyan accent (inner ears, brands)
+
+function grad(id, stops, type = 'radial', attrs = 'cx="40%" cy="30%" r="70%"') {
   const tag = type === 'linear' ? 'linearGradient' : 'radialGradient';
-  const defAttrs = attrs
-    || (type === 'linear' ? 'x1="0%" y1="0%" x2="0%" y2="100%"' : 'cx="38%" cy="28%" r="75%"');
   const stopLines = stops.map(([o, c, a = 1]) =>
     `${I4}<stop offset="${o}" style="stop-color:${c};stop-opacity:${a}" />`).join('\n');
-  return `${I3}<${tag} id="${id}" ${defAttrs}>\n${stopLines}\n${I3}</${tag}>`;
+  return `${I3}<${tag} id="${id}" ${attrs}>\n${stopLines}\n${I3}</${tag}>`;
 }
 
-/** Almond cat eyes with vertical slit pupils (boss look on adult+) */
-function catEyes(lx, rx, cy, rxE, ryE, irisRef, stroke, {
-  slit = false, halfLidded = false, glow = '#e8f5ff',
-} = {}) {
-  const irisRx = (rxE * 0.52).toFixed(1);
-  const irisRy = (ryE * 0.72).toFixed(1);
-  const slitW = Math.max(0.9, rxE * (slit ? 0.14 : 0.22)).toFixed(1);
-  const slitH = (ryE * (slit ? 0.62 : 0.42)).toFixed(1);
-  const lidL = halfLidded
-    ? `${I4}<path d="M ${lx - rxE - 0.4} ${cy - 0.5} Q ${lx} ${cy - ryE * 0.7} ${lx + rxE + 0.4} ${cy - 0.5}" fill="${stroke}" opacity="0.78"/>
-${I4}<path d="M ${rx - rxE - 0.4} ${cy - 0.5} Q ${rx} ${cy - ryE * 0.7} ${rx + rxE + 0.4} ${cy - 0.5}" fill="${stroke}" opacity="0.78"/>`
-    : '';
+/** Shared defs for the whole line. */
+function lineDefs(p, opts = {}) {
+  const parts = [
+    grad(`${p}-body`, [
+      ['0%', '#3a4a7e', 1],
+      ['35%', '#1c2650', 1],
+      ['70%', '#0e142e', 1],
+      ['100%', '#05070f', 1],
+    ], 'radial', 'cx="38%" cy="26%" r="75%"'),
+    grad(`${p}-sheen`, [
+      ['0%', LIGHT, 0.75],
+      ['100%', BEAM, 0],
+    ], 'radial', 'cx="42%" cy="25%" r="60%"'),
+    grad(`${p}-iris`, [
+      ['0%', '#ffffff'],
+      ['35%', '#cfe4ff'],
+      ['70%', '#5f8dff'],
+      ['100%', '#12245e'],
+    ], 'radial', 'cx="38%" cy="32%" r="62%"'),
+    grad(`${p}-mist`, [
+      ['0%', BEAM, 0.35],
+      ['55%', BEAM, 0.12],
+      ['100%', BEAM, 0],
+    ], 'radial', 'cx="50%" cy="45%" r="55%"'),
+    grad(`${p}-moonfill`, [
+      ['0%', '#ffffff', 0.95],
+      ['55%', LIGHT, 0.8],
+      ['100%', BEAM, 0.35],
+    ], 'radial', 'cx="38%" cy="32%" r="62%"'),
+  ];
+  if (opts.eyeglow) {
+    parts.push(grad(`${p}-eyeglow`, [
+      ['0%', BEAM, 0.6],
+      ['100%', BEAM, 0],
+    ], 'radial', 'cx="50%" cy="50%" r="50%"'));
+  }
+  if (opts.halo) {
+    parts.push(grad(`${p}-halo`, [
+      ['0%', '#ffffff', 0.5],
+      ['55%', LIGHT, 0.28],
+      ['82%', BEAM, 0.12],
+      ['100%', BEAM, 0],
+    ], 'radial', 'cx="50%" cy="50%" r="50%"'));
+  }
+  return parts.join('\n');
+}
+
+/** Crescent moon path (opens right). */
+function crescent(cx, cy, r) {
+  return `M ${cx} ${cy - r} A ${r} ${r} 0 1 0 ${cx} ${cy + r} A ${r * 0.72} ${r * 0.72} 0 1 1 ${cx} ${cy - r} Z`;
+}
+
+function star(x, y, r, color = LIGHT, op = 0.5) {
+  return `${I4}<circle cx="${x}" cy="${y}" r="${r}" fill="${color}" opacity="${op}"/>`;
+}
+
+/** Glowing lens eyes — no dark sclera, pure moonlight lenses with slit pupils. */
+function moonEyes(p, lx, rx, cy, w, h, opts = {}) {
+  const glow = opts.glow ?? false;
+  const lens = (x) => `${I4}<path d="M ${x - w} ${cy} Q ${x} ${cy - h * 1.25} ${x + w} ${cy} Q ${x} ${cy + h * 1.25} ${x - w} ${cy} Z" fill="url(#${p}-iris)" stroke="${INK}" stroke-width="0.9"/>
+${I4}<ellipse cx="${x}" cy="${cy}" rx="${Math.max(0.65, w * 0.16)}" ry="${h * 0.85}" fill="#02040c"/>
+${I4}<circle cx="${x - w * 0.35}" cy="${cy - h * 0.35}" r="${Math.max(0.5, w * 0.14)}" fill="#ffffff" opacity="0.85"/>`;
   return `${I3}<g class="tm-mascot-eye-open">
-${I4}<ellipse cx="${lx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="#f8fbff" stroke="${stroke}" stroke-width="1.45"/>
-${I4}<ellipse cx="${lx + 0.3}" cy="${cy + 0.4}" rx="${irisRx}" ry="${irisRy}" fill="${irisRef}"/>
-${I4}<ellipse cx="${lx + 0.35}" cy="${cy + 0.5}" rx="${slitW}" ry="${slitH}" fill="#0a0614"/>
-${I4}<circle cx="${(lx + 1.4).toFixed(1)}" cy="${(cy - ryE * 0.28).toFixed(1)}" r="${Math.max(1.2, rxE * 0.28).toFixed(1)}" fill="${glow}" opacity="0.95"/>
-${I4}<circle cx="${(lx - 0.9).toFixed(1)}" cy="${(cy + ryE * 0.3).toFixed(1)}" r="${Math.max(0.55, rxE * 0.12).toFixed(1)}" fill="${glow}" opacity="0.5"/>
-${I4}<ellipse cx="${rx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="#f8fbff" stroke="${stroke}" stroke-width="1.45"/>
-${I4}<ellipse cx="${rx + 0.3}" cy="${cy + 0.4}" rx="${irisRx}" ry="${irisRy}" fill="${irisRef}"/>
-${I4}<ellipse cx="${rx + 0.35}" cy="${cy + 0.5}" rx="${slitW}" ry="${slitH}" fill="#0a0614"/>
-${I4}<circle cx="${(rx + 1.4).toFixed(1)}" cy="${(cy - ryE * 0.28).toFixed(1)}" r="${Math.max(1.2, rxE * 0.28).toFixed(1)}" fill="${glow}" opacity="0.95"/>
-${I4}<circle cx="${(rx - 0.9).toFixed(1)}" cy="${(cy + ryE * 0.3).toFixed(1)}" r="${Math.max(0.55, rxE * 0.12).toFixed(1)}" fill="${glow}" opacity="0.5"/>
-${lidL}
+${glow ? `${I4}<ellipse cx="${lx}" cy="${cy}" rx="${w * 1.8}" ry="${h * 1.9}" fill="url(#${p}-eyeglow)"/>
+${I4}<ellipse cx="${rx}" cy="${cy}" rx="${w * 1.8}" ry="${h * 1.9}" fill="url(#${p}-eyeglow)"/>` : ''}
+${lens(lx)}
+${lens(rx)}
 ${I3}</g>
 ${I3}<g class="tm-mascot-eye-closed" style="display:none;">
-${I4}<path d="M ${lx - rxE} ${cy} Q ${lx} ${cy - 3.2} ${lx + rxE} ${cy}" stroke="${stroke}" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-${I4}<path d="M ${rx - rxE} ${cy} Q ${rx} ${cy - 3.2} ${rx + rxE} ${cy}" stroke="${stroke}" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+${I4}<path d="M ${lx - w} ${cy} Q ${lx} ${cy + 2} ${lx + w} ${cy}" stroke="${BEAM}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+${I4}<path d="M ${rx - w} ${cy} Q ${rx} ${cy + 2} ${rx + w} ${cy}" stroke="${BEAM}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
 ${I3}</g>`;
 }
 
-/** Classic cat mouth (:3) — happy / sad path hooks */
-function catMouths(y, stroke, span = 6) {
-  return `${I3}<path class="tm-mascot-mouth-happy" d="M ${50 - span} ${y} Q ${50 - span / 2} ${y + 4.5} 50 ${y + 1.5} Q ${50 + span / 2} ${y + 4.5} ${50 + span} ${y}" stroke="${stroke}" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="M ${50 - span} ${y + 3} Q 50 ${y - 2.5} ${50 + span} ${y + 3}" stroke="${stroke}" stroke-width="1.9" fill="none" stroke-linecap="round"/>`;
+/** Mouths in moonlight silver (faces are dark). */
+function moonMouths(cx, y, span = 3.4) {
+  return `${I3}<path class="tm-mascot-mouth-happy" d="M ${cx - span} ${y} Q ${cx - span * 0.4} ${y + 1.9} ${cx} ${y + 0.7} Q ${cx + span * 0.4} ${y + 1.9} ${cx + span} ${y}" stroke="${BEAM}" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="M ${cx - span} ${y + 1.4} Q ${cx} ${y - 1.2} ${cx + span} ${y + 1.4}" stroke="${BEAM}" stroke-width="1.2" fill="none" stroke-linecap="round"/>`;
 }
 
-function pinkNose(cx, cy, scale = 1) {
-  const s = scale;
-  return `${I4}<path d="M ${cx} ${cy - 1.2 * s} L ${cx - 2.4 * s} ${cy + 1.6 * s} L ${cx + 2.4 * s} ${cy + 1.6 * s} Z" fill="#ff8fab" stroke="#e91e63" stroke-width="0.7"/>
-${I4}<ellipse cx="${cx}" cy="${cy + 0.2 * s}" rx="${0.7 * s}" ry="${0.45 * s}" fill="#fff" opacity="0.45"/>`;
+function moonNose(cx, cy, s = 1) {
+  return `${I4}<path d="M ${cx} ${cy - 0.9 * s} L ${cx - 1.6 * s} ${cy + 1 * s} L ${cx + 1.6 * s} ${cy + 1 * s} Z" fill="${BEAM}" opacity="0.9"/>`;
 }
 
-function cheekBlush(id, cxL, cxR, cy, r = 4.2) {
-  return `${I4}<circle cx="${cxL}" cy="${cy}" r="${r}" fill="url(#${id})"/>
-${I4}<circle cx="${cxR}" cy="${cy}" r="${r}" fill="url(#${id})"/>`;
+function moonWhiskers(cx, y, len = 10, gap = 5) {
+  return `${I4}<path d="M ${cx - gap} ${y - 1} L ${cx - gap - len} ${y - 3} M ${cx - gap} ${y + 0.5} L ${cx - gap - len + 1} ${y + 1} M ${cx - gap} ${y + 2} L ${cx - gap - len + 2} ${y + 4}" stroke="${LIGHT}" stroke-width="0.6" opacity="0.6" stroke-linecap="round"/>
+${I4}<path d="M ${cx + gap} ${y - 1} L ${cx + gap + len} ${y - 3} M ${cx + gap} ${y + 0.5} L ${cx + gap + len - 1} ${y + 1} M ${cx + gap} ${y + 2} L ${cx + gap + len - 2} ${y + 4}" stroke="${LIGHT}" stroke-width="0.6" opacity="0.6" stroke-linecap="round"/>`;
 }
 
-function whiskers(yBase, long = false, stroke = '#e8eaf6') {
-  const ext = long ? 17 : 13;
-  const ext2 = long ? 15 : 12;
-  return `${I4}<!-- Whiskers -->
-${I4}<path d="M 41 ${yBase - 2} L ${41 - ext} ${yBase - 4} M 41 ${yBase} L ${41 - ext2} ${yBase} M 41 ${yBase + 2} L ${41 - ext + 1} ${yBase + 4}" stroke="${stroke}" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
-${I4}<path d="M 59 ${yBase - 2} L ${59 + ext} ${yBase - 4} M 59 ${yBase} L ${59 + ext2} ${yBase} M 59 ${yBase + 2} L ${59 + ext - 1} ${yBase + 4}" stroke="${stroke}" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>`;
-}
-
-function toeBeans(cx, cy, scale = 1) {
-  const s = scale;
-  return `${I4}<ellipse cx="${cx}" cy="${cy + 1.1 * s}" rx="${4.2 * s}" ry="${2.6 * s}" fill="#f8bbd0" opacity="0.9"/>
-${I4}<circle cx="${cx - 2.1 * s}" cy="${cy + 0.3 * s}" r="${0.95 * s}" fill="#ff6090" opacity="0.8"/>
-${I4}<circle cx="${cx}" cy="${cy}" r="${0.95 * s}" fill="#ff6090" opacity="0.8"/>
-${I4}<circle cx="${cx + 2.1 * s}" cy="${cy + 0.3 * s}" r="${0.95 * s}" fill="#ff6090" opacity="0.8"/>`;
-}
-
-/** Big triangular cat ears (signature feline silhouette) */
-function catEars(p, stroke, headY, tipY, size = 'md') {
-  const spread = size === 'lg' ? 10 : size === 'sm' ? 6 : 8;
-  const tipLift = size === 'lg' ? tipY - 2 : tipY;
-  return `${I4}<!-- Cat ears -->
-${I4}<path d="M ${34 - spread * 0.1} ${headY - 2} L ${26 - spread * 0.15} ${tipLift} L ${42} ${headY - 7} Z" fill="url(#${p}-fur)" stroke="${stroke}" stroke-width="1.35"/>
-${I4}<path d="M ${34} ${headY - 3} L ${29 - spread * 0.1} ${tipLift + 6} L ${38} ${headY - 5.5} Z" fill="url(#${p}-ear)" opacity="0.92"/>
-${I4}<path d="M ${66 + spread * 0.1} ${headY - 2} L ${74 + spread * 0.15} ${tipLift} L ${58} ${headY - 7} Z" fill="url(#${p}-fur)" stroke="${stroke}" stroke-width="1.35"/>
-${I4}<path d="M ${66} ${headY - 3} L ${71 + spread * 0.1} ${tipLift + 6} L ${62} ${headY - 5.5} Z" fill="url(#${p}-ear)" opacity="0.92"/>`;
-}
-
-function moonCrest(accent, y = 10, boss = false) {
-  if (!boss) {
-    return `${I4}<!-- Tiny moon mark -->
-${I4}<path d="M 50 ${y} A 4 4 0 1 1 50 ${y + 7.5} A 3.2 3.2 0 1 0 50 ${y}" fill="${accent}" opacity="0.85"/>`;
-  }
-  return `${I4}<!-- Boss moon crown -->
-${I4}<path d="M 36 ${y + 6} Q 50 ${y - 2} 64 ${y + 6}" fill="none" stroke="${accent}" stroke-width="1.6" opacity="0.85"/>
-${I4}<path d="M 50 ${y - 1} A 5.5 5.5 0 1 1 50 ${y + 9} A 4.2 4.2 0 1 0 50 ${y - 1}" fill="#fffde7" opacity="0.9"/>
-${I4}<circle cx="38" cy="${y + 5}" r="1.6" fill="#fff" opacity="0.7"/>
-${I4}<circle cx="62" cy="${y + 5}" r="1.6" fill="#fff" opacity="0.7"/>
-${I4}<circle cx="50" cy="${y - 4}" r="1.3" fill="${accent}" opacity="0.75"/>`;
-}
-
-function wrapStage(stage, title, defs, body) {
-  return `${I}<!-- CAT ${STAGE_LABEL[stage]} — ${title} -->
+function wrapStage(stage, label, defs, body) {
+  return `${I}<!-- CAT ${stage.toUpperCase()} — ${label} -->
 ${I}<g id="tm-mascot-${stage}-cat" style="display: none;">
 ${I2}<defs>
 ${defs}
@@ -122,252 +142,325 @@ ${I}</g>
 `;
 }
 
-function catStage(stage) {
-  const p = `cat-${stage === 'evo1' ? 'kid' : stage === 'evo2' ? 'teen' : stage === 'evo3' ? 'adult' : stage === 'evo4' ? 'mid' : stage === 'evo5' ? 'old' : 'baby'}`;
-  const titles = {
-    baby: 'moon kitten',
-    evo1: 'shadow cub',
-    evo2: 'omen stalker',
-    evo3: 'Moonfang Oracle',
-    evo4: 'scarred omen lord',
-    evo5: 'silver moon sage',
-  };
+/**
+ * evo1 — Lunar Wisp
+ * A kitten-spirit condensing out of moon mist. Solid head and chest,
+ * lower body dissolving into curls of light. Floats — no true legs.
+ */
+function evo1() {
+  const p = 'cat-evo1';
+  const defs = lineDefs(p);
 
-  // Midnight lunar palette — NOT dragon/phoenix orange
-  const fur = stage === 'evo5'
-    ? [['0%', '#eceff1'], ['35%', '#b0bec5'], ['70%', '#78909c'], ['100%', '#455a64']]
-    : stage === 'evo4'
-      ? [['0%', '#5c6bc0'], ['30%', '#3949ab'], ['65%', '#283593'], ['100%', '#1a237e']]
-      : stage === 'evo3'
-        ? [['0%', '#7e57c2'], ['25%', '#5e35b1'], ['55%', '#311b92'], ['85%', '#1a0a2e'], ['100%', '#0d0221']]
-        : stage === 'evo2'
-          ? [['0%', '#9575cd'], ['40%', '#5e35b1'], ['100%', '#311b92']]
-          : stage === 'evo1'
-            ? [['0%', '#b39ddb'], ['40%', '#7e57c2'], ['100%', '#4527a0']]
-            : [['0%', '#ce93d8'], ['35%', '#ab47bc'], ['70%', '#7b1fa2'], ['100%', '#4a148c']];
+  const body = `${I3}<ellipse cx="50" cy="88" rx="16" ry="2.6" fill="#04060e" opacity="0.4"/>
+${I3}<ellipse cx="50" cy="52" rx="34" ry="36" fill="url(#${p}-mist)"/>
+${I3}<!-- Small crescent companion -->
+${I3}<path d="${crescent(76, 22, 7)}" fill="url(#${p}-moonfill)" opacity="0.8"/>
 
-  const stroke = stage === 'evo5' ? '#546e7a'
-    : stage === 'evo4' ? '#1a237e'
-      : stage === 'evo3' ? '#12002b'
-        : stage === 'evo2' ? '#311b92'
-          : '#4a148c';
-
-  const accent = stage === 'evo5' ? '#b3e5fc'
-    : stage === 'evo4' ? '#ffd54f'
-      : '#f48fb1';
-
-  const irisStops = stage === 'evo5'
-    ? [['0%', '#e0f7fa'], ['50%', '#4dd0e1'], ['100%', '#006064']]
-    : stage === 'evo3' || stage === 'evo4'
-      ? [['0%', '#fff59d'], ['40%', '#ffd54f'], ['100%', '#f57f17']]
-      : [['0%', '#e1bee7'], ['45%', '#ce93d8'], ['100%', '#6a1b9a']];
-
-  const defs = [
-    grad(`${p}-fur`, fur),
-    grad(`${p}-belly`, [['0%', '#f3e5f5'], ['55%', '#e1bee7'], ['100%', '#ce93d8']], 'radial', 'cx="50%" cy="35%" r="65%"'),
-    grad(`${p}-iris`, irisStops, 'radial', 'cx="35%" cy="28%" r="68%"'),
-    grad(`${p}-ear`, [['0%', '#f8bbd0'], ['100%', '#ad1457']], 'linear'),
-    grad(`${p}-cheek`, [['0%', '#f48fb1', 0.55], ['100%', '#f48fb1', 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
-    grad(`${p}-aura`, [['0%', '#b39ddb', 0.38], ['45%', '#7e57c2', 0.2], ['100%', '#311b92', 0]], 'radial', 'cx="50%" cy="45%" r="55%"'),
-    grad(`${p}-mane`, [['0%', '#e1bee7', 0.7], ['50%', '#7e57c2', 0.35], ['100%', '#311b92', 0]], 'radial', 'cx="50%" cy="40%" r="55%"'),
-    grad(`${p}-tail-tip`, [['0%', '#fff'], ['60%', accent], ['100%', accent]], 'radial', 'cx="50%" cy="40%" r="55%"'),
-  ].join('\n');
-
-  const cfg = {
-    baby: {
-      bodyY: 68, bodyRx: 22, bodyRy: 20, headY: 34, headRx: 20, headRy: 18,
-      earTip: 8, earSize: 'sm', tuft: 'sm',
-      tail: 'M 62 70 Q 78 62 84 48 Q 88 38 80 40 Q 70 52 64 68 Z',
-      eyeY: 32, eyeRx: 7.2, eyeRy: 8.8, mouthY: 46, shadowRx: 24,
-      noseY: 42, slit: false, halfLidded: false, toeScale: 1.05, boss: false,
-    },
-    evo1: {
-      bodyY: 66, bodyRx: 21, bodyRy: 19, headY: 32, headRx: 18.5, headRy: 16.5,
-      earTip: 4, earSize: 'md', tuft: 'sm',
-      tail: 'M 66 68 Q 86 56 92 40 Q 96 28 86 30 Q 74 44 68 66 Z',
-      eyeY: 30, eyeRx: 6.8, eyeRy: 8.2, mouthY: 44, shadowRx: 26,
-      noseY: 40, slit: false, halfLidded: false, toeScale: 1, boss: false,
-    },
-    evo2: {
-      bodyY: 64, bodyRx: 19, bodyRy: 17, headY: 30, headRx: 17, headRy: 15,
-      earTip: 2, earSize: 'md', tuft: 'md',
-      tail: 'M 68 66 Q 90 50 96 32 Q 100 20 90 22 Q 78 36 70 64 Z',
-      eyeY: 28, eyeRx: 6.4, eyeRy: 7.6, mouthY: 42, shadowRx: 25,
-      noseY: 38, slit: true, halfLidded: false, toeScale: 0.95, boss: false,
-    },
-    evo3: {
-      bodyY: 62, bodyRx: 21, bodyRy: 18, headY: 26, headRx: 18, headRy: 16,
-      earTip: 2, earSize: 'lg', tuft: 'lg',
-      tail: 'M 70 64 Q 94 46 100 24 Q 104 10 92 12 Q 80 28 72 62 Z',
-      eyeY: 24, eyeRx: 7, eyeRy: 8.4, mouthY: 40, shadowRx: 30,
-      noseY: 36, slit: true, halfLidded: false, toeScale: 1, boss: true,
-    },
-    evo4: {
-      bodyY: 64, bodyRx: 20, bodyRy: 17.5, headY: 30, headRx: 17, headRy: 15,
-      earTip: 4, earSize: 'md', tuft: 'md',
-      tail: 'M 68 68 Q 88 54 94 36 Q 98 24 88 26 Q 76 42 70 66 Z',
-      eyeY: 28, eyeRx: 6.6, eyeRy: 7.8, mouthY: 42, shadowRx: 27,
-      noseY: 38, slit: true, halfLidded: false, toeScale: 1, boss: true,
-    },
-    evo5: {
-      bodyY: 66, bodyRx: 19.5, bodyRy: 17, headY: 28, headRx: 17, headRy: 15.5,
-      earTip: 2, earSize: 'md', tuft: 'md',
-      tail: 'M 64 72 Q 80 80 88 68 Q 94 56 84 58 Q 72 66 66 72 Z',
-      eyeY: 26, eyeRx: 7, eyeRy: 8.2, mouthY: 40, shadowRx: 26,
-      noseY: 36, slit: true, halfLidded: true, toeScale: 0.95, boss: true,
-    },
-  }[stage];
-
-  const c = cfg;
-  const legY = stage === 'evo3' ? 84 : 86;
-  const armY = stage === 'baby' ? 62 : 60;
-
-  let aura = '';
-  let tailExtra = '';
-  let bodyExtra = '';
-  let headExtra = '';
-  let mane = '';
-
-  if (stage === 'evo1') {
-    tailExtra = `${I4}<ellipse cx="90" cy="34" rx="4" ry="5" fill="url(#${p}-tail-tip)" opacity="0.85"/>
-${I4}<circle cx="86" cy="42" r="1.2" fill="#fff" opacity="0.55"/>`;
-    bodyExtra = `${I4}<!-- Soft spots -->
-${I4}<ellipse cx="40" cy="60" rx="3.5" ry="2.5" fill="${accent}" opacity="0.25"/>
-${I4}<ellipse cx="58" cy="66" rx="2.8" ry="2" fill="${accent}" opacity="0.22"/>`;
-  } else if (stage === 'evo2') {
-    tailExtra = `${I4}<ellipse cx="94" cy="26" rx="5" ry="6.5" fill="url(#${p}-tail-tip)" opacity="0.9"/>
-${I4}<path d="M 82 44 Q 90 36 94 28" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.45"/>`;
-    bodyExtra = `${I4}<!-- Tabby stripes -->
-${I4}<path d="M 38 56 Q 50 58 62 56" stroke="${stroke}" stroke-width="1.1" fill="none" opacity="0.28"/>
-${I4}<path d="M 40 62 Q 50 64 60 62" stroke="${stroke}" stroke-width="0.95" fill="none" opacity="0.22"/>
-${I4}<path d="M 42 68 Q 50 69.5 58 68" stroke="${stroke}" stroke-width="0.85" fill="none" opacity="0.18"/>`;
-  } else if (stage === 'evo3') {
-    aura = `${I3}<ellipse cx="50" cy="48" rx="44" ry="42" fill="url(#${p}-aura)"/>
-${I3}<circle cx="22" cy="30" r="1.6" fill="#fff" opacity="0.4"/>
-${I3}<circle cx="78" cy="26" r="1.3" fill="#fff" opacity="0.35"/>
-${I3}<circle cx="18" cy="52" r="1.1" fill="#f48fb1" opacity="0.35"/>
-${I3}<circle cx="82" cy="54" r="1.2" fill="#ffd54f" opacity="0.3"/>`;
-    mane = `${I4}<!-- Boss lunar mane -->
-${I4}<ellipse cx="50" cy="48" rx="26" ry="14" fill="url(#${p}-mane)" opacity="0.55"/>
-${I4}<path d="M 28 44 Q 22 52 28 60" fill="url(#${p}-fur)" stroke="${stroke}" stroke-width="0.9" opacity="0.85"/>
-${I4}<path d="M 72 44 Q 78 52 72 60" fill="url(#${p}-fur)" stroke="${stroke}" stroke-width="0.9" opacity="0.85"/>`;
-    tailExtra = `${I4}<!-- Fluffy boss tail tip -->
-${I4}<ellipse cx="96" cy="18" rx="7" ry="9" fill="url(#${p}-tail-tip)" opacity="0.95"/>
-${I4}<path d="M 90 28 Q 98 22 100 30" stroke="#fff" stroke-width="1" fill="none" opacity="0.45"/>
-${I4}<circle cx="98" cy="14" r="1.5" fill="#fff" opacity="0.65"/>`;
-    bodyExtra = `${I4}<!-- Crescent collar amulet -->
-${I4}<path d="M 34 50 Q 50 58 66 50" fill="none" stroke="#ffd54f" stroke-width="2" opacity="0.9"/>
-${I4}<path d="M 50 54 A 5 5 0 1 1 50 62 A 3.8 3.8 0 1 0 50 54" fill="#fffde7" stroke="#f9a825" stroke-width="0.8"/>
-${I4}<circle cx="50" cy="58" r="1.4" fill="#f48fb1" opacity="0.8"/>
-${I4}<!-- Constellation chest marks -->
-${I4}<circle cx="42" cy="58" r="1.1" fill="#fff" opacity="0.55"/>
-${I4}<circle cx="50" cy="64" r="1.3" fill="#fff" opacity="0.5"/>
-${I4}<circle cx="58" cy="58" r="1.1" fill="#fff" opacity="0.55"/>
-${I4}<path d="M 42 58 L 50 64 L 58 58" stroke="#e1bee7" stroke-width="0.7" fill="none" opacity="0.45"/>`;
-    headExtra = moonCrest(accent, 8, true);
-  } else if (stage === 'evo4') {
-    aura = `${I3}<ellipse cx="50" cy="50" rx="40" ry="38" fill="url(#${p}-aura)" opacity="0.7"/>`;
-    tailExtra = `${I4}<ellipse cx="92" cy="30" rx="5.5" ry="7" fill="url(#${p}-tail-tip)" opacity="0.85"/>`;
-    bodyExtra = `${I4}<!-- Battle scars + lucky bell -->
-${I4}<path d="M 54 34 L 58 38 L 56 42" stroke="#90a4ae" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.75"/>
-${I4}<path d="M 36 56 Q 50 62 64 56" fill="none" stroke="#ffd54f" stroke-width="1.5" opacity="0.8"/>
-${I4}<path d="M 46 54 L 48 58 L 52 58 L 54 54 Q 50 52 46 54 Z" fill="#ffd54f" stroke="#f9a825" stroke-width="0.8"/>
-${I4}<circle cx="50" cy="59" r="1.3" fill="#f57f17"/>`;
-    headExtra = `${I4}<!-- Worn crescent -->
-${I4}<path d="M 50 10 A 4.5 4.5 0 1 1 50 18 A 3.4 3.4 0 1 0 50 10" fill="#ffd54f" opacity="0.75"/>`;
-  } else if (stage === 'evo5') {
-    aura = `${I3}<ellipse cx="50" cy="48" rx="40" ry="38" fill="url(#${p}-aura)" opacity="0.5"/>`;
-    headExtra = `${I4}<!-- Silver moon halo -->
-${I4}<ellipse cx="50" cy="12" rx="18" ry="3.8" fill="none" stroke="#eceff1" stroke-width="1.5" opacity="0.7"/>
-${I4}<path d="M 50 6 A 5 5 0 1 1 50 15 A 3.8 3.8 0 1 0 50 6" fill="#fff" opacity="0.85"/>
-${I4}<!-- Sage cheek ruff -->
-${I4}<path d="M 32 36 Q 26 44 32 52 Q 36 46 34 40 Z" fill="#eceff1" stroke="#90a4ae" stroke-width="0.7" opacity="0.8"/>
-${I4}<path d="M 68 36 Q 74 44 68 52 Q 64 46 66 40 Z" fill="#eceff1" stroke="#90a4ae" stroke-width="0.7" opacity="0.8"/>`;
-    bodyExtra = `${I4}<!-- Silver collar -->
-${I4}<path d="M 36 50 Q 50 56 64 50" fill="none" stroke="#cfd8dc" stroke-width="1.8" opacity="0.85"/>
-${I4}<circle cx="50" cy="54" r="2.4" fill="#eceff1" stroke="#90a4ae" stroke-width="0.7"/>`;
-    tailExtra = `${I4}<ellipse cx="84" cy="62" rx="5" ry="6" fill="#eceff1" opacity="0.75"/>`;
-  } else {
-    // baby
-    headExtra = moonCrest(accent, 18, false);
-    tailExtra = `${I4}<ellipse cx="80" cy="46" rx="3.5" ry="4.5" fill="url(#${p}-tail-tip)" opacity="0.8"/>`;
-  }
-
-  // Simpler ear tufts without fragile path mirroring
-  const tufts = `${I3}<g class="tm-animate-wing-left">
-${I4}<!-- Left ear tuft -->
-${I4}<path d="M 24 ${c.earTip + 10} Q 14 ${c.earTip} 16 ${c.earTip + 14}" stroke="${accent}" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
-${I4}<path d="M 22 ${c.earTip + 8} L 12 ${c.earTip - 2}" stroke="${stroke}" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
-${I4}<circle cx="13" cy="${c.earTip}" r="1.35" fill="#fff" opacity="0.55"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<!-- Right ear tuft -->
-${I4}<path d="M 76 ${c.earTip + 10} Q 86 ${c.earTip} 84 ${c.earTip + 14}" stroke="${accent}" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
-${I4}<path d="M 78 ${c.earTip + 8} L 88 ${c.earTip - 2}" stroke="${stroke}" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
-${I4}<circle cx="87" cy="${c.earTip}" r="1.35" fill="#fff" opacity="0.55"/>
-${I3}</g>`;
-
-  const glow = stage === 'evo5' ? '#e0f7fa' : stage === 'evo3' || stage === 'evo4' ? '#fffde7' : '#f3e5f5';
-
-  const body = `${I3}<ellipse cx="50" cy="94" rx="${c.shadowRx}" ry="4.5" fill="#0a0614" opacity="0.28"/>
-${aura}
 ${I3}<g class="tm-animate-tail">
-${I4}<path d="${c.tail}" fill="url(#${p}-fur)" stroke="${stroke}" stroke-width="1.45"/>
-${I4}<path d="M 72 56 Q 84 44 90 34" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.4"/>
-${tailExtra}
+${I4}<!-- Wisp trail spiraling off the dissolving body -->
+${I4}<path d="M 60 70 C 72 72 80 66 80 56 C 80 50 74 50 72 56 C 70 62 66 68 60 70 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.1" opacity="0.9"/>
+${I4}<circle cx="82" cy="48" r="2" fill="${LIGHT}" opacity="0.5"/>
+${I4}<circle cx="86" cy="42" r="1.2" fill="${BEAM}" opacity="0.4"/>
 ${I3}</g>
-${tufts}
-${I3}<g class="tm-animate-body">
-${mane}
-${I4}<ellipse cx="50" cy="${c.bodyY}" rx="${c.bodyRx}" ry="${c.bodyRy}" fill="url(#${p}-fur)" stroke="${stroke}" stroke-width="${c.boss ? 2 : 1.55}"/>
-${I4}<ellipse cx="50" cy="${c.bodyY + 3}" rx="${(c.bodyRx - 7).toFixed(1)}" ry="${(c.bodyRy - 6).toFixed(1)}" fill="url(#${p}-belly)"/>
-${bodyExtra}
-${I4}<!-- Round cat head -->
-${I4}<ellipse cx="50" cy="${c.headY}" rx="${c.headRx}" ry="${c.headRy}" fill="url(#${p}-fur)" stroke="${stroke}" stroke-width="${c.boss ? 2 : 1.55}"/>
-${I4}<ellipse cx="${(50 - c.headRx + 7).toFixed(1)}" cy="${c.headY - 5}" rx="6.5" ry="3.8" fill="#fff" opacity="0.16"/>
-${catEars(p, stroke, c.headY, c.earTip, c.earSize)}
-${headExtra}
-${I4}<!-- Muzzle -->
-${I4}<ellipse cx="50" cy="${c.headY + 8}" rx="8.5" ry="5.2" fill="url(#${p}-belly)"/>
-${pinkNose(50, c.noseY, stage === 'baby' ? 1.05 : 1)}
-${cheekBlush(`${p}-cheek`, 33, 67, c.headY + 5, stage === 'baby' ? 5 : 4)}
-${whiskers(c.headY + 7, stage === 'evo5' || stage === 'evo3', stage === 'evo5' ? '#eceff1' : '#e8eaf6')}
-${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${I4}<ellipse cx="27" cy="${armY}" rx="6.2" ry="9.2" fill="url(#${p}-fur)" stroke="${stroke}" stroke-width="1.2" transform="rotate(-24 27 ${armY})"/>
-${I4}<ellipse cx="23" cy="${armY + 10}" rx="5.4" ry="4.4" fill="url(#${p}-belly)" stroke="${stroke}" stroke-width="0.9"/>
-${toeBeans(23, armY + 10, c.toeScale)}
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${I4}<ellipse cx="73" cy="${armY}" rx="6.2" ry="9.2" fill="url(#${p}-fur)" stroke="${stroke}" stroke-width="1.2" transform="rotate(24 73 ${armY})"/>
-${I4}<ellipse cx="77" cy="${armY + 10}" rx="5.4" ry="4.4" fill="url(#${p}-belly)" stroke="${stroke}" stroke-width="0.9"/>
-${toeBeans(77, armY + 10, c.toeScale)}
-${I3}</g>
+
 ${I3}<g class="tm-animate-leg-left">
-${I4}<ellipse cx="39" cy="${legY}" rx="7.2" ry="5.4" fill="url(#${p}-fur)" stroke="${stroke}" stroke-width="1.2"/>
-${I4}<ellipse cx="39" cy="${legY + 2}" rx="5.2" ry="2.8" fill="url(#${p}-belly)"/>
-${toeBeans(39, legY + 1, c.toeScale)}
+${I4}<!-- Dissolving mist curl (left) -->
+${I4}<path d="M 40 78 C 36 84 38 88 44 88 C 40 84 42 80 44 78 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="0.9" opacity="0.8"/>
+${I4}<circle cx="38" cy="90" r="1.6" fill="${BEAM}" opacity="0.45"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-leg-right">
-${I4}<ellipse cx="61" cy="${legY}" rx="7.2" ry="5.4" fill="url(#${p}-fur)" stroke="${stroke}" stroke-width="1.2"/>
-${I4}<ellipse cx="61" cy="${legY + 2}" rx="5.2" ry="2.8" fill="url(#${p}-belly)"/>
-${toeBeans(61, legY + 1, c.toeScale)}
+${I4}<!-- Dissolving mist curl (right) -->
+${I4}<path d="M 56 78 C 60 84 58 88 52 88 C 56 84 54 80 52 78 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="0.9" opacity="0.8"/>
+${I4}<circle cx="60" cy="90" r="1.6" fill="${BEAM}" opacity="0.45"/>
 ${I3}</g>
-${catEyes(40, 60, c.eyeY, c.eyeRx, c.eyeRy, `url(#${p}-iris)`, stroke, {
-    slit: c.slit, halfLidded: c.halfLidded, glow,
-  })}
-${catMouths(c.mouthY, stroke, stage === 'baby' ? 5.5 : 6.2)}`;
 
-  return wrapStage(stage, titles[stage], defs, body);
+${I3}<g class="tm-animate-arm-left">
+${I4}<ellipse cx="41" cy="64" rx="3.2" ry="4.4" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1" transform="rotate(-10 41 64)"/>
+${I4}<path d="M 39.5 66.5 L 42.5 66.5" stroke="${BEAM}" stroke-width="0.6" opacity="0.5"/>
+${I3}</g>
+${I3}<g class="tm-animate-arm-right">
+${I4}<ellipse cx="59" cy="64" rx="3.2" ry="4.4" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1" transform="rotate(10 59 64)"/>
+${I4}<path d="M 57.5 66.5 L 60.5 66.5" stroke="${BEAM}" stroke-width="0.6" opacity="0.5"/>
+${I3}</g>
+
+${I3}<g class="tm-animate-body">
+${I4}<!-- Condensing teardrop torso, frayed at the bottom -->
+${I4}<path d="M 38 50 C 33 60 34 70 40 76 C 44 80 40 83 36 82 C 42 86 50 84 50 80 C 50 84 58 86 64 82 C 60 83 56 80 60 76 C 66 70 67 60 62 50 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.35"/>
+${I4}<ellipse cx="50" cy="60" rx="9" ry="8" fill="url(#${p}-sheen)" opacity="0.5"/>
+${I4}<!-- Chest crescent brand -->
+${I4}<path d="${crescent(50, 63, 3.2)}" fill="${FROST}" opacity="0.65"/>
+${I4}<!-- Head — wide spirit skull -->
+${I4}<path d="M 36 42 C 34 30 40 24 50 23 C 60 24 66 30 64 42 C 62 50 38 50 36 42 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.35"/>
+${I4}<!-- Tall spirit ears -->
+${I4}<path d="M 38 30 L 32 10 L 47 26 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.15"/>
+${I4}<path d="M 40 29 L 36 16 L 44 27 Z" fill="${FROST}" opacity="0.5"/>
+${I4}<path d="M 62 30 L 68 10 L 53 26 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.15"/>
+${I4}<path d="M 60 29 L 64 16 L 56 27 Z" fill="${FROST}" opacity="0.5"/>
+${I4}<ellipse cx="50" cy="30" rx="8" ry="4" fill="url(#${p}-sheen)" opacity="0.55"/>
+${moonNose(50, 43, 0.95)}
+${moonWhiskers(50, 44, 9, 5)}
+${star(30, 54, 1.2, LIGHT, 0.5)}
+${star(70, 58, 1, BEAM, 0.45)}
+${I3}</g>
+
+${I3}<g class="tm-animate-wing-left">
+${I4}<circle cx="20" cy="40" r="1.4" fill="${LIGHT}" opacity="0.5"/>
+${I4}<circle cx="25" cy="32" r="0.9" fill="${FROST}" opacity="0.4"/>
+${I3}</g>
+${I3}<g class="tm-animate-wing-right">
+${I4}<circle cx="82" cy="62" r="1.4" fill="${LIGHT}" opacity="0.5"/>
+${I4}<circle cx="78" cy="70" r="0.9" fill="${FROST}" opacity="0.4"/>
+${I3}</g>
+
+${moonEyes(p, 43, 57, 36, 4.6, 3.4)}
+${moonMouths(50, 46, 3)}`;
+
+  return wrapStage('evo1', 'Lunar Wisp — condensing moon-spirit', defs, body);
 }
 
-const header = `${I}<!-- CAT CHARACTER - All Life Stages (dense cute epic v4 · feline boss · 3-stage) -->
-${I}<!-- Fate & Shadow • Rare Rarity • Moonfang Oracle -->
-${I}<!-- ═══════════════════════════════════════ -->`;
+/**
+ * evo2 — Moon Warden
+ * Tall, elegant sentinel — a slender upright feline statue of moonlight
+ * (Bastet-like poise). Long neck, refined head, tail wrapped around the
+ * base with a glowing tip. Bridges wisp → Oracle.
+ */
+function evo2() {
+  const p = 'cat-evo2';
+  const defs = lineDefs(p);
 
-export const catSvg = `${header}
+  const body = `${I3}<ellipse cx="50" cy="92" rx="24" ry="3" fill="#04060e" opacity="0.42"/>
+${I3}<ellipse cx="50" cy="52" rx="34" ry="40" fill="url(#${p}-mist)"/>
+${I3}<path d="${crescent(78, 16, 6)}" fill="url(#${p}-moonfill)" opacity="0.75"/>
 
-${catStage('baby').replace('tm-mascot-baby-cat', 'tm-mascot-evo1-cat')}
-${catStage('evo3').replace('tm-mascot-evo3-cat', 'tm-mascot-evo2-cat')}
-${catStage('evo4').replace('tm-mascot-evo4-cat', 'tm-mascot-evo3-cat')}
-`;
+${I3}<g class="tm-animate-tail">
+${I4}<!-- Tail wraps around the base, tip curling up with light -->
+${I4}<path d="M 64 82 C 74 84 76 90 66 91 L 34 91 C 26 91 24 86 30 84 C 40 81 54 80 64 82 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.2"/>
+${I4}<path d="M 30 86 C 24 84 22 78 26 74 C 29 71 33 74 31 78 C 30 81 30 84 30 86 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.1"/>
+${I4}<circle cx="27" cy="72" r="2" fill="${LIGHT}" opacity="0.6"/>
+${I4}<circle cx="27" cy="72" r="3.5" fill="none" stroke="${BEAM}" stroke-width="0.5" opacity="0.4"/>
+${I3}</g>
+
+${I3}<g class="tm-animate-leg-left">
+${I4}<!-- Haunch mass, left -->
+${I4}<path d="M 34 86 C 28 82 28 70 36 66 C 32 74 34 82 38 87 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.15"/>
+${I4}<ellipse cx="36" cy="88" rx="4.5" ry="2.2" fill="url(#${p}-body)" stroke="${INK}" stroke-width="0.9"/>
+${I3}</g>
+${I3}<g class="tm-animate-leg-right">
+${I4}<!-- Haunch mass, right -->
+${I4}<path d="M 66 86 C 72 82 72 70 64 66 C 68 74 66 82 62 87 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.15"/>
+${I4}<ellipse cx="64" cy="88" rx="4.5" ry="2.2" fill="url(#${p}-body)" stroke="${INK}" stroke-width="0.9"/>
+${I3}</g>
+
+${I3}<g class="tm-animate-arm-left">
+${I4}<!-- Slim front pillar leg -->
+${I4}<path d="M 43 62 L 42 88 L 47.5 88 L 48 62 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.15"/>
+${I4}<path d="M 42 88 L 47.5 88" stroke="${BEAM}" stroke-width="0.9" opacity="0.55" stroke-linecap="round"/>
+${I3}</g>
+${I3}<g class="tm-animate-arm-right">
+${I4}<path d="M 52 62 L 52.5 88 L 58 88 L 57 62 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.15"/>
+${I4}<path d="M 52.5 88 L 58 88" stroke="${BEAM}" stroke-width="0.9" opacity="0.55" stroke-linecap="round"/>
+${I3}</g>
+
+${I3}<g class="tm-animate-body">
+${I4}<!-- Slender upright figure: haunches → waist → chest → neck -->
+${I4}<path d="M 34 84 C 30 72 34 62 40 56 C 44 51 44 46 46 40 C 47 36 53 36 54 40 C 56 46 56 51 60 56 C 66 62 70 72 66 84 C 64 90 36 90 34 84 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.45"/>
+${I4}<ellipse cx="50" cy="56" rx="7" ry="10" fill="url(#${p}-sheen)" opacity="0.4"/>
+${I4}<!-- Crescent pendant on chest -->
+${I4}<path d="${crescent(50, 52, 3.4)}" fill="${FROST}" opacity="0.7"/>
+${I4}<!-- Stardust down the flank -->
+${star(60, 64, 1, LIGHT, 0.5)}
+${star(63, 72, 0.8, BEAM, 0.45)}
+${star(61, 80, 0.7, LIGHT, 0.4)}
+${I4}<!-- Refined head on long neck -->
+${I4}<path d="M 40 32 C 38 22 43 16 50 15 C 57 16 62 22 60 32 C 58 39 42 39 40 32 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.4"/>
+${I4}<!-- Tall elegant ears -->
+${I4}<path d="M 41 22 L 37 4 L 49 18 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.15"/>
+${I4}<path d="M 42.5 21 L 40 10 L 47 18.5 Z" fill="${FROST}" opacity="0.5"/>
+${I4}<path d="M 59 22 L 63 4 L 51 18 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.15"/>
+${I4}<path d="M 57.5 21 L 60 10 L 53 18.5 Z" fill="${FROST}" opacity="0.5"/>
+${I4}<ellipse cx="50" cy="21" rx="7" ry="3.5" fill="url(#${p}-sheen)" opacity="0.5"/>
+${I4}<!-- Brow crescent -->
+${I4}<path d="M 46.5 20 Q 50 17 53.5 20" stroke="${LIGHT}" stroke-width="1.1" fill="none" opacity="0.7" stroke-linecap="round"/>
+${moonNose(50, 32, 0.9)}
+${moonWhiskers(50, 33, 10, 5)}
+${I3}</g>
+
+${I3}<g class="tm-animate-wing-left">
+${I4}<path d="M 30 48 Q 20 44 18 34" stroke="${BEAM}" stroke-width="1" fill="none" opacity="0.45" stroke-linecap="round"/>
+${I4}<circle cx="18" cy="32" r="1.2" fill="${LIGHT}" opacity="0.5"/>
+${I3}</g>
+${I3}<g class="tm-animate-wing-right">
+${I4}<path d="M 70 48 Q 80 44 82 34" stroke="${BEAM}" stroke-width="1" fill="none" opacity="0.45" stroke-linecap="round"/>
+${I4}<circle cx="82" cy="32" r="1.2" fill="${LIGHT}" opacity="0.5"/>
+${I3}</g>
+
+${moonEyes(p, 44.5, 55.5, 26, 4, 3)}
+${moonMouths(50, 35, 2.8)}`;
+
+  return wrapStage('evo2', 'Moon Warden — elegant sentinel', defs, body);
+}
+
+/**
+ * evo3 — Selene Oracle
+ * Guardian feline enthroned before a full-moon halo. Mane of light
+ * tongues, star-marked chest, twin flowing tails. Apex of the line.
+ */
+function evo3() {
+  const p = 'cat-evo3';
+  const defs = lineDefs(p, { eyeglow: true, halo: true });
+
+  // Mane: tongues of light radiating around the head, in front of the halo
+  const tongues = [
+    [30, 34, 20, 20], [36, 26, 28, 10], [46, 22, 44, 6],
+    [56, 24, 60, 8], [64, 30, 74, 16], [68, 40, 82, 32],
+    [32, 44, 18, 42],
+  ].map(([x1, y1, x2, y2]) =>
+    `${I4}<path d="M ${x1} ${y1} Q ${(x1 + x2) / 2 + 2} ${(y1 + y2) / 2 - 3} ${x2} ${y2}" stroke="${LIGHT}" stroke-width="1.6" fill="none" opacity="0.45" stroke-linecap="round"/>`).join('\n');
+
+  const body = `${I3}<ellipse cx="50" cy="94" rx="32" ry="3.2" fill="#04060e" opacity="0.45"/>
+${I3}<!-- Full-moon halo -->
+${I3}<circle cx="50" cy="36" r="27" fill="url(#${p}-halo)"/>
+${I3}<circle cx="50" cy="36" r="24" fill="none" stroke="${LIGHT}" stroke-width="0.9" opacity="0.5"/>
+${I3}<circle cx="50" cy="36" r="21" fill="none" stroke="${BEAM}" stroke-width="0.5" opacity="0.3"/>
+
+${I3}<g class="tm-animate-tail">
+${I4}<!-- Twin flowing tails -->
+${I4}<path d="M 68 66 C 86 60 96 42 92 24 C 90 16 82 20 82 28 C 82 42 76 56 66 62 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.3"/>
+${I4}<path d="M 70 70 C 88 68 98 54 96 40 C 95 33 88 36 88 43 C 88 54 80 64 68 66 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.15" opacity="0.75"/>
+${I4}<path d="M 84 34 C 88 28 90 22 89 20" stroke="${LIGHT}" stroke-width="1" fill="none" opacity="0.5" stroke-linecap="round"/>
+${I4}<circle cx="93" cy="22" r="1.8" fill="${LIGHT}" opacity="0.5"/>
+${I4}<circle cx="97" cy="40" r="1.3" fill="${BEAM}" opacity="0.45"/>
+${I3}</g>
+
+${I3}<g class="tm-animate-arm-left">
+${I4}<!-- Front pillar leg -->
+${I4}<path d="M 34 70 L 32 92 L 40 92 L 41 70 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.25"/>
+${I4}<path d="M 32 92 L 40 92" stroke="${BEAM}" stroke-width="1" opacity="0.55" stroke-linecap="round"/>
+${I4}<path d="M 35 88 L 35 92 M 38 88 L 38 92" stroke="${INK}" stroke-width="0.6" opacity="0.5"/>
+${I3}</g>
+${I3}<g class="tm-animate-arm-right">
+${I4}<path d="M 59 70 L 60 92 L 68 92 L 66 70 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.25"/>
+${I4}<path d="M 60 92 L 68 92" stroke="${BEAM}" stroke-width="1" opacity="0.55" stroke-linecap="round"/>
+${I4}<path d="M 62 88 L 62 92 M 65 88 L 65 92" stroke="${INK}" stroke-width="0.6" opacity="0.5"/>
+${I3}</g>
+
+${I3}<g class="tm-animate-leg-left">
+${I4}<!-- Haunch paw peeking at the side -->
+${I4}<ellipse cx="26" cy="88" rx="6" ry="4.5" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.1"/>
+${I4}<path d="M 22 90 L 30 90" stroke="${BEAM}" stroke-width="0.8" opacity="0.5" stroke-linecap="round"/>
+${I3}</g>
+${I3}<g class="tm-animate-leg-right">
+${I4}<ellipse cx="74" cy="88" rx="6" ry="4.5" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.1"/>
+${I4}<path d="M 70 90 L 78 90" stroke="${BEAM}" stroke-width="0.8" opacity="0.5" stroke-linecap="round"/>
+${I3}</g>
+
+${I3}<g class="tm-animate-body">
+${I4}<!-- Enthroned torso, tall and regal -->
+${I4}<path d="M 30 90 C 26 68 32 54 50 52 C 68 54 74 68 70 90 C 68 94 32 94 30 90 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.5"/>
+${I4}<ellipse cx="50" cy="66" rx="11" ry="8" fill="url(#${p}-sheen)" opacity="0.4"/>
+${I4}<!-- Star-marked chest: crescent + constellation -->
+${I4}<path d="${crescent(50, 70, 4.2)}" fill="${FROST}" opacity="0.7"/>
+${star(42, 78, 1.1, LIGHT, 0.55)}
+${star(50, 82, 0.9, BEAM, 0.5)}
+${star(58, 78, 1.1, LIGHT, 0.55)}
+${I4}<path d="M 42 78 L 50 82 L 58 78" stroke="${BEAM}" stroke-width="0.55" fill="none" opacity="0.4"/>
+${I4}<!-- Mane of light tongues -->
+${tongues}
+${I4}<!-- Regal head before the halo -->
+${I4}<path d="M 36 44 C 34 30 40 23 50 22 C 60 23 66 30 64 44 C 62 53 38 53 36 44 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.5"/>
+${I4}<!-- Crown ears with lit tips -->
+${I4}<path d="M 38 30 L 33 6 L 48 25 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.2"/>
+${I4}<path d="M 40 29 L 36 13 L 45 26 Z" fill="${FROST}" opacity="0.5"/>
+${I4}<circle cx="33.5" cy="7" r="1.5" fill="${LIGHT}" opacity="0.75"/>
+${I4}<path d="M 62 30 L 67 6 L 52 25 Z" fill="url(#${p}-body)" stroke="${INK}" stroke-width="1.2"/>
+${I4}<path d="M 60 29 L 64 13 L 55 26 Z" fill="${FROST}" opacity="0.5"/>
+${I4}<circle cx="66.5" cy="7" r="1.5" fill="${LIGHT}" opacity="0.75"/>
+${I4}<ellipse cx="50" cy="30" rx="9" ry="4.5" fill="url(#${p}-sheen)" opacity="0.5"/>
+${I4}<!-- Third-eye moon dot -->
+${I4}<circle cx="50" cy="28" r="1.8" fill="${LIGHT}" opacity="0.85"/>
+${I4}<circle cx="50" cy="28" r="3.2" fill="none" stroke="${BEAM}" stroke-width="0.5" opacity="0.5"/>
+${moonNose(50, 44, 1.05)}
+${moonWhiskers(50, 45, 12, 6)}
+${I3}</g>
+
+${I3}<g class="tm-animate-wing-left">
+${I4}<!-- Floating light arc -->
+${I4}<path d="M 22 56 Q 10 52 8 40" stroke="${LIGHT}" stroke-width="1.3" fill="none" opacity="0.5" stroke-linecap="round"/>
+${I4}<circle cx="8" cy="38" r="1.5" fill="${LIGHT}" opacity="0.55"/>
+${I3}</g>
+${I3}<g class="tm-animate-wing-right">
+${I4}<path d="M 78 56 Q 90 52 92 40" stroke="${LIGHT}" stroke-width="1.3" fill="none" opacity="0.5" stroke-linecap="round"/>
+${I4}<circle cx="92" cy="38" r="1.5" fill="${LIGHT}" opacity="0.55"/>
+${I3}</g>
+
+${moonEyes(p, 43, 57, 37, 5, 3.6, { glow: true })}
+${moonMouths(50, 47, 3.4)}`;
+
+  return wrapStage('evo3', 'Selene Oracle — moonlight guardian', defs, body);
+}
+
+export const catSvg = [
+  `${I}<!-- CAT CHARACTER - All Life Stages (Selene Line v10 · moonlight creature, from scratch) -->`,
+  `${I}<!-- Fate & Shadow • Rare Rarity • Lunar Wisp → Moon Warden → Selene Oracle -->`,
+  `${I}<!-- ═══════════════════════════════════════ -->`,
+  '',
+  evo1(),
+  evo2(),
+  evo3(),
+  `${I}<!-- ═══════════════════════════════════════ -->`,
+].join('\n');
+
+function normalize(svg, nl) {
+  let s = String(svg).replace(/\r\n/g, '\n').replace(/\n/g, nl);
+  if (!s.endsWith(nl)) s += nl;
+  return s;
+}
+
+function replaceBetween(hay, startNeedle, endNeedle, replacement) {
+  const start = hay.indexOf(startNeedle);
+  const end = hay.indexOf(endNeedle);
+  if (start < 0 || end < 0 || end <= start) {
+    throw new Error(`markers fail: ${startNeedle.slice(0, 50)} (${start}) → ${endNeedle.slice(0, 50)} (${end})`);
+  }
+  return hay.slice(0, start) + replacement + hay.slice(end);
+}
+
+function validateHooks(src) {
+  const issues = [];
+  for (const s of STAGES) {
+    const id = `tm-mascot-${s}-cat`;
+    const idx = src.indexOf(`id="${id}"`);
+    if (idx < 0) { issues.push(`missing ${id}`); continue; }
+    const next = src.indexOf('id="tm-mascot-', idx + 12);
+    const chunk = src.slice(idx, next > 0 ? next : idx + 20000);
+    for (const h of HOOKS) {
+      if (!chunk.includes(h)) issues.push(`${id} missing ${h}`);
+    }
+  }
+  return issues;
+}
+
+const isMain = process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('svg-cat.mjs');
+
+if (isMain) {
+  const path = 'myman_mascot.js';
+  let src = fs.readFileSync(path, 'utf8');
+  const nl = src.includes('\r\n') ? '\r\n' : '\n';
+
+  src = replaceBetween(
+    src,
+    '                <!-- CAT CHARACTER - All Life Stages',
+    '                <!-- PHOENIX CHARACTER - All Life Stages',
+    normalize(catSvg, nl),
+  );
+
+  const issues = validateHooks(src);
+  if (issues.length) {
+    console.error('VALIDATION FAILED', issues.length);
+    issues.forEach((i) => console.error(' -', i));
+    process.exit(1);
+  }
+
+  fs.writeFileSync(path, src);
+  console.log('OK wrote', path, '— cat v10 Selene Line (from scratch), hooks verified');
+}

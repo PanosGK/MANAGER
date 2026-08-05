@@ -1,11 +1,11 @@
 {
-  "version": "392",
+  "version": "393",
   "loaderVersion": "41",
-  "silentVersion": "36",
-  "displayVersion": "41.36",
+  "silentVersion": "37",
+  "displayVersion": "41.37",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Show buyback indicators in own-store phone catalog",
+  "releaseNotes": "Remake Cat as Selene Line and Crystal as Void Titan (Custom Ver).",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
