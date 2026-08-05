@@ -6157,7 +6157,7 @@ function installTamagotchiNavigationFlush(STORAGE_KEYS) {
 
 /** Recover lifeMinutes when storage has a hatched pet but life clock was wiped to 0. */
 function resolveLifeMinutesFromSave(savedData) {
-    const stage = savedData.stage || 'egg';
+    const stage = migrateLifeStageName(savedData.stage || 'egg');
     const char = savedData.characterType;
     const hatchedHint = (stage && stage !== 'egg') || (char && char !== 'none');
     let life = Number(savedData.lifeMinutes);
@@ -6167,6 +6167,8 @@ function resolveLifeMinutesFromSave(savedData) {
         return stageFloor;
     }
 
+    life = Math.max(0, life);
+
     if (life <= 0 && hatchedHint) {
         const floor = TAMA_STAGE_MINUTES[stage !== 'egg' ? stage : 'evo1'] ?? TAMA_STAGE_MINUTES.evo1;
         const recovered = floor;
@@ -6174,7 +6176,23 @@ function resolveLifeMinutesFromSave(savedData) {
         return recovered;
     }
 
-    return Math.max(0, life);
+    // If saved stage is ahead of life-derived stage, lift life to that stage floor.
+    // Protects against lifespan-threshold mismatch (e.g. custom days applied in-session,
+    // then repair page loaded with default 7.5-day thresholds before refresh).
+    if (stage && stage !== 'egg' && TAMA_LIFE_STAGE_ORDER.includes(stage)) {
+        const derived = getTamagotchiStageFromLifeMinutes(life);
+        if (getMascotLifeStageIndex(stage) > getMascotLifeStageIndex(derived)) {
+            const floor = Number(TAMA_STAGE_MINUTES[stage]) || 0;
+            if (floor > life) {
+                console.warn(
+                    `[Mascot] lifeMinutes=${life} behind saved stage=${stage} (derived=${derived}); lifting to ${floor}`
+                );
+                return floor;
+            }
+        }
+    }
+
+    return life;
 }
 
 function getEggHatchProgress() {
@@ -7718,6 +7736,10 @@ function updatePetInteractionPanel() {
 // ===================================================================
 
 function loadTamagotchiData(STORAGE_KEYS) {
+    // Thresholds must match the saved lifespan before stage is derived from lifeMinutes.
+    // Otherwise repair/list reloads can paint evo1 while an in-session list tab still shows evo3.
+    try { refreshTamaLifespanScale(); } catch (_) { /* ignore */ }
+
     const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
     const savedData = parseTamagotchiStorageValue(GM_getValue(keys.TAMAGOTCHI_DATA, 'null'));
     if (savedData) {
@@ -11624,6 +11646,9 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
 
 function initInteractiveMascot(config, STORAGE_KEYS) {
     if (!config || !config.interactiveMascotEnabled) return;
+
+    // Ensure stage thresholds match the active lifespan before any load/paint.
+    try { refreshTamaLifespanScale(); } catch (_) { /* ignore */ }
 
     // Cached FOUC/UI shell — always purge so a stale snapshot can't pretend to be the live pet.
     if (typeof window.tmRemoveUiShellById === 'function') {

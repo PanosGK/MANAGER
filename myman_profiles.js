@@ -32,6 +32,9 @@
         'tm_login_store_v1',
         // Captured from footer store button before suite rebuilds the footer
         'tm_connected_store_v1',
+        // Stage thresholds must match across pages even before profile activate
+        // (scoped copies caused repair pages to fall back to default evo1 pacing)
+        'tm_mascot_lifespan_days',
     ]);
 
     const PROFILE_PREFIX = 'tm:p:';
@@ -296,10 +299,47 @@
         }
     }
 
+    /** Promote per-profile lifespan into the global key (once) so stage thresholds match early. */
+    function promoteLifespanDaysToGlobal(profileId) {
+        const key = 'tm_mascot_lifespan_days';
+        if (NATIVE.get(key, undefined) !== undefined) return;
+        const candidates = [];
+        if (profileId && profileId !== '_unknown') {
+            candidates.push(`${PROFILE_PREFIX}${profileId}:${key}`);
+        }
+        try {
+            const last = sanitizeProfileId(NATIVE.get('tm_mms_last_profile_id', ''));
+            if (last && last !== '_unknown') {
+                candidates.push(`${PROFILE_PREFIX}${last}:${key}`);
+            }
+        } catch (_) { /* ignore */ }
+        for (const scopedKey of candidates) {
+            const val = NATIVE.get(scopedKey, undefined);
+            if (val !== undefined) {
+                NATIVE.set(key, val);
+                return;
+            }
+        }
+        // Any profile-scoped leftover
+        try {
+            const suffix = `:${key}`;
+            for (const rawKey of listNativeStorageKeys()) {
+                if (rawKey.startsWith(PROFILE_PREFIX) && rawKey.endsWith(suffix)) {
+                    const val = NATIVE.get(rawKey, undefined);
+                    if (val !== undefined) {
+                        NATIVE.set(key, val);
+                        return;
+                    }
+                }
+            }
+        } catch (_) { /* ignore */ }
+    }
+
     function setActiveProfile(profileId, label) {
         activeProfileId = profileId;
         activeProfileLabel = label || profileId;
         NATIVE.set('tm_mms_last_profile_id', profileId);
+        promoteLifespanDaysToGlobal(profileId);
         syncUnscopedIntoActiveProfile(profileId);
     }
 

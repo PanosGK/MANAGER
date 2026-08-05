@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v393 / Custom Ver. 41.37 — generated, do not edit */
+/* MyManager Suite bundle v394 / Custom Ver. 41.38 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '393',
+        version: '394',
         loaderVersion: '41',
-        silentVersion: '37',
-        displayVersion: '41.37',
+        silentVersion: '38',
+        displayVersion: '41.38',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -3562,6 +3562,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         'tm_login_store_v1',
         // Captured from footer store button before suite rebuilds the footer
         'tm_connected_store_v1',
+        // Stage thresholds must match across pages even before profile activate
+        // (scoped copies caused repair pages to fall back to default evo1 pacing)
+        'tm_mascot_lifespan_days',
     ]);
 
     const PROFILE_PREFIX = 'tm:p:';
@@ -3826,10 +3829,47 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
     }
 
+    /** Promote per-profile lifespan into the global key (once) so stage thresholds match early. */
+    function promoteLifespanDaysToGlobal(profileId) {
+        const key = 'tm_mascot_lifespan_days';
+        if (NATIVE.get(key, undefined) !== undefined) return;
+        const candidates = [];
+        if (profileId && profileId !== '_unknown') {
+            candidates.push(`${PROFILE_PREFIX}${profileId}:${key}`);
+        }
+        try {
+            const last = sanitizeProfileId(NATIVE.get('tm_mms_last_profile_id', ''));
+            if (last && last !== '_unknown') {
+                candidates.push(`${PROFILE_PREFIX}${last}:${key}`);
+            }
+        } catch (_) { /* ignore */ }
+        for (const scopedKey of candidates) {
+            const val = NATIVE.get(scopedKey, undefined);
+            if (val !== undefined) {
+                NATIVE.set(key, val);
+                return;
+            }
+        }
+        // Any profile-scoped leftover
+        try {
+            const suffix = `:${key}`;
+            for (const rawKey of listNativeStorageKeys()) {
+                if (rawKey.startsWith(PROFILE_PREFIX) && rawKey.endsWith(suffix)) {
+                    const val = NATIVE.get(rawKey, undefined);
+                    if (val !== undefined) {
+                        NATIVE.set(key, val);
+                        return;
+                    }
+                }
+            }
+        } catch (_) { /* ignore */ }
+    }
+
     function setActiveProfile(profileId, label) {
         activeProfileId = profileId;
         activeProfileLabel = label || profileId;
         NATIVE.set('tm_mms_last_profile_id', profileId);
+        promoteLifespanDaysToGlobal(profileId);
         syncUnscopedIntoActiveProfile(profileId);
     }
 
@@ -32901,7 +32941,7 @@ function installTamagotchiNavigationFlush(STORAGE_KEYS) {
 
 /** Recover lifeMinutes when storage has a hatched pet but life clock was wiped to 0. */
 function resolveLifeMinutesFromSave(savedData) {
-    const stage = savedData.stage || 'egg';
+    const stage = migrateLifeStageName(savedData.stage || 'egg');
     const char = savedData.characterType;
     const hatchedHint = (stage && stage !== 'egg') || (char && char !== 'none');
     let life = Number(savedData.lifeMinutes);
@@ -32911,6 +32951,8 @@ function resolveLifeMinutesFromSave(savedData) {
         return stageFloor;
     }
 
+    life = Math.max(0, life);
+
     if (life <= 0 && hatchedHint) {
         const floor = TAMA_STAGE_MINUTES[stage !== 'egg' ? stage : 'evo1'] ?? TAMA_STAGE_MINUTES.evo1;
         const recovered = floor;
@@ -32918,7 +32960,23 @@ function resolveLifeMinutesFromSave(savedData) {
         return recovered;
     }
 
-    return Math.max(0, life);
+    // If saved stage is ahead of life-derived stage, lift life to that stage floor.
+    // Protects against lifespan-threshold mismatch (e.g. custom days applied in-session,
+    // then repair page loaded with default 7.5-day thresholds before refresh).
+    if (stage && stage !== 'egg' && TAMA_LIFE_STAGE_ORDER.includes(stage)) {
+        const derived = getTamagotchiStageFromLifeMinutes(life);
+        if (getMascotLifeStageIndex(stage) > getMascotLifeStageIndex(derived)) {
+            const floor = Number(TAMA_STAGE_MINUTES[stage]) || 0;
+            if (floor > life) {
+                console.warn(
+                    `[Mascot] lifeMinutes=${life} behind saved stage=${stage} (derived=${derived}); lifting to ${floor}`
+                );
+                return floor;
+            }
+        }
+    }
+
+    return life;
 }
 
 function getEggHatchProgress() {
@@ -34462,6 +34520,10 @@ function updatePetInteractionPanel() {
 // ===================================================================
 
 function loadTamagotchiData(STORAGE_KEYS) {
+    // Thresholds must match the saved lifespan before stage is derived from lifeMinutes.
+    // Otherwise repair/list reloads can paint evo1 while an in-session list tab still shows evo3.
+    try { refreshTamaLifespanScale(); } catch (_) { /* ignore */ }
+
     const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
     const savedData = parseTamagotchiStorageValue(GM_getValue(keys.TAMAGOTCHI_DATA, 'null'));
     if (savedData) {
@@ -38368,6 +38430,9 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
 
 function initInteractiveMascot(config, STORAGE_KEYS) {
     if (!config || !config.interactiveMascotEnabled) return;
+
+    // Ensure stage thresholds match the active lifespan before any load/paint.
+    try { refreshTamaLifespanScale(); } catch (_) { /* ignore */ }
 
     // Cached FOUC/UI shell — always purge so a stale snapshot can't pretend to be the live pet.
     if (typeof window.tmRemoveUiShellById === 'function') {
@@ -78286,6 +78351,12 @@ if (typeof window !== 'undefined') {
         if (typeof window.MMS_PROFILES?.activateProfileForCurrentUser === 'function') {
             window.MMS_PROFILES.activateProfileForCurrentUser();
         }
+        // Lifespan was historically profile-scoped and deleted from the unscoped key on write.
+        // Refresh thresholds now that the profile (and promoted global lifespan) is active,
+        // so service_edit doesn't derive evo1 from default 7.5-day pacing.
+        if (typeof window.refreshTamaLifespanScale === 'function') {
+            window.refreshTamaLifespanScale();
+        }
 
         window.addEventListener('mms-profile-changed', (event) => {
             const detail = event?.detail || {};
@@ -78306,6 +78377,9 @@ if (typeof window !== 'undefined') {
                     }
                 } catch (_) { /* ignore */ }
                 // Reload skipped (same session marker) — still re-read mascot from the new profile bucket.
+                if (typeof window.refreshTamaLifespanScale === 'function') {
+                    window.refreshTamaLifespanScale();
+                }
                 if (typeof window.hydrateTamagotchiFromStorage === 'function') {
                     window.hydrateTamagotchiFromStorage(window.STORAGE_KEYS, null, {
                         mergeMemory: false,

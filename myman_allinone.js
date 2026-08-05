@@ -5103,6 +5103,12 @@
         if (typeof window.MMS_PROFILES?.activateProfileForCurrentUser === 'function') {
             window.MMS_PROFILES.activateProfileForCurrentUser();
         }
+        // Lifespan was historically profile-scoped and deleted from the unscoped key on write.
+        // Refresh thresholds now that the profile (and promoted global lifespan) is active,
+        // so service_edit doesn't derive evo1 from default 7.5-day pacing.
+        if (typeof window.refreshTamaLifespanScale === 'function') {
+            window.refreshTamaLifespanScale();
+        }
 
         window.addEventListener('mms-profile-changed', (event) => {
             const detail = event?.detail || {};
@@ -5123,6 +5129,9 @@
                     }
                 } catch (_) { /* ignore */ }
                 // Reload skipped (same session marker) — still re-read mascot from the new profile bucket.
+                if (typeof window.refreshTamaLifespanScale === 'function') {
+                    window.refreshTamaLifespanScale();
+                }
                 if (typeof window.hydrateTamagotchiFromStorage === 'function') {
                     window.hydrateTamagotchiFromStorage(window.STORAGE_KEYS, null, {
                         mergeMemory: false,
