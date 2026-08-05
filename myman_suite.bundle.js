@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v391 / Custom Ver. 41.35 — generated, do not edit */
+/* MyManager Suite bundle v392 / Custom Ver. 41.36 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '391',
+        version: '392',
         loaderVersion: '41',
-        silentVersion: '35',
-        displayVersion: '41.35',
+        silentVersion: '36',
+        displayVersion: '41.36',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -54463,6 +54463,14 @@ window.initOrderTracking = initOrderTracking;
             background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 16%, transparent);
             color: var(--tm-warning-color, #d97706);
         }
+        .tm-sl-whisper--bb {
+            background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 18%, transparent);
+            color: var(--tm-warning-color, #d97706);
+            border: 1px solid color-mix(in srgb, var(--tm-warning-color, #f59e0b) 34%, transparent);
+        }
+        .tm-sl-unit-row--bb td {
+            background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 5%, transparent);
+        }
         .tm-sl-sort-select {
             height: 42px; padding: 0 12px;
             border-radius: 10px;
@@ -56823,9 +56831,14 @@ window.initOrderTracking = initOrderTracking;
 
             if (catalogView === 'mine') {
                 const count = data.myCount || data.totalUnits || 0;
-                const whisper = count === 1
-                    ? '<span class="tm-sl-whisper tm-sl-whisper--warn">Τελευταίο τεμ.</span>'
-                    : '';
+                const bbCount = data.buybackCount || 0;
+                const whispers = [];
+                if (bbCount > 0) {
+                    whispers.push(`<span class="tm-sl-whisper tm-sl-whisper--bb">${bbCount} BB</span>`);
+                }
+                if (count === 1) {
+                    whispers.push('<span class="tm-sl-whisper tm-sl-whisper--warn">Τελευταίο τεμ.</span>');
+                }
                 return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
                     data-tm-sl-model="${esc(model)}" style="--i:${delay}">
                     <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
@@ -56834,7 +56847,7 @@ window.initOrderTracking = initOrderTracking;
                             <span class="tm-sl-model-count">${count}<span>τεμ.</span></span>
                             <span class="tm-sl-model-meta">στο ${esc(myStoreLabel)}</span>
                         </div>
-                        ${whisper}
+                        ${whispers.join('')}
                         ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                     </div>
                 </div>`;
@@ -57084,13 +57097,14 @@ window.initOrderTracking = initOrderTracking;
 
     function buildUnitStatusCell(v, purchaseBlocked, ctx) {
         const showPurchaseStatus = !!ctx?.showPurchaseStatus;
-        if (showPurchaseStatus && purchaseBlocked) {
-            return v.isBuyback
-                ? '<span class="tm-sl-table-status tm-sl-table-status--blocked" title="Buyback IKE — δεν αγοράζεται">Δεν αγοράζεται · BB</span>'
-                : '<span class="tm-sl-table-status tm-sl-table-status--blocked" title="Δεν αγοράζεται">Δεν αγοράζεται</span>';
-        }
         if (v.isBuyback) {
-            return '<span class="tm-sl-table-status tm-sl-table-status--bb" title="Buyback">BB</span>';
+            if (showPurchaseStatus && purchaseBlocked) {
+                return '<span class="tm-sl-table-bb tm-sl-table-bb--blocked" title="Buyback IKE — δεν αγοράζεται">BB ✕</span>';
+            }
+            return '<span class="tm-sl-table-bb" title="Buyback">BB</span>';
+        }
+        if (showPurchaseStatus && purchaseBlocked) {
+            return '<span class="tm-sl-table-status tm-sl-table-status--blocked" title="Δεν αγοράζεται">Δεν αγοράζεται</span>';
         }
         return '<span class="tm-sl-table-status tm-sl-table-status--ok">Διαθέσιμο</span>';
     }
@@ -57153,6 +57167,7 @@ window.initOrderTracking = initOrderTracking;
             || isStorePurchaseAllowed(storeName, !!v.isBuyback);
         const purchaseBlocked = showPurchaseStatus && !purchaseAllowed;
         const rowClass = [
+            v.isBuyback ? 'tm-sl-unit-row--bb' : '',
             purchaseBlocked ? 'tm-sl-unit-row--blocked' : '',
             v.isBest ? 'tm-sl-unit-row--best' : '',
             v.flash ? 'tm-sl-unit-row--flash' : '',
@@ -57359,17 +57374,23 @@ window.initOrderTracking = initOrderTracking;
             );
         }
         const qtyLabel = variants.length === 1 ? '1 συσκευή' : `${variants.length} συσκευές`;
+        const bbCount = variants.filter((v) => v.isBuyback).length;
         const bestIdx = pickBestVariantIndex(variants, ctx);
         const insight = buildInsightHtml(variants, bestIdx);
         const tableCtx = { ...ctx, modelName };
+        const bbMeta = bbCount > 0
+            ? `<span class="tm-sl-store-bb-status tm-sl-store-bb-status--ok" title="Buyback συσκευές">${bbCount} BB</span>`
+            : '';
         return `<section class="tm-sl-mine-board">
             <div class="tm-sl-mine-detail-head">
                 <h3>${esc(myStoreLabel)}</h3>
                 <div class="tm-sl-mine-detail-head__meta">
                     <span>${esc(qtyLabel)}</span>
+                    ${bbMeta}
                 </div>
             </div>
             <div style="padding:10px 12px 0">${insight}</div>
+            ${buildStatusLegend({ showPurchaseStatus: false })}
             ${buildUnitTable(variants, tableCtx)}
         </section>`;
     }
@@ -59001,8 +59022,36 @@ function filterIphoneTitlePhones(phones) {
 }
 
 function isBuybackTitle(name) {
-    const upper = String(name || '').toUpperCase();
-    return /(?:BB|ΒΒ)[\-:]/.test(upper) || /\(BB[-:]/i.test(upper) || /\(ΒΒ[-:]/i.test(upper);
+    const raw = String(name || '').trim();
+    if (!raw) return false;
+    const upper = raw.toUpperCase();
+    if (/(?:^|[\s(])(?:BB|ΒΒ)(?:[\-:)\s]|$)/.test(upper)) return true;
+    if (/\(\s*(?:BB|ΒΒ)[\-:]/.test(upper)) return true;
+    if (/\b(?:BB|ΒΒ)\s*\(/.test(upper)) return true;
+    return false;
+}
+
+function resolvePhoneIsBuyback(phone) {
+    if (!phone) return false;
+    if (phone.isBuyback === true) return true;
+    const sources = [
+        phone.name,
+        phone.rawName,
+        phone.originalName,
+        phone.title,
+        phone.phone?.name,
+        phone.phone?.rawName,
+    ];
+    return sources.some((s) => isBuybackTitle(s));
+}
+
+function hydratePhoneBuybackFlags(phones) {
+    if (!Array.isArray(phones)) return phones;
+    return phones.map((phone) => {
+        const isBuyback = resolvePhoneIsBuyback(phone);
+        if (isBuyback === !!phone.isBuyback) return phone;
+        return { ...phone, isBuyback };
+    });
 }
 
 function getDefaultPhoneStoreRules() {
@@ -60014,7 +60063,8 @@ function loadPhoneListCache() {
 
     try {
         const phones = JSON.parse(cached);
-        return Array.isArray(phones) && phones.length ? phones : null;
+        if (!Array.isArray(phones) || !phones.length) return null;
+        return hydratePhoneBuybackFlags(phones);
     } catch (e) {
         console.error('[MMS Phone List] Error parsing cache:', e);
         return null;
@@ -61361,6 +61411,9 @@ window.guessStoreLocality = guessStoreLocality;
 window.getStoreProximityTier = getStoreProximityTier;
 window.compareStoresByProximity = compareStoresByProximity;
 window.sortStoresByProximity = sortStoresByProximity;
+window.isBuybackTitle = isBuybackTitle;
+window.resolvePhoneIsBuyback = resolvePhoneIsBuyback;
+window.hydratePhoneBuybackFlags = hydratePhoneBuybackFlags;
 window.isStoreAllowedForPhone = isStoreAllowedForPhone;
 window.isStoreAllowedForBuybackPhone = isStoreAllowedForBuybackPhone;
 window.isStoreAllowedForRegularPhone = isStoreAllowedForRegularPhone;
@@ -62592,13 +62645,16 @@ if (document.body) {
 
     function phoneToVariant(phone, helpers) {
         const { extractGB, extractColor } = helpers;
+        const isBuyback = typeof window.resolvePhoneIsBuyback === 'function'
+            ? window.resolvePhoneIsBuyback(phone)
+            : !!phone.isBuyback;
         return {
             grade: phone.grade || '',
             gb: extractGB(phone.name || phone.model) || '',
             color: extractColor(phone.name || phone.model) || '',
             barcode: phone.barcode,
             price: phone.retailPrice || '',
-            isBuyback: !!phone.isBuyback,
+            isBuyback,
             imei: phone.imei || '',
             modelName: helpers.extractBaseModel?.(phone.model) || phone.model || '',
             phone,
@@ -62618,11 +62674,16 @@ if (document.body) {
             const model = extractBaseModel(phone.model);
             if (!model) return;
             if (!map.has(model)) {
-                map.set(model, { grades: {}, totalUnits: 0, myCount: 0, storeCount: 0, storeList: [] });
+                map.set(model, { grades: {}, totalUnits: 0, myCount: 0, buybackCount: 0, storeCount: 0, storeList: [] });
             }
             const entry = map.get(model);
             entry.totalUnits += 1;
             entry.myCount += 1;
+            if (typeof window.resolvePhoneIsBuyback === 'function'
+                ? window.resolvePhoneIsBuyback(phone)
+                : phone.isBuyback) {
+                entry.buybackCount += 1;
+            }
             const g = normalizePhoneGrade(phone.grade);
             if (g) entry.grades[g] = (entry.grades[g] || 0) + 1;
         });

@@ -1164,8 +1164,36 @@ function filterIphoneTitlePhones(phones) {
 }
 
 function isBuybackTitle(name) {
-    const upper = String(name || '').toUpperCase();
-    return /(?:BB|ΒΒ)[\-:]/.test(upper) || /\(BB[-:]/i.test(upper) || /\(ΒΒ[-:]/i.test(upper);
+    const raw = String(name || '').trim();
+    if (!raw) return false;
+    const upper = raw.toUpperCase();
+    if (/(?:^|[\s(])(?:BB|ΒΒ)(?:[\-:)\s]|$)/.test(upper)) return true;
+    if (/\(\s*(?:BB|ΒΒ)[\-:]/.test(upper)) return true;
+    if (/\b(?:BB|ΒΒ)\s*\(/.test(upper)) return true;
+    return false;
+}
+
+function resolvePhoneIsBuyback(phone) {
+    if (!phone) return false;
+    if (phone.isBuyback === true) return true;
+    const sources = [
+        phone.name,
+        phone.rawName,
+        phone.originalName,
+        phone.title,
+        phone.phone?.name,
+        phone.phone?.rawName,
+    ];
+    return sources.some((s) => isBuybackTitle(s));
+}
+
+function hydratePhoneBuybackFlags(phones) {
+    if (!Array.isArray(phones)) return phones;
+    return phones.map((phone) => {
+        const isBuyback = resolvePhoneIsBuyback(phone);
+        if (isBuyback === !!phone.isBuyback) return phone;
+        return { ...phone, isBuyback };
+    });
 }
 
 function getDefaultPhoneStoreRules() {
@@ -2177,7 +2205,8 @@ function loadPhoneListCache() {
 
     try {
         const phones = JSON.parse(cached);
-        return Array.isArray(phones) && phones.length ? phones : null;
+        if (!Array.isArray(phones) || !phones.length) return null;
+        return hydratePhoneBuybackFlags(phones);
     } catch (e) {
         console.error('[MMS Phone List] Error parsing cache:', e);
         return null;
@@ -3524,6 +3553,9 @@ window.guessStoreLocality = guessStoreLocality;
 window.getStoreProximityTier = getStoreProximityTier;
 window.compareStoresByProximity = compareStoresByProximity;
 window.sortStoresByProximity = sortStoresByProximity;
+window.isBuybackTitle = isBuybackTitle;
+window.resolvePhoneIsBuyback = resolvePhoneIsBuyback;
+window.hydratePhoneBuybackFlags = hydratePhoneBuybackFlags;
 window.isStoreAllowedForPhone = isStoreAllowedForPhone;
 window.isStoreAllowedForBuybackPhone = isStoreAllowedForBuybackPhone;
 window.isStoreAllowedForRegularPhone = isStoreAllowedForRegularPhone;

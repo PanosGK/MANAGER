@@ -444,6 +444,14 @@
             background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 16%, transparent);
             color: var(--tm-warning-color, #d97706);
         }
+        .tm-sl-whisper--bb {
+            background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 18%, transparent);
+            color: var(--tm-warning-color, #d97706);
+            border: 1px solid color-mix(in srgb, var(--tm-warning-color, #f59e0b) 34%, transparent);
+        }
+        .tm-sl-unit-row--bb td {
+            background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 5%, transparent);
+        }
         .tm-sl-sort-select {
             height: 42px; padding: 0 12px;
             border-radius: 10px;
@@ -2804,9 +2812,14 @@
 
             if (catalogView === 'mine') {
                 const count = data.myCount || data.totalUnits || 0;
-                const whisper = count === 1
-                    ? '<span class="tm-sl-whisper tm-sl-whisper--warn">Τελευταίο τεμ.</span>'
-                    : '';
+                const bbCount = data.buybackCount || 0;
+                const whispers = [];
+                if (bbCount > 0) {
+                    whispers.push(`<span class="tm-sl-whisper tm-sl-whisper--bb">${bbCount} BB</span>`);
+                }
+                if (count === 1) {
+                    whispers.push('<span class="tm-sl-whisper tm-sl-whisper--warn">Τελευταίο τεμ.</span>');
+                }
                 return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
                     data-tm-sl-model="${esc(model)}" style="--i:${delay}">
                     <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
@@ -2815,7 +2828,7 @@
                             <span class="tm-sl-model-count">${count}<span>τεμ.</span></span>
                             <span class="tm-sl-model-meta">στο ${esc(myStoreLabel)}</span>
                         </div>
-                        ${whisper}
+                        ${whispers.join('')}
                         ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                     </div>
                 </div>`;
@@ -3065,13 +3078,14 @@
 
     function buildUnitStatusCell(v, purchaseBlocked, ctx) {
         const showPurchaseStatus = !!ctx?.showPurchaseStatus;
-        if (showPurchaseStatus && purchaseBlocked) {
-            return v.isBuyback
-                ? '<span class="tm-sl-table-status tm-sl-table-status--blocked" title="Buyback IKE — δεν αγοράζεται">Δεν αγοράζεται · BB</span>'
-                : '<span class="tm-sl-table-status tm-sl-table-status--blocked" title="Δεν αγοράζεται">Δεν αγοράζεται</span>';
-        }
         if (v.isBuyback) {
-            return '<span class="tm-sl-table-status tm-sl-table-status--bb" title="Buyback">BB</span>';
+            if (showPurchaseStatus && purchaseBlocked) {
+                return '<span class="tm-sl-table-bb tm-sl-table-bb--blocked" title="Buyback IKE — δεν αγοράζεται">BB ✕</span>';
+            }
+            return '<span class="tm-sl-table-bb" title="Buyback">BB</span>';
+        }
+        if (showPurchaseStatus && purchaseBlocked) {
+            return '<span class="tm-sl-table-status tm-sl-table-status--blocked" title="Δεν αγοράζεται">Δεν αγοράζεται</span>';
         }
         return '<span class="tm-sl-table-status tm-sl-table-status--ok">Διαθέσιμο</span>';
     }
@@ -3134,6 +3148,7 @@
             || isStorePurchaseAllowed(storeName, !!v.isBuyback);
         const purchaseBlocked = showPurchaseStatus && !purchaseAllowed;
         const rowClass = [
+            v.isBuyback ? 'tm-sl-unit-row--bb' : '',
             purchaseBlocked ? 'tm-sl-unit-row--blocked' : '',
             v.isBest ? 'tm-sl-unit-row--best' : '',
             v.flash ? 'tm-sl-unit-row--flash' : '',
@@ -3340,17 +3355,23 @@
             );
         }
         const qtyLabel = variants.length === 1 ? '1 συσκευή' : `${variants.length} συσκευές`;
+        const bbCount = variants.filter((v) => v.isBuyback).length;
         const bestIdx = pickBestVariantIndex(variants, ctx);
         const insight = buildInsightHtml(variants, bestIdx);
         const tableCtx = { ...ctx, modelName };
+        const bbMeta = bbCount > 0
+            ? `<span class="tm-sl-store-bb-status tm-sl-store-bb-status--ok" title="Buyback συσκευές">${bbCount} BB</span>`
+            : '';
         return `<section class="tm-sl-mine-board">
             <div class="tm-sl-mine-detail-head">
                 <h3>${esc(myStoreLabel)}</h3>
                 <div class="tm-sl-mine-detail-head__meta">
                     <span>${esc(qtyLabel)}</span>
+                    ${bbMeta}
                 </div>
             </div>
             <div style="padding:10px 12px 0">${insight}</div>
+            ${buildStatusLegend({ showPurchaseStatus: false })}
             ${buildUnitTable(variants, tableCtx)}
         </section>`;
     }

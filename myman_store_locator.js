@@ -138,13 +138,16 @@
 
     function phoneToVariant(phone, helpers) {
         const { extractGB, extractColor } = helpers;
+        const isBuyback = typeof window.resolvePhoneIsBuyback === 'function'
+            ? window.resolvePhoneIsBuyback(phone)
+            : !!phone.isBuyback;
         return {
             grade: phone.grade || '',
             gb: extractGB(phone.name || phone.model) || '',
             color: extractColor(phone.name || phone.model) || '',
             barcode: phone.barcode,
             price: phone.retailPrice || '',
-            isBuyback: !!phone.isBuyback,
+            isBuyback,
             imei: phone.imei || '',
             modelName: helpers.extractBaseModel?.(phone.model) || phone.model || '',
             phone,
@@ -164,11 +167,16 @@
             const model = extractBaseModel(phone.model);
             if (!model) return;
             if (!map.has(model)) {
-                map.set(model, { grades: {}, totalUnits: 0, myCount: 0, storeCount: 0, storeList: [] });
+                map.set(model, { grades: {}, totalUnits: 0, myCount: 0, buybackCount: 0, storeCount: 0, storeList: [] });
             }
             const entry = map.get(model);
             entry.totalUnits += 1;
             entry.myCount += 1;
+            if (typeof window.resolvePhoneIsBuyback === 'function'
+                ? window.resolvePhoneIsBuyback(phone)
+                : phone.isBuyback) {
+                entry.buybackCount += 1;
+            }
             const g = normalizePhoneGrade(phone.grade);
             if (g) entry.grades[g] = (entry.grades[g] || 0) + 1;
         });
