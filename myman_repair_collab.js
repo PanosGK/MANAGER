@@ -337,12 +337,12 @@
         }
         style.textContent = `
             #tm-repair-whisper {
-                margin: 0 0 4px;
+                margin: 0 0 8px;
                 padding: 0;
                 border: 0;
                 background: transparent;
                 font-family: "Segoe UI", system-ui, sans-serif;
-                max-width: 420px;
+                max-width: 100%;
             }
             .tm-rw-toggle {
                 display: inline-flex; align-items: center; gap: 5px;
@@ -401,6 +401,18 @@
     }
 
     function findWhisperMount() {
+        const assignmentField = document.querySelector('[data-fieldname="ccc_dAssignDate"]');
+        const etdField = document.querySelector('[data-fieldname="ccc_iETD"]');
+        const etcField = document.querySelector('[data-fieldname="ccc_iETC"]');
+        const totalField = document.querySelector('[data-fieldname="iTotalAmount"]');
+
+        // Preferred host: the exact repair-details <td> block where assignment/ETD/ETC/total live.
+        const tdHost = assignmentField?.closest('td')
+            || etdField?.closest('td')
+            || etcField?.closest('td')
+            || totalField?.closest('td');
+        if (tdHost) return tdHost;
+
         return document.querySelector('.rnr-b-editheader')
             || document.querySelector('.rnr-c-editheader')
             || document.querySelector('form[id*="edit"]')
@@ -437,7 +449,19 @@
             </div>
         `;
 
-        if (mount.classList?.contains('rnr-b-editheader') || mount.classList?.contains('rnr-c-editheader')) {
+        if (mount.matches?.('td')) {
+            // Keep whisper inside the same details column, right above the assignment field.
+            const firstField = mount.querySelector('[data-fieldname="ccc_dAssignDate"]')
+                || mount.querySelector('[data-fieldname="ccc_iETD"]')
+                || mount.querySelector('[data-fieldname="ccc_iETC"]')
+                || mount.querySelector('[data-fieldname="iTotalAmount"]')
+                || mount.firstElementChild;
+            if (firstField) {
+                firstField.insertAdjacentElement('beforebegin', box);
+            } else {
+                mount.insertAdjacentElement('afterbegin', box);
+            }
+        } else if (mount.classList?.contains('rnr-b-editheader') || mount.classList?.contains('rnr-c-editheader')) {
             mount.insertAdjacentElement('afterend', box);
         } else {
             mount.insertAdjacentElement('afterbegin', box);
