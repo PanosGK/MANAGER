@@ -450,17 +450,8 @@
         `;
 
         if (mount.matches?.('td')) {
-            // Keep whisper inside the same details column, right above the assignment field.
-            const firstField = mount.querySelector('[data-fieldname="ccc_dAssignDate"]')
-                || mount.querySelector('[data-fieldname="ccc_iETD"]')
-                || mount.querySelector('[data-fieldname="ccc_iETC"]')
-                || mount.querySelector('[data-fieldname="iTotalAmount"]')
-                || mount.firstElementChild;
-            if (firstField) {
-                firstField.insertAdjacentElement('beforebegin', box);
-            } else {
-                mount.insertAdjacentElement('afterbegin', box);
-            }
+            // Keep whisper inside the same details column, appended after the field stack.
+            mount.insertAdjacentElement('beforeend', box);
         } else if (mount.classList?.contains('rnr-b-editheader') || mount.classList?.contains('rnr-c-editheader')) {
             mount.insertAdjacentElement('afterend', box);
         } else {

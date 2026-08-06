@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v396 / Custom Ver. 41.40 — generated, do not edit */
+/* MyManager Suite bundle v397 / Custom Ver. 41.41 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '396',
+        version: '397',
         loaderVersion: '41',
-        silentVersion: '40',
-        displayVersion: '41.40',
+        silentVersion: '41',
+        displayVersion: '41.41',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -72326,17 +72326,8 @@ if (typeof window !== 'undefined') {
         `;
 
         if (mount.matches?.('td')) {
-            // Keep whisper inside the same details column, right above the assignment field.
-            const firstField = mount.querySelector('[data-fieldname="ccc_dAssignDate"]')
-                || mount.querySelector('[data-fieldname="ccc_iETD"]')
-                || mount.querySelector('[data-fieldname="ccc_iETC"]')
-                || mount.querySelector('[data-fieldname="iTotalAmount"]')
-                || mount.firstElementChild;
-            if (firstField) {
-                firstField.insertAdjacentElement('beforebegin', box);
-            } else {
-                mount.insertAdjacentElement('afterbegin', box);
-            }
+            // Keep whisper inside the same details column, appended after the field stack.
+            mount.insertAdjacentElement('beforeend', box);
         } else if (mount.classList?.contains('rnr-b-editheader') || mount.classList?.contains('rnr-c-editheader')) {
             mount.insertAdjacentElement('afterend', box);
         } else {
