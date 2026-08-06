@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v397 / Custom Ver. 41.41 — generated, do not edit */
+/* MyManager Suite bundle v398 / Custom Ver. 41.42 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '397',
+        version: '398',
         loaderVersion: '41',
-        silentVersion: '41',
-        displayVersion: '41.41',
+        silentVersion: '42',
+        displayVersion: '41.42',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -72236,18 +72236,53 @@ if (typeof window !== 'undefined') {
                 max-width: 260px; font-weight: 400; opacity: 0.85;
             }
             .tm-rw-chevron { font-size: 9px; opacity: 0.7; margin-left: 2px; }
-            #tm-repair-whisper.is-open .tm-rw-chevron { transform: rotate(180deg); }
-            .tm-rw-body {
+            .tm-rw-modal-backdrop {
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, 0.38);
+                z-index: 2147483646;
                 display: none;
-                margin-top: 4px;
-                padding: 6px 7px;
-                border: 1px solid #e2e8f0;
-                border-radius: 8px;
-                background: #f8fafc;
+                align-items: center;
+                justify-content: center;
+                padding: 16px;
             }
-            #tm-repair-whisper.is-open .tm-rw-body { display: block; }
+            .tm-rw-modal-backdrop.is-open { display: flex; }
+            .tm-rw-modal {
+                width: min(560px, calc(100vw - 28px));
+                max-height: calc(100vh - 32px);
+                overflow: auto;
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                box-shadow: 0 20px 50px rgba(2, 6, 23, 0.28);
+                padding: 12px;
+            }
+            .tm-rw-modal-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                margin-bottom: 8px;
+                color: #334155;
+                font-size: 13px;
+                font-weight: 700;
+            }
+            .tm-rw-modal-close {
+                border: 0;
+                background: transparent;
+                color: #94a3b8;
+                cursor: pointer;
+                font-size: 16px;
+                line-height: 1;
+                border-radius: 6px;
+                padding: 2px 6px;
+            }
+            .tm-rw-modal-close:hover {
+                background: #f1f5f9;
+                color: #64748b;
+            }
             #tm-repair-whisper-text {
-                width: 100%; box-sizing: border-box; min-height: 44px; max-height: 120px;
+                width: 100%; box-sizing: border-box; min-height: 120px; max-height: 60vh;
                 border: 1px solid #e2e8f0; border-radius: 6px;
                 padding: 5px 7px; font-size: 12px; line-height: 1.35;
                 background: #fff; color: #334155; resize: vertical;
@@ -72313,16 +72348,6 @@ if (typeof window !== 'undefined') {
                 <span class="tm-rw-preview" id="tm-repair-whisper-preview">…</span>
                 <span class="tm-rw-chevron" aria-hidden="true">▾</span>
             </button>
-            <div class="tm-rw-body">
-                <textarea id="tm-repair-whisper-text" maxlength="${RC_WHISPER_MAX}"
-                    placeholder="Σύντομο κοινό σημείωμα…"></textarea>
-                <div class="tm-rw-actions">
-                    <button type="button" class="tm-rw-save" id="tm-repair-whisper-save">Αποθήκευση</button>
-                    <button type="button" class="tm-rw-clear" id="tm-repair-whisper-clear">Καθαρισμός</button>
-                    <span class="tm-rw-status" id="tm-repair-whisper-status"></span>
-                </div>
-                <div class="tm-rw-meta" id="tm-repair-whisper-meta"></div>
-            </div>
         `;
 
         if (mount.matches?.('td')) {
@@ -72336,16 +72361,39 @@ if (typeof window !== 'undefined') {
 
         const toggleBtn = box.querySelector('#tm-repair-whisper-toggle');
         const previewEl = box.querySelector('#tm-repair-whisper-preview');
-        const textEl = box.querySelector('#tm-repair-whisper-text');
-        const metaEl = box.querySelector('#tm-repair-whisper-meta');
-        const statusEl = box.querySelector('#tm-repair-whisper-status');
-        const saveBtn = box.querySelector('#tm-repair-whisper-save');
-        const clearBtn = box.querySelector('#tm-repair-whisper-clear');
+
+        const modal = document.createElement('div');
+        modal.id = 'tm-repair-whisper-modal';
+        modal.className = 'tm-rw-modal-backdrop';
+        modal.innerHTML = `
+            <div class="tm-rw-modal" role="dialog" aria-modal="true" aria-labelledby="tm-rw-modal-title">
+                <div class="tm-rw-modal-header">
+                    <span id="tm-rw-modal-title">💬 Whisper σημείωμα επισκευής</span>
+                    <button type="button" class="tm-rw-modal-close" id="tm-rw-modal-close" aria-label="Κλείσιμο">×</button>
+                </div>
+                <textarea id="tm-repair-whisper-text" maxlength="${RC_WHISPER_MAX}"
+                    placeholder="Σύντομο κοινό σημείωμα…"></textarea>
+                <div class="tm-rw-actions">
+                    <button type="button" class="tm-rw-save" id="tm-repair-whisper-save">Αποθήκευση</button>
+                    <button type="button" class="tm-rw-clear" id="tm-repair-whisper-clear">Καθαρισμός</button>
+                    <span class="tm-rw-status" id="tm-repair-whisper-status"></span>
+                </div>
+                <div class="tm-rw-meta" id="tm-repair-whisper-meta"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const textEl = modal.querySelector('#tm-repair-whisper-text');
+        const metaEl = modal.querySelector('#tm-repair-whisper-meta');
+        const statusEl = modal.querySelector('#tm-repair-whisper-status');
+        const saveBtn = modal.querySelector('#tm-repair-whisper-save');
+        const clearBtn = modal.querySelector('#tm-repair-whisper-clear');
+        const closeBtn = modal.querySelector('#tm-rw-modal-close');
         let saveTimer = null;
         let lastSaved = '';
 
         function setOpen(open) {
-            box.classList.toggle('is-open', !!open);
+            modal.classList.toggle('is-open', !!open);
             toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
             if (open) {
                 window.setTimeout(() => textEl.focus(), 30);
@@ -72393,7 +72441,16 @@ if (typeof window !== 'undefined') {
 
         toggleBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            setOpen(!box.classList.contains('is-open'));
+            setOpen(true);
+        });
+        closeBtn.addEventListener('click', () => setOpen(false));
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) setOpen(false);
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('is-open')) {
+                setOpen(false);
+            }
         });
         saveBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -72430,7 +72487,6 @@ if (typeof window !== 'undefined') {
         textEl.value = text;
         lastSaved = text.trim();
         refreshPreview(lastSaved, rec);
-        // Stay collapsed — only a one-line preview when a note exists
         setOpen(false);
     }
 

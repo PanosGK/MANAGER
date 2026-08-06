@@ -1,11 +1,11 @@
 {
-  "version": "397",
+  "version": "398",
   "loaderVersion": "41",
-  "silentVersion": "41",
-  "displayVersion": "41.41",
+  "silentVersion": "42",
+  "displayVersion": "41.42",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Append repair whisper at end of details block",
+  "releaseNotes": "Open repair whisper in popup modal instead of inline panel",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
