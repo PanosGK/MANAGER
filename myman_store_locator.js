@@ -1100,15 +1100,23 @@
                 sortSelect.addEventListener('change', () => {
                     modelSort = sortSelect.value || 'name';
                     GM_setValue(SORT_KEY, modelSort);
-                    renderModelsStep();
+                    // Re-sort list only — do NOT re-run renderModelsStep (that rebuilds
+                    // the toolbar and auto-focuses search, which feels like a search fired).
+                    renderModelsBody();
                 });
             }
 
             toolbarEl.querySelectorAll('[data-tm-sl-sort]').forEach((pill) => {
-                pill.addEventListener('click', () => {
+                pill.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     modelSort = pill.getAttribute('data-tm-sl-sort') || 'name';
                     GM_setValue(SORT_KEY, modelSort);
-                    renderModelsStep();
+                    toolbarEl.querySelectorAll('[data-tm-sl-sort]').forEach((p) => {
+                        p.classList.toggle('is-active', p.getAttribute('data-tm-sl-sort') === modelSort);
+                    });
+                    if (sortSelect) sortSelect.value = modelSort;
+                    renderModelsBody();
                 });
             });
 

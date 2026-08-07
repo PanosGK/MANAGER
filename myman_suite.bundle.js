@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v399 / Custom Ver. 41.43 — generated, do not edit */
+/* MyManager Suite bundle v400 / Custom Ver. 41.44 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '399',
+        version: '400',
         loaderVersion: '41',
-        silentVersion: '43',
-        displayVersion: '41.43',
+        silentVersion: '44',
+        displayVersion: '41.44',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -63708,15 +63708,23 @@ if (document.body) {
                 sortSelect.addEventListener('change', () => {
                     modelSort = sortSelect.value || 'name';
                     GM_setValue(SORT_KEY, modelSort);
-                    renderModelsStep();
+                    // Re-sort list only — do NOT re-run renderModelsStep (that rebuilds
+                    // the toolbar and auto-focuses search, which feels like a search fired).
+                    renderModelsBody();
                 });
             }
 
             toolbarEl.querySelectorAll('[data-tm-sl-sort]').forEach((pill) => {
-                pill.addEventListener('click', () => {
+                pill.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     modelSort = pill.getAttribute('data-tm-sl-sort') || 'name';
                     GM_setValue(SORT_KEY, modelSort);
-                    renderModelsStep();
+                    toolbarEl.querySelectorAll('[data-tm-sl-sort]').forEach((p) => {
+                        p.classList.toggle('is-active', p.getAttribute('data-tm-sl-sort') === modelSort);
+                    });
+                    if (sortSelect) sortSelect.value = modelSort;
+                    renderModelsBody();
                 });
             });
 

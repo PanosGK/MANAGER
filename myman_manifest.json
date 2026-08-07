@@ -1,11 +1,11 @@
 {
-  "version": "399",
+  "version": "400",
   "loaderVersion": "41",
-  "silentVersion": "43",
-  "displayVersion": "41.43",
+  "silentVersion": "44",
+  "displayVersion": "41.44",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Disable all feature settings for newly detected users",
+  "releaseNotes": "Fix phone catalog sort refocusing search input",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
