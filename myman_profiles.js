@@ -42,9 +42,14 @@
     /** v1 could stick after a failed listValues; v2 re-runs the heal once for everyone. */
     const LEGACY_SYNC_FLAG = 'tm_mms_unscoped_synced_v1';
     const LEGACY_SYNC_FLAG_V2 = 'tm_mms_unscoped_synced_v2';
+    /** Set once after a brand-new profile gets disabled feature defaults. */
+    const SETTINGS_SEEDED_KEY = 'tm_mms_settings_seeded_v1';
+    /** Stashed when a brand-new profile is first seen, until defaults are written. */
+    const PENDING_DISABLED_DEFAULTS_KEY = 'tm_mms_pending_disabled_defaults';
 
     let activeProfileId = null;
     let activeProfileLabel = null;
+    let lastActivationWasNew = false;
 
     function isGlobalKey(key) {
         return GLOBAL_KEYS.has(key);
@@ -395,6 +400,65 @@
         } catch (_) { /* ignore */ }
     }
 
+    function profileSettingsSeededKey(profileId) {
+        return `${PROFILE_PREFIX}${profileId}:${SETTINGS_SEEDED_KEY}`;
+    }
+
+    function profilePendingDisabledDefaultsKey(profileId) {
+        return `${PROFILE_PREFIX}${profileId}:${PENDING_DISABLED_DEFAULTS_KEY}`;
+    }
+
+    /** True when this profile has never had suite data (brand-new login). */
+    function isUntouchedProfile(profileId) {
+        if (!profileId || profileId === '_unknown') return false;
+        try {
+            if (NATIVE.get(profileSettingsSeededKey(profileId), false)) return false;
+            if (NATIVE.get(profilePendingDisabledDefaultsKey(profileId), false)) return true;
+            if (NATIVE.get(`${PROFILE_PREFIX}${profileId}${MIGRATED_SUFFIX}`, false)) return false;
+            const prefix = `${PROFILE_PREFIX}${profileId}:`;
+            for (const key of listNativeStorageKeys()) {
+                if (key.startsWith(prefix)) return false;
+            }
+        } catch (_) {
+            return false;
+        }
+        return true;
+    }
+
+    function markProfileSettingsSeeded(profileId = activeProfileId) {
+        if (!profileId || profileId === '_unknown') return;
+        try {
+            NATIVE.set(profileSettingsSeededKey(profileId), true);
+            NATIVE.del(profilePendingDisabledDefaultsKey(profileId));
+        } catch (_) { /* ignore */ }
+    }
+
+    /**
+     * True once for a brand-new profile until disabled defaults are applied.
+     * Survives a second activate() in the same page (login watcher → suite boot).
+     */
+    function consumeNewProfileDisableDefaults(profileId = activeProfileId) {
+        if (!profileId || profileId === '_unknown') return false;
+        const pendingKey = profilePendingDisabledDefaultsKey(profileId);
+        let pending = false;
+        try {
+            pending = !!NATIVE.get(pendingKey, false);
+        } catch (_) { /* ignore */ }
+        const needs = pending || lastActivationWasNew;
+        if (!needs) return false;
+        if (NATIVE.get(profileSettingsSeededKey(profileId), false)) {
+            try { NATIVE.del(pendingKey); } catch (_) { /* ignore */ }
+            lastActivationWasNew = false;
+            return false;
+        }
+        lastActivationWasNew = false;
+        return true;
+    }
+
+    function getLastActivationWasNew() {
+        return !!lastActivationWasNew;
+    }
+
     function setActiveProfile(profileId, label) {
         activeProfileId = profileId;
         activeProfileLabel = label || profileId;
@@ -412,6 +476,15 @@
         window.tmCurrentUser = displayName || null;
         window.tmCurrentUsername = null;
         window.tmCurrentPassword = null;
+
+        // Check BEFORE setActiveProfile/migrate — those copy legacy keys into the bucket.
+        const untouched = isUntouchedProfile(profileId);
+        lastActivationWasNew = untouched;
+        if (untouched) {
+            try {
+                NATIVE.set(profilePendingDisabledDefaultsKey(profileId), true);
+            } catch (_) { /* ignore */ }
+        }
 
         const previousProfileId = activeProfileId;
         setActiveProfile(profileId, label);
@@ -782,6 +855,10 @@
         loadLastDisplayName,
         saveLastDisplayName,
         activateProfileForCurrentUser,
+        isUntouchedProfile,
+        getLastActivationWasNew,
+        consumeNewProfileDisableDefaults,
+        markProfileSettingsSeeded,
         syncUnscopedIntoActiveProfile,
         forceResyncFromUnscoped,
         exportCurrentProfileData,

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v398 / Custom Ver. 41.42 — generated, do not edit */
+/* MyManager Suite bundle v399 / Custom Ver. 41.43 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '398',
+        version: '399',
         loaderVersion: '41',
-        silentVersion: '42',
-        displayVersion: '41.42',
+        silentVersion: '43',
+        displayVersion: '41.43',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -3572,9 +3572,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     /** v1 could stick after a failed listValues; v2 re-runs the heal once for everyone. */
     const LEGACY_SYNC_FLAG = 'tm_mms_unscoped_synced_v1';
     const LEGACY_SYNC_FLAG_V2 = 'tm_mms_unscoped_synced_v2';
+    /** Set once after a brand-new profile gets disabled feature defaults. */
+    const SETTINGS_SEEDED_KEY = 'tm_mms_settings_seeded_v1';
+    /** Stashed when a brand-new profile is first seen, until defaults are written. */
+    const PENDING_DISABLED_DEFAULTS_KEY = 'tm_mms_pending_disabled_defaults';
 
     let activeProfileId = null;
     let activeProfileLabel = null;
+    let lastActivationWasNew = false;
 
     function isGlobalKey(key) {
         return GLOBAL_KEYS.has(key);
@@ -3925,6 +3930,65 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         } catch (_) { /* ignore */ }
     }
 
+    function profileSettingsSeededKey(profileId) {
+        return `${PROFILE_PREFIX}${profileId}:${SETTINGS_SEEDED_KEY}`;
+    }
+
+    function profilePendingDisabledDefaultsKey(profileId) {
+        return `${PROFILE_PREFIX}${profileId}:${PENDING_DISABLED_DEFAULTS_KEY}`;
+    }
+
+    /** True when this profile has never had suite data (brand-new login). */
+    function isUntouchedProfile(profileId) {
+        if (!profileId || profileId === '_unknown') return false;
+        try {
+            if (NATIVE.get(profileSettingsSeededKey(profileId), false)) return false;
+            if (NATIVE.get(profilePendingDisabledDefaultsKey(profileId), false)) return true;
+            if (NATIVE.get(`${PROFILE_PREFIX}${profileId}${MIGRATED_SUFFIX}`, false)) return false;
+            const prefix = `${PROFILE_PREFIX}${profileId}:`;
+            for (const key of listNativeStorageKeys()) {
+                if (key.startsWith(prefix)) return false;
+            }
+        } catch (_) {
+            return false;
+        }
+        return true;
+    }
+
+    function markProfileSettingsSeeded(profileId = activeProfileId) {
+        if (!profileId || profileId === '_unknown') return;
+        try {
+            NATIVE.set(profileSettingsSeededKey(profileId), true);
+            NATIVE.del(profilePendingDisabledDefaultsKey(profileId));
+        } catch (_) { /* ignore */ }
+    }
+
+    /**
+     * True once for a brand-new profile until disabled defaults are applied.
+     * Survives a second activate() in the same page (login watcher → suite boot).
+     */
+    function consumeNewProfileDisableDefaults(profileId = activeProfileId) {
+        if (!profileId || profileId === '_unknown') return false;
+        const pendingKey = profilePendingDisabledDefaultsKey(profileId);
+        let pending = false;
+        try {
+            pending = !!NATIVE.get(pendingKey, false);
+        } catch (_) { /* ignore */ }
+        const needs = pending || lastActivationWasNew;
+        if (!needs) return false;
+        if (NATIVE.get(profileSettingsSeededKey(profileId), false)) {
+            try { NATIVE.del(pendingKey); } catch (_) { /* ignore */ }
+            lastActivationWasNew = false;
+            return false;
+        }
+        lastActivationWasNew = false;
+        return true;
+    }
+
+    function getLastActivationWasNew() {
+        return !!lastActivationWasNew;
+    }
+
     function setActiveProfile(profileId, label) {
         activeProfileId = profileId;
         activeProfileLabel = label || profileId;
@@ -3942,6 +4006,15 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         window.tmCurrentUser = displayName || null;
         window.tmCurrentUsername = null;
         window.tmCurrentPassword = null;
+
+        // Check BEFORE setActiveProfile/migrate — those copy legacy keys into the bucket.
+        const untouched = isUntouchedProfile(profileId);
+        lastActivationWasNew = untouched;
+        if (untouched) {
+            try {
+                NATIVE.set(profilePendingDisabledDefaultsKey(profileId), true);
+            } catch (_) { /* ignore */ }
+        }
 
         const previousProfileId = activeProfileId;
         setActiveProfile(profileId, label);
@@ -4312,6 +4385,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         loadLastDisplayName,
         saveLastDisplayName,
         activateProfileForCurrentUser,
+        isUntouchedProfile,
+        getLastActivationWasNew,
+        consumeNewProfileDisableDefaults,
+        markProfileSettingsSeeded,
         syncUnscopedIntoActiveProfile,
         forceResyncFromUnscoped,
         exportCurrentProfileData,
@@ -73679,51 +73756,87 @@ if (typeof window !== 'undefined') {
      * Loads all settings from GM storage and populates the global config object.
      * This function matches the exact storage keys used by saveSettings().
      */
+    function storageKeyForSetting(key) {
+        switch (key) {
+            case 'scriptEnabled':
+                return STORAGE_KEYS.SCRIPT_ENABLED;
+            case 'equippedTheme':
+                return STORAGE_KEYS.EQUIPPED_THEME;
+            case 'userLevel':
+                return STORAGE_KEYS.USER_LEVEL;
+            case 'userXp':
+                return STORAGE_KEYS.USER_XP;
+            case 'userCoins':
+                return STORAGE_KEYS.USER_COINS;
+            case 'userTitle':
+                return STORAGE_KEYS.USER_TITLE;
+            case 'workingDays':
+                return 'workingDays';
+            case 'quickSearchButtons':
+                return 'quickSearchButtons';
+            case 'officeChatEnabled':
+                return (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.CHAT_ENABLED)
+                    ? STORAGE_KEYS.CHAT_ENABLED
+                    : 'tm_chat_enabled';
+            default:
+                return key;
+        }
+    }
+
+    /**
+     * Brand-new MyManager login / profile: turn every feature toggle OFF so the user
+     * opts in from Settings. Does not change the global master script switch.
+     */
+    function disableAllSettingsForNewProfile() {
+        let written = 0;
+        for (const [key, defaultValue] of Object.entries(DEFAULTS)) {
+            if (typeof defaultValue !== 'boolean') continue;
+            // Master toggle is global across profiles — leave it alone.
+            if (key === 'scriptEnabled') continue;
+            const storageKey = storageKeyForSetting(key);
+            if (typeof window.MMS_PROFILES?.isGlobalKey === 'function'
+                && window.MMS_PROFILES.isGlobalKey(storageKey)) {
+                continue;
+            }
+            try {
+                GM_setValue(storageKey, false);
+                written += 1;
+            } catch (_) { /* ignore */ }
+        }
+        // Extra toggles used outside DEFAULTS
+        [
+            'orderHistoryStatusCheckEnabled',
+            'orderHistoryBackgroundEnabled',
+        ].forEach((key) => {
+            try {
+                GM_setValue(key, false);
+                written += 1;
+            } catch (_) { /* ignore */ }
+        });
+        console.log(`[MMS] New user detected — disabled ${written} settings (opt-in)`);
+        return written;
+    }
+
+    function applyNewProfileDisabledSettingsIfNeeded() {
+        try {
+            if (typeof window.MMS_PROFILES?.consumeNewProfileDisableDefaults !== 'function') {
+                return false;
+            }
+            if (!window.MMS_PROFILES.consumeNewProfileDisableDefaults()) return false;
+            disableAllSettingsForNewProfile();
+            window.MMS_PROFILES.markProfileSettingsSeeded?.();
+            return true;
+        } catch (err) {
+            console.warn('[MMS] Failed to apply new-user disabled defaults:', err);
+            return false;
+        }
+    }
+
     function loadSettings() {
         // Iterate through all default settings and load them from storage
         for (const [key, defaultValue] of Object.entries(DEFAULTS)) {
             // Map settings to their corresponding storage keys exactly as saveSettings() uses them
-            let storageKey;
-            
-            switch (key) {
-                // Settings that use STORAGE_KEYS constants
-                case 'scriptEnabled':
-                    storageKey = STORAGE_KEYS.SCRIPT_ENABLED;
-                    break;
-                case 'equippedTheme':
-                    storageKey = STORAGE_KEYS.EQUIPPED_THEME;
-                    break;
-                case 'userLevel':
-                    storageKey = STORAGE_KEYS.USER_LEVEL;
-                    break;
-                case 'userXp':
-                    storageKey = STORAGE_KEYS.USER_XP;
-                    break;
-                case 'userCoins':
-                    storageKey = STORAGE_KEYS.USER_COINS;
-                    break;
-                case 'userTitle':
-                    storageKey = STORAGE_KEYS.USER_TITLE;
-                    break;
-                
-                // Settings that use special storage keys
-                case 'workingDays':
-                    storageKey = 'workingDays';
-                    break;
-                case 'quickSearchButtons':
-                    storageKey = 'quickSearchButtons';
-                    break;
-                case 'officeChatEnabled':
-                    storageKey = (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.CHAT_ENABLED)
-                        ? STORAGE_KEYS.CHAT_ENABLED
-                        : 'tm_chat_enabled';
-                    break;
-                
-                // Most settings use their direct camelCase names as storage keys
-                default:
-                    storageKey = key;
-                    break;
-            }
+            const storageKey = storageKeyForSetting(key);
             
             // Load the setting from storage or use the default value
             let loadedValue = GM_getValue(storageKey, defaultValue);
@@ -78547,6 +78660,9 @@ if (typeof window !== 'undefined') {
             window.refreshTamaLifespanScale();
         }
 
+        // Brand-new login: force all feature toggles off before loadSettings().
+        applyNewProfileDisabledSettingsIfNeeded();
+
         window.addEventListener('mms-profile-changed', (event) => {
             const detail = event?.detail || {};
             const fromId = detail.previousProfileId;
@@ -78569,6 +78685,7 @@ if (typeof window !== 'undefined') {
                 if (typeof window.refreshTamaLifespanScale === 'function') {
                     window.refreshTamaLifespanScale();
                 }
+                applyNewProfileDisabledSettingsIfNeeded();
                 if (typeof window.hydrateTamagotchiFromStorage === 'function') {
                     window.hydrateTamagotchiFromStorage(window.STORAGE_KEYS, null, {
                         mergeMemory: false,

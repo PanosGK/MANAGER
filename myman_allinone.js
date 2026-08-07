@@ -242,51 +242,87 @@
      * Loads all settings from GM storage and populates the global config object.
      * This function matches the exact storage keys used by saveSettings().
      */
+    function storageKeyForSetting(key) {
+        switch (key) {
+            case 'scriptEnabled':
+                return STORAGE_KEYS.SCRIPT_ENABLED;
+            case 'equippedTheme':
+                return STORAGE_KEYS.EQUIPPED_THEME;
+            case 'userLevel':
+                return STORAGE_KEYS.USER_LEVEL;
+            case 'userXp':
+                return STORAGE_KEYS.USER_XP;
+            case 'userCoins':
+                return STORAGE_KEYS.USER_COINS;
+            case 'userTitle':
+                return STORAGE_KEYS.USER_TITLE;
+            case 'workingDays':
+                return 'workingDays';
+            case 'quickSearchButtons':
+                return 'quickSearchButtons';
+            case 'officeChatEnabled':
+                return (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.CHAT_ENABLED)
+                    ? STORAGE_KEYS.CHAT_ENABLED
+                    : 'tm_chat_enabled';
+            default:
+                return key;
+        }
+    }
+
+    /**
+     * Brand-new MyManager login / profile: turn every feature toggle OFF so the user
+     * opts in from Settings. Does not change the global master script switch.
+     */
+    function disableAllSettingsForNewProfile() {
+        let written = 0;
+        for (const [key, defaultValue] of Object.entries(DEFAULTS)) {
+            if (typeof defaultValue !== 'boolean') continue;
+            // Master toggle is global across profiles — leave it alone.
+            if (key === 'scriptEnabled') continue;
+            const storageKey = storageKeyForSetting(key);
+            if (typeof window.MMS_PROFILES?.isGlobalKey === 'function'
+                && window.MMS_PROFILES.isGlobalKey(storageKey)) {
+                continue;
+            }
+            try {
+                GM_setValue(storageKey, false);
+                written += 1;
+            } catch (_) { /* ignore */ }
+        }
+        // Extra toggles used outside DEFAULTS
+        [
+            'orderHistoryStatusCheckEnabled',
+            'orderHistoryBackgroundEnabled',
+        ].forEach((key) => {
+            try {
+                GM_setValue(key, false);
+                written += 1;
+            } catch (_) { /* ignore */ }
+        });
+        console.log(`[MMS] New user detected — disabled ${written} settings (opt-in)`);
+        return written;
+    }
+
+    function applyNewProfileDisabledSettingsIfNeeded() {
+        try {
+            if (typeof window.MMS_PROFILES?.consumeNewProfileDisableDefaults !== 'function') {
+                return false;
+            }
+            if (!window.MMS_PROFILES.consumeNewProfileDisableDefaults()) return false;
+            disableAllSettingsForNewProfile();
+            window.MMS_PROFILES.markProfileSettingsSeeded?.();
+            return true;
+        } catch (err) {
+            console.warn('[MMS] Failed to apply new-user disabled defaults:', err);
+            return false;
+        }
+    }
+
     function loadSettings() {
         // Iterate through all default settings and load them from storage
         for (const [key, defaultValue] of Object.entries(DEFAULTS)) {
             // Map settings to their corresponding storage keys exactly as saveSettings() uses them
-            let storageKey;
-            
-            switch (key) {
-                // Settings that use STORAGE_KEYS constants
-                case 'scriptEnabled':
-                    storageKey = STORAGE_KEYS.SCRIPT_ENABLED;
-                    break;
-                case 'equippedTheme':
-                    storageKey = STORAGE_KEYS.EQUIPPED_THEME;
-                    break;
-                case 'userLevel':
-                    storageKey = STORAGE_KEYS.USER_LEVEL;
-                    break;
-                case 'userXp':
-                    storageKey = STORAGE_KEYS.USER_XP;
-                    break;
-                case 'userCoins':
-                    storageKey = STORAGE_KEYS.USER_COINS;
-                    break;
-                case 'userTitle':
-                    storageKey = STORAGE_KEYS.USER_TITLE;
-                    break;
-                
-                // Settings that use special storage keys
-                case 'workingDays':
-                    storageKey = 'workingDays';
-                    break;
-                case 'quickSearchButtons':
-                    storageKey = 'quickSearchButtons';
-                    break;
-                case 'officeChatEnabled':
-                    storageKey = (typeof STORAGE_KEYS !== 'undefined' && STORAGE_KEYS.CHAT_ENABLED)
-                        ? STORAGE_KEYS.CHAT_ENABLED
-                        : 'tm_chat_enabled';
-                    break;
-                
-                // Most settings use their direct camelCase names as storage keys
-                default:
-                    storageKey = key;
-                    break;
-            }
+            const storageKey = storageKeyForSetting(key);
             
             // Load the setting from storage or use the default value
             let loadedValue = GM_getValue(storageKey, defaultValue);
@@ -5110,6 +5146,9 @@
             window.refreshTamaLifespanScale();
         }
 
+        // Brand-new login: force all feature toggles off before loadSettings().
+        applyNewProfileDisabledSettingsIfNeeded();
+
         window.addEventListener('mms-profile-changed', (event) => {
             const detail = event?.detail || {};
             const fromId = detail.previousProfileId;
@@ -5132,6 +5171,7 @@
                 if (typeof window.refreshTamaLifespanScale === 'function') {
                     window.refreshTamaLifespanScale();
                 }
+                applyNewProfileDisabledSettingsIfNeeded();
                 if (typeof window.hydrateTamagotchiFromStorage === 'function') {
                     window.hydrateTamagotchiFromStorage(window.STORAGE_KEYS, null, {
                         mergeMemory: false,
