@@ -16,6 +16,8 @@
     const PARTS_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=';
     const NATIVE_SEARCH_SELECTOR = '.style1.rnr-bl.rnr-b-search';
     const NATIVE_SEARCH_HIDDEN_KEY = 'tm_native_search_hidden';
+    // Legacy keys from an old persist feature — clear so they cannot resurface.
+    const LEGACY_QS_KEYS = ['tm_footer_qs_repair', 'tm_footer_qs_parts'];
 
     function buildSearchUrl(base, query) {
         const q = String(query || '').trim();
@@ -32,6 +34,48 @@
         const url = buildSearchUrl(baseUrl, input.value);
         if (url) goToSearch(url);
         else input.focus();
+    }
+
+    function clearLegacyQuickSearchStorage() {
+        LEGACY_QS_KEYS.forEach((key) => {
+            try { GM_setValue(key, ''); } catch (_) { /* ignore */ }
+        });
+    }
+
+    /** Harden against browser autofill (often ignores autocomplete=off). */
+    function hardenQuickSearchInput(input) {
+        if (!input) return;
+        input.setAttribute('autocomplete', 'off');
+        input.setAttribute('autocapitalize', 'off');
+        input.setAttribute('autocorrect', 'off');
+        input.setAttribute('spellcheck', 'false');
+        input.setAttribute('data-lpignore', 'true');
+        input.setAttribute('data-1p-ignore', 'true');
+        input.setAttribute('data-form-type', 'other');
+        // Odd name discourages password-manager / history autofill of prior qs terms.
+        if (!input.name || input.name.startsWith('tm-qs-')) {
+            input.name = `tm-qs-${input.id || 'field'}-${Math.random().toString(36).slice(2, 8)}`;
+        }
+        input.addEventListener('input', () => {
+            input.dataset.tmQsDirty = '1';
+        });
+        input.addEventListener('focus', () => {
+            if (input.readOnly) input.readOnly = false;
+        });
+        // Block autofill paint, then unlock for typing.
+        input.readOnly = true;
+        const unlock = () => { input.readOnly = false; };
+        setTimeout(unlock, 0);
+        setTimeout(unlock, 250);
+    }
+
+    function scrubStaleQuickSearchValues(bar) {
+        if (!bar) return;
+        bar.querySelectorAll('#tm-footer-repair-search, #tm-footer-parts-search').forEach((input) => {
+            // Drop autofill / FOUC leftovers unless the user already typed this session.
+            if (input.dataset.tmQsDirty === '1') return;
+            if (input.value) input.value = '';
+        });
     }
 
     function isRepairEditPage() {
@@ -175,6 +219,41 @@
         applyNativeSearchHidden(hidden);
     }
 
+    /**
+     * When native search is hidden, hard-block Runner search submits.
+     * Stale ctlSearchFor values (e.g. a prior "6826") otherwise re-run if anything
+     * programmatically clicks #searchButtTop or fires Enter on that field.
+     */
+    function installNativeSearchGuard() {
+        if (window.__tmNativeSearchGuard) return;
+        window.__tmNativeSearchGuard = true;
+
+        document.addEventListener('click', (e) => {
+            if (!isNativeSearchHidden()) return;
+            const t = e.target;
+            if (!t || typeof t.closest !== 'function') return;
+            if (t.closest('#tm-footer-quick-search, .tm-qs-host')) return;
+            const nativeBtn = t.closest(
+                'a[id^="searchButtTop"], a[id^="searchButton"], a.rnr-button[data-icon="search"], [data-tm-native-search-suppressed="1"]'
+            );
+            if (!nativeBtn) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+        }, true);
+
+        document.addEventListener('keydown', (e) => {
+            if (!isNativeSearchHidden()) return;
+            if (e.key !== 'Enter') return;
+            const t = e.target;
+            if (!t) return;
+            const id = String(t.id || '');
+            const name = String(t.name || '');
+            if (!/ctlSearchFor/i.test(id) && !/ctlSearchFor/i.test(name)) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+        }, true);
+    }
+
     function mountNativeSearchToggle(parentContainer) {
         if (!parentContainer || document.getElementById('tm-toggle-native-search')) return;
 
@@ -210,10 +289,9 @@
             repairInput.className = 'tm-qs-input';
             repairInput.placeholder = 'Αρ., τηλέφωνο, πελάτης…';
             repairInput.setAttribute('aria-label', 'Αναζήτηση επισκευών');
-            repairInput.autocomplete = 'off';
-            repairInput.setAttribute('autocomplete', 'off');
             repairInput.spellcheck = false;
             repairInput.dataset.searchBase = REPAIR_SEARCH_URL;
+            hardenQuickSearchInput(repairInput);
 
             repairGroup.appendChild(repairInput);
 
@@ -226,10 +304,9 @@
             partsInput.className = 'tm-qs-input';
             partsInput.placeholder = 'Κωδικός, barcode…';
             partsInput.setAttribute('aria-label', 'Αναζήτηση ανταλλακτικών');
-            partsInput.autocomplete = 'off';
-            partsInput.setAttribute('autocomplete', 'off');
             partsInput.spellcheck = false;
             partsInput.dataset.searchBase = PARTS_SEARCH_URL;
+            hardenQuickSearchInput(partsInput);
 
             partsGroup.appendChild(partsInput);
 
@@ -241,34 +318,48 @@
             searchBtn.className = 'tm-qs-search-btn';
             searchBtn.textContent = 'Αναζήτηση';
 
+            const isDirty = (input) => input?.dataset?.tmQsDirty === '1';
+
             const resolveSearchInput = () => {
                 const qRepair = repairInput.value.trim();
                 const qParts = partsInput.value.trim();
                 if (!qRepair && !qParts) return null;
 
                 const active = document.activeElement;
+                // Prefer the focused field (user is clearly typing / scanning there).
                 if (active === partsInput && qParts) return partsInput;
                 if (active === repairInput && qRepair) return repairInput;
-                if (qRepair) return repairInput;
-                if (qParts) return partsInput;
+                // Button click with unfocused fields: only honor user-typed values.
+                // Ignores browser autofill leftovers (e.g. a prior "6826").
+                if (qRepair && isDirty(repairInput)) return repairInput;
+                if (qParts && isDirty(partsInput)) return partsInput;
                 return null;
             };
 
             const handleSearch = () => {
                 const input = resolveSearchInput();
                 if (!input) {
+                    // Drop stale autofill so the next click cannot search it.
+                    if (!isDirty(repairInput)) repairInput.value = '';
+                    if (!isDirty(partsInput)) partsInput.value = '';
                     repairInput.focus();
                     return;
                 }
                 submitFromInput(input, input.dataset.searchBase);
             };
 
-            searchBtn.addEventListener('click', handleSearch);
+            searchBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSearch();
+            });
 
             repairInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
+                    e.stopPropagation();
                     if (repairInput.value.trim()) {
+                        repairInput.dataset.tmQsDirty = '1';
                         submitFromInput(repairInput, repairInput.dataset.searchBase);
                     } else {
                         handleSearch();
@@ -279,7 +370,9 @@
             partsInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
+                    e.stopPropagation();
                     if (partsInput.value.trim()) {
+                        partsInput.dataset.tmQsDirty = '1';
                         submitFromInput(partsInput, partsInput.dataset.searchBase);
                     } else {
                         handleSearch();
@@ -293,6 +386,10 @@
             parentContainer.appendChild(bar);
 
             mountNativeSearchToggle(bar);
+            // Beat late autofill / FOUC shell value restoration.
+            scrubStaleQuickSearchValues(bar);
+            setTimeout(() => scrubStaleQuickSearchValues(bar), 0);
+            setTimeout(() => scrubStaleQuickSearchValues(bar), 400);
         } else if (bar.parentElement !== parentContainer) {
             parentContainer.appendChild(bar);
             if (!document.getElementById('tm-toggle-native-search')) {
@@ -300,8 +397,14 @@
             }
             const movedRepairInput = bar.querySelector('#tm-footer-repair-search');
             const movedPartsInput = bar.querySelector('#tm-footer-parts-search');
-            if (movedRepairInput) movedRepairInput.value = '';
-            if (movedPartsInput) movedPartsInput.value = '';
+            if (movedRepairInput) {
+                movedRepairInput.value = '';
+                delete movedRepairInput.dataset.tmQsDirty;
+            }
+            if (movedPartsInput) {
+                movedPartsInput.value = '';
+                delete movedPartsInput.dataset.tmQsDirty;
+            }
         }
 
         bar.querySelectorAll('.tm-qs-input-group label').forEach((label) => label.remove());
@@ -314,6 +417,7 @@
             legacyBtn.type = 'button';
         }
 
+        scrubStaleQuickSearchValues(bar);
         updateFooterQuickSearchVisibility(config);
     }
 
@@ -430,6 +534,8 @@
     }
 
     function initFooterQuickSearch(config) {
+        clearLegacyQuickSearchStorage();
+        installNativeSearchGuard();
         const tryMount = (attempt = 0) => {
             if (config?.footerQuickSearchEnabled === false) {
                 updateFooterQuickSearchVisibility(config);
