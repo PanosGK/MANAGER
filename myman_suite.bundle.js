@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v400 / Custom Ver. 41.44 — generated, do not edit */
+/* MyManager Suite bundle v401 / Custom Ver. 41.45 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '400',
+        version: '401',
         loaderVersion: '41',
-        silentVersion: '44',
-        displayVersion: '41.44',
+        silentVersion: '45',
+        displayVersion: '41.45',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -10371,8 +10371,19 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 background: var(--tm-shop-item-hover-bg, #f8f9fa);
             }
             body.tm-native-search-hidden .style1.rnr-bl.rnr-b-search,
-            body.tm-native-search-hidden .rnr-b-search.style1.rnr-bl {
+            body.tm-native-search-hidden .rnr-b-search.style1.rnr-bl,
+            body.tm-native-search-hidden .rnr-b-search {
                 display: none !important;
+                pointer-events: none !important;
+            }
+            body.tm-native-search-hidden a[id^="searchButtTop"],
+            body.tm-native-search-hidden a[id^="searchButton"],
+            body.tm-native-search-hidden a[id^="clearSearch"],
+            body.tm-native-search-hidden a.rnr-button[data-icon="search"],
+            body.tm-native-search-hidden input[id^="ctlSearchFor"],
+            body.tm-native-search-hidden input[name^="ctlSearchFor"],
+            body.tm-native-search-hidden [data-tm-native-search-suppressed="1"] {
+                pointer-events: none !important;
             }
             #tm-footer-controls-left {
                 display: flex;
@@ -73191,6 +73202,19 @@ if (typeof window !== 'undefined') {
             || document.querySelector('.rnr-hfiller');
     }
 
+    /** Native Runner search controls — never relocate these (they must stay in .rnr-b-search). */
+    function isNativeSearchControl(el) {
+        if (!el || el.nodeType !== 1) return false;
+        if (el.closest?.('.rnr-b-search, .rnr-search, .searchform')) return true;
+        const id = String(el.id || '');
+        if (/^(searchButtTop|searchButton|clearSearch|showOptPanel|showSrchWin|advButton|ctlSearchFor|simpleSrch)/i.test(id)) {
+            return true;
+        }
+        if (el.getAttribute?.('data-icon') === 'search') return true;
+        if (el.matches?.('input[name^="ctlSearchFor"], a[name="skipsearch"]')) return true;
+        return false;
+    }
+
     /** Loose header actions (e.g. Εξαγωγή) that sit outside search/loggedas bricks and break the row. */
     function isHeaderOrphanAction(el) {
         if (!el || el.nodeType !== 1) return false;
@@ -73202,14 +73226,31 @@ if (typeof window !== 'undefined') {
         }
         if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return false;
         if (el.tagName === 'A' && el.getAttribute('name') === 'skipsearch') return false;
+        // Never pull native search buttons out of their brick — that leaves them
+        // clickable over the grid (e.g. column sort headers like .rnr-orderlink).
+        if (isNativeSearchControl(el)) return false;
         if (el.id === 'export_1' || el.matches?.('a[href*="service_export.php"]')) return true;
-        return el.matches?.('a.rnr-button, button.rnr-button') === true;
+        return el.matches?.('a.rnr-button, button.rnr-button') === true
+            && !el.classList.contains('tm-qs-search-btn');
     }
 
     function relocateHeaderOrphanButtons(hfiller) {
         if (!hfiller) return;
         const menu = hfiller.closest('.rnr-c-hmenu') || hfiller.parentElement;
         if (!menu) return;
+
+        // Undo prior bad relocations: put native search controls back into their brick.
+        hfiller.querySelectorAll('.tm-header-orphan-btn').forEach((btn) => {
+            if (!isNativeSearchControl(btn)) return;
+            btn.classList.remove('tm-header-orphan-btn');
+            btn.style.pointerEvents = '';
+            btn.style.visibility = '';
+            btn.removeAttribute('data-tm-native-search-suppressed');
+            const searchBrick = menu.querySelector('.rnr-b-search') || document.querySelector('.rnr-b-search');
+            if (searchBrick && !searchBrick.contains(btn)) {
+                searchBrick.appendChild(btn);
+            }
+        });
 
         const orphans = [...menu.children].filter(isHeaderOrphanAction);
         if (!orphans.length) return;
@@ -73235,10 +73276,40 @@ if (typeof window !== 'undefined') {
         return GM_getValue(NATIVE_SEARCH_HIDDEN_KEY, false) === true;
     }
 
+    function getNativeSearchLooseControls() {
+        return document.querySelectorAll([
+            'a[id^="searchButtTop"]',
+            'a[id^="searchButton"]',
+            'a[id^="clearSearch"]',
+            'a[id^="showOptPanel"]',
+            'a[id^="showSrchWin"]',
+            'a[id^="advButton"]',
+            'input[id^="ctlSearchFor"]',
+            'input[name^="ctlSearchFor"]',
+            'a.rnr-button[data-icon="search"]',
+        ].join(','));
+    }
+
     function applyNativeSearchHidden(hidden) {
         document.body.classList.toggle('tm-native-search-hidden', hidden);
         getNativeSearchBlocks().forEach((el) => {
             el.style.display = hidden ? 'none' : '';
+            el.style.pointerEvents = hidden ? 'none' : '';
+        });
+        // Also disable any search controls that were left outside .rnr-b-search
+        // (e.g. previously relocated orphans) so they cannot intercept grid clicks.
+        getNativeSearchLooseControls().forEach((el) => {
+            if (hidden) {
+                el.setAttribute('data-tm-native-search-suppressed', '1');
+                el.style.pointerEvents = 'none';
+                if (!el.closest('.rnr-b-search')) {
+                    el.style.visibility = 'hidden';
+                }
+            } else if (el.getAttribute('data-tm-native-search-suppressed') === '1') {
+                el.removeAttribute('data-tm-native-search-suppressed');
+                el.style.pointerEvents = '';
+                el.style.visibility = '';
+            }
         });
         const btn = document.getElementById('tm-toggle-native-search');
         if (btn) {
@@ -73315,8 +73386,10 @@ if (typeof window !== 'undefined') {
 
             const searchBtn = document.createElement('button');
             searchBtn.type = 'button';
+            // Do NOT use Runner's .rnr-button — it can be bound/relocated as a native control
+            // and intercept clicks meant for grid sort headers (.rnr-orderlink).
             searchBtn.id = 'tm-footer-search-submit';
-            searchBtn.className = 'rnr-button tm-qs-search-btn';
+            searchBtn.className = 'tm-qs-search-btn';
             searchBtn.textContent = 'Αναζήτηση';
 
             const resolveSearchInput = () => {
@@ -73383,6 +73456,14 @@ if (typeof window !== 'undefined') {
         }
 
         bar.querySelectorAll('.tm-qs-input-group label').forEach((label) => label.remove());
+
+        // Legacy bars used Runner's .rnr-button — strip it so native handlers ignore our control.
+        const legacyBtn = bar.querySelector('#tm-footer-search-submit');
+        if (legacyBtn) {
+            legacyBtn.classList.remove('rnr-button');
+            legacyBtn.classList.add('tm-qs-search-btn');
+            legacyBtn.type = 'button';
+        }
 
         updateFooterQuickSearchVisibility(config);
     }

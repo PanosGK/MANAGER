@@ -1,11 +1,11 @@
 {
-  "version": "400",
+  "version": "401",
   "loaderVersion": "41",
-  "silentVersion": "44",
-  "displayVersion": "41.44",
+  "silentVersion": "45",
+  "displayVersion": "41.45",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix phone catalog sort refocusing search input",
+  "releaseNotes": "Prevent native search from intercepting list column sort clicks",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

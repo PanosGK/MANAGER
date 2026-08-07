@@ -3573,8 +3573,19 @@
                 background: var(--tm-shop-item-hover-bg, #f8f9fa);
             }
             body.tm-native-search-hidden .style1.rnr-bl.rnr-b-search,
-            body.tm-native-search-hidden .rnr-b-search.style1.rnr-bl {
+            body.tm-native-search-hidden .rnr-b-search.style1.rnr-bl,
+            body.tm-native-search-hidden .rnr-b-search {
                 display: none !important;
+                pointer-events: none !important;
+            }
+            body.tm-native-search-hidden a[id^="searchButtTop"],
+            body.tm-native-search-hidden a[id^="searchButton"],
+            body.tm-native-search-hidden a[id^="clearSearch"],
+            body.tm-native-search-hidden a.rnr-button[data-icon="search"],
+            body.tm-native-search-hidden input[id^="ctlSearchFor"],
+            body.tm-native-search-hidden input[name^="ctlSearchFor"],
+            body.tm-native-search-hidden [data-tm-native-search-suppressed="1"] {
+                pointer-events: none !important;
             }
             #tm-footer-controls-left {
                 display: flex;
