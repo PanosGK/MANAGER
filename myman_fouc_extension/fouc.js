@@ -4,8 +4,8 @@
  * Caches ALL suite UI chrome as HTML shells; on next visit mounts shells early.
  * Suite then replaces each shell and hydrates live values (coins, XP, weather, etc.).
  *
- * Shells: footer controls, suite brand, header quick-search, right rail,
- *         mascot silhouette, scroll-to-top.
+ * Shells: footer controls, suite brand, right rail, mascot silhouette, scroll-to-top.
+ * (Header quick-search is intentionally NOT cached — it raced live mount / leaked qs.)
  */
 (function tmMmsFoucExtension() {
   'use strict';
@@ -21,9 +21,14 @@
   var EXT_CSS_KEY = 'tm_mms_suite_css';
   var MAX_CSS = 1500000;
   var LEGACY_FOOTER_KEY = 'tm_mms_footer_shell';
-  var CACHE_VERSION = 15;
+  var CACHE_VERSION = 16;
   var MAX_HTML = 900000;
   var MAX_SHELL_HTML = 600000;
+  // Never FOUC-cache/mount quick-search: empty shells raced the live suite and
+  // hung first paint; stale field values also leaked prior qs terms.
+  var SKIP_SHELL_IDS = {
+    'tm-header-quick-search-host': 1,
+  };
 
   var SHELL_SPECS = [
     {
@@ -34,11 +39,6 @@
     {
       id: 'tm-footer-suite-brand',
       parent: 'footer-right',
-      minLen: 40,
-    },
-    {
-      id: 'tm-header-quick-search-host',
-      parent: 'header-filler',
       minLen: 40,
     },
     {
@@ -560,16 +560,6 @@
       || (el.classList && el.classList.contains('tm-qs-input'));
   }
 
-  function quickSearchHostPlaceholderHtml(el) {
-    var id = (el && el.id) || 'tm-header-quick-search-host';
-    var cls = ((el && el.className) || 'tm-qs-host tm-qs-host--header');
-    cls = String(cls).replace(/\btm-ui-shell\b/g, '').replace(/\s+/g, ' ').trim();
-    var style = '';
-    try { style = (el && el.getAttribute('style')) || ''; } catch (eS) { /* ignore */ }
-    var styleAttr = style ? ' style="' + String(style).replace(/"/g, '&quot;') + '"' : '';
-    return '<div id="' + id + '" class="' + cls + ' tm-ui-shell"' + styleAttr + '></div>';
-  }
-
   function mascotSilhouetteHtml(el) {
     var style = '';
     try { style = (el && el.getAttribute('style')) || ''; } catch (e0) { /* ignore */ }
@@ -602,11 +592,7 @@
       if (spec && spec.id === 'tm-mascot-container') {
         return mascotSilhouetteHtml(el);
       }
-      // Quick search: empty host only. Cached values (e.g. "6826") were restored
-      // onto later pages and submitted instead of what the user typed.
-      if (spec && spec.id === 'tm-header-quick-search-host') {
-        return quickSearchHostPlaceholderHtml(el);
-      }
+      if (spec && SKIP_SHELL_IDS[spec.id]) return null;
 
       // Carbon copy of the live suite node: keep icons, text values, inline styles.
       // Only strip ephemeral open panels (not the always-visible chrome).
@@ -681,7 +667,7 @@
 
   function normalizeCache(raw) {
     if (!raw || typeof raw !== 'object') return null;
-    if ((raw.v === CACHE_VERSION || raw.v === 14 || raw.v === 13 || raw.v === 12 || raw.v === 11 || raw.v === 10 || raw.v === 9)
+    if ((raw.v === CACHE_VERSION || raw.v === 15 || raw.v === 14 || raw.v === 13 || raw.v === 12 || raw.v === 11 || raw.v === 10 || raw.v === 9)
       && raw.shells && typeof raw.shells === 'object') {
       // Drop legacy full-SVG mascot snapshots (caused different characters per page)
       try {
@@ -690,13 +676,12 @@
           delete raw.shells['tm-mascot-container'];
         }
       } catch (eMascot) { /* ignore */ }
-      // Drop cached quick-search field values from older snapshots
+      // Drop shells that must never early-mount (quick-search race / stale qs)
       try {
-        var qs = raw.shells['tm-header-quick-search-host'];
-        if (qs && qs.html && /tm-footer-(repair|parts)-search|tm-qs-input/.test(String(qs.html))) {
-          qs.html = quickSearchHostPlaceholderHtml(null);
-        }
-      } catch (eQsCache) { /* ignore */ }
+        Object.keys(SKIP_SHELL_IDS).forEach(function (skipId) {
+          if (raw.shells[skipId]) delete raw.shells[skipId];
+        });
+      } catch (eSkipShells) { /* ignore */ }
       // Normalize legacy placements → suite-matched insert modes
       Object.keys(raw.shells).forEach(function (id) {
         var entry = raw.shells[id];
@@ -792,7 +777,7 @@
       try {
         // Quota: keep footer + brand + header only
         var essential = { v: cache.v, updatedAt: cache.updatedAt, shells: {} };
-        ['tm-footer-controls-container', 'tm-footer-suite-brand', 'tm-header-quick-search-host']
+        ['tm-footer-controls-container', 'tm-footer-suite-brand']
           .forEach(function (id) {
             if (cache.shells && cache.shells[id]) essential.shells[id] = cache.shells[id];
           });
@@ -804,6 +789,8 @@
   function mountOne(entry) {
     try {
       if (!entry || !entry.html || !entry.id) return false;
+      // Never early-mount skipped shells (quick-search)
+      if (SKIP_SHELL_IDS[entry.id]) return false;
       // Never cover a live hydrated mascot with a FOUC shell
       if (entry.id === 'tm-mascot-container'
         && document.querySelector('#tm-mascot-container[data-tm-mascot-live="1"]')) {
@@ -820,11 +807,6 @@
       if (entry.id === 'tm-mascot-container' && String(html).indexOf('<svg') !== -1) {
         html = mascotSilhouetteHtml(null);
       }
-      // Drop cached quick-search values (e.g. a prior "6826") from old snapshots
-      if (entry.id === 'tm-header-quick-search-host'
-        && /tm-footer-(repair|parts)-search|tm-qs-input/.test(String(html))) {
-        html = quickSearchHostPlaceholderHtml(null);
-      }
 
       var mountedHint = insertAtExactPlace(parent, html, placement);
       var mounted = document.getElementById(entry.id) || mountedHint;
@@ -840,9 +822,6 @@
         mounted.setAttribute(FOOTER_SHELL_ATTR, '1');
       }
       mounted.classList.add('tm-ui-shell');
-      if (entry.id === 'tm-header-quick-search-host') {
-        try { mounted.innerHTML = ''; } catch (eQs) { /* ignore */ }
-      }
       return true;
     } catch (e) {
       return false;
@@ -935,6 +914,7 @@
   function snapshotLiveShells(source) {
     var changed = false;
     SHELL_SPECS.forEach(function (spec) {
+      if (SKIP_SHELL_IDS[spec.id]) return;
       var el = document.getElementById(spec.id);
       if (!el) return;
       if (isShellEl(el)) return;
@@ -1016,5 +996,5 @@
     } catch (eFail) { /* ignore */ }
   }, 8000);
 
-  console.log('[FOUC] guard v1.11.1 ready (' + location.hostname + ') — carbon-copy + footer layout lock');
+  console.log('[FOUC] guard v1.11.2 ready (' + location.hostname + ') — carbon-copy + footer layout lock');
 })();

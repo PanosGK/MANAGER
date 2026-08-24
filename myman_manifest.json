@@ -1,11 +1,11 @@
 {
-  "version": "404",
+  "version": "405",
   "loaderVersion": "41",
-  "silentVersion": "48",
-  "displayVersion": "41.48",
+  "silentVersion": "49",
+  "displayVersion": "41.49",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Stop stale quick search (e.g. 6826) from autofill and native leftovers",
+  "releaseNotes": "Fix FOUC hang: stop caching/mounting quick-search shell",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

@@ -603,10 +603,17 @@
 
     function ensureHeaderSearchHost() {
         let host = document.getElementById('tm-header-quick-search-host');
+        // Reuse a FOUC shell in place (don't remove) so the extension cannot remount
+        // an empty host in the gap and hang first paint.
         if (host && (host.getAttribute('data-tm-ui-shell') === '1'
             || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(host)))) {
-            host.remove();
-            host = null;
+            try {
+                host.removeAttribute('data-tm-ui-shell');
+                host.removeAttribute('data-tm-footer-shell');
+                host.classList.remove('tm-ui-shell');
+                host.innerHTML = '';
+                host.style.pointerEvents = '';
+            } catch (_) { /* ignore */ }
         }
         const hfiller = host?.closest('.rnr-hfiller') || findHeaderFiller();
         if (!hfiller) return host || null;
@@ -616,6 +623,8 @@
             host.id = 'tm-header-quick-search-host';
             host.className = 'tm-qs-host tm-qs-host--header';
             hfiller.prepend(host);
+        } else {
+            host.classList.add('tm-qs-host', 'tm-qs-host--header');
         }
 
         relocateHeaderOrphanButtons(hfiller);

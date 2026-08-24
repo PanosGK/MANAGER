@@ -15,7 +15,7 @@
     const LS_FOOTER_LEGACY = 'tm_mms_footer_shell';
     const SHELL_ATTR = 'data-tm-ui-shell';
     const FOOTER_SHELL_ATTR = 'data-tm-footer-shell';
-    const CACHE_VERSION = 15;
+    const CACHE_VERSION = 16;
     const MSG_TYPE = 'TM_MMS_UI_SHELLS';
     const MAX_HTML = 900000;
     const MAX_SHELL_HTML = 600000;
@@ -23,11 +23,14 @@
     const SHELL_SPECS = [
         { id: 'tm-footer-controls-container', parent: 'footer-center', minLen: 80, maxHtml: 600000 },
         { id: 'tm-footer-suite-brand', parent: 'footer-right', minLen: 40 },
-        { id: 'tm-header-quick-search-host', parent: 'header-filler', minLen: 40 },
+        // Quick-search intentionally omitted — FOUC mount raced live bar and hung paint.
         { id: 'tm-search-container', parent: 'body', minLen: 20 },
         { id: 'tm-mascot-container', parent: 'body', minLen: 20, maxHtml: 2000, silhouetteOnly: true },
         { id: 'tm-scroll-to-top-btn', parent: 'body', minLen: 10 },
     ];
+    const SKIP_SHELL_IDS = {
+        'tm-header-quick-search-host': true,
+    };
 
     let syncTimer = 0;
     let syncing = false;
@@ -116,18 +119,7 @@
         const id = String(el.id || '');
         return id === 'tm-footer-repair-search'
             || id === 'tm-footer-parts-search'
-            || el.classList.contains('tm-qs-input');
-    }
-
-    function quickSearchHostPlaceholderHtml(el) {
-        const id = (el && el.id) || 'tm-header-quick-search-host';
-        const cls = ((el && el.className) || 'tm-qs-host tm-qs-host--header')
-            .replace(/\btm-ui-shell\b/g, '')
-            .trim();
-        let style = '';
-        try { style = (el && el.getAttribute('style')) || ''; } catch (_) { /* ignore */ }
-        const styleAttr = style ? ` style="${String(style).replace(/"/g, '&quot;')}"` : '';
-        return `<div id="${id}" class="${cls} tm-ui-shell"${styleAttr}></div>`;
+            || el.classList?.contains('tm-qs-input') === true;
     }
 
     function mascotSilhouetteHtml(el) {
@@ -159,12 +151,7 @@
         if (spec?.id === 'tm-mascot-container') {
             return mascotSilhouetteHtml(el);
         }
-
-        // Never snapshot quick-search field values. A prior qs (e.g. "6826") was being
-        // restored by FOUC with data-tm-qs-dirty still set, so the next search used it.
-        if (spec?.id === 'tm-header-quick-search-host') {
-            return quickSearchHostPlaceholderHtml(el);
-        }
+        if (spec?.id && SKIP_SHELL_IDS[spec.id]) return null;
 
         // Carbon copy: keep icons, coin/XP/weather text, inline styles.
         const clone = el.cloneNode(true);
@@ -257,6 +244,7 @@
         SHELL_SPECS.forEach((spec) => {
             // Never cache the mascot — colliding snapshots made list/edit look like different pets
             if (spec.id === 'tm-mascot-container') return;
+            if (SKIP_SHELL_IDS[spec.id]) return;
             const el = document.getElementById(spec.id);
             if (!el || isShellEl(el)) return;
             const html = slimCloneHtml(el, spec);
@@ -477,25 +465,26 @@
     expose('TM_FOOTER_SHELL_LS_KEY', LS_FOOTER_LEGACY);
     expose('TM_UI_SHELLS_LS_KEY', LS_KEY);
 
-    // One-shot: strip legacy full-SVG mascot snapshots from localStorage (wrong character per page)
+    // One-shot: strip legacy snapshots that break paint or show the wrong UI
     try {
         const ls = pageLocalStorage();
         const raw = ls.getItem(LS_KEY);
         if (raw) {
             const parsed = JSON.parse(raw);
-            const html = parsed?.shells?.['tm-mascot-container']?.html;
             let changed = false;
+            const html = parsed?.shells?.['tm-mascot-container']?.html;
             if (html && String(html).includes('<svg')) {
                 delete parsed.shells['tm-mascot-container'];
                 changed = true;
                 console.log('[MMS UI Shell] Cleared stale full-SVG mascot FOUC cache');
             }
-            const qsHost = parsed?.shells?.['tm-header-quick-search-host'];
-            if (qsHost && qsHost.html && /tm-footer-(repair|parts)-search|tm-qs-input/.test(String(qsHost.html))) {
-                qsHost.html = quickSearchHostPlaceholderHtml(null);
-                changed = true;
-                console.log('[MMS UI Shell] Cleared stale quick-search values from FOUC cache');
-            }
+            Object.keys(SKIP_SHELL_IDS).forEach((skipId) => {
+                if (parsed?.shells?.[skipId]) {
+                    delete parsed.shells[skipId];
+                    changed = true;
+                    console.log('[MMS UI Shell] Cleared skipped shell from FOUC cache:', skipId);
+                }
+            });
             if (changed) {
                 parsed.v = CACHE_VERSION;
                 parsed.updatedAt = Date.now();
