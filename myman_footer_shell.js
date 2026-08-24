@@ -111,6 +111,25 @@
         };
     }
 
+    function isQuickSearchField(el) {
+        if (!el || el.nodeType !== 1) return false;
+        const id = String(el.id || '');
+        return id === 'tm-footer-repair-search'
+            || id === 'tm-footer-parts-search'
+            || el.classList.contains('tm-qs-input');
+    }
+
+    function quickSearchHostPlaceholderHtml(el) {
+        const id = (el && el.id) || 'tm-header-quick-search-host';
+        const cls = ((el && el.className) || 'tm-qs-host tm-qs-host--header')
+            .replace(/\btm-ui-shell\b/g, '')
+            .trim();
+        let style = '';
+        try { style = (el && el.getAttribute('style')) || ''; } catch (_) { /* ignore */ }
+        const styleAttr = style ? ` style="${String(style).replace(/"/g, '&quot;')}"` : '';
+        return `<div id="${id}" class="${cls} tm-ui-shell"${styleAttr}></div>`;
+    }
+
     function mascotSilhouetteHtml(el) {
         let style = '';
         try { style = (el && el.getAttribute('style')) || ''; } catch (_) { /* ignore */ }
@@ -141,6 +160,12 @@
             return mascotSilhouetteHtml(el);
         }
 
+        // Never snapshot quick-search field values. A prior qs (e.g. "6826") was being
+        // restored by FOUC with data-tm-qs-dirty still set, so the next search used it.
+        if (spec?.id === 'tm-header-quick-search-host') {
+            return quickSearchHostPlaceholderHtml(el);
+        }
+
         // Carbon copy: keep icons, coin/XP/weather text, inline styles.
         const clone = el.cloneNode(true);
         clone.removeAttribute(SHELL_ATTR);
@@ -157,11 +182,19 @@
         ).forEach((n) => n.remove());
 
         // Preserve live input values (cloneNode keeps defaultValue, not .value)
+        // except quick-search — those must never be restored onto another page.
         const liveFields = el.querySelectorAll('input, textarea, select');
         const cloneFields = clone.querySelectorAll('input, textarea, select');
         for (let f = 0; f < liveFields.length && f < cloneFields.length; f++) {
             const lv = liveFields[f];
             const cv = cloneFields[f];
+            if (isQuickSearchField(lv) || isQuickSearchField(cv)) {
+                cv.setAttribute('value', '');
+                cv.removeAttribute('data-tm-qs-dirty');
+                cv.removeAttribute('data-tm-qs-last-edit');
+                cv.removeAttribute('data-tm-qs-session');
+                continue;
+            }
             if (lv.tagName === 'TEXTAREA') {
                 cv.textContent = lv.value;
             } else if (lv.tagName === 'SELECT') {
@@ -451,12 +484,22 @@
         if (raw) {
             const parsed = JSON.parse(raw);
             const html = parsed?.shells?.['tm-mascot-container']?.html;
+            let changed = false;
             if (html && String(html).includes('<svg')) {
                 delete parsed.shells['tm-mascot-container'];
+                changed = true;
+                console.log('[MMS UI Shell] Cleared stale full-SVG mascot FOUC cache');
+            }
+            const qsHost = parsed?.shells?.['tm-header-quick-search-host'];
+            if (qsHost && qsHost.html && /tm-footer-(repair|parts)-search|tm-qs-input/.test(String(qsHost.html))) {
+                qsHost.html = quickSearchHostPlaceholderHtml(null);
+                changed = true;
+                console.log('[MMS UI Shell] Cleared stale quick-search values from FOUC cache');
+            }
+            if (changed) {
                 parsed.v = CACHE_VERSION;
                 parsed.updatedAt = Date.now();
                 ls.setItem(LS_KEY, JSON.stringify(parsed));
-                console.log('[MMS UI Shell] Cleared stale full-SVG mascot FOUC cache');
             }
         }
     } catch (_) { /* ignore */ }

@@ -552,6 +552,24 @@
     return !!(el && (el.getAttribute(SHELL_ATTR) === '1' || el.getAttribute(FOOTER_SHELL_ATTR) === '1'));
   }
 
+  function isQuickSearchField(el) {
+    if (!el) return false;
+    var id = String(el.id || '');
+    return id === 'tm-footer-repair-search'
+      || id === 'tm-footer-parts-search'
+      || (el.classList && el.classList.contains('tm-qs-input'));
+  }
+
+  function quickSearchHostPlaceholderHtml(el) {
+    var id = (el && el.id) || 'tm-header-quick-search-host';
+    var cls = ((el && el.className) || 'tm-qs-host tm-qs-host--header');
+    cls = String(cls).replace(/\btm-ui-shell\b/g, '').replace(/\s+/g, ' ').trim();
+    var style = '';
+    try { style = (el && el.getAttribute('style')) || ''; } catch (eS) { /* ignore */ }
+    var styleAttr = style ? ' style="' + String(style).replace(/"/g, '&quot;') + '"' : '';
+    return '<div id="' + id + '" class="' + cls + ' tm-ui-shell"' + styleAttr + '></div>';
+  }
+
   function mascotSilhouetteHtml(el) {
     var style = '';
     try { style = (el && el.getAttribute('style')) || ''; } catch (e0) { /* ignore */ }
@@ -584,6 +602,11 @@
       if (spec && spec.id === 'tm-mascot-container') {
         return mascotSilhouetteHtml(el);
       }
+      // Quick search: empty host only. Cached values (e.g. "6826") were restored
+      // onto later pages and submitted instead of what the user typed.
+      if (spec && spec.id === 'tm-header-quick-search-host') {
+        return quickSearchHostPlaceholderHtml(el);
+      }
 
       // Carbon copy of the live suite node: keep icons, text values, inline styles.
       // Only strip ephemeral open panels (not the always-visible chrome).
@@ -610,12 +633,20 @@
       }
 
       // Preserve live form field values (cloneNode keeps defaultValue, not current .value)
+      // except quick-search — never bake a prior qs into the FOUC snapshot.
       var liveFields = el.querySelectorAll('input, textarea, select');
       var cloneFields = clone.querySelectorAll('input, textarea, select');
       for (var f = 0; f < liveFields.length && f < cloneFields.length; f++) {
         try {
           var lv = liveFields[f];
           var cv = cloneFields[f];
+          if (isQuickSearchField(lv) || isQuickSearchField(cv)) {
+            cv.setAttribute('value', '');
+            cv.removeAttribute('data-tm-qs-dirty');
+            cv.removeAttribute('data-tm-qs-last-edit');
+            cv.removeAttribute('data-tm-qs-session');
+            continue;
+          }
           if (lv.tagName === 'TEXTAREA') {
             cv.textContent = lv.value;
           } else if (lv.tagName === 'SELECT') {
@@ -659,6 +690,13 @@
           delete raw.shells['tm-mascot-container'];
         }
       } catch (eMascot) { /* ignore */ }
+      // Drop cached quick-search field values from older snapshots
+      try {
+        var qs = raw.shells['tm-header-quick-search-host'];
+        if (qs && qs.html && /tm-footer-(repair|parts)-search|tm-qs-input/.test(String(qs.html))) {
+          qs.html = quickSearchHostPlaceholderHtml(null);
+        }
+      } catch (eQsCache) { /* ignore */ }
       // Normalize legacy placements → suite-matched insert modes
       Object.keys(raw.shells).forEach(function (id) {
         var entry = raw.shells[id];
@@ -782,6 +820,11 @@
       if (entry.id === 'tm-mascot-container' && String(html).indexOf('<svg') !== -1) {
         html = mascotSilhouetteHtml(null);
       }
+      // Drop cached quick-search values (e.g. a prior "6826") from old snapshots
+      if (entry.id === 'tm-header-quick-search-host'
+        && /tm-footer-(repair|parts)-search|tm-qs-input/.test(String(html))) {
+        html = quickSearchHostPlaceholderHtml(null);
+      }
 
       var mountedHint = insertAtExactPlace(parent, html, placement);
       var mounted = document.getElementById(entry.id) || mountedHint;
@@ -797,6 +840,9 @@
         mounted.setAttribute(FOOTER_SHELL_ATTR, '1');
       }
       mounted.classList.add('tm-ui-shell');
+      if (entry.id === 'tm-header-quick-search-host') {
+        try { mounted.innerHTML = ''; } catch (eQs) { /* ignore */ }
+      }
       return true;
     } catch (e) {
       return false;
