@@ -4,7 +4,7 @@
  * Caches ALL suite UI chrome as HTML shells; on next visit mounts shells early.
  * Suite then replaces each shell and hydrates live values (coins, XP, weather, etc.).
  *
- * Shells: footer controls, suite brand, right rail, mascot silhouette, scroll-to-top.
+ * Shells: footer controls, suite brand, right rail, mascot silhouette.
  * (Header quick-search is intentionally NOT cached — it raced live mount / leaked qs.)
  */
 (function tmMmsFoucExtension() {
@@ -52,11 +52,6 @@
       minLen: 20,
       silhouetteOnly: true,
       maxHtml: 2000,
-    },
-    {
-      id: 'tm-scroll-to-top-btn',
-      parent: 'body',
-      minLen: 10,
     },
   ];
 
@@ -421,8 +416,7 @@
     + 'position:fixed;z-index:99990;border-radius:18px;'
     + 'background:rgba(120,120,140,.18);backdrop-filter:blur(4px);'
     + 'box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);}'
-    + '#tm-search-container[' + SHELL_ATTR + '="1"]{position:fixed!important;}'
-    + '#tm-scroll-to-top-btn[' + SHELL_ATTR + '="1"]{position:fixed!important;}';
+    + '#tm-search-container[' + SHELL_ATTR + '="1"]{position:fixed!important;}';
 
   function ensureShellCss() {
     var style = document.getElementById('tm-mms-ui-shell-css');

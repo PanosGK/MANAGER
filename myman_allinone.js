@@ -118,7 +118,6 @@
             { label: 'Back Cover', term: 'Back Cover' },
         ],
         officeChatEnabled: true, // auto-provision PocketBase account from MyManager login
-        scrollToTopEnabled: true,
         technicianStatsEnabled: true,
         customerHistoryEnabled: true,
         dashboardWidgetEnabled: true,
@@ -1167,46 +1166,6 @@
     window.toggleNotificationPanel = toggleNotificationPanel;
 
     // showTitlesModal function now loaded from myman_gamification.js
-
-    // ===================================================================
-    /**
-     * Initializes a "Scroll to Top" button that appears on long pages.
-     */
-    function initScrollToTopFeature() {
-        if (!config.scrollToTopEnabled) return;
-
-        const existingBtn = document.getElementById('tm-scroll-to-top-btn');
-        if (existingBtn) {
-            if (existingBtn.getAttribute('data-tm-ui-shell') === '1'
-                || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(existingBtn))) {
-                existingBtn.remove();
-            } else {
-                return;
-            }
-        }
-
-        const btn = document.createElement('button');
-        btn.id = 'tm-scroll-to-top-btn';
-        btn.innerHTML = '&#9650;'; // Up arrow
-        btn.title = 'Μετάβαση στην κορυφή';
-        document.body.appendChild(btn);
-
-        btn.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-
-        const debouncedScrollCheck = debounce(() => {
-            if (window.scrollY > 300) {
-                btn.style.display = 'flex';
-            } else {
-                btn.style.display = 'none';
-            }
-        }, 150);
-
-        window.addEventListener('scroll', debouncedScrollCheck);
-    }
-
-
 
     // Note: initOrderTracking is now in myman_gamification.js
 
@@ -5370,7 +5329,6 @@
             window.initPhoneCatalogMenuItem(config);
         }
         
-        initScrollToTopFeature();
         if (typeof window.initRepairReminderFeature === 'function') {
             window.initRepairReminderFeature(config, STORAGE_KEYS);
         }

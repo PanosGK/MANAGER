@@ -1,11 +1,11 @@
 {
-  "version": "420",
+  "version": "421",
   "loaderVersion": "42",
-  "silentVersion": "4",
-  "displayVersion": "42.4",
+  "silentVersion": "5",
+  "displayVersion": "42.5",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test",
-  "releaseNotes": "New users: disable all features except Chat and Phone Catalog",
+  "releaseNotes": "Remove scroll-to-top button",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

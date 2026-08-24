@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v420 / Custom Ver. 42.4 — generated, do not edit */
+/* MyManager Suite bundle v421 / Custom Ver. 42.5 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '420',
+        version: '421',
         loaderVersion: '42',
-        silentVersion: '4',
-        displayVersion: '42.4',
+        silentVersion: '5',
+        displayVersion: '42.5',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
@@ -5751,7 +5751,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         // Quick-search intentionally omitted — FOUC mount raced live bar and hung paint.
         { id: 'tm-search-container', parent: 'body', minLen: 20, require: 'searchFeatureEnabled' },
         { id: 'tm-mascot-container', parent: 'body', minLen: 20, maxHtml: 2000, silhouetteOnly: true, require: 'interactiveMascotEnabled' },
-        { id: 'tm-scroll-to-top-btn', parent: 'body', minLen: 10, require: 'scrollToTopEnabled' },
     ];
     const SKIP_SHELL_IDS = {
         'tm-header-quick-search-host': true,
@@ -16154,12 +16153,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             where: 'Footer της εφαρμογής.',
             when: 'Καθ’ όλη τη διάρκεια της εργασίας· ενημερώνεται καθώς κάνετε ενέργειες.',
         },
-        scroll_top: {
-            title: 'Επιστροφή στην κορυφή',
-            what: 'Κουμπί που κυλάει τη σελίδα στην κορυφή με ένα κλικ.',
-            where: 'Σταθερό στην οθόνη σε μεγάλες λίστες / μακριές σελίδες.',
-            when: 'Όταν κάνετε scroll προς τα κάτω — εμφανίζεται για γρήγορη επιστροφή.',
-        },
         hidden_menu: {
             title: 'Απόκρυψη αριστερού μενού',
             what: 'Επιτρέπει να κρύβετε στοιχεία του αριστερού μενού του MyManager. Από «Κρυφά στοιχεία» επιλέγετε τι θα εμφανίζεται.',
@@ -16707,7 +16700,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             
             // Debug mode is handled separately with passcode protection
             saveCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
-            saveCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             saveCheckbox('tm-setting-hidden-menu-enabled', 'hiddenMenuItemsEnabled');
             saveCheckbox('tm-setting-notifications-enabled', 'notificationsEnabled');
             saveCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
@@ -16924,16 +16916,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <p class="tm-setting-description">Στατιστικά της τρέχουσας ημέρας στο footer.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-dashboard-enabled"></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-scroll-top-enabled">Επιστροφή στην κορυφή</label>
-                                ${info('scroll_top')}
-                            </div>
-                            <p class="tm-setting-description">Κουμπί γρήγορης κύλισης πάνω.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-scroll-top-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -17980,7 +17962,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             
             populateCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
-            populateCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             populateCheckbox('tm-setting-hidden-menu-enabled', 'hiddenMenuItemsEnabled');
             populateCheckbox('tm-setting-notifications-enabled', 'notificationsEnabled');
             overlay.querySelector('#tm-manage-hidden-menu-btn')?.addEventListener('click', () => {
@@ -73017,7 +72998,6 @@ if (typeof window !== 'undefined') {
             { label: 'Back Cover', term: 'Back Cover' },
         ],
         officeChatEnabled: true, // auto-provision PocketBase account from MyManager login
-        scrollToTopEnabled: true,
         technicianStatsEnabled: true,
         customerHistoryEnabled: true,
         dashboardWidgetEnabled: true,
@@ -74066,46 +74046,6 @@ if (typeof window !== 'undefined') {
     window.toggleNotificationPanel = toggleNotificationPanel;
 
     // showTitlesModal function now loaded from myman_gamification.js
-
-    // ===================================================================
-    /**
-     * Initializes a "Scroll to Top" button that appears on long pages.
-     */
-    function initScrollToTopFeature() {
-        if (!config.scrollToTopEnabled) return;
-
-        const existingBtn = document.getElementById('tm-scroll-to-top-btn');
-        if (existingBtn) {
-            if (existingBtn.getAttribute('data-tm-ui-shell') === '1'
-                || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(existingBtn))) {
-                existingBtn.remove();
-            } else {
-                return;
-            }
-        }
-
-        const btn = document.createElement('button');
-        btn.id = 'tm-scroll-to-top-btn';
-        btn.innerHTML = '&#9650;'; // Up arrow
-        btn.title = 'Μετάβαση στην κορυφή';
-        document.body.appendChild(btn);
-
-        btn.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-
-        const debouncedScrollCheck = debounce(() => {
-            if (window.scrollY > 300) {
-                btn.style.display = 'flex';
-            } else {
-                btn.style.display = 'none';
-            }
-        }, 150);
-
-        window.addEventListener('scroll', debouncedScrollCheck);
-    }
-
-
 
     // Note: initOrderTracking is now in myman_gamification.js
 
@@ -78269,7 +78209,6 @@ if (typeof window !== 'undefined') {
             window.initPhoneCatalogMenuItem(config);
         }
         
-        initScrollToTopFeature();
         if (typeof window.initRepairReminderFeature === 'function') {
             window.initRepairReminderFeature(config, STORAGE_KEYS);
         }

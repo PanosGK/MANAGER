@@ -33,12 +33,6 @@
             where: 'Footer της εφαρμογής.',
             when: 'Καθ’ όλη τη διάρκεια της εργασίας· ενημερώνεται καθώς κάνετε ενέργειες.',
         },
-        scroll_top: {
-            title: 'Επιστροφή στην κορυφή',
-            what: 'Κουμπί που κυλάει τη σελίδα στην κορυφή με ένα κλικ.',
-            where: 'Σταθερό στην οθόνη σε μεγάλες λίστες / μακριές σελίδες.',
-            when: 'Όταν κάνετε scroll προς τα κάτω — εμφανίζεται για γρήγορη επιστροφή.',
-        },
         hidden_menu: {
             title: 'Απόκρυψη αριστερού μενού',
             what: 'Επιτρέπει να κρύβετε στοιχεία του αριστερού μενού του MyManager. Από «Κρυφά στοιχεία» επιλέγετε τι θα εμφανίζεται.',
@@ -586,7 +580,6 @@
             
             // Debug mode is handled separately with passcode protection
             saveCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
-            saveCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             saveCheckbox('tm-setting-hidden-menu-enabled', 'hiddenMenuItemsEnabled');
             saveCheckbox('tm-setting-notifications-enabled', 'notificationsEnabled');
             saveCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
@@ -803,16 +796,6 @@
                             <p class="tm-setting-description">Στατιστικά της τρέχουσας ημέρας στο footer.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-dashboard-enabled"></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-scroll-top-enabled">Επιστροφή στην κορυφή</label>
-                                ${info('scroll_top')}
-                            </div>
-                            <p class="tm-setting-description">Κουμπί γρήγορης κύλισης πάνω.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-scroll-top-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -1859,7 +1842,6 @@
             }
             
             populateCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
-            populateCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             populateCheckbox('tm-setting-hidden-menu-enabled', 'hiddenMenuItemsEnabled');
             populateCheckbox('tm-setting-notifications-enabled', 'notificationsEnabled');
             overlay.querySelector('#tm-manage-hidden-menu-btn')?.addEventListener('click', () => {

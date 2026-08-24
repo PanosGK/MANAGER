@@ -26,7 +26,6 @@
         // Quick-search intentionally omitted — FOUC mount raced live bar and hung paint.
         { id: 'tm-search-container', parent: 'body', minLen: 20, require: 'searchFeatureEnabled' },
         { id: 'tm-mascot-container', parent: 'body', minLen: 20, maxHtml: 2000, silhouetteOnly: true, require: 'interactiveMascotEnabled' },
-        { id: 'tm-scroll-to-top-btn', parent: 'body', minLen: 10, require: 'scrollToTopEnabled' },
     ];
     const SKIP_SHELL_IDS = {
         'tm-header-quick-search-host': true,
