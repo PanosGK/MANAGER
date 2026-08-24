@@ -69,12 +69,6 @@
             where: 'Σελίδες επεξεργασίας παραγγελιών / επισκευών όπου εμφανίζεται η μπάρα γρήγορης αναζήτησης.',
             when: 'Όταν παραγγέλνετε ή ψάχνετε ανταλλακτικά — ένα κλικ αντί για πληκτρολόγηση.',
         },
-        footer_quick_search: {
-            title: 'Γρήγορη αναζήτηση header',
-            what: 'Πεδίο γρήγορης αναζήτησης στο header (ή δίπλα στον τίτλο στο service_edit). Μπορεί να κρύψει το native search.',
-            where: 'Header (rnr-hfiller) σε πολλές σελίδες · service_edit δίπλα στον τίτλο επισκευής.',
-            when: 'Συνεχώς ορατό όσο είστε σε σελίδες με header — για γρήγορη αναζήτηση χωρίς modal.',
-        },
         tech_stats: {
             title: 'Στατιστικά τεχνικών',
             what: 'Εμφανίζει στατιστικά απόδοσης ανά τεχνικό (επισκευές, χρόνοι κ.λπ.).',
@@ -596,7 +590,6 @@
             saveCheckbox('tm-setting-repair-collab-enabled', 'repairCollabEnabled');
             saveNumber('tm-setting-recent-repairs-max', 'recentRepairsMaxItems');
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
-            saveCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
             saveCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             saveCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             saveCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
@@ -1078,17 +1071,6 @@
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-quick-search-enabled"></div>
                     </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-footer-quick-search-enabled">Γρήγορη αναζήτηση header</label>
-                                ${info('footer_quick_search')}
-                            </div>
-                            <p class="tm-setting-description">Στο header ή δίπλα στον τίτλο επισκευής.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-footer-quick-search-enabled"></div>
-                    </div>
-
                     <h4 class="tm-settings-subgroup">Λίστα &amp; προβολή</h4>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -2003,7 +1985,6 @@
             populateCheckbox('tm-setting-repair-list-quickview-enabled', 'repairListQuickViewEnabled');
             populateCheckbox('tm-setting-repair-collab-enabled', 'repairCollabEnabled');
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
-            populateCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             populateCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             populateCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
@@ -2104,25 +2085,6 @@
                 });
             }
 
-            const footerQuickSearchCheckbox = document.getElementById('tm-setting-footer-quick-search-enabled');
-            if (footerQuickSearchCheckbox) {
-                footerQuickSearchCheckbox.addEventListener('change', () => {
-                    const value = footerQuickSearchCheckbox.checked;
-                    GM_setValue('footerQuickSearchEnabled', value);
-                    config.footerQuickSearchEnabled = value;
-
-                    const mountTarget = document.getElementById('tm-repair-edit-quick-search-host')
-                        || document.getElementById('tm-header-quick-search-host')
-                        || document.querySelector('.rnr-hfiller');
-                    if (value && !document.getElementById('tm-footer-quick-search')
-                        && typeof window.initFooterQuickSearch === 'function') {
-                        window.initFooterQuickSearch(config);
-                    } else if (typeof window.updateFooterQuickSearchVisibility === 'function') {
-                        window.updateFooterQuickSearchVisibility(config);
-                    }
-                });
-            }
-            
             const phoneCatalogCheckbox = document.getElementById('tm-setting-phone-catalog-enabled');
             if (phoneCatalogCheckbox) {
                 phoneCatalogCheckbox.addEventListener('change', () => {

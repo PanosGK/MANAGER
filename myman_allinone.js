@@ -144,7 +144,6 @@
         recentRepairsMaxItems: 5,
         // Weather Widget
         weatherWidgetEnabled: true,
-        footerQuickSearchEnabled: true,
         phoneCatalogEnabled: true,
         orderHistoryEnabled: true,
         orderLinkEnabled: true,

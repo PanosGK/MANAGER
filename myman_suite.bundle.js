@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v407 / Custom Ver. 41.51 — generated, do not edit */
+/* MyManager Suite bundle v408 / Custom Ver. 41.52 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '407',
+        version: '408',
         loaderVersion: '41',
-        silentVersion: '51',
-        displayVersion: '41.51',
+        silentVersion: '52',
+        displayVersion: '41.52',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -10289,192 +10289,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 width: 100%;
                 gap: 8px;
             }
-            .tm-qs-host {
-                display: flex;
-                align-items: center;
-                flex-shrink: 0;
-                margin: 0;
-                padding: 0;
-            }
-            .tm-qs-host--header {
-                margin-right: 6px;
-            }
-            .tm-qs-host--repair {
-                margin: 0;
-                padding: 0;
-                max-width: min(560px, 100%);
-            }
-            /* Keep undermenu row stable when accounts show Extra buttons (Εξαγωγή, etc.). */
-            .rnr-c-hmenu:has(.tm-qs-host--header) {
-                display: flex !important;
-                align-items: center;
-                flex-wrap: nowrap;
-                gap: 6px;
-                min-width: 0;
-            }
-            .rnr-c-hmenu:has(.tm-qs-host--header) > .rnr-bl,
-            .rnr-c-hmenu:has(.tm-qs-host--header) > .rnr-br {
-                float: none !important;
-                flex: 0 0 auto;
-            }
-            .rnr-hfiller:has(.tm-qs-host--header) {
-                display: flex !important;
-                align-items: center;
-                justify-content: flex-start !important;
-                gap: 8px;
-                flex-wrap: nowrap;
-                flex: 1 1 auto;
-                min-width: 0;
-            }
-            .rnr-hfiller .tm-header-orphan-btn {
-                flex: 0 0 auto;
-                align-self: center;
-                margin: 0;
-                white-space: nowrap;
-            }
-            .tm-repair-edit-header-with-search {
-                display: block !important;
-            }
-            .tm-repair-edit-title-row {
-                display: inline-flex !important;
-                flex-direction: row !important;
-                align-items: center !important;
-                flex-wrap: nowrap;
-                gap: 10px;
-                width: auto !important;
-                max-width: 100%;
-                vertical-align: middle;
-            }
-            .tm-repair-edit-title-row h1 {
-                flex: 0 1 auto;
-                margin: 0 !important;
-                width: auto !important;
-                white-space: nowrap;
-            }
-            .tm-repair-edit-title-row .tm-qs-host--repair {
-                flex: 0 0 auto;
-            }
-            .tm-qs-host--repair .tm-qs-input,
-            .tm-qs-host--header .tm-qs-input,
-            .tm-qs-host--repair .tm-qs-search-btn,
-            .tm-qs-host--header .tm-qs-search-btn,
-            .tm-qs-host--repair .tm-qs-hide-native,
-            .tm-qs-host--header .tm-qs-hide-native {
-                background-color: var(--tm-input-bg, #fff) !important;
-                color: var(--tm-input-text, #212529) !important;
-                -webkit-text-fill-color: var(--tm-input-text, #212529);
-                border-color: var(--tm-input-border, #ced4da) !important;
-            }
-            .tm-qs-host--repair .tm-qs-input::placeholder,
-            .tm-qs-host--header .tm-qs-input::placeholder {
-                color: var(--tm-muted-text, #6c757d) !important;
-                -webkit-text-fill-color: var(--tm-muted-text, #6c757d);
-                opacity: 0.85;
-            }
-            .tm-qs-panel {
-                display: inline-flex;
-                flex-direction: row;
-                align-items: center;
-                gap: 4px;
-                padding: 0;
-                margin: 0;
-                background: transparent;
-                border: none;
-                border-radius: 0;
-                box-shadow: none;
-                font: inherit;
-                flex-wrap: nowrap;
-                max-width: min(520px, 100%);
-                box-sizing: border-box;
-                vertical-align: middle;
-            }
-            .tm-qs-host--header .tm-qs-panel {
-                gap: 4px;
-                max-width: min(460px, 100%);
-            }
-            .tm-qs-input-group {
-                flex: 1 1 88px;
-                min-width: 72px;
-            }
-            .tm-qs-input {
-                width: 100%;
-                margin: 0;
-                padding: 5px;
-                border: 1px solid var(--tm-input-border, #ced4da);
-                border-radius: 4px;
-                font: inherit;
-                font-size: inherit;
-                line-height: normal;
-                outline: none;
-                box-sizing: border-box;
-                background: var(--tm-input-bg, #fff);
-                color: var(--tm-input-text, #212529);
-                box-shadow: none;
-                vertical-align: middle;
-            }
-            .tm-qs-input::placeholder {
-                color: var(--tm-muted-text, #6c757d);
-                opacity: 0.85;
-                font-size: inherit;
-            }
-            .tm-qs-input:focus {
-                border-color: var(--tm-input-focus-border, var(--tm-primary-color, #adb5bd));
-                outline: 1px dotted var(--tm-input-text, #333);
-                outline-offset: 1px;
-            }
-            .tm-qs-search-btn {
-                flex-shrink: 0;
-                margin: 0 !important;
-                padding: 4px 10px !important;
-                height: auto !important;
-                min-height: 0 !important;
-                font: inherit !important;
-                font-weight: normal !important;
-                line-height: normal !important;
-                box-shadow: none !important;
-                white-space: nowrap;
-                vertical-align: middle;
-                background: var(--tm-input-bg, #fff) !important;
-                color: var(--tm-input-text, #212529) !important;
-                border: 1px solid var(--tm-input-border, #ced4da) !important;
-            }
-            .tm-qs-hide-native {
-                flex-shrink: 0;
-                align-self: center;
-                margin: 0;
-                padding: 4px 6px;
-                min-width: 22px;
-                height: auto;
-                border: 1px solid var(--tm-input-border, #ced4da);
-                border-radius: 4px;
-                background: var(--tm-input-bg, #fff);
-                color: var(--tm-input-text, #212529);
-                font: inherit;
-                font-size: 12px;
-                line-height: 1;
-                cursor: pointer;
-                box-shadow: none;
-                vertical-align: middle;
-            }
-            .tm-qs-hide-native:hover {
-                border-color: var(--tm-input-focus-border, #adb5bd);
-                background: var(--tm-shop-item-hover-bg, #f8f9fa);
-            }
-            body.tm-native-search-hidden .style1.rnr-bl.rnr-b-search,
-            body.tm-native-search-hidden .rnr-b-search.style1.rnr-bl,
-            body.tm-native-search-hidden .rnr-b-search {
-                display: none !important;
-                pointer-events: none !important;
-            }
-            body.tm-native-search-hidden a[id^="searchButtTop"],
-            body.tm-native-search-hidden a[id^="searchButton"],
-            body.tm-native-search-hidden a[id^="clearSearch"],
-            body.tm-native-search-hidden a.rnr-button[data-icon="search"],
-            body.tm-native-search-hidden input[id^="ctlSearchFor"],
-            body.tm-native-search-hidden input[name^="ctlSearchFor"],
-            body.tm-native-search-hidden [data-tm-native-search-suppressed="1"] {
-                pointer-events: none !important;
-            }
             #tm-footer-controls-left {
                 display: flex;
                 align-items: center;
@@ -16278,12 +16092,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             where: 'Σελίδες επεξεργασίας παραγγελιών / επισκευών όπου εμφανίζεται η μπάρα γρήγορης αναζήτησης.',
             when: 'Όταν παραγγέλνετε ή ψάχνετε ανταλλακτικά — ένα κλικ αντί για πληκτρολόγηση.',
         },
-        footer_quick_search: {
-            title: 'Γρήγορη αναζήτηση header',
-            what: 'Πεδίο γρήγορης αναζήτησης στο header (ή δίπλα στον τίτλο στο service_edit). Μπορεί να κρύψει το native search.',
-            where: 'Header (rnr-hfiller) σε πολλές σελίδες · service_edit δίπλα στον τίτλο επισκευής.',
-            when: 'Συνεχώς ορατό όσο είστε σε σελίδες με header — για γρήγορη αναζήτηση χωρίς modal.',
-        },
         tech_stats: {
             title: 'Στατιστικά τεχνικών',
             what: 'Εμφανίζει στατιστικά απόδοσης ανά τεχνικό (επισκευές, χρόνοι κ.λπ.).',
@@ -16805,7 +16613,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             saveCheckbox('tm-setting-repair-collab-enabled', 'repairCollabEnabled');
             saveNumber('tm-setting-recent-repairs-max', 'recentRepairsMaxItems');
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
-            saveCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
             saveCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             saveCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             saveCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
@@ -17287,17 +17094,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-quick-search-enabled"></div>
                     </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-footer-quick-search-enabled">Γρήγορη αναζήτηση header</label>
-                                ${info('footer_quick_search')}
-                            </div>
-                            <p class="tm-setting-description">Στο header ή δίπλα στον τίτλο επισκευής.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-footer-quick-search-enabled"></div>
-                    </div>
-
                     <h4 class="tm-settings-subgroup">Λίστα &amp; προβολή</h4>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -18212,7 +18008,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             populateCheckbox('tm-setting-repair-list-quickview-enabled', 'repairListQuickViewEnabled');
             populateCheckbox('tm-setting-repair-collab-enabled', 'repairCollabEnabled');
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
-            populateCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             populateCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             populateCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
@@ -18313,25 +18108,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 });
             }
 
-            const footerQuickSearchCheckbox = document.getElementById('tm-setting-footer-quick-search-enabled');
-            if (footerQuickSearchCheckbox) {
-                footerQuickSearchCheckbox.addEventListener('change', () => {
-                    const value = footerQuickSearchCheckbox.checked;
-                    GM_setValue('footerQuickSearchEnabled', value);
-                    config.footerQuickSearchEnabled = value;
-
-                    const mountTarget = document.getElementById('tm-repair-edit-quick-search-host')
-                        || document.getElementById('tm-header-quick-search-host')
-                        || document.querySelector('.rnr-hfiller');
-                    if (value && !document.getElementById('tm-footer-quick-search')
-                        && typeof window.initFooterQuickSearch === 'function') {
-                        window.initFooterQuickSearch(config);
-                    } else if (typeof window.updateFooterQuickSearchVisibility === 'function') {
-                        window.updateFooterQuickSearchVisibility(config);
-                    }
-                });
-            }
-            
             const phoneCatalogCheckbox = document.getElementById('tm-setting-phone-catalog-enabled');
             if (phoneCatalogCheckbox) {
                 phoneCatalogCheckbox.addEventListener('change', () => {
@@ -73253,797 +73029,75 @@ if (typeof window !== 'undefined') {
 (function () {
     'use strict';
 
-    const REPAIR_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=';
-    const PARTS_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=';
-    const NATIVE_SEARCH_SELECTOR = '.style1.rnr-bl.rnr-b-search';
     const NATIVE_SEARCH_HIDDEN_KEY = 'tm_native_search_hidden';
-    // Legacy keys from an old persist feature — clear so they cannot resurface.
     const LEGACY_QS_KEYS = ['tm_footer_qs_repair', 'tm_footer_qs_parts'];
-    // Only honor dirty flags stamped during THIS page load (bfcache / HTML clones
-    // can resurrect old data-* flags from a prior visit).
-    const QS_PAGE_TOKEN = `p${Date.now().toString(36)}`;
-    // In-memory typed queries — immune to autofill / DOM value swaps (e.g. stale "6826").
-    const typedQueryByRole = Object.create(null);
-    const nativeTypedThisPage = { value: '', at: 0 };
 
-    function qsInputs() {
-        return document.querySelectorAll(
-            '#tm-footer-repair-search, #tm-footer-parts-search, input.tm-qs-input[data-tm-qs-role]'
-        );
-    }
-
-    function buildSearchUrl(base, query) {
-        const q = String(query || '').trim();
-        if (!q) return '';
-        return `${base}${encodeURIComponent(q)}`;
-    }
-
-    function goToSearch(url) {
-        if (!url) return;
-        // Full navigation — bypass Runner form/session posting a leftover ctlSearchFor.
-        window.location.assign(url);
-    }
-
-    function resetQuickSearchInput(input) {
-        if (!input) return;
-        const role = input.dataset.tmQsRole;
-        if (role) delete typedQueryByRole[role];
-        input.value = '';
-        delete input.dataset.tmQsDirty;
-        delete input.dataset.tmQsLastEdit;
-        delete input.dataset.tmQsSession;
-        delete input.dataset.tmQsUserKey;
-    }
-
-    function markQuickSearchTyped(input, explicitValue) {
-        if (!input) return;
-        const role = input.dataset.tmQsRole || input.id || 'field';
-        const q = String(explicitValue !== undefined ? explicitValue : input.value || '').trim();
-        typedQueryByRole[role] = q;
-        input.dataset.tmQsDirty = '1';
-        input.dataset.tmQsSession = QS_PAGE_TOKEN;
-        input.dataset.tmQsLastEdit = String(Date.now());
-        input.dataset.tmQsUserKey = '1';
-    }
-
-    /** True only if the user actually pressed keys / pasted in this field on this page. */
-    function isQuickSearchTypedThisPage(input) {
-        return input?.dataset?.tmQsDirty === '1'
-            && input.dataset.tmQsSession === QS_PAGE_TOKEN
-            && input.dataset.tmQsUserKey === '1';
-    }
-
-    function typedQueryFor(input) {
-        if (!input) return '';
-        const role = input.dataset.tmQsRole || input.id || '';
-        const mem = role ? typedQueryByRole[role] : '';
-        if (mem) return String(mem).trim();
-        return String(input.value || '').trim();
-    }
-
-    function clearNativeSearchFields({ force = false } = {}) {
-        document.querySelectorAll('input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]').forEach((el) => {
-            if (!force && document.activeElement === el) return;
-            el.value = '';
-            try { el.setAttribute('value', ''); } catch (_) { /* ignore */ }
+    function restoreNativeSearch() {
+        try { GM_setValue(NATIVE_SEARCH_HIDDEN_KEY, false); } catch (_) { /* ignore */ }
+        document.body?.classList.remove('tm-native-search-hidden');
+        document.querySelectorAll('.rnr-b-search').forEach((el) => {
+            el.style.display = '';
+            el.style.pointerEvents = '';
+        });
+        document.querySelectorAll('[data-tm-native-search-suppressed="1"]').forEach((el) => {
+            el.removeAttribute('data-tm-native-search-suppressed');
+            el.style.pointerEvents = '';
+            el.style.visibility = '';
         });
     }
 
-    function submitFromInput(input, baseUrl) {
-        // Prefer in-memory typed query so a late autofill of "6826" cannot replace it.
-        const query = typedQueryFor(input) || String(input?.value || '').trim();
-        const url = buildSearchUrl(baseUrl, query);
-        if (url) {
-            qsInputs().forEach(resetQuickSearchInput);
-            clearNativeSearchFields({ force: true });
-            goToSearch(url);
-        } else {
-            input?.focus();
+    function unwrapRepairTitleRow() {
+        const row = document.getElementById('tm-repair-edit-title-row');
+        if (row?.parentNode) {
+            const parent = row.parentNode;
+            while (row.firstChild) parent.insertBefore(row.firstChild, row);
+            row.remove();
         }
+        document.querySelectorAll('.tm-repair-edit-header-with-search').forEach((el) => {
+            el.classList.remove('tm-repair-edit-header-with-search');
+        });
     }
 
-    function clearLegacyQuickSearchStorage() {
+    function removeHeaderQuickSearch() {
+        [
+            'tm-footer-quick-search',
+            'tm-header-quick-search-host',
+            'tm-repair-edit-quick-search-host',
+            'tm-toggle-native-search',
+        ].forEach((id) => document.getElementById(id)?.remove());
+        document.querySelectorAll('.tm-qs-host, .tm-qs-panel, .tm-header-orphan-btn').forEach((el) => {
+            if (el.classList.contains('tm-header-orphan-btn')) {
+                el.classList.remove('tm-header-orphan-btn');
+                return;
+            }
+            el.remove();
+        });
+        unwrapRepairTitleRow();
+        restoreNativeSearch();
         LEGACY_QS_KEYS.forEach((key) => {
             try { GM_setValue(key, ''); } catch (_) { /* ignore */ }
         });
     }
 
-    /** Harden against browser autofill (often ignores autocomplete=off). */
-    function hardenQuickSearchInput(input, role) {
-        if (!input) return;
-        input.dataset.tmQsRole = role;
-        // new-password is the most reliable autofill deterrent for non-password fields.
-        input.setAttribute('autocomplete', 'new-password');
-        input.setAttribute('autocapitalize', 'off');
-        input.setAttribute('autocorrect', 'off');
-        input.setAttribute('spellcheck', 'false');
-        input.setAttribute('data-lpignore', 'true');
-        input.setAttribute('data-1p-ignore', 'true');
-        input.setAttribute('data-form-type', 'other');
-        // Unbind from any parent Runner <form> so Enter cannot submit ctlSearchFor.
-        input.setAttribute('form', 'tm-qs-unbound-form');
-        // Odd name discourages password-manager / history autofill of prior qs terms.
-        input.name = `tm-qs-${role}-${QS_PAGE_TOKEN}`;
-
-        const trustUser = () => {
-            input.dataset.tmQsUserKey = '1';
+    function initFooterQuickSearch() {
+        removeHeaderQuickSearch();
+        // Catch late FOUC/shell remounts of the old header bar.
+        let attempts = 0;
+        const poll = () => {
+            attempts += 1;
+            if (document.getElementById('tm-header-quick-search-host')
+                || document.getElementById('tm-footer-quick-search')
+                || document.getElementById('tm-repair-edit-quick-search-host')) {
+                removeHeaderQuickSearch();
+            }
+            if (attempts < 20) setTimeout(poll, 400);
         };
-
-        input.addEventListener('keydown', (e) => {
-            if (!e.isTrusted) return;
-            if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Enter') {
-                trustUser();
-            }
-        });
-        input.addEventListener('paste', (e) => {
-            if (!e.isTrusted) return;
-            trustUser();
-            // paste value lands after this event — read on next tick
-            setTimeout(() => {
-                if (input.dataset.tmQsUserKey === '1') markQuickSearchTyped(input);
-            }, 0);
-        });
-        input.addEventListener('input', () => {
-            if (input.dataset.tmQsUserKey !== '1') {
-                // Browser autofill of a prior qs (e.g. "6826") — drop it.
-                if (input.value) input.value = '';
-                delete typedQueryByRole[role];
-                delete input.dataset.tmQsDirty;
-                delete input.dataset.tmQsLastEdit;
-                delete input.dataset.tmQsSession;
-                return;
-            }
-            markQuickSearchTyped(input);
-        });
-        input.addEventListener('focus', () => {
-            if (input.readOnly) input.readOnly = false;
-        });
-        // Block autofill paint, then unlock for typing.
-        input.readOnly = true;
-        const unlock = () => { input.readOnly = false; };
-        setTimeout(unlock, 0);
-        setTimeout(unlock, 250);
-    }
-
-    function scrubStaleQuickSearchValues(bar) {
-        if (!bar) return;
-        bar.querySelectorAll('input.tm-qs-input').forEach((input) => {
-            // Keep only text the user is actively typing on this page.
-            if (document.activeElement === input && isQuickSearchTypedThisPage(input)) return;
-            if (isQuickSearchTypedThisPage(input) && input.dataset.tmQsLastEdit) {
-                const age = Date.now() - Number(input.dataset.tmQsLastEdit);
-                if (age >= 0 && age < 5000) return;
-            }
-            resetQuickSearchInput(input);
-        });
-        // Native Runner box often keeps the last qs from the server HTML — wipe it so
-        // an accidental Enter / search-button click cannot re-run e.g. "6826".
-        clearNativeSearchFields();
-    }
-
-    function isRepairEditPage() {
-        return window.location.pathname.includes('service_edit.php');
-    }
-
-    function findRepairEditHeader() {
-        return document.querySelector('.rnr-brickcontents.style2.rnr-b-editheader')
-            || document.querySelector('.rnr-brickcontents.rnr-b-editheader')
-            || document.querySelector('.rnr-b-editheader');
-    }
-
-    function findHeaderFiller() {
-        return document.querySelector('#head-outterwrap .rnr-hfiller')
-            || document.querySelector('#head-outter .rnr-hfiller')
-            || document.querySelector('.rnr-top .rnr-hfiller')
-            || document.querySelector('.rnr-hfiller');
-    }
-
-    /** Native Runner search controls — never relocate these (they must stay in .rnr-b-search). */
-    function isNativeSearchControl(el) {
-        if (!el || el.nodeType !== 1) return false;
-        if (el.closest?.('.rnr-b-search, .rnr-search, .searchform')) return true;
-        const id = String(el.id || '');
-        if (/^(searchButtTop|searchButton|clearSearch|showOptPanel|showSrchWin|advButton|ctlSearchFor|simpleSrch)/i.test(id)) {
-            return true;
-        }
-        if (el.getAttribute?.('data-icon') === 'search') return true;
-        if (el.matches?.('input[name^="ctlSearchFor"], a[name="skipsearch"]')) return true;
-        return false;
-    }
-
-    /** Loose header actions (e.g. Εξαγωγή) that sit outside search/loggedas bricks and break the row. */
-    function isHeaderOrphanAction(el) {
-        if (!el || el.nodeType !== 1) return false;
-        if (el.classList.contains('rnr-bl')
-            || el.classList.contains('rnr-br')
-            || el.classList.contains('rnr-hfiller')
-            || el.classList.contains('tm-qs-host')) {
-            return false;
-        }
-        if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return false;
-        if (el.tagName === 'A' && el.getAttribute('name') === 'skipsearch') return false;
-        // Never pull native search buttons out of their brick — that leaves them
-        // clickable over the grid (e.g. column sort headers like .rnr-orderlink).
-        if (isNativeSearchControl(el)) return false;
-        if (el.id === 'export_1' || el.matches?.('a[href*="service_export.php"]')) return true;
-        return el.matches?.('a.rnr-button, button.rnr-button') === true
-            && !el.classList.contains('tm-qs-search-btn');
-    }
-
-    function relocateHeaderOrphanButtons(hfiller) {
-        if (!hfiller) return;
-        const menu = hfiller.closest('.rnr-c-hmenu') || hfiller.parentElement;
-        if (!menu) return;
-
-        // Undo prior bad relocations: put native search controls back into their brick.
-        hfiller.querySelectorAll('.tm-header-orphan-btn').forEach((btn) => {
-            if (!isNativeSearchControl(btn)) return;
-            btn.classList.remove('tm-header-orphan-btn');
-            btn.style.pointerEvents = '';
-            btn.style.visibility = '';
-            btn.removeAttribute('data-tm-native-search-suppressed');
-            const searchBrick = menu.querySelector('.rnr-b-search') || document.querySelector('.rnr-b-search');
-            if (searchBrick && !searchBrick.contains(btn)) {
-                searchBrick.appendChild(btn);
-            }
-        });
-
-        const orphans = [...menu.children].filter(isHeaderOrphanAction);
-        if (!orphans.length) return;
-
-        const host = document.getElementById('tm-header-quick-search-host');
-        orphans.forEach((btn) => {
-            btn.classList.add('tm-header-orphan-btn');
-            if (host && host.parentElement === hfiller) {
-                hfiller.insertBefore(btn, host);
-            } else if (!hfiller.contains(btn)) {
-                hfiller.prepend(btn);
-            }
-        });
-    }
-
-    function getNativeSearchBlocks() {
-        const exact = document.querySelectorAll(NATIVE_SEARCH_SELECTOR);
-        if (exact.length) return exact;
-        return document.querySelectorAll('.rnr-b-search');
-    }
-
-    function isNativeSearchHidden() {
-        return GM_getValue(NATIVE_SEARCH_HIDDEN_KEY, false) === true;
-    }
-
-    function getNativeSearchLooseControls() {
-        return document.querySelectorAll([
-            'a[id^="searchButtTop"]',
-            'a[id^="searchButton"]',
-            'a[id^="clearSearch"]',
-            'a[id^="showOptPanel"]',
-            'a[id^="showSrchWin"]',
-            'a[id^="advButton"]',
-            'input[id^="ctlSearchFor"]',
-            'input[name^="ctlSearchFor"]',
-            'a.rnr-button[data-icon="search"]',
-        ].join(','));
-    }
-
-    function applyNativeSearchHidden(hidden) {
-        document.body.classList.toggle('tm-native-search-hidden', hidden);
-        getNativeSearchBlocks().forEach((el) => {
-            el.style.display = hidden ? 'none' : '';
-            el.style.pointerEvents = hidden ? 'none' : '';
-        });
-        if (hidden) clearNativeSearchFields();
-        // Also disable any search controls that were left outside .rnr-b-search
-        // (e.g. previously relocated orphans) so they cannot intercept grid clicks.
-        getNativeSearchLooseControls().forEach((el) => {
-            if (hidden) {
-                el.setAttribute('data-tm-native-search-suppressed', '1');
-                el.style.pointerEvents = 'none';
-                if (!el.closest('.rnr-b-search')) {
-                    el.style.visibility = 'hidden';
-                }
-            } else if (el.getAttribute('data-tm-native-search-suppressed') === '1') {
-                el.removeAttribute('data-tm-native-search-suppressed');
-                el.style.pointerEvents = '';
-                el.style.visibility = '';
-            }
-        });
-        const btn = document.getElementById('tm-toggle-native-search');
-        if (btn) {
-            btn.textContent = hidden ? '👁' : '✕';
-            btn.title = hidden
-                ? 'Εμφάνιση αναζήτησης συστήματος'
-                : 'Απόκρυψη αναζήτησης συστήματος';
-            btn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
-        }
-    }
-
-    function setNativeSearchHidden(hidden) {
-        GM_setValue(NATIVE_SEARCH_HIDDEN_KEY, hidden);
-        applyNativeSearchHidden(hidden);
-    }
-
-    /**
-     * Hard-block accidental Runner search submits of a stale ctlSearchFor value
-     * (e.g. a prior "6826" left in the native box by the server / autofill).
-     */
-    function installNativeSearchGuard() {
-        if (window.__tmNativeSearchGuard) return;
-        window.__tmNativeSearchGuard = true;
-
-        // bfcache back-restore resurrects input values AND dirty flags, letting an
-        // old query outrank whatever the user types next — reset both fields fully.
-        window.addEventListener('pageshow', (e) => {
-            if (!e.persisted) return;
-            qsInputs().forEach(resetQuickSearchInput);
-            clearNativeSearchFields({ force: true });
-            nativeTypedThisPage.value = '';
-            nativeTypedThisPage.at = 0;
-        });
-
-        // Track real typing in the native box so intentional native searches still work.
-        document.addEventListener('keydown', (e) => {
-            if (!e.isTrusted) return;
-            const t = e.target;
-            if (!t) return;
-            const id = String(t.id || '');
-            const name = String(t.name || '');
-            if (!/ctlSearchFor/i.test(id) && !/ctlSearchFor/i.test(name)) return;
-            if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
-                setTimeout(() => {
-                    nativeTypedThisPage.value = String(t.value || '').trim();
-                    nativeTypedThisPage.at = Date.now();
-                }, 0);
-            }
-        }, true);
-
-        // Enter in our quick-search field must never fall through to the page form
-        // (which would submit native ctlSearchFor leftover instead).
-        document.addEventListener('keydown', (e) => {
-            if (e.key !== 'Enter') return;
-            const t = e.target;
-            if (!t || !t.classList || !t.classList.contains('tm-qs-input')) return;
-            if (!t.closest('#tm-footer-quick-search, .tm-qs-host')) return;
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            const q = typedQueryFor(t) || String(t.value || '').trim();
-            if (q && t.dataset.searchBase) {
-                markQuickSearchTyped(t, q);
-                submitFromInput(t, t.dataset.searchBase);
-            } else {
-                document.getElementById('tm-footer-search-submit')?.click();
-            }
-        }, true);
-
-        document.addEventListener('submit', (e) => {
-            // Any form submit while focus is in our bar → our search only.
-            const active = document.activeElement;
-            if (active?.closest?.('#tm-footer-quick-search, .tm-qs-host')) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                if (active.classList?.contains('tm-qs-input') && active.dataset.searchBase) {
-                    const q = typedQueryFor(active) || String(active.value || '').trim();
-                    if (q) {
-                        markQuickSearchTyped(active, q);
-                        submitFromInput(active, active.dataset.searchBase);
-                    }
-                }
-                return;
-            }
-            // Block form posts that would re-submit a stale native qs when our bar exists.
-            if (!document.getElementById('tm-footer-quick-search')) return;
-            const form = e.target;
-            if (!form || typeof form.querySelector !== 'function') return;
-            const nativeField = form.querySelector('input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]');
-            if (!nativeField) return;
-            const ourTyped = bestTypedQuickSearch();
-            if (ourTyped) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                submitFromInput(ourTyped, ourTyped.dataset.searchBase);
-                return;
-            }
-            const nativeQ = String(nativeField.value || '').trim();
-            const nativeFresh = nativeQ
-                && nativeQ === nativeTypedThisPage.value
-                && (Date.now() - nativeTypedThisPage.at) < 60000;
-            if (!nativeFresh && nativeQ) {
-                // Stale server/autofill leftover (e.g. "6826") — do not post it.
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                clearNativeSearchFields({ force: true });
-            }
-        }, true);
-
-        document.addEventListener('click', (e) => {
-            const t = e.target;
-            if (!t || typeof t.closest !== 'function') return;
-            if (t.closest('#tm-footer-quick-search, .tm-qs-host')) return;
-            const nativeBtn = t.closest(
-                'a[id^="searchButtTop"], a[id^="searchButton"], a.rnr-button[data-icon="search"], [data-tm-native-search-suppressed="1"]'
-            );
-            if (!nativeBtn) return;
-
-            const ourTyped = bestTypedQuickSearch();
-            if (ourTyped?.dataset?.searchBase) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                submitFromInput(ourTyped, ourTyped.dataset.searchBase);
-                return;
-            }
-
-            if (isNativeSearchHidden()) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                return;
-            }
-
-            // Native visible: only allow if the user typed in ctlSearchFor this page.
-            const nativeField = document.querySelector(
-                'input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]'
-            );
-            const nativeQ = String(nativeField?.value || '').trim();
-            const nativeFresh = nativeQ
-                && nativeQ === nativeTypedThisPage.value
-                && (Date.now() - nativeTypedThisPage.at) < 60000;
-            if (!nativeFresh) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                clearNativeSearchFields({ force: true });
-            }
-        }, true);
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key !== 'Enter') return;
-            const t = e.target;
-            if (!t) return;
-            const id = String(t.id || '');
-            const name = String(t.name || '');
-            if (!/ctlSearchFor/i.test(id) && !/ctlSearchFor/i.test(name)) return;
-
-            const ourTyped = bestTypedQuickSearch();
-            if (ourTyped?.dataset?.searchBase) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                submitFromInput(ourTyped, ourTyped.dataset.searchBase);
-                return;
-            }
-
-            if (isNativeSearchHidden()) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                return;
-            }
-
-            const nativeQ = String(t.value || '').trim();
-            const nativeFresh = nativeQ
-                && nativeQ === nativeTypedThisPage.value
-                && (Date.now() - nativeTypedThisPage.at) < 60000;
-            if (!nativeFresh) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                clearNativeSearchFields({ force: true });
-            }
-        }, true);
-    }
-
-    function bestTypedQuickSearch() {
-        return [...qsInputs()]
-            .filter((input) => isQuickSearchTypedThisPage(input) && typedQueryFor(input))
-            .sort((a, b) => Number(b.dataset.tmQsLastEdit || 0) - Number(a.dataset.tmQsLastEdit || 0))[0] || null;
-    }
-
-    function mountNativeSearchToggle(parentContainer) {
-        if (!parentContainer || document.getElementById('tm-toggle-native-search')) return;
-
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.id = 'tm-toggle-native-search';
-        btn.className = 'tm-qs-hide-native';
-        btn.addEventListener('click', () => {
-            setNativeSearchHidden(!isNativeSearchHidden());
-        });
-
-        parentContainer.appendChild(btn);
-        applyNativeSearchHidden(isNativeSearchHidden());
-    }
-
-    function mountQuickSearchBar(parentContainer, config) {
-        if (!parentContainer) return;
-
-        let bar = document.getElementById('tm-footer-quick-search');
-        if (bar && bar.dataset.tmQsLive !== '1') {
-            // Dead clone without listeners — Enter would native-submit a stale qs.
-            bar.remove();
-            bar = null;
-        }
-        if (!bar) {
-            bar = document.createElement('div');
-            bar.id = 'tm-footer-quick-search';
-            bar.className = 'tm-qs-panel';
-            bar.setAttribute('role', 'search');
-            bar.setAttribute('aria-label', 'Γρήγορη αναζήτηση');
-            bar.dataset.tmQsLive = '1';
-
-            const repairGroup = document.createElement('div');
-            repairGroup.className = 'tm-qs-input-group';
-
-            const repairInput = document.createElement('input');
-            repairInput.type = 'text';
-            repairInput.id = 'tm-footer-repair-search';
-            repairInput.className = 'tm-qs-input';
-            repairInput.placeholder = 'Αρ., τηλέφωνο, πελάτης…';
-            repairInput.setAttribute('aria-label', 'Αναζήτηση επισκευών');
-            repairInput.spellcheck = false;
-            repairInput.dataset.searchBase = REPAIR_SEARCH_URL;
-            hardenQuickSearchInput(repairInput, 'repair');
-
-            repairGroup.appendChild(repairInput);
-
-            const partsGroup = document.createElement('div');
-            partsGroup.className = 'tm-qs-input-group';
-
-            const partsInput = document.createElement('input');
-            partsInput.type = 'text';
-            partsInput.id = 'tm-footer-parts-search';
-            partsInput.className = 'tm-qs-input';
-            partsInput.placeholder = 'Κωδικός, barcode…';
-            partsInput.setAttribute('aria-label', 'Αναζήτηση ανταλλακτικών');
-            partsInput.spellcheck = false;
-            partsInput.dataset.searchBase = PARTS_SEARCH_URL;
-            hardenQuickSearchInput(partsInput, 'parts');
-
-            partsGroup.appendChild(partsInput);
-
-            const searchBtn = document.createElement('button');
-            searchBtn.type = 'button';
-            // Do NOT use Runner's .rnr-button — it can be bound/relocated as a native control
-            // and intercept clicks meant for grid sort headers (.rnr-orderlink).
-            searchBtn.id = 'tm-footer-search-submit';
-            searchBtn.className = 'tm-qs-search-btn';
-            searchBtn.textContent = 'Αναζήτηση';
-
-            const isDirty = (input) => isQuickSearchTypedThisPage(input);
-            const lastEdit = (input) => Number(input?.dataset?.tmQsLastEdit || 0);
-
-            const resolveSearchInput = () => {
-                const qRepair = typedQueryFor(repairInput);
-                const qParts = typedQueryFor(partsInput);
-                if (!qRepair && !qParts) return null;
-
-                const active = document.activeElement;
-                // Prefer the focused field (user is clearly typing / scanning there).
-                if (active === partsInput && qParts) return partsInput;
-                if (active === repairInput && qRepair) return repairInput;
-                // Button click with unfocused fields: only honor user-typed values,
-                // most recently edited first — an older leftover (e.g. a stale "6826")
-                // must never outrank what the user just typed in the other field.
-                const dirtyCandidates = [repairInput, partsInput]
-                    .filter((input) => typedQueryFor(input) && isDirty(input))
-                    .sort((a, b) => lastEdit(b) - lastEdit(a));
-                return dirtyCandidates[0] || null;
-            };
-
-            const handleSearch = () => {
-                const input = resolveSearchInput();
-                if (!input) {
-                    // Drop stale autofill so the next click cannot search it.
-                    if (!isDirty(repairInput)) resetQuickSearchInput(repairInput);
-                    if (!isDirty(partsInput)) resetQuickSearchInput(partsInput);
-                    repairInput.focus();
-                    return;
-                }
-                submitFromInput(input, input.dataset.searchBase);
-            };
-
-            searchBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleSearch();
-            });
-
-            repairInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const q = typedQueryFor(repairInput) || repairInput.value.trim();
-                    if (q) {
-                        markQuickSearchTyped(repairInput, q);
-                        submitFromInput(repairInput, repairInput.dataset.searchBase);
-                    } else {
-                        handleSearch();
-                    }
-                }
-            });
-
-            partsInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const q = typedQueryFor(partsInput) || partsInput.value.trim();
-                    if (q) {
-                        markQuickSearchTyped(partsInput, q);
-                        submitFromInput(partsInput, partsInput.dataset.searchBase);
-                    } else {
-                        handleSearch();
-                    }
-                }
-            });
-
-            bar.appendChild(repairGroup);
-            bar.appendChild(partsGroup);
-            bar.appendChild(searchBtn);
-            parentContainer.appendChild(bar);
-
-            mountNativeSearchToggle(bar);
-            // Beat late browser autofill of prior qs terms.
-            scrubStaleQuickSearchValues(bar);
-            setTimeout(() => scrubStaleQuickSearchValues(bar), 0);
-            setTimeout(() => scrubStaleQuickSearchValues(bar), 400);
-            setTimeout(() => scrubStaleQuickSearchValues(bar), 1200);
-        } else if (bar.parentElement !== parentContainer) {
-            parentContainer.appendChild(bar);
-            if (!document.getElementById('tm-toggle-native-search')) {
-                mountNativeSearchToggle(bar);
-            }
-            resetQuickSearchInput(bar.querySelector('#tm-footer-repair-search, input[data-tm-qs-role="repair"]'));
-            resetQuickSearchInput(bar.querySelector('#tm-footer-parts-search, input[data-tm-qs-role="parts"]'));
-        }
-
-        bar.querySelectorAll('.tm-qs-input-group label').forEach((label) => label.remove());
-
-        // Legacy bars used Runner's .rnr-button — strip it so native handlers ignore our control.
-        const legacyBtn = bar.querySelector('#tm-footer-search-submit');
-        if (legacyBtn) {
-            legacyBtn.classList.remove('rnr-button');
-            legacyBtn.classList.add('tm-qs-search-btn');
-            legacyBtn.type = 'button';
-        }
-
-        scrubStaleQuickSearchValues(bar);
-        updateFooterQuickSearchVisibility(config);
-    }
-
-    function ensureRepairEditHeaderHost() {
-        let host = document.getElementById('tm-repair-edit-quick-search-host');
-        const header = findRepairEditHeader();
-        if (!header) return null;
-
-        header.classList.add('tm-repair-edit-header-with-search');
-
-        const title = header.querySelector('h1');
-        if (!title) {
-            if (!host) {
-                host = document.createElement('div');
-                host.id = 'tm-repair-edit-quick-search-host';
-                host.className = 'tm-qs-host tm-qs-host--repair';
-                header.append(host);
-            }
-            return host;
-        }
-
-        let row = document.getElementById('tm-repair-edit-title-row');
-        if (!row) {
-            row = document.createElement('div');
-            row.id = 'tm-repair-edit-title-row';
-            row.className = 'tm-repair-edit-title-row';
-            title.parentNode.insertBefore(row, title);
-            row.appendChild(title);
-        } else if (!row.contains(title)) {
-            row.insertBefore(title, row.firstChild);
-        }
-
-        if (!host) {
-            host = document.createElement('div');
-            host.id = 'tm-repair-edit-quick-search-host';
-            host.className = 'tm-qs-host tm-qs-host--repair';
-        }
-
-        if (!row.contains(host)) {
-            row.appendChild(host);
-        }
-
-        return host;
-    }
-
-    function ensureHeaderSearchHost() {
-        let host = document.getElementById('tm-header-quick-search-host');
-        // Reuse a FOUC shell in place (don't remove) so the extension cannot remount
-        // an empty host in the gap and hang first paint.
-        if (host && (host.getAttribute('data-tm-ui-shell') === '1'
-            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(host)))) {
-            try {
-                host.removeAttribute('data-tm-ui-shell');
-                host.removeAttribute('data-tm-footer-shell');
-                host.classList.remove('tm-ui-shell');
-                host.innerHTML = '';
-                host.style.pointerEvents = '';
-            } catch (_) { /* ignore */ }
-        }
-        const hfiller = host?.closest('.rnr-hfiller') || findHeaderFiller();
-        if (!hfiller) return host || null;
-
-        if (!host) {
-            host = document.createElement('div');
-            host.id = 'tm-header-quick-search-host';
-            host.className = 'tm-qs-host tm-qs-host--header';
-            hfiller.prepend(host);
-        } else {
-            host.classList.add('tm-qs-host', 'tm-qs-host--header');
-        }
-
-        relocateHeaderOrphanButtons(hfiller);
-        return host;
-    }
-
-    function mountRepairEditHeaderQuickSearch(config) {
-        const host = ensureRepairEditHeaderHost();
-        if (!host) return false;
-
-        const headerHost = document.getElementById('tm-header-quick-search-host');
-        if (headerHost) headerHost.style.display = 'none';
-
-        mountQuickSearchBar(host, config);
-        applyNativeSearchHidden(isNativeSearchHidden());
-        return true;
-    }
-
-    function mountHeaderQuickSearch(config) {
-        const repairHost = document.getElementById('tm-repair-edit-quick-search-host');
-        if (repairHost) repairHost.style.display = 'none';
-
-        const host = ensureHeaderSearchHost();
-        if (!host) return false;
-
-        mountQuickSearchBar(host, config);
-        applyNativeSearchHidden(isNativeSearchHidden());
-        return true;
-    }
-
-    function mountQuickSearch(config) {
-        if (isRepairEditPage()) {
-            return mountRepairEditHeaderQuickSearch(config);
-        }
-        return mountHeaderQuickSearch(config);
-    }
-
-    function updateFooterQuickSearchVisibility(config) {
-        const bar = document.getElementById('tm-footer-quick-search');
-        const headerHost = document.getElementById('tm-header-quick-search-host');
-        const repairHost = document.getElementById('tm-repair-edit-quick-search-host');
-        const enabled = config?.footerQuickSearchEnabled !== false;
-        const display = enabled ? 'flex' : 'none';
-        if (bar) bar.style.display = display;
-        [headerHost, repairHost].forEach((el) => {
-            if (el) el.style.display = 'none';
-        });
-        if (!enabled) return;
-        if (isRepairEditPage()) {
-            if (repairHost) repairHost.style.display = 'flex';
-        } else if (headerHost) {
-            headerHost.style.display = 'flex';
-        }
-    }
-
-    function initFooterQuickSearch(config) {
-        clearLegacyQuickSearchStorage();
-        installNativeSearchGuard();
-        const tryMount = (attempt = 0) => {
-            if (config?.footerQuickSearchEnabled === false) {
-                updateFooterQuickSearchVisibility(config);
-                return;
-            }
-            if (mountQuickSearch(config)) return;
-            if (attempt < 50) {
-                setTimeout(() => tryMount(attempt + 1), 300);
-            }
-        };
-        tryMount();
+        setTimeout(poll, 400);
     }
 
     window.initFooterQuickSearch = initFooterQuickSearch;
-    window.updateFooterQuickSearchVisibility = updateFooterQuickSearchVisibility;
-    window.setNativeSearchHidden = setNativeSearchHidden;
+    window.updateFooterQuickSearchVisibility = removeHeaderQuickSearch;
+    window.setNativeSearchHidden = () => restoreNativeSearch();
 })();
 
 
@@ -74194,7 +73248,6 @@ if (typeof window !== 'undefined') {
         recentRepairsMaxItems: 5,
         // Weather Widget
         weatherWidgetEnabled: true,
-        footerQuickSearchEnabled: true,
         phoneCatalogEnabled: true,
         orderHistoryEnabled: true,
         orderLinkEnabled: true,

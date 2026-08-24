@@ -1,11 +1,11 @@
 {
-  "version": "407",
+  "version": "408",
   "loaderVersion": "41",
-  "silentVersion": "51",
-  "displayVersion": "41.51",
+  "silentVersion": "52",
+  "displayVersion": "41.52",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Stop stale 6826: in-memory query, unbind from Runner form, block native leftovers",
+  "releaseNotes": "Remove header quick search (Γρήγορη αναζήτηση) entirely",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
