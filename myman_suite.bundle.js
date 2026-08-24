@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v414 / Custom Ver. 41.58 — generated, do not edit */
+/* MyManager Suite bundle v415 / Custom Ver. 41.59 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '414',
+        version: '415',
         loaderVersion: '41',
-        silentVersion: '58',
-        displayVersion: '41.58',
+        silentVersion: '59',
+        displayVersion: '41.59',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -5640,44 +5640,88 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
      * After such a lookup, put the session back where the user left it: their
      * own qs= if they are on that list with a search, otherwise show-all.
      */
-    const RUNNER_RESTORE_DELAY_MS = 700;
+    const RUNNER_RESTORE_DELAY_MS = 400;
     const runnerRestoreTimers = Object.create(null);
 
-    function runnerRestoreUrlFor(listPath, origin) {
-        const base = `${origin}${listPath}`;
-        if (location.pathname === listPath) {
-            let mine = '';
+    function runnerGet(url) {
+        return new Promise((resolve) => {
             try {
-                mine = String(new URLSearchParams(location.search).get('qs') || '').trim();
-            } catch (_) { /* ignore */ }
-            if (mine) return `${base}?qs=${encodeURIComponent(mine)}`;
+                if (typeof GM_xmlhttpRequest === 'function') {
+                    GM_xmlhttpRequest({
+                        method: 'GET',
+                        url,
+                        timeout: 15000,
+                        onload() { resolve(); },
+                        onerror() { resolve(); },
+                        ontimeout() { resolve(); },
+                    });
+                    return;
+                }
+                fetch(url, { credentials: 'same-origin' }).then(() => resolve(), () => resolve());
+            } catch (_) {
+                resolve();
+            }
+        });
+    }
+
+    /**
+     * The list URLs the suite navigates to carry statusid/menuItemId; keep them
+     * so the reset lands on the same list view the user works in.
+     */
+    function runnerListContext(u) {
+        const keep = new URLSearchParams();
+        ['statusid', 'menuItemId', 'orderby'].forEach((k) => {
+            const v = u.searchParams.get(k);
+            if (v) keep.set(k, v);
+        });
+        return keep;
+    }
+
+    function runnerOwnSearchFor(listPath) {
+        if (location.pathname !== listPath) return '';
+        try {
+            return String(new URLSearchParams(location.search).get('qs') || '').trim();
+        } catch (_) {
+            return '';
         }
-        return `${base}?a=showall`;
     }
 
     /**
      * @param {string} searchedUrl The background list URL that carried qs=.
      */
     function restoreRunnerSessionSearch(searchedUrl) {
-        let target;
+        let base;
+        let context;
+        let mine;
         try {
             const u = new URL(String(searchedUrl), location.origin);
             if (!String(u.searchParams.get('qs') || '').trim()) return;
-            target = runnerRestoreUrlFor(u.pathname, u.origin);
+            base = `${u.origin}${u.pathname}`;
+            context = runnerListContext(u);
+            mine = runnerOwnSearchFor(u.pathname);
         } catch (_) {
             return;
         }
 
-        clearTimeout(runnerRestoreTimers[target]);
-        runnerRestoreTimers[target] = setTimeout(() => {
-            delete runnerRestoreTimers[target];
-            try {
-                if (typeof GM_xmlhttpRequest === 'function') {
-                    GM_xmlhttpRequest({ method: 'GET', url: target, onload() {}, onerror() {} });
-                } else {
-                    fetch(target, { credentials: 'same-origin' }).catch(() => {});
-                }
-            } catch (_) { /* ignore */ }
+        const withContext = (params) => {
+            const p = new URLSearchParams(context);
+            Object.keys(params).forEach((k) => p.set(k, params[k]));
+            return `${base}?${p.toString()}`;
+        };
+
+        clearTimeout(runnerRestoreTimers[base]);
+        runnerRestoreTimers[base] = setTimeout(async () => {
+            delete runnerRestoreTimers[base];
+            if (mine) {
+                await runnerGet(withContext({ qs: mine }));
+                console.log('[MMS Runner] session search restored to your search:', mine);
+                return;
+            }
+            // The native clear control is script-only, so cover both resets:
+            // an explicit empty simple-search, then PHPRunner's show-all.
+            await runnerGet(withContext({ qs: '' }));
+            await runnerGet(withContext({ a: 'showall' }));
+            console.log('[MMS Runner] session search cleared after background lookup:', base);
         }, RUNNER_RESTORE_DELAY_MS);
     }
 
