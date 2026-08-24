@@ -2506,9 +2506,11 @@ function fetchStorehousesViaHttp(productCode) {
             method: 'GET',
             url: `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`,
             onload(response) {
+                window.restoreRunnerSessionSearch?.(response.finalUrl || `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`);
                 resolve(parseStorehousesFromProductHtml(response.responseText || '', code));
             },
             onerror() {
+                window.restoreRunnerSessionSearch?.(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`);
                 resolve([]);
             },
         });

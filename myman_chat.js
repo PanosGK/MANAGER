@@ -1139,6 +1139,7 @@
             const finish = (data) => {
                 chatRepairCardCache.set(num, data);
                 chatRepairCardInflight.delete(num);
+                window.restoreRunnerSessionSearch?.(searchUrl);
                 resolve(data);
             };
             const handleHtml = (html, finalUrl) => {

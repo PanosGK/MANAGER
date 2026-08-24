@@ -1002,6 +1002,7 @@
                 method: 'GET',
                 url: url,
                 onload: function(response) {
+                    window.restoreRunnerSessionSearch?.(url);
                     if (generation !== undefined && generation !== searchGeneration) {
                         activeSearchRequests--;
                         return;

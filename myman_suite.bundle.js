@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v413 / Custom Ver. 41.57 — generated, do not edit */
+/* MyManager Suite bundle v414 / Custom Ver. 41.58 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '413',
+        version: '414',
         loaderVersion: '41',
-        silentVersion: '57',
-        displayVersion: '41.57',
+        silentVersion: '58',
+        displayVersion: '41.58',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -5632,238 +5632,56 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     window.getInstalledLoaderVersion = getInstalledLoaderVersion;
 
     /**
-     * PHPRunner keeps the last simple-search (e.g. "6826") in session and in
-     * ctlSearchFor. Any list action — sort, pagination, toolbar — then re-runs
-     * that search. Only an explicit search (qs= URL, search button, or Enter
-     * in the box) should search. Do not wipe the box after the fact.
+     * Background lookups (chat repair cards, order→repair links, customer
+     * history) GET list pages like service_list.php?qs=6826 with the user's
+     * cookies. PHPRunner stores that simple-search in the server-side session
+     * per table, so the next sort/page/toolbar click on that list replays it.
+     *
+     * After such a lookup, put the session back where the user left it: their
+     * own qs= if they are on that list with a search, otherwise show-all.
      */
-    (function installListActionsWithoutLeftoverSearch() {
-        const LIST_RE = /service_list\.php|products_list\.php|sparepartstoorder_list\.php|srvorders_list\.php/i;
-        const ALLOW_KEY = 'tm_runner_native_qs';
+    const RUNNER_RESTORE_DELAY_MS = 700;
+    const runnerRestoreTimers = Object.create(null);
 
-        let heldValue = '';
-        let holding = false;
-        const heldFields = [];
-
-        function onListPage() {
-            return LIST_RE.test(location.pathname || '');
-        }
-
-        function urlQs() {
+    function runnerRestoreUrlFor(listPath, origin) {
+        const base = `${origin}${listPath}`;
+        if (location.pathname === listPath) {
+            let mine = '';
             try {
-                return String(new URLSearchParams(location.search).get('qs') || '').trim();
-            } catch (_) {
-                return '';
-            }
-        }
-
-        function nativeFields() {
-            return document.querySelectorAll('input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]');
-        }
-
-        function leftoverQs() {
-            if (holding && heldValue) return heldValue;
-            let found = '';
-            nativeFields().forEach((el) => {
-                const v = String(el.value || '').trim();
-                if (v && !found) found = v;
-            });
-            return found;
-        }
-
-        function allowedNativeQs() {
-            try {
-                return String(sessionStorage.getItem(ALLOW_KEY) || '').trim();
-            } catch (_) {
-                return '';
-            }
-        }
-
-        function rememberNativeSearch() {
-            const q = leftoverQs();
-            try {
-                if (q) sessionStorage.setItem(ALLOW_KEY, q);
-                else sessionStorage.removeItem(ALLOW_KEY);
+                mine = String(new URLSearchParams(location.search).get('qs') || '').trim();
             } catch (_) { /* ignore */ }
+            if (mine) return `${base}?qs=${encodeURIComponent(mine)}`;
+        }
+        return `${base}?a=showall`;
+    }
+
+    /**
+     * @param {string} searchedUrl The background list URL that carried qs=.
+     */
+    function restoreRunnerSessionSearch(searchedUrl) {
+        let target;
+        try {
+            const u = new URL(String(searchedUrl), location.origin);
+            if (!String(u.searchParams.get('qs') || '').trim()) return;
+            target = runnerRestoreUrlFor(u.pathname, u.origin);
+        } catch (_) {
+            return;
         }
 
-        function forgetNativeSearch() {
-            try { sessionStorage.removeItem(ALLOW_KEY); } catch (_) { /* ignore */ }
-        }
-
-        function leftoverIsStale() {
-            if (!onListPage()) return false;
-            if (urlQs()) return false;
-            const leftover = leftoverQs();
-            if (!leftover) return false;
-            return leftover !== allowedNativeQs();
-        }
-
-        function isOurUi(el) {
-            return !!(el && el.closest && el.closest('[id^="tm-"], [class*="tm-"]'));
-        }
-
-        function isNativeSearchTrigger(el) {
-            if (!el || typeof el.closest !== 'function') return false;
-            return !!(el.closest(
-                'a[id^="searchButt"], a[id^="searchButton"], a.rnr-button[data-icon="search"], ' +
-                'button[id^="searchButt"], input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]'
-            ));
-        }
-
-        function isShowAllTrigger(el) {
-            if (!el || typeof el.closest !== 'function') return false;
-            return !!(el.closest('a[id^="showAll"], a[id^="clearSearch"]'));
-        }
-
-        function listUrlFromHref(href) {
-            if (!href || href === '#' || /^javascript:/i.test(href)) return null;
+        clearTimeout(runnerRestoreTimers[target]);
+        runnerRestoreTimers[target] = setTimeout(() => {
+            delete runnerRestoreTimers[target];
             try {
-                const u = new URL(href, location.origin);
-                if (!LIST_RE.test(u.pathname)) return null;
-                return u;
-            } catch (_) {
-                return null;
-            }
-        }
-
-        function decoratedListUrl(u) {
-            const currentQs = urlQs();
-            if (currentQs) {
-                u.searchParams.set('qs', currentQs);
-                if (u.searchParams.get('a') === 'showall') u.searchParams.delete('a');
-                return u.pathname + u.search + u.hash;
-            }
-            if (String(u.searchParams.get('qs') || '').trim()) {
-                return u.pathname + u.search + u.hash;
-            }
-            if (leftoverIsStale()) {
-                u.searchParams.delete('qs');
-                u.searchParams.set('a', 'showall');
-                return u.pathname + u.search + u.hash;
-            }
-            return u.pathname + u.search + u.hash;
-        }
-
-        function holdLeftoverFields() {
-            if (holding || !leftoverIsStale()) return;
-            holding = true;
-            heldValue = leftoverQs();
-            heldFields.length = 0;
-            nativeFields().forEach((el) => {
-                heldFields.push({ el, value: el.value });
-                el.value = '';
-            });
-        }
-
-        function releaseLeftoverFields() {
-            if (!holding) return;
-            heldFields.forEach(({ el, value }) => {
-                if (el && !el.value) el.value = value;
-            });
-            heldFields.length = 0;
-            holding = false;
-            heldValue = '';
-        }
-
-        function patchListRequestUrl(url) {
-            if (!leftoverIsStale() || url == null || url === '') return url;
-            try {
-                const u = new URL(String(url), location.origin);
-                if (u.pathname !== location.pathname) return url;
-                if (String(u.searchParams.get('qs') || '').trim()) return url;
-                u.searchParams.delete('qs');
-                u.searchParams.set('a', 'showall');
-                if (/^https?:/i.test(String(url))) return u.href;
-                return u.pathname + u.search + u.hash;
-            } catch (_) {
-                return url;
-            }
-        }
-
-        if (urlQs()) forgetNativeSearch();
-
-        document.addEventListener('click', (e) => {
-            if (!onListPage()) return;
-            const t = e.target;
-            if (!t || typeof t.closest !== 'function') return;
-
-            if (isNativeSearchTrigger(t)) {
-                rememberNativeSearch();
-                return;
-            }
-            if (isShowAllTrigger(t)) {
-                forgetNativeSearch();
-                return;
-            }
-
-            const a = t.closest('a');
-            const u = a ? listUrlFromHref(a.getAttribute('href') || a.href || '') : null;
-            if (u) {
-                const original = u.pathname + u.search + u.hash;
-                const dest = decoratedListUrl(new URL(u.href));
-                if (dest && dest !== original) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                    window.location.assign(dest);
-                    return;
+                if (typeof GM_xmlhttpRequest === 'function') {
+                    GM_xmlhttpRequest({ method: 'GET', url: target, onload() {}, onerror() {} });
+                } else {
+                    fetch(target, { credentials: 'same-origin' }).catch(() => {});
                 }
-            }
+            } catch (_) { /* ignore */ }
+        }, RUNNER_RESTORE_DELAY_MS);
+    }
 
-            if (isOurUi(t)) return;
-            if (!leftoverIsStale()) return;
-            holdLeftoverFields();
-            setTimeout(releaseLeftoverFields, 0);
-            setTimeout(releaseLeftoverFields, 300);
-        }, true);
-
-        document.addEventListener('keydown', (e) => {
-            if (!onListPage() || e.key !== 'Enter') return;
-            const t = e.target;
-            if (t && t.matches && t.matches('input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]')) {
-                rememberNativeSearch();
-            }
-        }, true);
-
-        document.addEventListener('submit', (e) => {
-            if (!onListPage()) return;
-            const from = e.submitter || e.target;
-            if (isNativeSearchTrigger(from)) {
-                rememberNativeSearch();
-                return;
-            }
-            if (leftoverIsStale()) holdLeftoverFields();
-        }, true);
-
-        const origOpen = XMLHttpRequest.prototype.open;
-        XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-            return origOpen.call(this, method, patchListRequestUrl(url), ...rest);
-        };
-        const origSend = XMLHttpRequest.prototype.send;
-        XMLHttpRequest.prototype.send = function (body) {
-            if (leftoverIsStale() && typeof body === 'string' && /ctlSearchFor/i.test(body)) {
-                body = body.replace(/(?:^|&)ctlSearchFor[^=]*=[^&]*/gi, '');
-            }
-            return origSend.call(this, body);
-        };
-        if (typeof window.fetch === 'function') {
-            const origFetch = window.fetch;
-            window.fetch = function (input, init) {
-                if (typeof input === 'string') {
-                    return origFetch.call(this, patchListRequestUrl(input), init);
-                }
-                if (input && typeof input.url === 'string') {
-                    try {
-                        const patched = patchListRequestUrl(input.url);
-                        if (patched !== input.url) {
-                            return origFetch.call(this, new Request(patched, input), init);
-                        }
-                    } catch (_) { /* ignore */ }
-                }
-                return origFetch.call(this, input, init);
-            };
-        }
-    })();
+    window.restoreRunnerSessionSearch = restoreRunnerSessionSearch;
 
 })();
 
@@ -20683,6 +20501,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 method: 'GET',
                 url: url,
                 onload: function(response) {
+                    window.restoreRunnerSessionSearch?.(url);
                     if (generation !== undefined && generation !== searchGeneration) {
                         activeSearchRequests--;
                         return;
@@ -22065,6 +21884,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const finish = (data) => {
                 chatRepairCardCache.set(num, data);
                 chatRepairCardInflight.delete(num);
+                window.restoreRunnerSessionSearch?.(searchUrl);
                 resolve(data);
             };
             const handleHtml = (html, finalUrl) => {
@@ -60576,9 +60396,11 @@ function fetchStorehousesViaHttp(productCode) {
             method: 'GET',
             url: `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`,
             onload(response) {
+                window.restoreRunnerSessionSearch?.(response.finalUrl || `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`);
                 resolve(parseStorehousesFromProductHtml(response.responseText || '', code));
             },
             onerror() {
+                window.restoreRunnerSessionSearch?.(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`);
                 resolve([]);
             },
         });
@@ -70167,17 +69989,21 @@ if (typeof window !== 'undefined') {
         const searchUrl = `https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=${encodeURIComponent(repairId)}&statusid=all&menuItemId=1`;
 
         return new Promise((resolve, reject) => {
+            const settle = (fn, arg) => {
+                window.restoreRunnerSessionSearch?.(searchUrl);
+                fn(arg);
+            };
             const handleHtml = (html, finalUrl) => {
                 try {
                     const doc = new DOMParser().parseFromString(html, 'text/html');
                     const found = findRepairRowInDoc(doc, repairId, finalUrl || searchUrl);
                     if (found?.link) {
-                        resolve(found.link);
+                        settle(resolve, found.link);
                         return;
                     }
-                    reject(new Error('Repair not found in service list'));
+                    settle(reject, new Error('Repair not found in service list'));
                 } catch (err) {
-                    reject(err);
+                    settle(reject, err);
                 }
             };
 
@@ -70188,14 +70014,14 @@ if (typeof window !== 'undefined') {
                     onload(response) {
                         handleHtml(response.responseText, response.finalUrl);
                     },
-                    onerror() { reject(new Error('Search request failed')); },
-                    ontimeout() { reject(new Error('Search request timed out')); },
+                    onerror() { settle(reject, new Error('Search request failed')); },
+                    ontimeout() { settle(reject, new Error('Search request timed out')); },
                 });
             } else {
                 fetch(searchUrl)
                     .then(r => r.text())
                     .then(html => handleHtml(html, searchUrl))
-                    .catch(reject);
+                    .catch(err => settle(reject, err));
             }
         });
     }
@@ -75640,6 +75466,7 @@ if (typeof window !== 'undefined') {
             method: 'GET',
             url: searchUrl,
             onload: function(response) {
+                window.restoreRunnerSessionSearch?.(searchUrl);
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(response.responseText, 'text/html');
                 const historyContainer = overlay.querySelector('#tm-customer-history-container');

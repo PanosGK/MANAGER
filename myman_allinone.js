@@ -2379,6 +2379,7 @@
             method: 'GET',
             url: searchUrl,
             onload: function(response) {
+                window.restoreRunnerSessionSearch?.(searchUrl);
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(response.responseText, 'text/html');
                 const historyContainer = overlay.querySelector('#tm-customer-history-container');

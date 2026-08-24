@@ -1,11 +1,11 @@
 {
-  "version": "413",
+  "version": "414",
   "loaderVersion": "41",
-  "silentVersion": "57",
-  "displayVersion": "41.57",
+  "silentVersion": "58",
+  "displayVersion": "41.58",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Stop leftover 6826 search on every list button, not only sort",
+  "releaseNotes": "Background repair/product lookups no longer leave their search in the PHPRunner session",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

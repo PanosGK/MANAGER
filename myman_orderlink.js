@@ -534,17 +534,21 @@
         const searchUrl = `https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=${encodeURIComponent(repairId)}&statusid=all&menuItemId=1`;
 
         return new Promise((resolve, reject) => {
+            const settle = (fn, arg) => {
+                window.restoreRunnerSessionSearch?.(searchUrl);
+                fn(arg);
+            };
             const handleHtml = (html, finalUrl) => {
                 try {
                     const doc = new DOMParser().parseFromString(html, 'text/html');
                     const found = findRepairRowInDoc(doc, repairId, finalUrl || searchUrl);
                     if (found?.link) {
-                        resolve(found.link);
+                        settle(resolve, found.link);
                         return;
                     }
-                    reject(new Error('Repair not found in service list'));
+                    settle(reject, new Error('Repair not found in service list'));
                 } catch (err) {
-                    reject(err);
+                    settle(reject, err);
                 }
             };
 
@@ -555,14 +559,14 @@
                     onload(response) {
                         handleHtml(response.responseText, response.finalUrl);
                     },
-                    onerror() { reject(new Error('Search request failed')); },
-                    ontimeout() { reject(new Error('Search request timed out')); },
+                    onerror() { settle(reject, new Error('Search request failed')); },
+                    ontimeout() { settle(reject, new Error('Search request timed out')); },
                 });
             } else {
                 fetch(searchUrl)
                     .then(r => r.text())
                     .then(html => handleHtml(html, searchUrl))
-                    .catch(reject);
+                    .catch(err => settle(reject, err));
             }
         });
     }
