@@ -1,11 +1,11 @@
 {
-  "version": "410",
+  "version": "411",
   "loaderVersion": "41",
-  "silentVersion": "54",
-  "displayVersion": "41.54",
+  "silentVersion": "55",
+  "displayVersion": "41.55",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Remove footersearch module entirely",
+  "releaseNotes": "Stop leftover 6826 search when sorting service list (orderby without qs)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
