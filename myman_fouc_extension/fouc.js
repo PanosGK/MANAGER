@@ -161,16 +161,15 @@
         force.id = 'tm-mms-fouc-force-show';
         (root || document.head || document).appendChild(force);
       }
-      force.textContent = 'html.' + READY + ',html.' + READY + ' body{'
-        + 'display:block!important;visibility:visible!important;opacity:1!important;}';
+      force.textContent = 'html,html body{display:revert!important;visibility:visible!important;opacity:1!important;}';
     } catch (e) { /* ignore */ }
   }
 
   function scrubInjectedCss(cssText) {
-    // Never re-inject hide-until-ready rules — they can trap a blank page if reveal races.
     return String(cssText || '')
       .replace(/html:not\(\.tm-mms-theme-ready\)[^}]*\}/gi, '')
-      .replace(/html\[data-tm-mms-fouc\][^}]*\}/gi, '');
+      .replace(/html\[data-tm-mms-fouc\][^}]*\}/gi, '')
+      .replace(/html[^{]*\{[^}]*display\s*:\s*none[^}]*\}/gi, '');
   }
 
   try {
@@ -188,10 +187,9 @@
   var root = document.documentElement;
   if (!root) return;
 
-  try {
-    root.classList.remove(READY);
-    root.setAttribute('data-tm-mms-fouc', '1');
-  } catch (e1) { /* ignore */ }
+  // Never hide the document from this extension. Hide-until-ready raced the
+  // loader and left a blank page. Only paint chrome; loader/suite still hide.
+  try { reveal(); } catch (eRevealNow) { /* ignore */ }
 
   var canRevealEarly = false;
   var themeColors = null;
@@ -222,14 +220,15 @@
 
   try {
     var pageCss = localStorage.getItem(LS_PAGE);
-    if (pageCss) {
+    // Huge dumps freeze first paint. Suite will apply styles itself.
+    if (pageCss && pageCss.length < 120000) {
       var pageStyle = document.getElementById('tm-mms-fouc-page-css');
       if (!pageStyle) {
         pageStyle = document.createElement('style');
         pageStyle.id = 'tm-mms-fouc-page-css';
         root.appendChild(pageStyle);
       }
-      pageStyle.textContent = pageCss;
+      pageStyle.textContent = scrubInjectedCss(pageCss);
       canRevealEarly = true;
     }
   } catch (ePage) { /* ignore */ }
@@ -295,6 +294,10 @@
   function injectSuiteCss(cssText) {
     if (!cssText) return;
     cssText = scrubInjectedCss(cssText);
+    if (cssText.length > 120000) {
+      console.warn('[FOUC] skip huge suite CSS inject', cssText.length);
+      return;
+    }
     if (!cssText || cssText.length < 20) return;
     var style = document.getElementById('tm-mms-suite-css-cache');
     if (!style) {
@@ -862,7 +865,6 @@
   }
 
   var pendingCache = null;
-  var mountObs = null;
 
   function tryMountAll(cache) {
     if (!cache || !cache.shells) return 0;
@@ -882,24 +884,14 @@
     if (n > 0) {
       console.log('[FOUC] mounted ' + n + ' UI shell(s)');
     }
-    if (mountObs) return;
-    try {
-      mountObs = new MutationObserver(function () {
+    // Poll a few times instead of a document-wide MutationObserver (that froze load).
+    [50, 200, 800, 2000].forEach(function (ms) {
+      setTimeout(function () {
+        if (!pendingCache) return;
         var more = tryMountAll(pendingCache);
         if (more > 0) console.log('[FOUC] mounted +' + more + ' UI shell(s)');
-        // Stop when body+footer exist and we've tried everything we have
-        if (document.body && findFooterCenter()) {
-          // keep observing briefly for late header filler
-        }
-      });
-      mountObs.observe(document.documentElement || document, { childList: true, subtree: true });
-      setTimeout(function () {
-        if (mountObs) {
-          try { mountObs.disconnect(); } catch (e) { /* ignore */ }
-          mountObs = null;
-        }
-      }, 20000);
-    } catch (eObs) { /* ignore */ }
+      }, ms);
+    });
   }
 
   function scheduleMount(cache) {
@@ -1003,12 +995,10 @@
 
   function startLiveWatcher() {
     try {
-      var obs = new MutationObserver(function () {
-        scheduleSnapshot();
+      window.addEventListener('pagehide', function () {
+        snapshotLiveShells('pagehide');
       });
-      obs.observe(document.documentElement || document, { childList: true, subtree: true });
-      setTimeout(function () { snapshotLiveShells('t+3s'); }, 3000);
-      setTimeout(function () { snapshotLiveShells('t+6s'); }, 6000);
+      setTimeout(function () { snapshotLiveShells('t+4s'); }, 4000);
       setTimeout(function () { snapshotLiveShells('t+12s'); }, 12000);
     } catch (eWatch) { /* ignore */ }
   }
@@ -1048,5 +1038,5 @@
     } catch (eFail) { /* ignore */ }
   }, 2500);
 
-  console.log('[FOUC] guard v1.11.3 ready (' + location.hostname + ') — reveal-first + deferred shells');
+  console.log('[FOUC] guard v1.12.0 ready (' + location.hostname + ') — no-hide, no mutation observers');
 })();
