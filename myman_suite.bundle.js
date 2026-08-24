@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v405 / Custom Ver. 41.49 — generated, do not edit */
+/* MyManager Suite bundle v406 / Custom Ver. 41.50 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '405',
+        version: '406',
         loaderVersion: '41',
-        silentVersion: '49',
-        displayVersion: '41.49',
+        silentVersion: '50',
+        displayVersion: '41.50',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -5651,13 +5651,63 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         { id: 'tm-footer-controls-container', parent: 'footer-center', minLen: 80, maxHtml: 600000 },
         { id: 'tm-footer-suite-brand', parent: 'footer-right', minLen: 40 },
         // Quick-search intentionally omitted — FOUC mount raced live bar and hung paint.
-        { id: 'tm-search-container', parent: 'body', minLen: 20 },
-        { id: 'tm-mascot-container', parent: 'body', minLen: 20, maxHtml: 2000, silhouetteOnly: true },
-        { id: 'tm-scroll-to-top-btn', parent: 'body', minLen: 10 },
+        { id: 'tm-search-container', parent: 'body', minLen: 20, require: 'searchFeatureEnabled' },
+        { id: 'tm-mascot-container', parent: 'body', minLen: 20, maxHtml: 2000, silhouetteOnly: true, require: 'interactiveMascotEnabled' },
+        { id: 'tm-scroll-to-top-btn', parent: 'body', minLen: 10, require: 'scrollToTopEnabled' },
     ];
     const SKIP_SHELL_IDS = {
         'tm-header-quick-search-host': true,
     };
+
+    function currentConfig() {
+        try {
+            const uw = getUnsafe();
+            return (uw && uw.config) || window.config || {};
+        } catch (_) {
+            return window.config || {};
+        }
+    }
+
+    function isFeatureEnabled(flag) {
+        if (!flag) return true;
+        const cfg = currentConfig();
+        if (cfg.scriptEnabled === false) return false;
+        return cfg[flag] !== false;
+    }
+
+    function isHiddenForCache(el) {
+        if (!el || el.nodeType !== 1) return true;
+        if (el.hidden || el.hasAttribute('hidden')) return true;
+        const inline = el.style;
+        if (inline && (inline.display === 'none' || inline.visibility === 'hidden')) return true;
+        try {
+            const cs = window.getComputedStyle?.(el);
+            if (cs && (cs.display === 'none' || cs.visibility === 'hidden')) return true;
+        } catch (_) { /* ignore */ }
+        return false;
+    }
+
+    function stripDisabledFromClone(liveRoot, clone) {
+        if (!liveRoot || !clone) return;
+        liveRoot.querySelectorAll('[id]').forEach((lv) => {
+            if (lv === liveRoot || !lv.id) return;
+            if (SKIP_SHELL_IDS[lv.id] || isQuickSearchField(lv)) {
+                const dropQs = clone.querySelector(`#${cssEscapeId(lv.id)}`);
+                if (dropQs) dropQs.remove();
+                return;
+            }
+            if (!isHiddenForCache(lv)) return;
+            const cv = clone.querySelector(`#${cssEscapeId(lv.id)}`);
+            if (cv) cv.remove();
+        });
+    }
+
+    function cssEscapeId(id) {
+        try {
+            if (typeof CSS !== 'undefined' && CSS.escape) return CSS.escape(id);
+        } catch (_) { /* ignore */ }
+        return String(id).replace(/([ !"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+    }
 
     let syncTimer = 0;
     let syncing = false;
@@ -5792,8 +5842,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             menu.innerHTML = '';
         }
         clone.querySelectorAll(
-            '#tm-notification-panel, #tm-notification-backdrop, .tm-modal-overlay, #tm-coin-history-tooltip, #tm-mascot-interaction-panel'
+            '#tm-notification-panel, #tm-notification-backdrop, .tm-modal-overlay, #tm-coin-history-tooltip, #tm-mascot-interaction-panel, #tm-header-quick-search-host, #tm-footer-quick-search'
         ).forEach((n) => n.remove());
+
+        // Drop widgets the user disabled (they stay in the live DOM with display:none).
+        stripDisabledFromClone(el, clone);
 
         // Preserve live input values (cloneNode keeps defaultValue, not .value)
         // except quick-search — those must never be restored onto another page.
@@ -5868,12 +5921,15 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function collectAllShells() {
         const shells = {};
+        const cfg = currentConfig();
         SHELL_SPECS.forEach((spec) => {
             // Never cache the mascot — colliding snapshots made list/edit look like different pets
             if (spec.id === 'tm-mascot-container') return;
             if (SKIP_SHELL_IDS[spec.id]) return;
+            if (cfg.scriptEnabled === false) return;
+            if (!isFeatureEnabled(spec.require)) return;
             const el = document.getElementById(spec.id);
-            if (!el || isShellEl(el)) return;
+            if (!el || isShellEl(el) || isHiddenForCache(el)) return;
             const html = slimCloneHtml(el, spec);
             if (!html) return;
             shells[spec.id] = {

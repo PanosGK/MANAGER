@@ -50,7 +50,6 @@
       id: 'tm-mascot-container',
       parent: 'body',
       minLen: 20,
-      // NEVER carbon-copy the live SVG — that baked the wrong character across pages.
       silhouetteOnly: true,
       maxHtml: 2000,
     },
@@ -581,6 +580,44 @@
       || (el.classList && el.classList.contains('tm-qs-input'));
   }
 
+  function cssEscapeId(id) {
+    try {
+      if (typeof CSS !== 'undefined' && CSS.escape) return CSS.escape(id);
+    } catch (eEsc) { /* ignore */ }
+    return String(id).replace(/([ !"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+  }
+
+  function isHiddenForCache(el) {
+    if (!el || el.nodeType !== 1) return true;
+    if (el.hidden || el.getAttribute('hidden') !== null) return true;
+    try {
+      if (el.style && (el.style.display === 'none' || el.style.visibility === 'hidden')) return true;
+    } catch (eSt) { /* ignore */ }
+    try {
+      var cs = window.getComputedStyle ? window.getComputedStyle(el) : null;
+      if (cs && (cs.display === 'none' || cs.visibility === 'hidden')) return true;
+    } catch (eCs) { /* ignore */ }
+    return false;
+  }
+
+  function stripDisabledFromClone(liveRoot, clone) {
+    if (!liveRoot || !clone) return;
+    var nodes = liveRoot.querySelectorAll('[id]');
+    for (var i = 0; i < nodes.length; i++) {
+      var lv = nodes[i];
+      if (!lv.id) continue;
+      var sel = '#' + cssEscapeId(lv.id);
+      if (SKIP_SHELL_IDS[lv.id] || isQuickSearchField(lv)) {
+        var dropQs = clone.querySelector(sel);
+        if (dropQs) dropQs.remove();
+        continue;
+      }
+      if (!isHiddenForCache(lv)) continue;
+      var cv = clone.querySelector(sel);
+      if (cv) cv.remove();
+    }
+  }
+
   function mascotSilhouetteHtml(el) {
     var style = '';
     try { style = (el && el.getAttribute('style')) || ''; } catch (e0) { /* ignore */ }
@@ -628,11 +665,12 @@
         menu.innerHTML = '';
       }
       var kill = clone.querySelectorAll(
-        '#tm-notification-panel,#tm-notification-backdrop,.tm-modal-overlay,#tm-coin-history-tooltip,#tm-mascot-interaction-panel,#tm-notification-panel *'
+        '#tm-notification-panel,#tm-notification-backdrop,.tm-modal-overlay,#tm-coin-history-tooltip,#tm-mascot-interaction-panel,#tm-notification-panel *,#tm-header-quick-search-host,#tm-footer-quick-search'
       );
       for (var i = 0; i < kill.length; i++) {
         try { kill[i].remove(); } catch (eKill) { /* ignore */ }
       }
+      stripDisabledFromClone(el, clone);
       // Drop open dropdown lists only — keep the button labels/counts
       var openMenus = clone.querySelectorAll('[id$="-menu"]:not(#tm-recent-repairs-menu)');
       for (var m = 0; m < openMenus.length; m++) {
@@ -954,25 +992,35 @@
 
   function snapshotLiveShells(source) {
     var changed = false;
+    var nextShells = {};
     SHELL_SPECS.forEach(function (spec) {
       if (SKIP_SHELL_IDS[spec.id]) return;
       var el = document.getElementById(spec.id);
       if (!el) return;
-      if (isShellEl(el)) return;
+      if (isShellEl(el) || isHiddenForCache(el)) return;
       var html = slimCloneHtml(el, spec);
       if (!html) return;
       var placement = capturePlacement(el, spec.parent);
       var hash = html + '|' + placement.kind + '|' + placement.insertMode + '|' + (placement.inlineStyle || '');
-      if (lastHashes[spec.id] === hash) return;
-      lastHashes[spec.id] = hash;
-      memoryCache.shells[spec.id] = {
+      nextShells[spec.id] = {
         id: spec.id,
         parent: spec.parent,
         placement: placement,
         html: html,
       };
-      changed = true;
+      if (lastHashes[spec.id] !== hash) {
+        lastHashes[spec.id] = hash;
+        changed = true;
+      }
     });
+    var oldIds = Object.keys(memoryCache.shells || {});
+    for (var d = 0; d < oldIds.length; d++) {
+      if (!nextShells[oldIds[d]]) {
+        delete lastHashes[oldIds[d]];
+        changed = true;
+      }
+    }
+    memoryCache.shells = nextShells;
     var css = collectSuiteCss();
     if (css && css !== lastHashes.__css) {
       lastHashes.__css = css;
@@ -1038,5 +1086,5 @@
     } catch (eFail) { /* ignore */ }
   }, 2500);
 
-  console.log('[FOUC] guard v1.12.0 ready (' + location.hostname + ') — no-hide, no mutation observers');
+  console.log('[FOUC] guard v1.12.1 ready (' + location.hostname + ') — enabled-only shells');
 })();

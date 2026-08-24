@@ -6,10 +6,10 @@ Shows a **carbon copy** of the last suite UI (CSS + buttons + last values) as fa
 
 1. `chrome://extensions` → Developer mode  
 2. **Load unpacked** / **Reload** → `myman_fouc_extension`  
-3. Confirm **1.12.0** + storage permission  
+3. Confirm **1.12.1** + storage permission  
 4. Hard-refresh MyManager
 
-If the page stays blank, the extension is not actually at 1.12.0 — Remove and **Load unpacked** from `myman_fouc_extension`.
+FOUC caches only live, enabled chrome (hidden/disabled widgets are stripped). If the page stays blank, Remove and **Load unpacked** from `myman_fouc_extension`.
 
 ## What is cached
 
