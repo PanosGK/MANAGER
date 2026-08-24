@@ -1,11 +1,11 @@
 {
-  "version": "416",
-  "loaderVersion": "41",
-  "silentVersion": "60",
-  "displayVersion": "41.60",
+  "version": "417",
+  "loaderVersion": "42",
+  "silentVersion": "1",
+  "displayVersion": "42.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Stop automatic service-list lookups that leave a stale search in the PHPRunner session",
+  "releaseNotes": "Run cached bundle immediately; check GitHub for updates at most every 5 minutes",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

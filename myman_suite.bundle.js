@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v416 / Custom Ver. 41.60 — generated, do not edit */
+/* MyManager Suite bundle v417 / Custom Ver. 42.1 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '416',
-        loaderVersion: '41',
-        silentVersion: '60',
-        displayVersion: '41.60',
+        version: '417',
+        loaderVersion: '42',
+        silentVersion: '1',
+        displayVersion: '42.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
