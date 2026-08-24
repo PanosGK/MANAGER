@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v418 / Custom Ver. 42.2 — generated, do not edit */
+/* MyManager Suite bundle v419 / Custom Ver. 42.3 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '418',
+        version: '419',
         loaderVersion: '42',
-        silentVersion: '2',
-        displayVersion: '42.2',
+        silentVersion: '3',
+        displayVersion: '42.3',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
@@ -3443,7 +3443,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         REPAIR_REMINDERS: 'tm_repair_reminders_v1',
         REPAIR_REMINDER_BANNERS: 'tm_repair_reminder_active_banners_v1',
         REMINDER_HISTORY: 'tm_reminder_history_v1',
-        // Local cache of watched repairs (PocketBase is source of truth)
+        // (legacy) unused — watch feature removed
         REPAIR_WATCHES_LOCAL: 'tm_repair_watches_local_v1',
 
         // Script update preferences (per profile) — loaderVersion only (not bundle)
@@ -16209,10 +16209,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             when: 'Όταν σκανάρετε τη λίστα και θέλετε γρήγορη ματιά σε λεπτομέρειες.',
         },
         repair_collab: {
-            title: 'Whisper & Παρακολούθηση',
-            what: 'Κοινό σημείωμα (Whisper) στη σελίδα επισκευής και κουμπί παρακολούθησης αλλαγών status με ειδοποιήσεις.',
-            where: 'Σελίδα επεξεργασίας επισκευής (service_edit) · ειδοποιήσεις σε όλες τις σελίδες όσο παρακολουθείτε.',
-            when: 'Όταν συνεργάζεστε σε ticket. Απενεργοποιήστε αν δεν θέλετε το UI ή τα pings.',
+            title: 'Whisper',
+            what: 'Κοινό σημείωμα (Whisper) στη σελίδα επισκευής — ορατό σε όλους τους τεχνικούς του καταστήματος.',
+            where: 'Σελίδα επεξεργασίας επισκευής (service_edit).',
+            when: 'Όταν συνεργάζεστε σε ticket. Απενεργοποιήστε αν δεν θέλετε το UI.',
         },
         recent_repairs_max: {
             title: 'Αριθμός πρόσφατων επισκευών',
@@ -17233,10 +17233,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <div class="tm-setting-label-row">
-                                <label for="tm-setting-repair-collab-enabled">Whisper &amp; Παρακολούθηση</label>
+                                <label for="tm-setting-repair-collab-enabled">Whisper</label>
                                 ${info('repair_collab')}
                             </div>
-                            <p class="tm-setting-description">Κοινό σημείωμα και ειδοποιήσεις αλλαγής status στην επισκευή.</p>
+                            <p class="tm-setting-description">Κοινό σημείωμα στην επισκευή.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-repair-collab-enabled"></div>
                     </div>
@@ -72184,13 +72184,8 @@ if (typeof window !== 'undefined') {
 
     const RC_PB_BASE = 'https://mngerchat.littlejol.mywire.org';
     const RC_WHISPER_MAX = 500;
-    const RC_WATCH_POLL_MS = 45000;
-    const RC_LOCAL_WATCHES_KEY = 'tm_repair_watches_local_v1';
     const RC_WHISPER_COLL = 'repair_whispers';
-    const RC_WATCH_COLL = 'repair_watches';
-    const RC_STATUS_COLL = 'repair_status';
 
-    let rcPollTimer = null;
     let rcAuthFailUntil = 0;
     let rcCollectionHintShown = false;
 
@@ -72237,18 +72232,6 @@ if (typeof window !== 'undefined') {
         return String(window.tmCurrentUser || window.config?.currentUser || window.config?.profileLabel || 'Τεχνικός').trim().slice(0, 64) || 'Τεχνικός';
     }
 
-    function getUserKey() {
-        try {
-            const pid = String(window.tmGetActiveProfileId?.() || window.config?.profileId || '').trim();
-            if (pid && pid !== '_unknown') return pid.slice(0, 64);
-        } catch (_) { /* ignore */ }
-        if (typeof window.suggestOfficeChatEmail === 'function') {
-            const mail = String(window.suggestOfficeChatEmail() || '').trim().toLowerCase();
-            if (mail.includes('@')) return mail.slice(0, 64);
-        }
-        return getDisplayName().toLowerCase().slice(0, 64);
-    }
-
     function getStoreName() {
         try {
             if (typeof window.captureConnectedStoreFromPage === 'function') {
@@ -72261,34 +72244,6 @@ if (typeof window !== 'undefined') {
             if (stored) return stored.slice(0, 64);
         } catch (_) { /* ignore */ }
         return '';
-    }
-
-    function readStatusFromPage() {
-        const selectors = [
-            'select[name="iStatusID"]',
-            'select[name="value_ccc_iStatusID_1"]',
-            'select[id="value_ccc_iStatusID_1"]',
-        ];
-        for (const sel of selectors) {
-            const el = document.querySelector(sel);
-            if (!el) continue;
-            const statusId = String(el.value || '').trim();
-            if (!statusId) continue;
-            const opt = el.options?.[el.selectedIndex];
-            const statusLabel = String(opt?.text || statusId).replace(/\s+/g, ' ').trim().slice(0, 64);
-            return { statusId, statusLabel };
-        }
-        const badge = document.querySelector('.statusbadge, .rnr-status');
-        if (badge) {
-            const label = String(badge.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 64);
-            const m = label.match(/(\d{1,3})/);
-            return { statusId: m ? m[1] : '', statusLabel: label || '' };
-        }
-        const ids = getServiceIds();
-        if (ids?.statusId) {
-            return { statusId: String(ids.statusId), statusLabel: String(ids.statusId) };
-        }
-        return { statusId: '', statusLabel: '' };
     }
 
     function rcRequestJson({ method, url, headers, data, timeout }) {
@@ -72334,40 +72289,6 @@ if (typeof window !== 'undefined') {
         } catch (_) { /* ignore */ }
         rcAuthFailUntil = Date.now() + 60 * 1000;
         return '';
-    }
-
-    function loadLocalWatchMap() {
-        try {
-            const raw = GM_getValue(RC_LOCAL_WATCHES_KEY, '{}');
-            const obj = typeof raw === 'string' ? JSON.parse(raw) : raw;
-            return (obj && typeof obj === 'object') ? obj : {};
-        } catch (_) {
-            return {};
-        }
-    }
-
-    function saveLocalWatchMap(map) {
-        try {
-            GM_setValue(RC_LOCAL_WATCHES_KEY, JSON.stringify(map || {}));
-        } catch (_) { /* ignore */ }
-    }
-
-    function isLocallyWatching(invoiceLinesId) {
-        const map = loadLocalWatchMap();
-        return !!map[String(invoiceLinesId || '')];
-    }
-
-    function setLocalWatching(invoiceLinesId, meta) {
-        const id = String(invoiceLinesId || '');
-        if (!id) return;
-        const map = loadLocalWatchMap();
-        if (meta) map[id] = { ...meta, updatedAt: Date.now() };
-        else delete map[id];
-        saveLocalWatchMap(map);
-    }
-
-    function watchKeyFor(invoiceLinesId) {
-        return `${getUserKey()}|${String(invoiceLinesId || '')}`.slice(0, 128);
     }
 
     async function rcFindByFilter(token, collection, filter) {
@@ -72419,27 +72340,12 @@ if (typeof window !== 'undefined') {
         };
     }
 
-    async function rcDeleteByUnique(token, collection, uniqueField, uniqueValue) {
-        const filter = `${uniqueField}="${String(uniqueValue).replace(/"/g, '\\"')}"`;
-        const listed = await rcFindByFilter(token, collection, filter);
-        const existing = listed.body?.items?.[0];
-        if (!existing?.id) return { ok: true, missing: true };
-        const base = RC_PB_BASE.replace(/\/$/, '');
-        const deleted = await rcRequestJson({
-            method: 'DELETE',
-            url: `${base}/api/collections/${collection}/records/${encodeURIComponent(existing.id)}`,
-            headers: { Authorization: token },
-            timeout: 12000,
-        });
-        return { ok: deleted.status >= 200 && deleted.status < 300, status: deleted.status };
-    }
-
     function hintMissingCollections() {
         if (rcCollectionHintShown) return;
         rcCollectionHintShown = true;
         if (typeof window.createNotification === 'function') {
             window.createNotification(
-                'Repair Collab: πρόσθεσε collections repair_whispers / repair_watches / repair_status στο PocketBase (δες SETUP.md §8)',
+                'Whisper: πρόσθεσε collection repair_whispers στο PocketBase',
                 '💬',
                 { id: 'tm_rc_missing_collections' }
             );
@@ -72467,10 +72373,6 @@ if (typeof window !== 'undefined') {
             updatedAt: new Date().toISOString(),
             store: getStoreName(),
         };
-        if (!cleaned) {
-            // Empty = clear shared note
-            return rcUpsertByUnique(token, RC_WHISPER_COLL, 'invoiceLinesId', ids.invoiceLinesId, payload);
-        }
         return rcUpsertByUnique(token, RC_WHISPER_COLL, 'invoiceLinesId', ids.invoiceLinesId, payload);
     }
 
@@ -72526,49 +72428,27 @@ if (typeof window !== 'undefined') {
             .tm-rw-label { font-weight: 600; letter-spacing: 0.01em; }
             .tm-rw-preview {
                 min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-                max-width: 260px; font-weight: 400; opacity: 0.85;
+                opacity: 0.85; max-width: 220px;
             }
-            .tm-rw-chevron { font-size: 9px; opacity: 0.7; margin-left: 2px; }
+            .tm-rw-chevron { font-size: 9px; opacity: 0.7; }
             .tm-rw-modal-backdrop {
-                position: fixed;
-                inset: 0;
-                background: rgba(15, 23, 42, 0.38);
-                z-index: 2147483646;
-                display: none;
-                align-items: center;
-                justify-content: center;
+                display: none; position: fixed; inset: 0; z-index: 100050;
+                background: rgba(15, 23, 42, 0.35); align-items: center; justify-content: center;
                 padding: 16px;
             }
             .tm-rw-modal-backdrop.is-open { display: flex; }
             .tm-rw-modal {
-                width: min(560px, calc(100vw - 28px));
-                max-height: calc(100vh - 32px);
-                overflow: auto;
-                background: #ffffff;
-                border: 1px solid #e2e8f0;
-                border-radius: 12px;
-                box-shadow: 0 20px 50px rgba(2, 6, 23, 0.28);
-                padding: 12px;
+                width: min(420px, 100%);
+                background: #fff; border-radius: 10px; padding: 12px 14px 14px;
+                box-shadow: 0 12px 40px rgba(15, 23, 42, 0.25);
             }
             .tm-rw-modal-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-                margin-bottom: 8px;
-                color: #334155;
-                font-size: 13px;
-                font-weight: 700;
+                display: flex; align-items: center; justify-content: space-between;
+                gap: 8px; margin-bottom: 8px; font-size: 13px; font-weight: 650; color: #334155;
             }
             .tm-rw-modal-close {
-                border: 0;
-                background: transparent;
-                color: #94a3b8;
-                cursor: pointer;
-                font-size: 16px;
-                line-height: 1;
-                border-radius: 6px;
-                padding: 2px 6px;
+                border: 0; background: transparent; cursor: pointer; color: #94a3b8;
+                font-size: 18px; line-height: 1; border-radius: 6px; padding: 2px 6px;
             }
             .tm-rw-modal-close:hover {
                 background: #f1f5f9;
@@ -72597,10 +72477,6 @@ if (typeof window !== 'undefined') {
             .tm-rw-clear:hover { color: #64748b; }
             .tm-rw-status { font-size: 10px; color: #94a3b8; min-height: 12px; }
             .tm-rw-meta { font-size: 10px; color: #94a3b8; margin-top: 3px; }
-            #tm-repair-watch-btn.is-watching {
-                background: color-mix(in srgb, #2563eb 16%, #fff) !important;
-                outline: 2px solid color-mix(in srgb, #2563eb 45%, transparent);
-            }
         `;
     }
 
@@ -72610,7 +72486,6 @@ if (typeof window !== 'undefined') {
         const etcField = document.querySelector('[data-fieldname="ccc_iETC"]');
         const totalField = document.querySelector('[data-fieldname="iTotalAmount"]');
 
-        // Preferred host: the exact repair-details <td> block where assignment/ETD/ETC/total live.
         const tdHost = assignmentField?.closest('td')
             || etdField?.closest('td')
             || etcField?.closest('td')
@@ -72644,7 +72519,6 @@ if (typeof window !== 'undefined') {
         `;
 
         if (mount.matches?.('td')) {
-            // Keep whisper inside the same details column, appended after the field stack.
             mount.insertAdjacentElement('beforeend', box);
         } else if (mount.classList?.contains('rnr-b-editheader') || mount.classList?.contains('rnr-c-editheader')) {
             mount.insertAdjacentElement('afterend', box);
@@ -72783,324 +72657,6 @@ if (typeof window !== 'undefined') {
         setOpen(false);
     }
 
-    // ─── Watch ─────────────────────────────────────────────────────────────
-
-    async function fetchMyWatch(token, invoiceLinesId) {
-        const key = watchKeyFor(invoiceLinesId);
-        const filter = `watchKey="${key.replace(/"/g, '\\"')}"`;
-        const res = await rcFindByFilter(token, RC_WATCH_COLL, filter);
-        if (res.status === 404 || /missing|unknown collection|wasn't found/i.test(String(res.raw || ''))) {
-            return { missingCollection: true };
-        }
-        return { record: res.body?.items?.[0] || null };
-    }
-
-    async function listMyWatches(token) {
-        const userKey = getUserKey().replace(/"/g, '\\"');
-        const base = RC_PB_BASE.replace(/\/$/, '');
-        const url = `${base}/api/collections/${RC_WATCH_COLL}/records?page=1&perPage=200&filter=${encodeURIComponent(`userKey="${userKey}"`)}`;
-        const res = await rcRequestJson({
-            method: 'GET',
-            url,
-            headers: { Authorization: token },
-            timeout: 15000,
-        });
-        if (res.status === 404 || /missing|unknown collection|wasn't found/i.test(String(res.raw || ''))) {
-            return { missingCollection: true, items: [] };
-        }
-        return { items: Array.isArray(res.body?.items) ? res.body.items : [] };
-    }
-
-    async function addWatch(token, ids, statusId) {
-        const key = watchKeyFor(ids.invoiceLinesId);
-        const payload = {
-            watchKey: key,
-            invoiceLinesId: String(ids.invoiceLinesId),
-            invoiceNumber: String(ids.invoiceNumber || ids.invoiceLinesId).slice(0, 64),
-            userKey: getUserKey(),
-            displayName: getDisplayName(),
-            lastSeenStatusId: String(statusId || ''),
-            createdAt: new Date().toISOString(),
-        };
-        return rcUpsertByUnique(token, RC_WATCH_COLL, 'watchKey', key, payload);
-    }
-
-    async function removeWatch(token, invoiceLinesId) {
-        return rcDeleteByUnique(token, RC_WATCH_COLL, 'watchKey', watchKeyFor(invoiceLinesId));
-    }
-
-    async function markWatchSeen(token, invoiceLinesId, statusId) {
-        const key = watchKeyFor(invoiceLinesId);
-        return rcUpsertByUnique(token, RC_WATCH_COLL, 'watchKey', key, {
-            watchKey: key,
-            invoiceLinesId: String(invoiceLinesId),
-            userKey: getUserKey(),
-            displayName: getDisplayName(),
-            lastSeenStatusId: String(statusId || ''),
-        });
-    }
-
-    async function publishRepairStatus(token, ids, statusId, statusLabel) {
-        if (!ids?.invoiceLinesId || !statusId) return { ok: false };
-        const payload = {
-            invoiceLinesId: String(ids.invoiceLinesId),
-            invoiceNumber: String(ids.invoiceNumber || ids.invoiceLinesId).slice(0, 64),
-            statusId: String(statusId).slice(0, 16),
-            statusLabel: String(statusLabel || statusId).slice(0, 64),
-            changedBy: getDisplayName(),
-            changedAt: new Date().toISOString(),
-        };
-        return rcUpsertByUnique(token, RC_STATUS_COLL, 'invoiceLinesId', ids.invoiceLinesId, payload);
-    }
-
-    async function fetchRepairStatus(token, invoiceLinesId) {
-        const filter = `invoiceLinesId="${String(invoiceLinesId).replace(/"/g, '\\"')}"`;
-        const res = await rcFindByFilter(token, RC_STATUS_COLL, filter);
-        if (res.status === 404 || /missing|unknown collection|wasn't found/i.test(String(res.raw || ''))) {
-            return { missingCollection: true };
-        }
-        return { record: res.body?.items?.[0] || null };
-    }
-
-    function notifyWatchStatusChange(watch, statusRec) {
-        const num = statusRec.invoiceNumber || watch.invoiceNumber || watch.invoiceLinesId;
-        const label = statusRec.statusLabel || statusRec.statusId || '?';
-        const by = statusRec.changedBy ? ` · ${statusRec.changedBy}` : '';
-        const msg = `Επισκευή #${num}: ${label}${by}`;
-        if (typeof window.createNotification === 'function') {
-            window.createNotification(msg, '👀', {
-                id: `tm_watch_${watch.invoiceLinesId}_${statusRec.statusId}_${statusRec.changedAt || ''}`,
-            });
-        }
-        try {
-            if (typeof Notification !== 'undefined'
-                && Notification.permission === 'granted'
-                && document.hidden) {
-                const n = new Notification('Watch · αλλαγή status', {
-                    body: msg.slice(0, 160),
-                    tag: `tm-watch-${watch.invoiceLinesId}`,
-                    renotify: true,
-                    silent: false,
-                });
-                n.onclick = () => {
-                    try { window.focus(); } catch (_) { /* ignore */ }
-                    try {
-                        const url = `https://thefixers.mymanager.gr/mymanagerservice/service_edit.php?editid1=${encodeURIComponent(watch.invoiceLinesId)}`;
-                        window.location.href = url;
-                    } catch (_) { /* ignore */ }
-                    try { n.close(); } catch (_) { /* ignore */ }
-                };
-            }
-        } catch (_) { /* ignore */ }
-    }
-
-    async function pollWatchUpdates(STORAGE_KEYS) {
-        const token = await rcEnsureAuth(STORAGE_KEYS);
-        if (!token) return;
-        const listed = await listMyWatches(token);
-        if (listed.missingCollection) {
-            hintMissingCollections();
-            return;
-        }
-        const localMap = loadLocalWatchMap();
-        const serverIds = new Set();
-        for (const watch of listed.items) {
-            const id = String(watch.invoiceLinesId || '');
-            if (!id) continue;
-            serverIds.add(id);
-            localMap[id] = {
-                invoiceNumber: watch.invoiceNumber || id,
-                lastSeenStatusId: watch.lastSeenStatusId || '',
-                updatedAt: Date.now(),
-            };
-            const st = await fetchRepairStatus(token, id);
-            if (st.missingCollection) {
-                hintMissingCollections();
-                break;
-            }
-            const rec = st.record;
-            if (!rec?.statusId) continue;
-            const seen = String(watch.lastSeenStatusId || '');
-            const current = String(rec.statusId || '');
-            const changedBy = String(rec.changedBy || '');
-            const me = getDisplayName();
-            if (current && current !== seen && changedBy && changedBy !== me) {
-                notifyWatchStatusChange(watch, rec);
-                await markWatchSeen(token, id, current);
-                localMap[id].lastSeenStatusId = current;
-            }
-        }
-        // Drop local leftovers not on server
-        Object.keys(localMap).forEach((id) => {
-            if (!serverIds.has(id)) delete localMap[id];
-        });
-        saveLocalWatchMap(localMap);
-        updateWatchButtonUi();
-    }
-
-    function updateWatchButtonUi() {
-        const btn = document.getElementById('tm-repair-watch-btn');
-        if (!btn) return;
-        const id = btn.getAttribute('data-invoice-lines-id') || '';
-        const on = isLocallyWatching(id);
-        btn.classList.toggle('is-watching', on);
-        btn.innerHTML = on ? '👀&nbsp;Παρακολουθείς' : '👀&nbsp;Παρακολούθηση';
-        btn.title = on
-            ? 'Σταμάτα την παρακολούθηση αυτής της επισκευής'
-            : 'Ειδοποίηση όταν αλλάξει το status αυτής της επισκευής';
-    }
-
-    function injectWatchButton(STORAGE_KEYS, ids) {
-        if (document.getElementById('tm-repair-watch-btn')) {
-            updateWatchButtonUi();
-            return;
-        }
-        const anchor =
-            document.querySelector('#tm-repair-reminder-wrap')?.parentElement
-            || document.querySelector('.rnr-b-editbuttons .rnr-buttons-right')
-            || document.querySelector('.rnr-b-editbuttons .rnr-buttons-left')
-            || document.querySelector('.rnr-b-editbuttons');
-        if (!anchor) return;
-
-        const wrap = document.createElement('div');
-        wrap.id = 'tm-repair-watch-wrap';
-        wrap.style.cssText = 'display:inline-flex;align-items:stretch;margin-left:4px;vertical-align:middle;';
-        wrap.innerHTML = `
-            <a href="#" id="tm-repair-watch-btn" class="rnr-button" role="button"
-                data-invoice-lines-id="${escapeHtml(ids.invoiceLinesId)}">👀&nbsp;Παρακολούθηση</a>
-        `;
-        const reminderWrap = document.getElementById('tm-repair-reminder-wrap');
-        if (reminderWrap?.parentElement === anchor) {
-            reminderWrap.insertAdjacentElement('afterend', wrap);
-        } else {
-            anchor.appendChild(wrap);
-        }
-
-        const btn = wrap.querySelector('#tm-repair-watch-btn');
-        btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const token = await rcEnsureAuth(STORAGE_KEYS);
-            if (!token) {
-                if (typeof window.createNotification === 'function') {
-                    window.createNotification('Χωρίς σύνδεση chat server για παρακολούθηση', '👀');
-                }
-                return;
-            }
-            const watching = isLocallyWatching(ids.invoiceLinesId);
-            btn.style.opacity = '0.6';
-            if (watching) {
-                const res = await removeWatch(token, ids.invoiceLinesId);
-                if (res.ok || res.missing) setLocalWatching(ids.invoiceLinesId, null);
-            } else {
-                const st = readStatusFromPage();
-                const res = await addWatch(token, ids, st.statusId);
-                if (res.missingCollection) {
-                    hintMissingCollections();
-                } else if (res.ok) {
-                    setLocalWatching(ids.invoiceLinesId, {
-                        invoiceNumber: ids.invoiceNumber,
-                        lastSeenStatusId: st.statusId || '',
-                    });
-                    // Seed status row so others/we have a baseline
-                    if (st.statusId) {
-                        await publishRepairStatus(token, ids, st.statusId, st.statusLabel);
-                    }
-                    try {
-                        if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-                            Notification.requestPermission().catch(() => {});
-                        }
-                    } catch (_) { /* ignore */ }
-                }
-            }
-            btn.style.opacity = '';
-            updateWatchButtonUi();
-        });
-
-        // Sync button from server
-        (async () => {
-            const token = await rcEnsureAuth(STORAGE_KEYS);
-            if (!token) {
-                updateWatchButtonUi();
-                return;
-            }
-            const mine = await fetchMyWatch(token, ids.invoiceLinesId);
-            if (mine.missingCollection) {
-                hintMissingCollections();
-                updateWatchButtonUi();
-                return;
-            }
-            if (mine.record) {
-                setLocalWatching(ids.invoiceLinesId, {
-                    invoiceNumber: mine.record.invoiceNumber || ids.invoiceNumber,
-                    lastSeenStatusId: mine.record.lastSeenStatusId || '',
-                });
-                const st = readStatusFromPage();
-                if (st.statusId && String(mine.record.lastSeenStatusId || '') !== String(st.statusId)) {
-                    await markWatchSeen(token, ids.invoiceLinesId, st.statusId);
-                }
-            } else {
-                setLocalWatching(ids.invoiceLinesId, null);
-            }
-            updateWatchButtonUi();
-        })();
-    }
-
-    function wireStatusPublisher(STORAGE_KEYS, ids) {
-        if (wireStatusPublisher._wired) return;
-        wireStatusPublisher._wired = true;
-        let lastPublished = '';
-
-        const publish = async (source) => {
-            const st = readStatusFromPage();
-            if (!st.statusId) return;
-            const fingerprint = `${ids.invoiceLinesId}:${st.statusId}`;
-            if (fingerprint === lastPublished) return;
-            // Debounce rapid duplicate events
-            if (publish._pending === fingerprint) return;
-            publish._pending = fingerprint;
-            window.setTimeout(async () => {
-                publish._pending = '';
-                const again = readStatusFromPage();
-                if (!again.statusId || `${ids.invoiceLinesId}:${again.statusId}` !== fingerprint) return;
-                const token = await rcEnsureAuth(STORAGE_KEYS);
-                if (!token) return;
-                const res = await publishRepairStatus(token, ids, again.statusId, again.statusLabel);
-                if (res.missingCollection) {
-                    hintMissingCollections();
-                    return;
-                }
-                if (res.ok) {
-                    lastPublished = fingerprint;
-                    if (isLocallyWatching(ids.invoiceLinesId)) {
-                        await markWatchSeen(token, ids.invoiceLinesId, again.statusId);
-                        setLocalWatching(ids.invoiceLinesId, {
-                            invoiceNumber: ids.invoiceNumber,
-                            lastSeenStatusId: again.statusId,
-                        });
-                    }
-                }
-            }, source === 'dropdown' ? 400 : 200);
-        };
-
-        const statusSelect = document.querySelector(
-            'select[name="iStatusID"], select[name="value_ccc_iStatusID_1"], select[id="value_ccc_iStatusID_1"]'
-        );
-        statusSelect?.addEventListener('change', () => publish('dropdown'));
-
-        document.querySelectorAll('form').forEach((form) => {
-            form.addEventListener('submit', () => publish('submit'));
-        });
-
-        document.addEventListener('click', (e) => {
-            const btn = e.target.closest?.('.rnr-b-editbuttons a.rnr-button, .rnr-b-editbuttons button');
-            if (!btn) return;
-            const text = String(btn.textContent || btn.value || '').toLowerCase();
-            if (/back\s*to\s*list|επιστροφή|λιστα|λίστα|print|εκτύπ/.test(text)) return;
-            window.setTimeout(() => publish('button'), 300);
-        }, true);
-    }
-
     function tryInjectCollabUi(STORAGE_KEYS, attempt) {
         const ids = getServiceIds();
         if (!ids?.invoiceLinesId) {
@@ -73110,25 +72666,11 @@ if (typeof window !== 'undefined') {
             return;
         }
         injectWhisperUi(STORAGE_KEYS, ids);
-        injectWatchButton(STORAGE_KEYS, ids);
-        wireStatusPublisher(STORAGE_KEYS, ids);
-    }
-
-    function startWatchPolling(STORAGE_KEYS) {
-        if (rcPollTimer) return;
-        const tick = () => {
-            pollWatchUpdates(STORAGE_KEYS).catch(() => {});
-        };
-        tick();
-        rcPollTimer = window.setInterval(tick, RC_WATCH_POLL_MS);
     }
 
     window.stopRepairCollabFeature = function stopRepairCollabFeature() {
-        if (rcPollTimer) {
-            window.clearInterval(rcPollTimer);
-            rcPollTimer = null;
-        }
         document.getElementById('tm-repair-whisper')?.remove();
+        document.getElementById('tm-repair-whisper-modal')?.remove();
         document.getElementById('tm-repair-watch-wrap')?.remove();
     };
 
@@ -73137,7 +72679,6 @@ if (typeof window !== 'undefined') {
             window.stopRepairCollabFeature();
             return;
         }
-        startWatchPolling(STORAGE_KEYS);
 
         if (!window.location.pathname.includes('service_edit.php')) return;
 
@@ -73498,7 +73039,7 @@ if (typeof window !== 'undefined') {
         recentRepairsEnabled: true,
         repairListQuickViewEnabled: true,
         repairAgeIndicatorEnabled: true,
-        repairCollabEnabled: true, // Whisper note + status watch on repair page
+        repairCollabEnabled: true, // Shared Whisper note on repair page
         recentRepairsMaxItems: 5,
         // Weather Widget
         weatherWidgetEnabled: true,

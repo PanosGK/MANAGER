@@ -16,10 +16,10 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '418',
+        version: '419',
         loaderVersion: '42',
-        silentVersion: '2',
-        displayVersion: '42.2',
+        silentVersion: '3',
+        displayVersion: '42.3',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
@@ -149,7 +149,7 @@
         REPAIR_REMINDERS: 'tm_repair_reminders_v1',
         REPAIR_REMINDER_BANNERS: 'tm_repair_reminder_active_banners_v1',
         REMINDER_HISTORY: 'tm_reminder_history_v1',
-        // Local cache of watched repairs (PocketBase is source of truth)
+        // (legacy) unused — watch feature removed
         REPAIR_WATCHES_LOCAL: 'tm_repair_watches_local_v1',
 
         // Script update preferences (per profile) — loaderVersion only (not bundle)

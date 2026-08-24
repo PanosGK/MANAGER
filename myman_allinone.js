@@ -140,7 +140,7 @@
         recentRepairsEnabled: true,
         repairListQuickViewEnabled: true,
         repairAgeIndicatorEnabled: true,
-        repairCollabEnabled: true, // Whisper note + status watch on repair page
+        repairCollabEnabled: true, // Shared Whisper note on repair page
         recentRepairsMaxItems: 5,
         // Weather Widget
         weatherWidgetEnabled: true,

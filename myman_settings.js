@@ -88,10 +88,10 @@
             when: 'Όταν σκανάρετε τη λίστα και θέλετε γρήγορη ματιά σε λεπτομέρειες.',
         },
         repair_collab: {
-            title: 'Whisper & Παρακολούθηση',
-            what: 'Κοινό σημείωμα (Whisper) στη σελίδα επισκευής και κουμπί παρακολούθησης αλλαγών status με ειδοποιήσεις.',
-            where: 'Σελίδα επεξεργασίας επισκευής (service_edit) · ειδοποιήσεις σε όλες τις σελίδες όσο παρακολουθείτε.',
-            when: 'Όταν συνεργάζεστε σε ticket. Απενεργοποιήστε αν δεν θέλετε το UI ή τα pings.',
+            title: 'Whisper',
+            what: 'Κοινό σημείωμα (Whisper) στη σελίδα επισκευής — ορατό σε όλους τους τεχνικούς του καταστήματος.',
+            where: 'Σελίδα επεξεργασίας επισκευής (service_edit).',
+            when: 'Όταν συνεργάζεστε σε ticket. Απενεργοποιήστε αν δεν θέλετε το UI.',
         },
         recent_repairs_max: {
             title: 'Αριθμός πρόσφατων επισκευών',
@@ -1112,10 +1112,10 @@
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <div class="tm-setting-label-row">
-                                <label for="tm-setting-repair-collab-enabled">Whisper &amp; Παρακολούθηση</label>
+                                <label for="tm-setting-repair-collab-enabled">Whisper</label>
                                 ${info('repair_collab')}
                             </div>
-                            <p class="tm-setting-description">Κοινό σημείωμα και ειδοποιήσεις αλλαγής status στην επισκευή.</p>
+                            <p class="tm-setting-description">Κοινό σημείωμα στην επισκευή.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-repair-collab-enabled"></div>
                     </div>
