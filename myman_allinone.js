@@ -270,18 +270,30 @@
     }
 
     /**
-     * Brand-new MyManager login / profile: turn every feature toggle OFF so the user
-     * opts in from Settings. Does not change the global master script switch.
+     * Brand-new MyManager login / profile: turn most feature toggles OFF so the user
+     * opts in from Settings (less overwhelming). Keeps Chat + Phone Catalog on.
+     * Does not change the global master script switch.
      */
     function disableAllSettingsForNewProfile() {
+        const keepEnabled = new Set([
+            'scriptEnabled',
+            'officeChatEnabled',
+            'phoneCatalogEnabled',
+        ]);
         let written = 0;
+        let kept = 0;
         for (const [key, defaultValue] of Object.entries(DEFAULTS)) {
             if (typeof defaultValue !== 'boolean') continue;
-            // Master toggle is global across profiles — leave it alone.
-            if (key === 'scriptEnabled') continue;
             const storageKey = storageKeyForSetting(key);
             if (typeof window.MMS_PROFILES?.isGlobalKey === 'function'
                 && window.MMS_PROFILES.isGlobalKey(storageKey)) {
+                continue;
+            }
+            if (keepEnabled.has(key)) {
+                try {
+                    GM_setValue(storageKey, true);
+                    kept += 1;
+                } catch (_) { /* ignore */ }
                 continue;
             }
             try {
@@ -299,7 +311,7 @@
                 written += 1;
             } catch (_) { /* ignore */ }
         });
-        console.log(`[MMS] New user detected — disabled ${written} settings (opt-in)`);
+        console.log(`[MMS] New user detected — disabled ${written} settings; kept Chat + Phone Catalog on (${kept})`);
         return written;
     }
 

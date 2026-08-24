@@ -1,11 +1,11 @@
 {
-  "version": "419",
+  "version": "420",
   "loaderVersion": "42",
-  "silentVersion": "3",
-  "displayVersion": "42.3",
+  "silentVersion": "4",
+  "displayVersion": "42.4",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test",
-  "releaseNotes": "Remove repair watch feature; keep Whisper only",
+  "releaseNotes": "New users: disable all features except Chat and Phone Catalog",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
