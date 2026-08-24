@@ -154,7 +154,23 @@
       root.style.removeProperty('visibility');
       root.style.removeProperty('opacity');
       root.style.removeProperty('background');
+      // Beat stale cached suite CSS / inline hides that can outrank class alone.
+      var force = document.getElementById('tm-mms-fouc-force-show');
+      if (!force) {
+        force = document.createElement('style');
+        force.id = 'tm-mms-fouc-force-show';
+        (root || document.head || document).appendChild(force);
+      }
+      force.textContent = 'html.' + READY + ',html.' + READY + ' body{'
+        + 'display:block!important;visibility:visible!important;opacity:1!important;}';
     } catch (e) { /* ignore */ }
+  }
+
+  function scrubInjectedCss(cssText) {
+    // Never re-inject hide-until-ready rules — they can trap a blank page if reveal races.
+    return String(cssText || '')
+      .replace(/html:not\(\.tm-mms-theme-ready\)[^}]*\}/gi, '')
+      .replace(/html\[data-tm-mms-fouc\][^}]*\}/gi, '');
   }
 
   try {
@@ -278,6 +294,8 @@
 
   function injectSuiteCss(cssText) {
     if (!cssText) return;
+    cssText = scrubInjectedCss(cssText);
+    if (!cssText || cssText.length < 20) return;
     var style = document.getElementById('tm-mms-suite-css-cache');
     if (!style) {
       style = document.createElement('style');
@@ -682,6 +700,16 @@
           if (raw.shells[skipId]) delete raw.shells[skipId];
         });
       } catch (eSkipShells) { /* ignore */ }
+      // Drop oversized shells — sync insertAdjacentHTML of these froze reveal()
+      try {
+        Object.keys(raw.shells).forEach(function (id) {
+          var ent = raw.shells[id];
+          if (ent && ent.html && String(ent.html).length > 180000) {
+            console.warn('[FOUC] dropping oversized cached shell', id, String(ent.html).length);
+            delete raw.shells[id];
+          }
+        });
+      } catch (eHuge) { /* ignore */ }
       // Normalize legacy placements → suite-matched insert modes
       Object.keys(raw.shells).forEach(function (id) {
         var entry = raw.shells[id];
@@ -807,6 +835,11 @@
       if (entry.id === 'tm-mascot-container' && String(html).indexOf('<svg') !== -1) {
         html = mascotSilhouetteHtml(null);
       }
+      // Huge shells block the main thread while the page is still hidden → blank forever.
+      if (String(html).length > 180000) {
+        console.warn('[FOUC] skip oversized shell', entry.id, String(html).length);
+        return false;
+      }
 
       var mountedHint = insertAtExactPlace(parent, html, placement);
       var mounted = document.getElementById(entry.id) || mountedHint;
@@ -869,7 +902,18 @@
     } catch (eObs) { /* ignore */ }
   }
 
-  // Load cache
+  function scheduleMount(cache) {
+    // Never mount synchronously before reveal — insertAdjacentHTML of a large
+    // footer shell can freeze the main thread and leave display:none forever.
+    setTimeout(function () {
+      try { watchMount(cache); } catch (eMount) {
+        console.warn('[FOUC] deferred mount failed', eMount);
+        reveal();
+      }
+    }, 0);
+  }
+
+  // Load cache — reveal FIRST, mount later
   try {
     var lsRaw = localStorage.getItem(EXT_STORE_KEY) || localStorage.getItem(LEGACY_FOOTER_KEY);
     if (lsRaw) {
@@ -877,7 +921,7 @@
       if (lsData) {
         if (lsData.css) injectSuiteCss(lsData.css);
         console.log('[FOUC] UI shell cache hit (localStorage)');
-        watchMount(lsData);
+        scheduleMount(lsData);
       }
     }
   } catch (eLsRead) { /* ignore */ }
@@ -885,18 +929,23 @@
   try {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       chrome.storage.local.get([EXT_STORE_KEY, LEGACY_FOOTER_KEY, EXT_CSS_KEY], function (result) {
-        var data = normalizeCache(result && result[EXT_STORE_KEY])
-          || normalizeCache(result && result[LEGACY_FOOTER_KEY]);
-        if (result && result[EXT_CSS_KEY] && result[EXT_CSS_KEY].css) {
-          injectSuiteCss(result[EXT_CSS_KEY].css);
-          console.log('[FOUC] suite CSS from chrome.storage (~' + Math.round(result[EXT_CSS_KEY].css.length / 1024) + 'KB)');
-        }
-        if (data) {
-          if (data.css) injectSuiteCss(data.css);
-          console.log('[FOUC] UI shell cache hit (chrome.storage)');
-          watchMount(data);
-        } else if (!pendingCache) {
-          console.log('[FOUC] no UI shell cache yet — will snapshot after suite paints');
+        try {
+          var data = normalizeCache(result && result[EXT_STORE_KEY])
+            || normalizeCache(result && result[LEGACY_FOOTER_KEY]);
+          if (result && result[EXT_CSS_KEY] && result[EXT_CSS_KEY].css) {
+            injectSuiteCss(result[EXT_CSS_KEY].css);
+            console.log('[FOUC] suite CSS from chrome.storage (~' + Math.round(result[EXT_CSS_KEY].css.length / 1024) + 'KB)');
+          }
+          if (data) {
+            if (data.css) injectSuiteCss(data.css);
+            console.log('[FOUC] UI shell cache hit (chrome.storage)');
+            scheduleMount(data);
+          } else if (!pendingCache) {
+            console.log('[FOUC] no UI shell cache yet — will snapshot after suite paints');
+          }
+        } catch (eCb) {
+          console.warn('[FOUC] storage callback failed', eCb);
+          reveal();
         }
       });
     } else {
@@ -988,13 +1037,16 @@
 
   startLiveWatcher();
 
+  // Reveal before any deferred shell mount. Loader may re-hide briefly; keep retrying.
   if (canRevealEarly) reveal();
-
+  setTimeout(reveal, 0);
+  setTimeout(reveal, 300);
+  setTimeout(reveal, 1000);
   setTimeout(function () {
     try {
       if (!document.documentElement.classList.contains(READY)) reveal();
     } catch (eFail) { /* ignore */ }
-  }, 8000);
+  }, 2500);
 
-  console.log('[FOUC] guard v1.11.2 ready (' + location.hostname + ') — carbon-copy + footer layout lock');
+  console.log('[FOUC] guard v1.11.3 ready (' + location.hostname + ') — reveal-first + deferred shells');
 })();
