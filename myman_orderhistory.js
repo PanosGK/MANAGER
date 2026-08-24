@@ -28,6 +28,14 @@
     const orderHistoryStatusCheckEnabled = GM_getValue('orderHistoryStatusCheckEnabled', true);
     // Optional: background polling of order pages (even when not currently viewing them)
     const orderHistoryBackgroundEnabled = GM_getValue('orderHistoryBackgroundEnabled', true);
+    /** Shared PocketBase store history (default) vs local-only Tampermonkey copy. */
+    function ohUseDatabase() {
+        try {
+            return GM_getValue('orderHistoryUseDatabase', true) !== false;
+        } catch (_) {
+            return true;
+        }
+    }
     
     // Detect current path once
     const path = window.location.pathname || '';
@@ -732,6 +740,7 @@
     }
 
     function queueOrdersForServerSync(orders, { force = false, kind = null } = {}) {
+        if (!ohUseDatabase()) return 0;
         if (ohServerUnsupported || !orders?.length) return 0;
         // Refresh connected store if possible before deciding
         try { window.captureConnectedStoreFromPage?.(document); } catch (_) { /* ignore */ }
@@ -938,9 +947,70 @@
     }
 
     function ohClearLegacyLocalHistory() {
+        // Never wipe local GM history while user chose local-only mode
+        if (!ohUseDatabase()) return;
         try { GM_setValue('tm_srvorders_page_history', '[]'); } catch (_) { /* ignore */ }
         try { GM_setValue('tm_partsorders_page_history', '[]'); } catch (_) { /* ignore */ }
         try { GM_setValue(CURRENT_PAGE_HISTORY_KEY, '[]'); } catch (_) { /* ignore */ }
+    }
+
+    function ohHistoryKeyForKind(kind) {
+        return kind === 'parts' ? 'tm_partsorders_page_history' : 'tm_srvorders_page_history';
+    }
+
+    function ohLoadLocalHistory(kind = ohPageKind()) {
+        try {
+            const raw = GM_getValue(ohHistoryKeyForKind(kind), '[]');
+            const arr = typeof raw === 'string' ? JSON.parse(raw || '[]') : raw;
+            return Array.isArray(arr) ? arr : [];
+        } catch (_) {
+            return [];
+        }
+    }
+
+    function ohSaveLocalHistory(kind, orders) {
+        try {
+            const list = (orders || []).slice(0, MAX_HISTORY_ITEMS);
+            GM_setValue(ohHistoryKeyForKind(kind), JSON.stringify(list));
+        } catch (_) { /* ignore */ }
+    }
+
+    function ohMergeIntoLocalHistory(newOrders, kind = ohPageKind()) {
+        if (!newOrders?.length) return 0;
+        const want = kind === 'parts' ? 'parts' : 'service';
+        const tagged = newOrders.map((o) => ({ ...o, _kind: o._kind || want }));
+        let existing = ohLoadLocalHistory(want);
+        let added = 0;
+        tagged.forEach((order) => {
+            const dup = existing.some((ex) => isDuplicateOrder(ex, order));
+            if (dup) {
+                // Refresh matching row with newer column data when possible
+                const idx = existing.findIndex((ex) => isDuplicateOrder(ex, order));
+                if (idx >= 0) {
+                    existing[idx] = { ...existing[idx], ...order, timestamp: existing[idx].timestamp || order.timestamp };
+                }
+                return;
+            }
+            existing.unshift(order);
+            added += 1;
+        });
+        if (existing.length > MAX_HISTORY_ITEMS) existing = existing.slice(0, MAX_HISTORY_ITEMS);
+        ohSaveLocalHistory(want, existing);
+        return added;
+    }
+
+    /** When switching to local mode, copy last server cache into local history if empty. */
+    function seedOrderHistoryLocalFromCache() {
+        ['service', 'parts'].forEach((kind) => {
+            const local = ohLoadLocalHistory(kind);
+            if (local.length) return;
+            const storeKey = ohStoreKey(ohGetStoreName());
+            const cache = ohLoadViewCache(storeKey, kind);
+            if (cache?.orders?.length) {
+                ohSaveLocalHistory(kind, ohFilterOrdersByPageKind(cache.orders, kind).slice(0, MAX_HISTORY_ITEMS));
+                console.log(`[MMS Order History] seeded local ${kind} from cache (${cache.orders.length})`);
+            }
+        });
     }
 
     function mergeServerOrdersIntoLocal() {
@@ -949,6 +1019,9 @@
     }
 
     async function migrateLocalOrderHistoryOnce({ force = false } = {}) {
+        if (!ohUseDatabase()) {
+            return { ok: true, skipped: true, reason: 'local-mode' };
+        }
         try { window.captureConnectedStoreFromPage?.(document); } catch (_) { /* ignore */ }
         const store = ohGetStoreName();
         const storeKey = ohStoreKey(store);
@@ -1528,11 +1601,16 @@
         return false;
     }
 
-    // Write-through to PocketBase (server is durable source). Pending buffer only until ack.
+    // Write-through to PocketBase (server) or local GM storage.
     function saveOrdersToHistory(newOrders) {
         if (!newOrders || newOrders.length === 0) return;
         const kind = ohPageKind();
         const tagged = newOrders.map((o) => ({ ...o, _kind: kind }));
+        if (!ohUseDatabase()) {
+            const added = ohMergeIntoLocalHistory(tagged, kind);
+            console.log(`[MMS Order History] local save ${tagged.length} order(s), added ${added}, kind=${kind}`);
+            return;
+        }
         ohAddPendingOrders(tagged);
         try {
             const queued = queueOrdersForServerSync(tagged, { force: false, kind });
@@ -1646,7 +1724,16 @@
 
     // Function to remove duplicates from existing history
     function removeDuplicatesFromHistory() {
-        // Legacy local history is no longer used as a source — no-op.
+        if (ohUseDatabase()) return; // Server list is authoritative
+        ['service', 'parts'].forEach((kind) => {
+            const list = ohLoadLocalHistory(kind);
+            if (!list.length) return;
+            const cleaned = [];
+            list.forEach((order) => {
+                if (!cleaned.some((ex) => isDuplicateOrder(ex, order))) cleaned.push(order);
+            });
+            if (cleaned.length !== list.length) ohSaveLocalHistory(kind, cleaned);
+        });
     }
 
     // Background / write-through (same as saveOrdersToHistory)
@@ -1654,6 +1741,12 @@
         if (!newOrders || newOrders.length === 0) return;
         const kind = pageType === 'parts' ? 'parts' : (pageType === 'service' ? 'service' : null);
         const tagged = newOrders.map((o) => ({ ...o, _kind: kind || o._kind || ohOrderKind(o) }));
+        if (!ohUseDatabase()) {
+            const want = kind || ohOrderKind(tagged[0]);
+            const added = ohMergeIntoLocalHistory(tagged, want);
+            console.log(`[MMS Order History] [Background] ${pageLabel}: local save ${tagged.length}, added ${added}, kind=${want}`);
+            return;
+        }
         ohAddPendingOrders(tagged);
         try {
             const queued = queueOrdersForServerSync(tagged, { force: false, kind });
@@ -2462,6 +2555,7 @@
 
         const pageName = isServiceOrdersPage ? 'Υπηρεσίες' : 'Ανταλλακτικά';
         const storeLabel = ohGetStoreName() || '—';
+        const useDatabase = ohUseDatabase();
 
         const overlay = document.createElement('div');
         overlay.className = 'tm-modal-overlay tm-oh-overlay';
@@ -2473,12 +2567,12 @@
                         <h2 class="tm-oh-title">Ιστορικό παραγγελιών <span class="tm-oh-page-badge">${pageName}</span></h2>
                         <p class="tm-oh-meta">
                             <span class="tm-oh-store-chip" id="tm-oh-store-label">${escapeHtml(storeLabel)}</span>
-                            <span id="tm-oh-sync-status">φόρτωση από server…</span>
+                            <span id="tm-oh-sync-status">${useDatabase ? 'φόρτωση από server…' : 'τοπικό αντίγραφο'}</span>
                             <span id="tm-oh-count-label" class="tm-oh-muted"></span>
                         </p>
                     </div>
                     <div class="tm-oh-header-actions">
-                        <button type="button" id="tm-order-sync-btn" class="tm-oh-tool-btn" title="Ανανέωση από server καταστήματος">Ανανέωση</button>
+                        <button type="button" id="tm-order-sync-btn" class="tm-oh-tool-btn" title="${useDatabase ? 'Ανανέωση από server καταστήματος' : 'Ανανέωση τοπικού ιστορικού'}" ${useDatabase ? '' : 'style="display:none"'}>Ανανέωση</button>
                         <button type="button" id="tm-order-export-btn" class="tm-oh-tool-btn" title="Εξαγωγή CSV">CSV</button>
                         <button type="button" class="tm-oh-close tm-modal-close" title="Κλείσιμο" aria-label="Κλείσιμο">&times;</button>
                     </div>
@@ -2646,7 +2740,9 @@
             setCountLabel(filtered.length, ohViewOrders.length);
 
             if (!ohViewOrders.length) {
-                container.innerHTML = `<div class="tm-oh-empty">Δεν υπάρχουν εγγραφές στο server για αυτό το κατάστημα.<br><span class="tm-oh-muted">Η αποδοχή παραγγελιών ανεβαίνει αυτόματα.</span></div>`;
+                container.innerHTML = useDatabase
+                    ? `<div class="tm-oh-empty">Δεν υπάρχουν εγγραφές στο server για αυτό το κατάστημα.<br><span class="tm-oh-muted">Η αποδοχή παραγγελιών ανεβαίνει αυτόματα.</span></div>`
+                    : `<div class="tm-oh-empty">Δεν υπάρχει τοπικό ιστορικό ακόμα.<br><span class="tm-oh-muted">Οι αποδοχές σε αυτόν τον υπολογιστή χτίζουν τη λίστα. Χωρίς βάση δεν βλέπετε κοινό ιστορικό καταστήματος.</span></div>`;
                 return;
             }
             if (!filtered.length) {
@@ -2789,6 +2885,18 @@
 
         const paintFromCacheThenRefresh = () => {
             const kind = ohPageKind();
+            if (!useDatabase) {
+                ohViewOrders = ohLoadLocalHistory(kind)
+                    .slice()
+                    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                ohViewCapped = ohViewOrders.length >= MAX_HISTORY_ITEMS;
+                setSyncStatus('τοπικό · μόνο αυτός ο υπολογιστής');
+                statusesChecked = false;
+                statusResultsMap.clear();
+                renderOrders();
+                runStatusChecks();
+                return;
+            }
             const cache = ohLoadViewCache(ohStoreKey(), kind);
             if (cache?.orders?.length) {
                 ohViewOrders = ohFilterOrdersByPageKind(cache.orders, kind)
@@ -2905,7 +3013,9 @@
             URL.revokeObjectURL(a.href);
         });
 
-        container.innerHTML = `<div class="tm-oh-empty">Φόρτωση από server…</div>`;
+        container.innerHTML = useDatabase
+            ? `<div class="tm-oh-empty">Φόρτωση από server…</div>`
+            : `<div class="tm-oh-empty">Φόρτωση τοπικού ιστορικού…</div>`;
         paintFromCacheThenRefresh();
     }
 
@@ -2946,6 +3056,7 @@
 
     /**
      * Orders for Advanced Search: prefer fresh server fetch, fall back to view cache / pending.
+     * In local mode, uses only this PC's GM history.
      * @param {'service'|'parts'} kind
      */
     async function getOrderHistoryOrdersForSearch(kind) {
@@ -2956,6 +3067,19 @@
 
         let orders = [];
         let source = 'none';
+
+        if (!ohUseDatabase()) {
+            orders = ohLoadLocalHistory(want);
+            if (orders.length) source = 'local';
+            return {
+                ok: true,
+                kind: want,
+                store,
+                storeKey,
+                source,
+                orders: (orders || []).slice(),
+            };
+        }
 
         if (storeKey && !ohServerUnsupported) {
             try {
@@ -3004,7 +3128,10 @@
     window.showOrderHistoryModal = showOrderHistoryModal;
     window.initOrderHistory = initOrderHistory;
     window.getOrderHistoryOrdersForSearch = getOrderHistoryOrdersForSearch;
+    window.seedOrderHistoryLocalFromCache = seedOrderHistoryLocalFromCache;
+    window.ohUseDatabase = ohUseDatabase;
     window.syncOrderHistoryToServer = ({ force = true } = {}) => {
+        if (!ohUseDatabase()) return { ok: false, reason: 'local-mode' };
         try {
             const pending = ohLoadPendingBuffer();
             const queued = queueOrdersForServerSync(pending, { force });

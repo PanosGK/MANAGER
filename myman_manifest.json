@@ -1,11 +1,11 @@
 {
-  "version": "417",
+  "version": "418",
   "loaderVersion": "42",
-  "silentVersion": "1",
-  "displayVersion": "42.1",
+  "silentVersion": "2",
+  "displayVersion": "42.2",
   "name": "MyManager All-in-One Suite",
-  "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Run cached bundle immediately; check GitHub for updates at most every 5 minutes",
+  "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test",
+  "releaseNotes": "Order history: choose shared database or local-only copy",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

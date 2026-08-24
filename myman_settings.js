@@ -119,9 +119,15 @@
         },
         order_history: {
             title: 'Ιστορικό παραγγελιών',
-            what: 'Εμφάνιση ιστορικού παραγγελιών ανταλλακτικών.',
-            where: 'Σχετικές οθόνες παραγγελιών / επισκευών με σύνδεση παραγγελίας.',
+            what: 'Εμφάνιση ιστορικού παραγγελιών. Από προεπιλογή φορτώνει από την κοινή βάση του καταστήματος· μπορείτε να επιλέξετε τοπικό αντίγραφο μόνο σε αυτόν τον υπολογιστή.',
+            where: 'Σελίδες παραγγελιών · Ρυθμίσεις → Εργαλεία.',
             when: 'Όταν ελέγχετε τι έχει παραγγελθεί για μια επισκευή ή γενικά.',
+        },
+        order_history_database: {
+            title: 'Ιστορικό από βάση δεδομένων',
+            what: 'Όταν είναι ενεργό, το ιστορικό παραγγελιών συγχρονίζεται με την κοινή βάση του καταστήματος. Όταν είναι ανενεργό, χτίζετε τοπικό ιστορικό μόνο σε αυτόν τον υπολογιστή (χωρίς server).',
+            where: 'Ρυθμίσεις → Εργαλεία · κάτω από «Ιστορικό παραγγελιών».',
+            when: 'Αμέσως μετά την αποθήκευση· για πλήρη εφαρμογή κάντε ανανέωση σελίδας.',
         },
         order_link: {
             title: 'Σύνδεση status 65 → παραγγελίες',
@@ -592,6 +598,7 @@
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             saveCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             saveCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
+            saveCheckbox('tm-setting-order-history-use-database', 'orderHistoryUseDatabase');
             saveCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
             saveCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
             saveCheckbox('tm-setting-wifi-qr-enabled', 'wifiQrEnabled');
@@ -1162,9 +1169,39 @@
                                 <label for="tm-setting-order-history-enabled">Ιστορικό παραγγελιών</label>
                                 ${info('order_history')}
                             </div>
-                            <p class="tm-setting-description">Παραγγελίες ανταλλακτικών.</p>
+                            <p class="tm-setting-description">Παραγγελίες υπηρεσιών / ανταλλακτικών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-history-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-order-history-use-database">Φόρτωση από βάση δεδομένων</label>
+                                ${info('order_history_database')}
+                            </div>
+                            <p class="tm-setting-description">Ενεργό = κοινό ιστορικό καταστήματος (server). Ανενεργό = τοπικό αντίγραφο μόνο σε αυτόν τον υπολογιστή.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-history-use-database"></div>
+                    </div>
+                    <div id="tm-order-history-offline-warn" class="tm-setting-row tm-setting-row--warn" style="display:none;align-items:flex-start;">
+                        <div class="tm-setting-label" style="flex:1;">
+                            <div class="tm-setting-label-row">
+                                <strong>Τοπική λειτουργία — τι χάνετε</strong>
+                            </div>
+                            <p class="tm-setting-description" style="margin-top:6px;">
+                                Χωρίς βάση δεδομένων <strong>δεν</strong> έχετε:
+                            </p>
+                            <ul class="tm-setting-description" style="margin:6px 0 0 1.1em;padding:0;list-style:disc;">
+                                <li>Κοινό ιστορικό με άλλους τεχνικούς ή υπολογιστές του ίδιου καταστήματος</li>
+                                <li>Αυτόματο συγχρονισμό αποδοχών από άλλα PC</li>
+                                <li>Ανανέωση από server (νεότερα 200 του καταστήματος)</li>
+                                <li>Συνέχεια αν αλλάξετε browser / PC — το τοπικό μένει μόνο εδώ</li>
+                                <li>Μεταφορά ιστορικού μέσω του server αν ξαναενεργοποιήσετε τη βάση αργότερα (μόνο ό,τι υπάρχει τοπικά μπορεί να ανέβει)</li>
+                            </ul>
+                            <p class="tm-setting-description" style="margin-top:8px;">
+                                Θα χτίζετε το δικό σας ιστορικό από τις αποδοχές σε αυτόν τον υπολογιστή.
+                            </p>
+                        </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -1987,6 +2024,7 @@
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             populateCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
+            populateCheckbox('tm-setting-order-history-use-database', 'orderHistoryUseDatabase');
             populateCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
             populateCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
             populateCheckbox('tm-setting-wifi-qr-enabled', 'wifiQrEnabled');
@@ -2114,6 +2152,17 @@
             }
             
             const orderHistoryCheckbox = document.getElementById('tm-setting-order-history-enabled');
+            const orderHistoryDbCheckbox = document.getElementById('tm-setting-order-history-use-database');
+            const syncOrderHistoryDatabaseUi = () => {
+                const warn = document.getElementById('tm-order-history-offline-warn');
+                const dbBox = document.getElementById('tm-setting-order-history-use-database');
+                const featureOn = !!document.getElementById('tm-setting-order-history-enabled')?.checked;
+                if (dbBox) dbBox.disabled = !featureOn;
+                if (warn) {
+                    const useDb = dbBox ? !!dbBox.checked : true;
+                    warn.style.display = (featureOn && !useDb) ? '' : 'none';
+                }
+            };
             if (orderHistoryCheckbox) {
                 orderHistoryCheckbox.addEventListener('change', () => {
                     // Save immediately
@@ -2125,7 +2174,27 @@
                     if (typeof window.updateOrderHistoryButtonVisibility === 'function') {
                         window.updateOrderHistoryButtonVisibility(config);
                     }
+                    syncOrderHistoryDatabaseUi();
                 });
+            }
+            if (orderHistoryDbCheckbox) {
+                syncOrderHistoryDatabaseUi();
+                orderHistoryDbCheckbox.addEventListener('change', () => {
+                    const value = !!orderHistoryDbCheckbox.checked;
+                    GM_setValue('orderHistoryUseDatabase', value);
+                    config.orderHistoryUseDatabase = value;
+                    syncOrderHistoryDatabaseUi();
+                    if (!value && typeof window.seedOrderHistoryLocalFromCache === 'function') {
+                        try { window.seedOrderHistoryLocalFromCache(); } catch (_) { /* optional */ }
+                    }
+                    if (typeof window.showPositiveMessage === 'function') {
+                        window.showPositiveMessage(value
+                            ? 'Ιστορικό παραγγελιών: κοινή βάση (server). Ανανεώστε τη σελίδα.'
+                            : 'Ιστορικό παραγγελιών: τοπικό μόνο. Ανανεώστε τη σελίδα.');
+                    }
+                });
+            } else {
+                syncOrderHistoryDatabaseUi();
             }
 
             // Logic for the new checkbox

@@ -16,13 +16,13 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '417',
+        version: '418',
         loaderVersion: '42',
-        silentVersion: '1',
-        displayVersion: '42.1',
-        updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
-        manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
-        loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
+        silentVersion: '2',
+        displayVersion: '42.2',
+        updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
+        manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
+        loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
     };
 
     const STORAGE_KEYS = {
@@ -97,6 +97,8 @@
         ORDER_HISTORY_PARTS: 'tm_partsorders_page_history',
         ORDER_HISTORY_STATUS_CHECK: 'orderHistoryStatusCheckEnabled',
         ORDER_HISTORY_BACKGROUND: 'orderHistoryBackgroundEnabled',
+        // true = shared PocketBase store history; false = local Tampermonkey copy only
+        ORDER_HISTORY_USE_DATABASE: 'orderHistoryUseDatabase',
 
         // Coin History
         COIN_HISTORY: 'tm_coin_history', // Track coin earning history

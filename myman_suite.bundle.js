@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v417 / Custom Ver. 42.1 — generated, do not edit */
+/* MyManager Suite bundle v418 / Custom Ver. 42.2 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,13 +3310,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '417',
+        version: '418',
         loaderVersion: '42',
-        silentVersion: '1',
-        displayVersion: '42.1',
-        updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
-        manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
-        loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
+        silentVersion: '2',
+        displayVersion: '42.2',
+        updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
+        manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
+        loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
     };
 
     const STORAGE_KEYS = {
@@ -3391,6 +3391,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         ORDER_HISTORY_PARTS: 'tm_partsorders_page_history',
         ORDER_HISTORY_STATUS_CHECK: 'orderHistoryStatusCheckEnabled',
         ORDER_HISTORY_BACKGROUND: 'orderHistoryBackgroundEnabled',
+        // true = shared PocketBase store history; false = local Tampermonkey copy only
+        ORDER_HISTORY_USE_DATABASE: 'orderHistoryUseDatabase',
 
         // Coin History
         COIN_HISTORY: 'tm_coin_history', // Track coin earning history
@@ -16238,9 +16240,15 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         },
         order_history: {
             title: 'Ιστορικό παραγγελιών',
-            what: 'Εμφάνιση ιστορικού παραγγελιών ανταλλακτικών.',
-            where: 'Σχετικές οθόνες παραγγελιών / επισκευών με σύνδεση παραγγελίας.',
+            what: 'Εμφάνιση ιστορικού παραγγελιών. Από προεπιλογή φορτώνει από την κοινή βάση του καταστήματος· μπορείτε να επιλέξετε τοπικό αντίγραφο μόνο σε αυτόν τον υπολογιστή.',
+            where: 'Σελίδες παραγγελιών · Ρυθμίσεις → Εργαλεία.',
             when: 'Όταν ελέγχετε τι έχει παραγγελθεί για μια επισκευή ή γενικά.',
+        },
+        order_history_database: {
+            title: 'Ιστορικό από βάση δεδομένων',
+            what: 'Όταν είναι ενεργό, το ιστορικό παραγγελιών συγχρονίζεται με την κοινή βάση του καταστήματος. Όταν είναι ανενεργό, χτίζετε τοπικό ιστορικό μόνο σε αυτόν τον υπολογιστή (χωρίς server).',
+            where: 'Ρυθμίσεις → Εργαλεία · κάτω από «Ιστορικό παραγγελιών».',
+            when: 'Αμέσως μετά την αποθήκευση· για πλήρη εφαρμογή κάντε ανανέωση σελίδας.',
         },
         order_link: {
             title: 'Σύνδεση status 65 → παραγγελίες',
@@ -16711,6 +16719,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             saveCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             saveCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
+            saveCheckbox('tm-setting-order-history-use-database', 'orderHistoryUseDatabase');
             saveCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
             saveCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
             saveCheckbox('tm-setting-wifi-qr-enabled', 'wifiQrEnabled');
@@ -17281,9 +17290,39 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                                 <label for="tm-setting-order-history-enabled">Ιστορικό παραγγελιών</label>
                                 ${info('order_history')}
                             </div>
-                            <p class="tm-setting-description">Παραγγελίες ανταλλακτικών.</p>
+                            <p class="tm-setting-description">Παραγγελίες υπηρεσιών / ανταλλακτικών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-history-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-order-history-use-database">Φόρτωση από βάση δεδομένων</label>
+                                ${info('order_history_database')}
+                            </div>
+                            <p class="tm-setting-description">Ενεργό = κοινό ιστορικό καταστήματος (server). Ανενεργό = τοπικό αντίγραφο μόνο σε αυτόν τον υπολογιστή.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-history-use-database"></div>
+                    </div>
+                    <div id="tm-order-history-offline-warn" class="tm-setting-row tm-setting-row--warn" style="display:none;align-items:flex-start;">
+                        <div class="tm-setting-label" style="flex:1;">
+                            <div class="tm-setting-label-row">
+                                <strong>Τοπική λειτουργία — τι χάνετε</strong>
+                            </div>
+                            <p class="tm-setting-description" style="margin-top:6px;">
+                                Χωρίς βάση δεδομένων <strong>δεν</strong> έχετε:
+                            </p>
+                            <ul class="tm-setting-description" style="margin:6px 0 0 1.1em;padding:0;list-style:disc;">
+                                <li>Κοινό ιστορικό με άλλους τεχνικούς ή υπολογιστές του ίδιου καταστήματος</li>
+                                <li>Αυτόματο συγχρονισμό αποδοχών από άλλα PC</li>
+                                <li>Ανανέωση από server (νεότερα 200 του καταστήματος)</li>
+                                <li>Συνέχεια αν αλλάξετε browser / PC — το τοπικό μένει μόνο εδώ</li>
+                                <li>Μεταφορά ιστορικού μέσω του server αν ξαναενεργοποιήσετε τη βάση αργότερα (μόνο ό,τι υπάρχει τοπικά μπορεί να ανέβει)</li>
+                            </ul>
+                            <p class="tm-setting-description" style="margin-top:8px;">
+                                Θα χτίζετε το δικό σας ιστορικό από τις αποδοχές σε αυτόν τον υπολογιστή.
+                            </p>
+                        </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -18106,6 +18145,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             populateCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
+            populateCheckbox('tm-setting-order-history-use-database', 'orderHistoryUseDatabase');
             populateCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
             populateCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
             populateCheckbox('tm-setting-wifi-qr-enabled', 'wifiQrEnabled');
@@ -18233,6 +18273,17 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             
             const orderHistoryCheckbox = document.getElementById('tm-setting-order-history-enabled');
+            const orderHistoryDbCheckbox = document.getElementById('tm-setting-order-history-use-database');
+            const syncOrderHistoryDatabaseUi = () => {
+                const warn = document.getElementById('tm-order-history-offline-warn');
+                const dbBox = document.getElementById('tm-setting-order-history-use-database');
+                const featureOn = !!document.getElementById('tm-setting-order-history-enabled')?.checked;
+                if (dbBox) dbBox.disabled = !featureOn;
+                if (warn) {
+                    const useDb = dbBox ? !!dbBox.checked : true;
+                    warn.style.display = (featureOn && !useDb) ? '' : 'none';
+                }
+            };
             if (orderHistoryCheckbox) {
                 orderHistoryCheckbox.addEventListener('change', () => {
                     // Save immediately
@@ -18244,7 +18295,27 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     if (typeof window.updateOrderHistoryButtonVisibility === 'function') {
                         window.updateOrderHistoryButtonVisibility(config);
                     }
+                    syncOrderHistoryDatabaseUi();
                 });
+            }
+            if (orderHistoryDbCheckbox) {
+                syncOrderHistoryDatabaseUi();
+                orderHistoryDbCheckbox.addEventListener('change', () => {
+                    const value = !!orderHistoryDbCheckbox.checked;
+                    GM_setValue('orderHistoryUseDatabase', value);
+                    config.orderHistoryUseDatabase = value;
+                    syncOrderHistoryDatabaseUi();
+                    if (!value && typeof window.seedOrderHistoryLocalFromCache === 'function') {
+                        try { window.seedOrderHistoryLocalFromCache(); } catch (_) { /* optional */ }
+                    }
+                    if (typeof window.showPositiveMessage === 'function') {
+                        window.showPositiveMessage(value
+                            ? 'Ιστορικό παραγγελιών: κοινή βάση (server). Ανανεώστε τη σελίδα.'
+                            : 'Ιστορικό παραγγελιών: τοπικό μόνο. Ανανεώστε τη σελίδα.');
+                    }
+                });
+            } else {
+                syncOrderHistoryDatabaseUi();
             }
 
             // Logic for the new checkbox
@@ -65184,6 +65255,14 @@ if (document.body) {
     const orderHistoryStatusCheckEnabled = GM_getValue('orderHistoryStatusCheckEnabled', true);
     // Optional: background polling of order pages (even when not currently viewing them)
     const orderHistoryBackgroundEnabled = GM_getValue('orderHistoryBackgroundEnabled', true);
+    /** Shared PocketBase store history (default) vs local-only Tampermonkey copy. */
+    function ohUseDatabase() {
+        try {
+            return GM_getValue('orderHistoryUseDatabase', true) !== false;
+        } catch (_) {
+            return true;
+        }
+    }
     
     // Detect current path once
     const path = window.location.pathname || '';
@@ -65888,6 +65967,7 @@ if (document.body) {
     }
 
     function queueOrdersForServerSync(orders, { force = false, kind = null } = {}) {
+        if (!ohUseDatabase()) return 0;
         if (ohServerUnsupported || !orders?.length) return 0;
         // Refresh connected store if possible before deciding
         try { window.captureConnectedStoreFromPage?.(document); } catch (_) { /* ignore */ }
@@ -66094,9 +66174,70 @@ if (document.body) {
     }
 
     function ohClearLegacyLocalHistory() {
+        // Never wipe local GM history while user chose local-only mode
+        if (!ohUseDatabase()) return;
         try { GM_setValue('tm_srvorders_page_history', '[]'); } catch (_) { /* ignore */ }
         try { GM_setValue('tm_partsorders_page_history', '[]'); } catch (_) { /* ignore */ }
         try { GM_setValue(CURRENT_PAGE_HISTORY_KEY, '[]'); } catch (_) { /* ignore */ }
+    }
+
+    function ohHistoryKeyForKind(kind) {
+        return kind === 'parts' ? 'tm_partsorders_page_history' : 'tm_srvorders_page_history';
+    }
+
+    function ohLoadLocalHistory(kind = ohPageKind()) {
+        try {
+            const raw = GM_getValue(ohHistoryKeyForKind(kind), '[]');
+            const arr = typeof raw === 'string' ? JSON.parse(raw || '[]') : raw;
+            return Array.isArray(arr) ? arr : [];
+        } catch (_) {
+            return [];
+        }
+    }
+
+    function ohSaveLocalHistory(kind, orders) {
+        try {
+            const list = (orders || []).slice(0, MAX_HISTORY_ITEMS);
+            GM_setValue(ohHistoryKeyForKind(kind), JSON.stringify(list));
+        } catch (_) { /* ignore */ }
+    }
+
+    function ohMergeIntoLocalHistory(newOrders, kind = ohPageKind()) {
+        if (!newOrders?.length) return 0;
+        const want = kind === 'parts' ? 'parts' : 'service';
+        const tagged = newOrders.map((o) => ({ ...o, _kind: o._kind || want }));
+        let existing = ohLoadLocalHistory(want);
+        let added = 0;
+        tagged.forEach((order) => {
+            const dup = existing.some((ex) => isDuplicateOrder(ex, order));
+            if (dup) {
+                // Refresh matching row with newer column data when possible
+                const idx = existing.findIndex((ex) => isDuplicateOrder(ex, order));
+                if (idx >= 0) {
+                    existing[idx] = { ...existing[idx], ...order, timestamp: existing[idx].timestamp || order.timestamp };
+                }
+                return;
+            }
+            existing.unshift(order);
+            added += 1;
+        });
+        if (existing.length > MAX_HISTORY_ITEMS) existing = existing.slice(0, MAX_HISTORY_ITEMS);
+        ohSaveLocalHistory(want, existing);
+        return added;
+    }
+
+    /** When switching to local mode, copy last server cache into local history if empty. */
+    function seedOrderHistoryLocalFromCache() {
+        ['service', 'parts'].forEach((kind) => {
+            const local = ohLoadLocalHistory(kind);
+            if (local.length) return;
+            const storeKey = ohStoreKey(ohGetStoreName());
+            const cache = ohLoadViewCache(storeKey, kind);
+            if (cache?.orders?.length) {
+                ohSaveLocalHistory(kind, ohFilterOrdersByPageKind(cache.orders, kind).slice(0, MAX_HISTORY_ITEMS));
+                console.log(`[MMS Order History] seeded local ${kind} from cache (${cache.orders.length})`);
+            }
+        });
     }
 
     function mergeServerOrdersIntoLocal() {
@@ -66105,6 +66246,9 @@ if (document.body) {
     }
 
     async function migrateLocalOrderHistoryOnce({ force = false } = {}) {
+        if (!ohUseDatabase()) {
+            return { ok: true, skipped: true, reason: 'local-mode' };
+        }
         try { window.captureConnectedStoreFromPage?.(document); } catch (_) { /* ignore */ }
         const store = ohGetStoreName();
         const storeKey = ohStoreKey(store);
@@ -66684,11 +66828,16 @@ if (document.body) {
         return false;
     }
 
-    // Write-through to PocketBase (server is durable source). Pending buffer only until ack.
+    // Write-through to PocketBase (server) or local GM storage.
     function saveOrdersToHistory(newOrders) {
         if (!newOrders || newOrders.length === 0) return;
         const kind = ohPageKind();
         const tagged = newOrders.map((o) => ({ ...o, _kind: kind }));
+        if (!ohUseDatabase()) {
+            const added = ohMergeIntoLocalHistory(tagged, kind);
+            console.log(`[MMS Order History] local save ${tagged.length} order(s), added ${added}, kind=${kind}`);
+            return;
+        }
         ohAddPendingOrders(tagged);
         try {
             const queued = queueOrdersForServerSync(tagged, { force: false, kind });
@@ -66802,7 +66951,16 @@ if (document.body) {
 
     // Function to remove duplicates from existing history
     function removeDuplicatesFromHistory() {
-        // Legacy local history is no longer used as a source — no-op.
+        if (ohUseDatabase()) return; // Server list is authoritative
+        ['service', 'parts'].forEach((kind) => {
+            const list = ohLoadLocalHistory(kind);
+            if (!list.length) return;
+            const cleaned = [];
+            list.forEach((order) => {
+                if (!cleaned.some((ex) => isDuplicateOrder(ex, order))) cleaned.push(order);
+            });
+            if (cleaned.length !== list.length) ohSaveLocalHistory(kind, cleaned);
+        });
     }
 
     // Background / write-through (same as saveOrdersToHistory)
@@ -66810,6 +66968,12 @@ if (document.body) {
         if (!newOrders || newOrders.length === 0) return;
         const kind = pageType === 'parts' ? 'parts' : (pageType === 'service' ? 'service' : null);
         const tagged = newOrders.map((o) => ({ ...o, _kind: kind || o._kind || ohOrderKind(o) }));
+        if (!ohUseDatabase()) {
+            const want = kind || ohOrderKind(tagged[0]);
+            const added = ohMergeIntoLocalHistory(tagged, want);
+            console.log(`[MMS Order History] [Background] ${pageLabel}: local save ${tagged.length}, added ${added}, kind=${want}`);
+            return;
+        }
         ohAddPendingOrders(tagged);
         try {
             const queued = queueOrdersForServerSync(tagged, { force: false, kind });
@@ -67618,6 +67782,7 @@ if (document.body) {
 
         const pageName = isServiceOrdersPage ? 'Υπηρεσίες' : 'Ανταλλακτικά';
         const storeLabel = ohGetStoreName() || '—';
+        const useDatabase = ohUseDatabase();
 
         const overlay = document.createElement('div');
         overlay.className = 'tm-modal-overlay tm-oh-overlay';
@@ -67629,12 +67794,12 @@ if (document.body) {
                         <h2 class="tm-oh-title">Ιστορικό παραγγελιών <span class="tm-oh-page-badge">${pageName}</span></h2>
                         <p class="tm-oh-meta">
                             <span class="tm-oh-store-chip" id="tm-oh-store-label">${escapeHtml(storeLabel)}</span>
-                            <span id="tm-oh-sync-status">φόρτωση από server…</span>
+                            <span id="tm-oh-sync-status">${useDatabase ? 'φόρτωση από server…' : 'τοπικό αντίγραφο'}</span>
                             <span id="tm-oh-count-label" class="tm-oh-muted"></span>
                         </p>
                     </div>
                     <div class="tm-oh-header-actions">
-                        <button type="button" id="tm-order-sync-btn" class="tm-oh-tool-btn" title="Ανανέωση από server καταστήματος">Ανανέωση</button>
+                        <button type="button" id="tm-order-sync-btn" class="tm-oh-tool-btn" title="${useDatabase ? 'Ανανέωση από server καταστήματος' : 'Ανανέωση τοπικού ιστορικού'}" ${useDatabase ? '' : 'style="display:none"'}>Ανανέωση</button>
                         <button type="button" id="tm-order-export-btn" class="tm-oh-tool-btn" title="Εξαγωγή CSV">CSV</button>
                         <button type="button" class="tm-oh-close tm-modal-close" title="Κλείσιμο" aria-label="Κλείσιμο">&times;</button>
                     </div>
@@ -67802,7 +67967,9 @@ if (document.body) {
             setCountLabel(filtered.length, ohViewOrders.length);
 
             if (!ohViewOrders.length) {
-                container.innerHTML = `<div class="tm-oh-empty">Δεν υπάρχουν εγγραφές στο server για αυτό το κατάστημα.<br><span class="tm-oh-muted">Η αποδοχή παραγγελιών ανεβαίνει αυτόματα.</span></div>`;
+                container.innerHTML = useDatabase
+                    ? `<div class="tm-oh-empty">Δεν υπάρχουν εγγραφές στο server για αυτό το κατάστημα.<br><span class="tm-oh-muted">Η αποδοχή παραγγελιών ανεβαίνει αυτόματα.</span></div>`
+                    : `<div class="tm-oh-empty">Δεν υπάρχει τοπικό ιστορικό ακόμα.<br><span class="tm-oh-muted">Οι αποδοχές σε αυτόν τον υπολογιστή χτίζουν τη λίστα. Χωρίς βάση δεν βλέπετε κοινό ιστορικό καταστήματος.</span></div>`;
                 return;
             }
             if (!filtered.length) {
@@ -67945,6 +68112,18 @@ if (document.body) {
 
         const paintFromCacheThenRefresh = () => {
             const kind = ohPageKind();
+            if (!useDatabase) {
+                ohViewOrders = ohLoadLocalHistory(kind)
+                    .slice()
+                    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                ohViewCapped = ohViewOrders.length >= MAX_HISTORY_ITEMS;
+                setSyncStatus('τοπικό · μόνο αυτός ο υπολογιστής');
+                statusesChecked = false;
+                statusResultsMap.clear();
+                renderOrders();
+                runStatusChecks();
+                return;
+            }
             const cache = ohLoadViewCache(ohStoreKey(), kind);
             if (cache?.orders?.length) {
                 ohViewOrders = ohFilterOrdersByPageKind(cache.orders, kind)
@@ -68061,7 +68240,9 @@ if (document.body) {
             URL.revokeObjectURL(a.href);
         });
 
-        container.innerHTML = `<div class="tm-oh-empty">Φόρτωση από server…</div>`;
+        container.innerHTML = useDatabase
+            ? `<div class="tm-oh-empty">Φόρτωση από server…</div>`
+            : `<div class="tm-oh-empty">Φόρτωση τοπικού ιστορικού…</div>`;
         paintFromCacheThenRefresh();
     }
 
@@ -68102,6 +68283,7 @@ if (document.body) {
 
     /**
      * Orders for Advanced Search: prefer fresh server fetch, fall back to view cache / pending.
+     * In local mode, uses only this PC's GM history.
      * @param {'service'|'parts'} kind
      */
     async function getOrderHistoryOrdersForSearch(kind) {
@@ -68112,6 +68294,19 @@ if (document.body) {
 
         let orders = [];
         let source = 'none';
+
+        if (!ohUseDatabase()) {
+            orders = ohLoadLocalHistory(want);
+            if (orders.length) source = 'local';
+            return {
+                ok: true,
+                kind: want,
+                store,
+                storeKey,
+                source,
+                orders: (orders || []).slice(),
+            };
+        }
 
         if (storeKey && !ohServerUnsupported) {
             try {
@@ -68160,7 +68355,10 @@ if (document.body) {
     window.showOrderHistoryModal = showOrderHistoryModal;
     window.initOrderHistory = initOrderHistory;
     window.getOrderHistoryOrdersForSearch = getOrderHistoryOrdersForSearch;
+    window.seedOrderHistoryLocalFromCache = seedOrderHistoryLocalFromCache;
+    window.ohUseDatabase = ohUseDatabase;
     window.syncOrderHistoryToServer = ({ force = true } = {}) => {
+        if (!ohUseDatabase()) return { ok: false, reason: 'local-mode' };
         try {
             const pending = ohLoadPendingBuffer();
             const queued = queueOrdersForServerSync(pending, { force });
@@ -73306,6 +73504,7 @@ if (typeof window !== 'undefined') {
         weatherWidgetEnabled: true,
         phoneCatalogEnabled: true,
         orderHistoryEnabled: true,
+        orderHistoryUseDatabase: true, // shared store DB; false = local-only history on this PC
         orderLinkEnabled: true,
         returnTo40ButtonEnabled: true,
         wifiQrEnabled: true,

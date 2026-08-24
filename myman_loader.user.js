@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         MyManager All-in-One Suite
+// @name         MyManager All-in-One Suite (TEST)
 // @namespace    http://tampermonkey.net/
 // @version      42
-// @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
+// @description  TEST branch — auto-updates from GitHub test. Install alongside or instead of production.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start
@@ -13,8 +13,8 @@
 // @grant        GM_listValues
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
-// @updateURL    https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js
-// @downloadURL  https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js
+// @updateURL    https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js
+// @downloadURL  https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js
 // @connect      thefixers.mymanager.gr
 // @connect      geocoding-api.open-meteo.com
 // @connect      api.open-meteo.com
@@ -72,7 +72,7 @@
     })();
 
     var LOADER_VERSION = "42";
-    var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
+    var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
     var FALLBACK_BUNDLE_VERSION = "417";

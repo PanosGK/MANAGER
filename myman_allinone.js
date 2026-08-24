@@ -146,6 +146,7 @@
         weatherWidgetEnabled: true,
         phoneCatalogEnabled: true,
         orderHistoryEnabled: true,
+        orderHistoryUseDatabase: true, // shared store DB; false = local-only history on this PC
         orderLinkEnabled: true,
         returnTo40ButtonEnabled: true,
         wifiQrEnabled: true,
