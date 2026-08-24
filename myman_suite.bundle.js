@@ -3314,9 +3314,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         loaderVersion: '42',
         silentVersion: '7',
         displayVersion: '42.7',
-        updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
-        manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
-        loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
+        updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
+        manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
+        loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
     };
 
     const STORAGE_KEYS = {

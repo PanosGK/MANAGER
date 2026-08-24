@@ -70,7 +70,7 @@
     })();
 
     var LOADER_VERSION = "42";
-    var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test";
+    var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
     var FALLBACK_BUNDLE_VERSION = "423";
