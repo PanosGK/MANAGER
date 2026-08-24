@@ -1,11 +1,11 @@
 {
-  "version": "408",
+  "version": "409",
   "loaderVersion": "41",
-  "silentVersion": "52",
-  "displayVersion": "41.52",
+  "silentVersion": "53",
+  "displayVersion": "41.53",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Remove header quick search (Γρήγορη αναζήτηση) entirely",
+  "releaseNotes": "Block random native leftover search (e.g. 6826) unless typed this page",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

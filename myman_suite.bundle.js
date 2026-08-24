@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v408 / Custom Ver. 41.52 — generated, do not edit */
+/* MyManager Suite bundle v409 / Custom Ver. 41.53 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '408',
+        version: '409',
         loaderVersion: '41',
-        silentVersion: '52',
-        displayVersion: '41.52',
+        silentVersion: '53',
+        displayVersion: '41.53',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -73031,6 +73031,7 @@ if (typeof window !== 'undefined') {
 
     const NATIVE_SEARCH_HIDDEN_KEY = 'tm_native_search_hidden';
     const LEGACY_QS_KEYS = ['tm_footer_qs_repair', 'tm_footer_qs_parts'];
+    const nativeTyped = { value: '', at: 0 };
 
     function restoreNativeSearch() {
         try { GM_setValue(NATIVE_SEARCH_HIDDEN_KEY, false); } catch (_) { /* ignore */ }
@@ -73079,9 +73080,153 @@ if (typeof window !== 'undefined') {
         });
     }
 
+    function nativeSearchFields() {
+        return document.querySelectorAll('input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]');
+    }
+
+    function isNativeSearchField(el) {
+        if (!el) return false;
+        return /ctlSearchFor/i.test(String(el.id || '')) || /ctlSearchFor/i.test(String(el.name || ''));
+    }
+
+    function currentUrlQs() {
+        try {
+            return String(new URLSearchParams(location.search).get('qs') || '').trim();
+        } catch (_) {
+            return '';
+        }
+    }
+
+    function userTypedNativeValue(value) {
+        const q = String(value || '').trim();
+        return !!(q && q === nativeTyped.value && (Date.now() - nativeTyped.at) < 120000);
+    }
+
+    function clearStaleNativeSearch({ force = false } = {}) {
+        const urlQs = currentUrlQs();
+        nativeSearchFields().forEach((el) => {
+            const v = String(el.value || '').trim();
+            if (!v) {
+                try { el.setAttribute('value', ''); } catch (_) { /* ignore */ }
+                return;
+            }
+            if (!force) {
+                if (urlQs && v === urlQs) return;
+                if (document.activeElement === el && userTypedNativeValue(v)) return;
+                if (userTypedNativeValue(v)) return;
+            }
+            el.value = '';
+            try { el.setAttribute('value', ''); } catch (_) { /* ignore */ }
+        });
+    }
+
+    function hardenNativeSearchFields() {
+        nativeSearchFields().forEach((el) => {
+            if (el.dataset.tmQsNativeHardened === '1') return;
+            el.dataset.tmQsNativeHardened = '1';
+            el.setAttribute('autocomplete', 'off');
+            el.setAttribute('data-lpignore', 'true');
+            el.setAttribute('data-1p-ignore', 'true');
+        });
+    }
+
+    function restoreMisplacedNativeSearchControls() {
+        const brick = document.querySelector('.rnr-b-search');
+        if (!brick) return;
+        document.querySelectorAll([
+            'a[id^="searchButtTop"]',
+            'a[id^="searchButton"]',
+            'a[id^="clearSearch"]',
+            'a.rnr-button[data-icon="search"]',
+            'input[id^="ctlSearchFor"]',
+            'input[name^="ctlSearchFor"]',
+        ].join(',')).forEach((el) => {
+            if (brick.contains(el)) return;
+            if (el.closest?.('#tm-footer-quick-search, .tm-qs-host')) return;
+            brick.appendChild(el);
+        });
+    }
+
+    function installNativeLeftoverGuard() {
+        if (window.__tmNativeLeftoverGuard) return;
+        window.__tmNativeLeftoverGuard = true;
+
+        document.addEventListener('keydown', (e) => {
+            if (!e.isTrusted) return;
+            if (!isNativeSearchField(e.target)) return;
+            if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Enter') {
+                setTimeout(() => {
+                    nativeTyped.value = String(e.target.value || '').trim();
+                    nativeTyped.at = Date.now();
+                }, 0);
+            }
+        }, true);
+
+        document.addEventListener('paste', (e) => {
+            if (!e.isTrusted) return;
+            if (!isNativeSearchField(e.target)) return;
+            setTimeout(() => {
+                nativeTyped.value = String(e.target.value || '').trim();
+                nativeTyped.at = Date.now();
+            }, 0);
+        }, true);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return;
+            if (!isNativeSearchField(e.target)) return;
+            const q = String(e.target.value || '').trim();
+            if (!q) return;
+            if (userTypedNativeValue(q)) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            clearStaleNativeSearch({ force: true });
+        }, true);
+
+        document.addEventListener('click', (e) => {
+            // Programmatic clicks (e.g. order-link auto-search) are untrusted — leave them.
+            if (!e.isTrusted) return;
+            const t = e.target;
+            if (!t || typeof t.closest !== 'function') return;
+            const nativeBtn = t.closest(
+                'a[id^="searchButtTop"], a[id^="searchButton"], a.rnr-button[data-icon="search"]'
+            );
+            if (!nativeBtn) return;
+            const field = document.querySelector('input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]');
+            const q = String(field?.value || '').trim();
+            if (!q || userTypedNativeValue(q) || q === currentUrlQs()) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            clearStaleNativeSearch({ force: true });
+        }, true);
+
+        document.addEventListener('submit', (e) => {
+            if (!e.isTrusted) return;
+            const form = e.target;
+            if (!form || typeof form.querySelector !== 'function') return;
+            const field = form.querySelector('input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]');
+            if (!field) return;
+            const q = String(field.value || '').trim();
+            if (!q || userTypedNativeValue(q) || q === currentUrlQs()) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            clearStaleNativeSearch({ force: true });
+        }, true);
+
+        window.addEventListener('pageshow', () => {
+            nativeTyped.value = '';
+            nativeTyped.at = 0;
+            clearStaleNativeSearch();
+            hardenNativeSearchFields();
+        });
+    }
+
     function initFooterQuickSearch() {
         removeHeaderQuickSearch();
-        // Catch late FOUC/shell remounts of the old header bar.
+        installNativeLeftoverGuard();
+        restoreMisplacedNativeSearchControls();
+        hardenNativeSearchFields();
+        clearStaleNativeSearch();
+
         let attempts = 0;
         const poll = () => {
             attempts += 1;
@@ -73090,9 +73235,12 @@ if (typeof window !== 'undefined') {
                 || document.getElementById('tm-repair-edit-quick-search-host')) {
                 removeHeaderQuickSearch();
             }
-            if (attempts < 20) setTimeout(poll, 400);
+            restoreMisplacedNativeSearchControls();
+            hardenNativeSearchFields();
+            clearStaleNativeSearch();
+            if (attempts < 25) setTimeout(poll, 300);
         };
-        setTimeout(poll, 400);
+        setTimeout(poll, 0);
     }
 
     window.initFooterQuickSearch = initFooterQuickSearch;
