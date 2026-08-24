@@ -1,11 +1,11 @@
 {
-  "version": "423",
+  "version": "424",
   "loaderVersion": "42",
-  "silentVersion": "7",
-  "displayVersion": "42.7",
+  "silentVersion": "8",
+  "displayVersion": "42.8",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test",
-  "releaseNotes": "Ensure new users keep server/database enabled",
+  "releaseNotes": "Flatten General settings toggles to top-level rows",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

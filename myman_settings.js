@@ -766,9 +766,81 @@
         }
 
         // --- Settings Modal HTML Generators (for better readability) ---
+        /** Flat top-level toggles for Γενικές — one row each, no nested grouping. */
+        const GENERAL_UI_TOGGLE_ROWS = [
+            {
+                id: 'tm-setting-dashboard-enabled',
+                label: 'Widget «Σήμερα»',
+                helpKey: 'dashboard',
+                description: 'Στατιστικά της τρέχουσας ημέρας στο footer.',
+            },
+            {
+                id: 'tm-setting-hidden-menu-enabled',
+                label: 'Απόκρυψη αριστερού μενού',
+                helpKey: 'hidden_menu',
+                description: 'Επιλέξτε ποια στοιχεία εμφανίζονται.',
+                controlExtra: '<button type="button" id="tm-manage-hidden-menu-btn" class="tm-settings-ghost-btn">Κρυφά στοιχεία</button>',
+            },
+            {
+                id: 'tm-setting-debug-enabled',
+                label: 'Λειτουργία ανάπτυξης',
+                helpKey: 'debug',
+                description: 'Δοκιμές και δωρεάν αντικείμενα. Απαιτεί κωδικό.',
+                variant: 'warn',
+            },
+            {
+                id: 'tm-setting-suite-use-database',
+                label: 'Σύνδεση με βάση δεδομένων',
+                helpKey: 'suite_database',
+                description: 'Ενεργό = κοινά δεδομένα μέσω server (PocketBase). Ανενεργό = τοπική λειτουργία σε αυτόν τον υπολογιστή.',
+            },
+        ];
+
+        function renderSettingToggleRow(row, info) {
+            const variantClass = row.variant ? ` tm-setting-row--${row.variant}` : '';
+            return `
+                    <div class="tm-setting-row${variantClass}">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="${row.id}">${row.label}</label>
+                                ${row.helpKey ? info(row.helpKey) : ''}
+                            </div>
+                            <p class="tm-setting-description">${row.description}</p>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="checkbox" id="${row.id}">
+                            ${row.controlExtra || ''}
+                        </div>
+                    </div>`;
+        }
+
+        function getSuiteDatabaseOfflineWarnHTML() {
+            return `
+                    <div id="tm-suite-database-offline-warn" class="tm-setting-row tm-setting-row--warn tm-setting-row--stack" style="display:none;">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <strong>Τοπική λειτουργία — τι δεν λειτουργεί χωρίς server</strong>
+                            </div>
+                            <p class="tm-setting-description" style="margin-top:6px;">
+                                Με απενεργοποιημένη τη βάση <strong>δεν</strong> έχετε:
+                            </p>
+                            <ul class="tm-setting-description" style="margin:6px 0 0 1.1em;padding:0;list-style:disc;">
+                                <li><strong>Office Chat</strong> — μηνύματα, @mentions, presence, φωτογραφία προφίλ</li>
+                                <li><strong>Whisper</strong> — κοινά σημειώματα στην επισκευή (service_edit)</li>
+                                <li><strong>Κοινό ιστορικό παραγγελιών</strong> — συγχρονισμός με άλλους τεχνικούς / PC του καταστήματος</li>
+                                <li>Ανανέωση ιστορικού από server (νεότερα 200 εγγραφές καταστήματος)</li>
+                                <li>Συνέχεια αν αλλάξετε browser ή PC — τα τοπικά μένουν μόνο εδώ</li>
+                            </ul>
+                            <p class="tm-setting-description" style="margin-top:8px;">
+                                <strong>Συνεχίζουν να δουλεύουν τοπικά:</strong> κατάλογος συσκευών, αναζήτηση, themes, gamification, WiFi QR, αυτόματη ανανέωση κ.λπ. Το ιστορικό παραγγελιών (αν είναι ενεργό) χτίζεται μόνο από αποδοχές σε αυτόν τον υπολογιστή.
+                            </p>
+                        </div>
+                    </div>`;
+        }
+
         function getGeneralUISettingsHTML() {
             const info = tmSettingsInfoBtn;
-            // Merged General and Login settings
+            const toggleRows = GENERAL_UI_TOGGLE_ROWS.map((row) => renderSettingToggleRow(row, info)).join('');
             return `
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
@@ -797,70 +869,8 @@
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-notifications-enabled"></div>
                     </div>
-                    <h4 class="tm-settings-subgroup">Server / βάση δεδομένων</h4>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-suite-use-database">Σύνδεση με βάση δεδομένων</label>
-                                ${info('suite_database')}
-                            </div>
-                            <p class="tm-setting-description">Ενεργό = κοινά δεδομένα μέσω server (PocketBase). Ανενεργό = τοπική λειτουργία σε αυτόν τον υπολογιστή.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-suite-use-database"></div>
-                    </div>
-                    <div id="tm-suite-database-offline-warn" class="tm-setting-row tm-setting-row--warn" style="display:none;align-items:flex-start;">
-                        <div class="tm-setting-label" style="flex:1;">
-                            <div class="tm-setting-label-row">
-                                <strong>Τοπική λειτουργία — τι δεν λειτουργεί χωρίς server</strong>
-                            </div>
-                            <p class="tm-setting-description" style="margin-top:6px;">
-                                Με απενεργοποιημένη τη βάση <strong>δεν</strong> έχετε:
-                            </p>
-                            <ul class="tm-setting-description" style="margin:6px 0 0 1.1em;padding:0;list-style:disc;">
-                                <li><strong>Office Chat</strong> — μηνύματα, @mentions, presence, φωτογραφία προφίλ</li>
-                                <li><strong>Whisper</strong> — κοινά σημειώματα στην επισκευή (service_edit)</li>
-                                <li><strong>Κοινό ιστορικό παραγγελιών</strong> — συγχρονισμός με άλλους τεχνικούς / PC του καταστήματος</li>
-                                <li>Ανανέωση ιστορικού από server (νεότερα 200 εγγραφές καταστήματος)</li>
-                                <li>Συνέχεια αν αλλάξετε browser ή PC — τα τοπικά μένουν μόνο εδώ</li>
-                            </ul>
-                            <p class="tm-setting-description" style="margin-top:8px;">
-                                <strong>Συνεχίζουν να δουλεύουν τοπικά:</strong> κατάλογος συσκευών, αναζήτηση, themes, gamification, WiFi QR, αυτόματη ανανέωση κ.λπ. Το ιστορικό παραγγελιών (αν είναι ενεργό) χτίζεται μόνο από αποδοχές σε αυτόν τον υπολογιστή.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-dashboard-enabled">Widget «Σήμερα»</label>
-                                ${info('dashboard')}
-                            </div>
-                            <p class="tm-setting-description">Στατιστικά της τρέχουσας ημέρας στο footer.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-dashboard-enabled"></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-hidden-menu-enabled">Απόκρυψη αριστερού μενού</label>
-                                ${info('hidden_menu')}
-                            </div>
-                            <p class="tm-setting-description">Επιλέξτε ποια στοιχεία εμφανίζονται.</p>
-                        </div>
-                        <div class="tm-setting-control">
-                            <input type="checkbox" id="tm-setting-hidden-menu-enabled">
-                            <button type="button" id="tm-manage-hidden-menu-btn" class="tm-settings-ghost-btn">Κρυφά στοιχεία</button>
-                        </div>
-                    </div>
-                    <div class="tm-setting-row tm-setting-row--warn">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-debug-enabled">Λειτουργία ανάπτυξης</label>
-                                ${info('debug')}
-                            </div>
-                            <p class="tm-setting-description">Δοκιμές και δωρεάν αντικείμενα. Απαιτεί κωδικό.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-debug-enabled"></div>
-                    </div>
+                    ${toggleRows}
+                    ${getSuiteDatabaseOfflineWarnHTML()}
                 </div>
             `;
         }
@@ -2159,7 +2169,7 @@
                 const warn = document.getElementById('tm-suite-database-offline-warn');
                 const dbBox = document.getElementById('tm-setting-suite-use-database');
                 if (warn && dbBox) {
-                    warn.style.display = dbBox.checked ? 'none' : '';
+                    warn.style.display = dbBox.checked ? 'none' : 'flex';
                 }
             };
             if (orderHistoryCheckbox) {
