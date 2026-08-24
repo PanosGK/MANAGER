@@ -1,11 +1,11 @@
 {
-  "version": "422",
+  "version": "423",
   "loaderVersion": "42",
-  "silentVersion": "6",
-  "displayVersion": "42.6",
+  "silentVersion": "7",
+  "displayVersion": "42.7",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test",
-  "releaseNotes": "Move database toggle to General settings; document server-dependent features",
+  "releaseNotes": "Ensure new users keep server/database enabled",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v422 / Custom Ver. 42.6 — generated, do not edit */
+/* MyManager Suite bundle v423 / Custom Ver. 42.7 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '422',
+        version: '423',
         loaderVersion: '42',
-        silentVersion: '6',
-        displayVersion: '42.6',
+        silentVersion: '7',
+        displayVersion: '42.7',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
@@ -73193,8 +73193,8 @@ if (typeof window !== 'undefined') {
 
     /**
      * Brand-new MyManager login / profile: turn most feature toggles OFF so the user
-     * opts in from Settings (less overwhelming). Keeps Chat + Phone Catalog on.
-     * Does not change the global master script switch.
+     * opts in from Settings (less overwhelming). Keeps Chat, Phone Catalog, and
+     * server/database connection ON. Does not change the global master script switch.
      */
     function disableAllSettingsForNewProfile() {
         const keepEnabled = new Set([
@@ -73225,7 +73225,16 @@ if (typeof window !== 'undefined') {
                 written += 1;
             } catch (_) { /* ignore */ }
         }
-        // Extra toggles used outside DEFAULTS
+        // Extra toggles used outside DEFAULTS — force server/database ON for new users
+        [
+            'suiteUseDatabase',
+            'orderHistoryUseDatabase',
+        ].forEach((key) => {
+            try {
+                GM_setValue(key, true);
+                kept += 1;
+            } catch (_) { /* ignore */ }
+        });
         [
             'orderHistoryStatusCheckEnabled',
             'orderHistoryBackgroundEnabled',
@@ -73235,7 +73244,7 @@ if (typeof window !== 'undefined') {
                 written += 1;
             } catch (_) { /* ignore */ }
         });
-        console.log(`[MMS] New user detected — disabled ${written} settings; kept Chat + Phone Catalog on (${kept})`);
+        console.log(`[MMS] New user detected — disabled ${written} settings; kept Chat, Phone Catalog, and server/database on (${kept})`);
         return written;
     }
 

@@ -271,8 +271,8 @@
 
     /**
      * Brand-new MyManager login / profile: turn most feature toggles OFF so the user
-     * opts in from Settings (less overwhelming). Keeps Chat + Phone Catalog on.
-     * Does not change the global master script switch.
+     * opts in from Settings (less overwhelming). Keeps Chat, Phone Catalog, and
+     * server/database connection ON. Does not change the global master script switch.
      */
     function disableAllSettingsForNewProfile() {
         const keepEnabled = new Set([
@@ -303,7 +303,16 @@
                 written += 1;
             } catch (_) { /* ignore */ }
         }
-        // Extra toggles used outside DEFAULTS
+        // Extra toggles used outside DEFAULTS — force server/database ON for new users
+        [
+            'suiteUseDatabase',
+            'orderHistoryUseDatabase',
+        ].forEach((key) => {
+            try {
+                GM_setValue(key, true);
+                kept += 1;
+            } catch (_) { /* ignore */ }
+        });
         [
             'orderHistoryStatusCheckEnabled',
             'orderHistoryBackgroundEnabled',
@@ -313,7 +322,7 @@
                 written += 1;
             } catch (_) { /* ignore */ }
         });
-        console.log(`[MMS] New user detected — disabled ${written} settings; kept Chat + Phone Catalog on (${kept})`);
+        console.log(`[MMS] New user detected — disabled ${written} settings; kept Chat, Phone Catalog, and server/database on (${kept})`);
         return written;
     }
 
