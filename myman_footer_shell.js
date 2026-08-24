@@ -169,7 +169,9 @@
         const id = String(el.id || '');
         return id === 'tm-footer-repair-search'
             || id === 'tm-footer-parts-search'
-            || el.classList?.contains('tm-qs-input') === true;
+            || el.classList?.contains('tm-qs-input') === true
+            || el.getAttribute?.('data-tm-qs-role') === 'repair'
+            || el.getAttribute?.('data-tm-qs-role') === 'parts';
     }
 
     function mascotSilhouetteHtml(el) {

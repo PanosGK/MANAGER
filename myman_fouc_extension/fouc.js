@@ -577,7 +577,9 @@
     var id = String(el.id || '');
     return id === 'tm-footer-repair-search'
       || id === 'tm-footer-parts-search'
-      || (el.classList && el.classList.contains('tm-qs-input'));
+      || (el.classList && el.classList.contains('tm-qs-input'))
+      || el.getAttribute('data-tm-qs-role') === 'repair'
+      || el.getAttribute('data-tm-qs-role') === 'parts';
   }
 
   function cssEscapeId(id) {

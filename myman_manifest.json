@@ -1,11 +1,11 @@
 {
-  "version": "406",
+  "version": "407",
   "loaderVersion": "41",
-  "silentVersion": "50",
-  "displayVersion": "41.50",
+  "silentVersion": "51",
+  "displayVersion": "41.51",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "FOUC caches only enabled live chrome, not hidden widgets",
+  "releaseNotes": "Stop stale 6826: in-memory query, unbind from Runner form, block native leftovers",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

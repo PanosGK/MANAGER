@@ -21,6 +21,15 @@
     // Only honor dirty flags stamped during THIS page load (bfcache / HTML clones
     // can resurrect old data-* flags from a prior visit).
     const QS_PAGE_TOKEN = `p${Date.now().toString(36)}`;
+    // In-memory typed queries — immune to autofill / DOM value swaps (e.g. stale "6826").
+    const typedQueryByRole = Object.create(null);
+    const nativeTypedThisPage = { value: '', at: 0 };
+
+    function qsInputs() {
+        return document.querySelectorAll(
+            '#tm-footer-repair-search, #tm-footer-parts-search, input.tm-qs-input[data-tm-qs-role]'
+        );
+    }
 
     function buildSearchUrl(base, query) {
         const q = String(query || '').trim();
@@ -30,11 +39,14 @@
 
     function goToSearch(url) {
         if (!url) return;
-        window.location.href = url;
+        // Full navigation — bypass Runner form/session posting a leftover ctlSearchFor.
+        window.location.assign(url);
     }
 
     function resetQuickSearchInput(input) {
         if (!input) return;
+        const role = input.dataset.tmQsRole;
+        if (role) delete typedQueryByRole[role];
         input.value = '';
         delete input.dataset.tmQsDirty;
         delete input.dataset.tmQsLastEdit;
@@ -42,18 +54,30 @@
         delete input.dataset.tmQsUserKey;
     }
 
-    function markQuickSearchTyped(input) {
+    function markQuickSearchTyped(input, explicitValue) {
         if (!input) return;
+        const role = input.dataset.tmQsRole || input.id || 'field';
+        const q = String(explicitValue !== undefined ? explicitValue : input.value || '').trim();
+        typedQueryByRole[role] = q;
         input.dataset.tmQsDirty = '1';
         input.dataset.tmQsSession = QS_PAGE_TOKEN;
         input.dataset.tmQsLastEdit = String(Date.now());
+        input.dataset.tmQsUserKey = '1';
     }
 
-    /** True only if the user actually pressed keys in this field on this page. */
+    /** True only if the user actually pressed keys / pasted in this field on this page. */
     function isQuickSearchTypedThisPage(input) {
         return input?.dataset?.tmQsDirty === '1'
             && input.dataset.tmQsSession === QS_PAGE_TOKEN
             && input.dataset.tmQsUserKey === '1';
+    }
+
+    function typedQueryFor(input) {
+        if (!input) return '';
+        const role = input.dataset.tmQsRole || input.id || '';
+        const mem = role ? typedQueryByRole[role] : '';
+        if (mem) return String(mem).trim();
+        return String(input.value || '').trim();
     }
 
     function clearNativeSearchFields({ force = false } = {}) {
@@ -65,13 +89,11 @@
     }
 
     function submitFromInput(input, baseUrl) {
-        // Capture BEFORE any resets — clearing the live input must not change the URL.
-        const url = buildSearchUrl(baseUrl, input?.value);
+        // Prefer in-memory typed query so a late autofill of "6826" cannot replace it.
+        const query = typedQueryFor(input) || String(input?.value || '').trim();
+        const url = buildSearchUrl(baseUrl, query);
         if (url) {
-            // Clear BOTH quick-search fields and the native Runner box so a leftover
-            // qs (e.g. "6826") cannot win the next submit or get re-posted by the form.
-            document.querySelectorAll('#tm-footer-repair-search, #tm-footer-parts-search')
-                .forEach(resetQuickSearchInput);
+            qsInputs().forEach(resetQuickSearchInput);
             clearNativeSearchFields({ force: true });
             goToSearch(url);
         } else {
@@ -86,30 +108,45 @@
     }
 
     /** Harden against browser autofill (often ignores autocomplete=off). */
-    function hardenQuickSearchInput(input) {
+    function hardenQuickSearchInput(input, role) {
         if (!input) return;
-        input.setAttribute('autocomplete', 'off');
+        input.dataset.tmQsRole = role;
+        // new-password is the most reliable autofill deterrent for non-password fields.
+        input.setAttribute('autocomplete', 'new-password');
         input.setAttribute('autocapitalize', 'off');
         input.setAttribute('autocorrect', 'off');
         input.setAttribute('spellcheck', 'false');
         input.setAttribute('data-lpignore', 'true');
         input.setAttribute('data-1p-ignore', 'true');
         input.setAttribute('data-form-type', 'other');
+        // Unbind from any parent Runner <form> so Enter cannot submit ctlSearchFor.
+        input.setAttribute('form', 'tm-qs-unbound-form');
         // Odd name discourages password-manager / history autofill of prior qs terms.
-        if (!input.name || input.name.startsWith('tm-qs-')) {
-            input.name = `tm-qs-${input.id || 'field'}-${Math.random().toString(36).slice(2, 8)}`;
-        }
-        // Autofill fires `input` without keydown — only trust real keystrokes.
+        input.name = `tm-qs-${role}-${QS_PAGE_TOKEN}`;
+
+        const trustUser = () => {
+            input.dataset.tmQsUserKey = '1';
+        };
+
         input.addEventListener('keydown', (e) => {
             if (!e.isTrusted) return;
             if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Enter') {
-                input.dataset.tmQsUserKey = '1';
+                trustUser();
             }
+        });
+        input.addEventListener('paste', (e) => {
+            if (!e.isTrusted) return;
+            trustUser();
+            // paste value lands after this event — read on next tick
+            setTimeout(() => {
+                if (input.dataset.tmQsUserKey === '1') markQuickSearchTyped(input);
+            }, 0);
         });
         input.addEventListener('input', () => {
             if (input.dataset.tmQsUserKey !== '1') {
                 // Browser autofill of a prior qs (e.g. "6826") — drop it.
                 if (input.value) input.value = '';
+                delete typedQueryByRole[role];
                 delete input.dataset.tmQsDirty;
                 delete input.dataset.tmQsLastEdit;
                 delete input.dataset.tmQsSession;
@@ -129,7 +166,7 @@
 
     function scrubStaleQuickSearchValues(bar) {
         if (!bar) return;
-        bar.querySelectorAll('#tm-footer-repair-search, #tm-footer-parts-search').forEach((input) => {
+        bar.querySelectorAll('input.tm-qs-input').forEach((input) => {
             // Keep only text the user is actively typing on this page.
             if (document.activeElement === input && isQuickSearchTypedThisPage(input)) return;
             if (isQuickSearchTypedThisPage(input) && input.dataset.tmQsLastEdit) {
@@ -297,11 +334,27 @@
         // old query outrank whatever the user types next — reset both fields fully.
         window.addEventListener('pageshow', (e) => {
             if (!e.persisted) return;
-            document
-                .querySelectorAll('#tm-footer-repair-search, #tm-footer-parts-search')
-                .forEach(resetQuickSearchInput);
+            qsInputs().forEach(resetQuickSearchInput);
             clearNativeSearchFields({ force: true });
+            nativeTypedThisPage.value = '';
+            nativeTypedThisPage.at = 0;
         });
+
+        // Track real typing in the native box so intentional native searches still work.
+        document.addEventListener('keydown', (e) => {
+            if (!e.isTrusted) return;
+            const t = e.target;
+            if (!t) return;
+            const id = String(t.id || '');
+            const name = String(t.name || '');
+            if (!/ctlSearchFor/i.test(id) && !/ctlSearchFor/i.test(name)) return;
+            if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
+                setTimeout(() => {
+                    nativeTypedThisPage.value = String(t.value || '').trim();
+                    nativeTypedThisPage.at = Date.now();
+                }, 0);
+            }
+        }, true);
 
         // Enter in our quick-search field must never fall through to the page form
         // (which would submit native ctlSearchFor leftover instead).
@@ -312,9 +365,9 @@
             if (!t.closest('#tm-footer-quick-search, .tm-qs-host')) return;
             e.preventDefault();
             e.stopImmediatePropagation();
-            if (t.value.trim() && t.dataset.searchBase) {
-                t.dataset.tmQsUserKey = '1';
-                markQuickSearchTyped(t);
+            const q = typedQueryFor(t) || String(t.value || '').trim();
+            if (q && t.dataset.searchBase) {
+                markQuickSearchTyped(t, q);
                 submitFromInput(t, t.dataset.searchBase);
             } else {
                 document.getElementById('tm-footer-search-submit')?.click();
@@ -322,20 +375,45 @@
         }, true);
 
         document.addEventListener('submit', (e) => {
+            // Any form submit while focus is in our bar → our search only.
             const active = document.activeElement;
-            if (!active || !active.closest?.('#tm-footer-quick-search, .tm-qs-host')) return;
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            if (active.classList?.contains('tm-qs-input') && active.dataset.searchBase && active.value.trim()) {
-                active.dataset.tmQsUserKey = '1';
-                markQuickSearchTyped(active);
-                submitFromInput(active, active.dataset.searchBase);
+            if (active?.closest?.('#tm-footer-quick-search, .tm-qs-host')) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                if (active.classList?.contains('tm-qs-input') && active.dataset.searchBase) {
+                    const q = typedQueryFor(active) || String(active.value || '').trim();
+                    if (q) {
+                        markQuickSearchTyped(active, q);
+                        submitFromInput(active, active.dataset.searchBase);
+                    }
+                }
+                return;
+            }
+            // Block form posts that would re-submit a stale native qs when our bar exists.
+            if (!document.getElementById('tm-footer-quick-search')) return;
+            const form = e.target;
+            if (!form || typeof form.querySelector !== 'function') return;
+            const nativeField = form.querySelector('input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]');
+            if (!nativeField) return;
+            const ourTyped = bestTypedQuickSearch();
+            if (ourTyped) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                submitFromInput(ourTyped, ourTyped.dataset.searchBase);
+                return;
+            }
+            const nativeQ = String(nativeField.value || '').trim();
+            const nativeFresh = nativeQ
+                && nativeQ === nativeTypedThisPage.value
+                && (Date.now() - nativeTypedThisPage.at) < 60000;
+            if (!nativeFresh && nativeQ) {
+                // Stale server/autofill leftover (e.g. "6826") — do not post it.
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                clearNativeSearchFields({ force: true });
             }
         }, true);
 
-        // Always block native search-button clicks when the box still holds a stale
-        // leftover and our quick-search bar is present — unless the user is typing
-        // in the native field itself.
         document.addEventListener('click', (e) => {
             const t = e.target;
             if (!t || typeof t.closest !== 'function') return;
@@ -345,20 +423,32 @@
             );
             if (!nativeBtn) return;
 
+            const ourTyped = bestTypedQuickSearch();
+            if (ourTyped?.dataset?.searchBase) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                submitFromInput(ourTyped, ourTyped.dataset.searchBase);
+                return;
+            }
+
             if (isNativeSearchHidden()) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
                 return;
             }
 
-            // Prefer our typed quick-search over a stale native leftover.
-            const ourTyped = [...document.querySelectorAll('#tm-footer-repair-search, #tm-footer-parts-search')]
-                .filter((input) => isQuickSearchTypedThisPage(input) && input.value.trim())
-                .sort((a, b) => Number(b.dataset.tmQsLastEdit || 0) - Number(a.dataset.tmQsLastEdit || 0))[0];
-            if (ourTyped?.dataset?.searchBase) {
+            // Native visible: only allow if the user typed in ctlSearchFor this page.
+            const nativeField = document.querySelector(
+                'input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]'
+            );
+            const nativeQ = String(nativeField?.value || '').trim();
+            const nativeFresh = nativeQ
+                && nativeQ === nativeTypedThisPage.value
+                && (Date.now() - nativeTypedThisPage.at) < 60000;
+            if (!nativeFresh) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
-                submitFromInput(ourTyped, ourTyped.dataset.searchBase);
+                clearNativeSearchFields({ force: true });
             }
         }, true);
 
@@ -370,22 +460,36 @@
             const name = String(t.name || '');
             if (!/ctlSearchFor/i.test(id) && !/ctlSearchFor/i.test(name)) return;
 
+            const ourTyped = bestTypedQuickSearch();
+            if (ourTyped?.dataset?.searchBase) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                submitFromInput(ourTyped, ourTyped.dataset.searchBase);
+                return;
+            }
+
             if (isNativeSearchHidden()) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
                 return;
             }
 
-            // Prefer our typed quick-search over native leftovers.
-            const ourTyped = [...document.querySelectorAll('#tm-footer-repair-search, #tm-footer-parts-search')]
-                .filter((input) => isQuickSearchTypedThisPage(input) && input.value.trim())
-                .sort((a, b) => Number(b.dataset.tmQsLastEdit || 0) - Number(a.dataset.tmQsLastEdit || 0))[0];
-            if (ourTyped?.dataset?.searchBase) {
+            const nativeQ = String(t.value || '').trim();
+            const nativeFresh = nativeQ
+                && nativeQ === nativeTypedThisPage.value
+                && (Date.now() - nativeTypedThisPage.at) < 60000;
+            if (!nativeFresh) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
-                submitFromInput(ourTyped, ourTyped.dataset.searchBase);
+                clearNativeSearchFields({ force: true });
             }
         }, true);
+    }
+
+    function bestTypedQuickSearch() {
+        return [...qsInputs()]
+            .filter((input) => isQuickSearchTypedThisPage(input) && typedQueryFor(input))
+            .sort((a, b) => Number(b.dataset.tmQsLastEdit || 0) - Number(a.dataset.tmQsLastEdit || 0))[0] || null;
     }
 
     function mountNativeSearchToggle(parentContainer) {
@@ -431,7 +535,7 @@
             repairInput.setAttribute('aria-label', 'Αναζήτηση επισκευών');
             repairInput.spellcheck = false;
             repairInput.dataset.searchBase = REPAIR_SEARCH_URL;
-            hardenQuickSearchInput(repairInput);
+            hardenQuickSearchInput(repairInput, 'repair');
 
             repairGroup.appendChild(repairInput);
 
@@ -446,7 +550,7 @@
             partsInput.setAttribute('aria-label', 'Αναζήτηση ανταλλακτικών');
             partsInput.spellcheck = false;
             partsInput.dataset.searchBase = PARTS_SEARCH_URL;
-            hardenQuickSearchInput(partsInput);
+            hardenQuickSearchInput(partsInput, 'parts');
 
             partsGroup.appendChild(partsInput);
 
@@ -462,8 +566,8 @@
             const lastEdit = (input) => Number(input?.dataset?.tmQsLastEdit || 0);
 
             const resolveSearchInput = () => {
-                const qRepair = repairInput.value.trim();
-                const qParts = partsInput.value.trim();
+                const qRepair = typedQueryFor(repairInput);
+                const qParts = typedQueryFor(partsInput);
                 if (!qRepair && !qParts) return null;
 
                 const active = document.activeElement;
@@ -474,7 +578,7 @@
                 // most recently edited first — an older leftover (e.g. a stale "6826")
                 // must never outrank what the user just typed in the other field.
                 const dirtyCandidates = [repairInput, partsInput]
-                    .filter((input) => input.value.trim() && isDirty(input))
+                    .filter((input) => typedQueryFor(input) && isDirty(input))
                     .sort((a, b) => lastEdit(b) - lastEdit(a));
                 return dirtyCandidates[0] || null;
             };
@@ -501,9 +605,9 @@
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (repairInput.value.trim()) {
-                        repairInput.dataset.tmQsUserKey = '1';
-                        markQuickSearchTyped(repairInput);
+                    const q = typedQueryFor(repairInput) || repairInput.value.trim();
+                    if (q) {
+                        markQuickSearchTyped(repairInput, q);
                         submitFromInput(repairInput, repairInput.dataset.searchBase);
                     } else {
                         handleSearch();
@@ -515,9 +619,9 @@
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (partsInput.value.trim()) {
-                        partsInput.dataset.tmQsUserKey = '1';
-                        markQuickSearchTyped(partsInput);
+                    const q = typedQueryFor(partsInput) || partsInput.value.trim();
+                    if (q) {
+                        markQuickSearchTyped(partsInput, q);
                         submitFromInput(partsInput, partsInput.dataset.searchBase);
                     } else {
                         handleSearch();
@@ -541,8 +645,8 @@
             if (!document.getElementById('tm-toggle-native-search')) {
                 mountNativeSearchToggle(bar);
             }
-            resetQuickSearchInput(bar.querySelector('#tm-footer-repair-search'));
-            resetQuickSearchInput(bar.querySelector('#tm-footer-parts-search'));
+            resetQuickSearchInput(bar.querySelector('#tm-footer-repair-search, input[data-tm-qs-role="repair"]'));
+            resetQuickSearchInput(bar.querySelector('#tm-footer-parts-search, input[data-tm-qs-role="parts"]'));
         }
 
         bar.querySelectorAll('.tm-qs-input-group label').forEach((label) => label.remove());
