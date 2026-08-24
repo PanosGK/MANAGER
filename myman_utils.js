@@ -1281,4 +1281,18 @@
 
     window.restoreRunnerSessionSearch = restoreRunnerSessionSearch;
 
+    /** Shared PocketBase / server mode (chat, whisper, shared order history). */
+    function suiteUseDatabase() {
+        try {
+            const v = GM_getValue('suiteUseDatabase', null);
+            if (v === false) return false;
+            if (v === true) return true;
+            return GM_getValue('orderHistoryUseDatabase', true) !== false;
+        } catch (_) {
+            return true;
+        }
+    }
+    window.suiteUseDatabase = suiteUseDatabase;
+    window.ohUseDatabase = suiteUseDatabase;
+
 })();

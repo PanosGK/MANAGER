@@ -16,10 +16,10 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '421',
+        version: '422',
         loaderVersion: '42',
-        silentVersion: '5',
-        displayVersion: '42.5',
+        silentVersion: '6',
+        displayVersion: '42.6',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
@@ -97,7 +97,8 @@
         ORDER_HISTORY_PARTS: 'tm_partsorders_page_history',
         ORDER_HISTORY_STATUS_CHECK: 'orderHistoryStatusCheckEnabled',
         ORDER_HISTORY_BACKGROUND: 'orderHistoryBackgroundEnabled',
-        // true = shared PocketBase store history; false = local Tampermonkey copy only
+        SUITE_USE_DATABASE: 'suiteUseDatabase',
+        // legacy alias — order history reads this too until fully migrated
         ORDER_HISTORY_USE_DATABASE: 'orderHistoryUseDatabase',
 
         // Coin History

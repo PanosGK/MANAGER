@@ -145,7 +145,8 @@
         weatherWidgetEnabled: true,
         phoneCatalogEnabled: true,
         orderHistoryEnabled: true,
-        orderHistoryUseDatabase: true, // shared store DB; false = local-only history on this PC
+        suiteUseDatabase: true, // PocketBase server: chat, whisper, shared order history
+        orderHistoryUseDatabase: true, // legacy mirror of suiteUseDatabase
         orderLinkEnabled: true,
         returnTo40ButtonEnabled: true,
         wifiQrEnabled: true,
@@ -278,6 +279,8 @@
             'scriptEnabled',
             'officeChatEnabled',
             'phoneCatalogEnabled',
+            'suiteUseDatabase',
+            'orderHistoryUseDatabase',
         ]);
         let written = 0;
         let kept = 0;

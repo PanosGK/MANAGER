@@ -510,6 +510,10 @@
             window.stopRepairCollabFeature();
             return;
         }
+        if (typeof window.suiteUseDatabase === 'function' && !window.suiteUseDatabase()) {
+            window.stopRepairCollabFeature();
+            return;
+        }
 
         if (!window.location.pathname.includes('service_edit.php')) return;
 

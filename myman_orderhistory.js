@@ -28,8 +28,9 @@
     const orderHistoryStatusCheckEnabled = GM_getValue('orderHistoryStatusCheckEnabled', true);
     // Optional: background polling of order pages (even when not currently viewing them)
     const orderHistoryBackgroundEnabled = GM_getValue('orderHistoryBackgroundEnabled', true);
-    /** Shared PocketBase store history (default) vs local-only Tampermonkey copy. */
+    /** Shared PocketBase / server mode — see window.suiteUseDatabase in utils. */
     function ohUseDatabase() {
+        if (typeof window.suiteUseDatabase === 'function') return window.suiteUseDatabase();
         try {
             return GM_getValue('orderHistoryUseDatabase', true) !== false;
         } catch (_) {

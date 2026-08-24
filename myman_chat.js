@@ -6078,6 +6078,10 @@
     function initOfficeChatFeature(config, STORAGE_KEYS) {
         if (chatInitDone) return;
 
+        if (typeof window.suiteUseDatabase === 'function' && !window.suiteUseDatabase()) {
+            return;
+        }
+
         const settings = getChatSettings(STORAGE_KEYS);
         const enabled = settings.enabled === true || config?.officeChatEnabled === true;
         if (!enabled) return;

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v421 / Custom Ver. 42.5 — generated, do not edit */
+/* MyManager Suite bundle v422 / Custom Ver. 42.6 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '421',
+        version: '422',
         loaderVersion: '42',
-        silentVersion: '5',
-        displayVersion: '42.5',
+        silentVersion: '6',
+        displayVersion: '42.6',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
@@ -3391,7 +3391,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         ORDER_HISTORY_PARTS: 'tm_partsorders_page_history',
         ORDER_HISTORY_STATUS_CHECK: 'orderHistoryStatusCheckEnabled',
         ORDER_HISTORY_BACKGROUND: 'orderHistoryBackgroundEnabled',
-        // true = shared PocketBase store history; false = local Tampermonkey copy only
+        SUITE_USE_DATABASE: 'suiteUseDatabase',
+        // legacy alias — order history reads this too until fully migrated
         ORDER_HISTORY_USE_DATABASE: 'orderHistoryUseDatabase',
 
         // Coin History
@@ -5728,6 +5729,20 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     window.restoreRunnerSessionSearch = restoreRunnerSessionSearch;
+
+    /** Shared PocketBase / server mode (chat, whisper, shared order history). */
+    function suiteUseDatabase() {
+        try {
+            const v = GM_getValue('suiteUseDatabase', null);
+            if (v === false) return false;
+            if (v === true) return true;
+            return GM_getValue('orderHistoryUseDatabase', true) !== false;
+        } catch (_) {
+            return true;
+        }
+    }
+    window.suiteUseDatabase = suiteUseDatabase;
+    window.ohUseDatabase = suiteUseDatabase;
 
 })();
 
@@ -16233,15 +16248,15 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         },
         order_history: {
             title: 'Ιστορικό παραγγελιών',
-            what: 'Εμφάνιση ιστορικού παραγγελιών. Από προεπιλογή φορτώνει από την κοινή βάση του καταστήματος· μπορείτε να επιλέξετε τοπικό αντίγραφο μόνο σε αυτόν τον υπολογιστή.',
+            what: 'Εμφάνιση ιστορικού παραγγελιών. Με ενεργή βάση δεδομένων (Ρυθμίσεις → Γενικές) συγχρονίζεται με το κατάστημα· χωρίς server μένει τοπικό αντίγραφο.',
             where: 'Σελίδες παραγγελιών · Ρυθμίσεις → Εργαλεία.',
             when: 'Όταν ελέγχετε τι έχει παραγγελθεί για μια επισκευή ή γενικά.',
         },
-        order_history_database: {
-            title: 'Ιστορικό από βάση δεδομένων',
-            what: 'Όταν είναι ενεργό, το ιστορικό παραγγελιών συγχρονίζεται με την κοινή βάση του καταστήματος. Όταν είναι ανενεργό, χτίζετε τοπικό ιστορικό μόνο σε αυτόν τον υπολογιστή (χωρίς server).',
-            where: 'Ρυθμίσεις → Εργαλεία · κάτω από «Ιστορικό παραγγελιών».',
-            when: 'Αμέσως μετά την αποθήκευση· για πλήρη εφαρμογή κάντε ανανέωση σελίδας.',
+        suite_database: {
+            title: 'Σύνδεση με βάση δεδομένων (server)',
+            what: 'Όταν είναι ενεργό, λειτουργίες που βασίζονται στο PocketBase server συγχρονίζονται μεταξύ τεχνικών και PC. Όταν είναι ανενεργό, δουλεύετε τοπικά — χωρίς chat, whisper, κοινό ιστορικό.',
+            where: 'Ρυθμίσεις → Γενικές · επηρεάζει Chat, Whisper, ιστορικό παραγγελιών και άλλα server features.',
+            when: 'Αμέσως μετά την αποθήκευση — κάντε ανανέωση σελίδας για πλήρη εφαρμογή.',
         },
         order_link: {
             title: 'Σύνδεση status 65 → παραγγελίες',
@@ -16711,7 +16726,17 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             saveCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             saveCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
-            saveCheckbox('tm-setting-order-history-use-database', 'orderHistoryUseDatabase');
+            saveCheckbox('tm-setting-suite-use-database', 'suiteUseDatabase');
+            {
+                const dbEl = document.getElementById('tm-setting-suite-use-database');
+                if (dbEl) {
+                    const dbOn = !!dbEl.checked;
+                    GM_setValue('suiteUseDatabase', dbOn);
+                    GM_setValue('orderHistoryUseDatabase', dbOn);
+                    config.suiteUseDatabase = dbOn;
+                    config.orderHistoryUseDatabase = dbOn;
+                }
+            }
             saveCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
             saveCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
             saveCheckbox('tm-setting-wifi-qr-enabled', 'wifiQrEnabled');
@@ -16906,6 +16931,37 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <p class="tm-setting-description">Popups, achievements και υπενθυμίσεις.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-notifications-enabled"></div>
+                    </div>
+                    <h4 class="tm-settings-subgroup">Server / βάση δεδομένων</h4>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-suite-use-database">Σύνδεση με βάση δεδομένων</label>
+                                ${info('suite_database')}
+                            </div>
+                            <p class="tm-setting-description">Ενεργό = κοινά δεδομένα μέσω server (PocketBase). Ανενεργό = τοπική λειτουργία σε αυτόν τον υπολογιστή.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-suite-use-database"></div>
+                    </div>
+                    <div id="tm-suite-database-offline-warn" class="tm-setting-row tm-setting-row--warn" style="display:none;align-items:flex-start;">
+                        <div class="tm-setting-label" style="flex:1;">
+                            <div class="tm-setting-label-row">
+                                <strong>Τοπική λειτουργία — τι δεν λειτουργεί χωρίς server</strong>
+                            </div>
+                            <p class="tm-setting-description" style="margin-top:6px;">
+                                Με απενεργοποιημένη τη βάση <strong>δεν</strong> έχετε:
+                            </p>
+                            <ul class="tm-setting-description" style="margin:6px 0 0 1.1em;padding:0;list-style:disc;">
+                                <li><strong>Office Chat</strong> — μηνύματα, @mentions, presence, φωτογραφία προφίλ</li>
+                                <li><strong>Whisper</strong> — κοινά σημειώματα στην επισκευή (service_edit)</li>
+                                <li><strong>Κοινό ιστορικό παραγγελιών</strong> — συγχρονισμός με άλλους τεχνικούς / PC του καταστήματος</li>
+                                <li>Ανανέωση ιστορικού από server (νεότερα 200 εγγραφές καταστήματος)</li>
+                                <li>Συνέχεια αν αλλάξετε browser ή PC — τα τοπικά μένουν μόνο εδώ</li>
+                            </ul>
+                            <p class="tm-setting-description" style="margin-top:8px;">
+                                <strong>Συνεχίζουν να δουλεύουν τοπικά:</strong> κατάλογος συσκευών, αναζήτηση, themes, gamification, WiFi QR, αυτόματη ανανέωση κ.λπ. Το ιστορικό παραγγελιών (αν είναι ενεργό) χτίζεται μόνο από αποδοχές σε αυτόν τον υπολογιστή.
+                            </p>
+                        </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -17275,36 +17331,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <p class="tm-setting-description">Παραγγελίες υπηρεσιών / ανταλλακτικών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-history-enabled"></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-order-history-use-database">Φόρτωση από βάση δεδομένων</label>
-                                ${info('order_history_database')}
-                            </div>
-                            <p class="tm-setting-description">Ενεργό = κοινό ιστορικό καταστήματος (server). Ανενεργό = τοπικό αντίγραφο μόνο σε αυτόν τον υπολογιστή.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-history-use-database"></div>
-                    </div>
-                    <div id="tm-order-history-offline-warn" class="tm-setting-row tm-setting-row--warn" style="display:none;align-items:flex-start;">
-                        <div class="tm-setting-label" style="flex:1;">
-                            <div class="tm-setting-label-row">
-                                <strong>Τοπική λειτουργία — τι χάνετε</strong>
-                            </div>
-                            <p class="tm-setting-description" style="margin-top:6px;">
-                                Χωρίς βάση δεδομένων <strong>δεν</strong> έχετε:
-                            </p>
-                            <ul class="tm-setting-description" style="margin:6px 0 0 1.1em;padding:0;list-style:disc;">
-                                <li>Κοινό ιστορικό με άλλους τεχνικούς ή υπολογιστές του ίδιου καταστήματος</li>
-                                <li>Αυτόματο συγχρονισμό αποδοχών από άλλα PC</li>
-                                <li>Ανανέωση από server (νεότερα 200 του καταστήματος)</li>
-                                <li>Συνέχεια αν αλλάξετε browser / PC — το τοπικό μένει μόνο εδώ</li>
-                                <li>Μεταφορά ιστορικού μέσω του server αν ξαναενεργοποιήσετε τη βάση αργότερα (μόνο ό,τι υπάρχει τοπικά μπορεί να ανέβει)</li>
-                            </ul>
-                            <p class="tm-setting-description" style="margin-top:8px;">
-                                Θα χτίζετε το δικό σας ιστορικό από τις αποδοχές σε αυτόν τον υπολογιστή.
-                            </p>
-                        </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -18126,7 +18152,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             populateCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
-            populateCheckbox('tm-setting-order-history-use-database', 'orderHistoryUseDatabase');
+            {
+                const dbBox = document.getElementById('tm-setting-suite-use-database');
+                if (dbBox) {
+                    let dbOn = GM_getValue('suiteUseDatabase', null);
+                    if (dbOn === null || typeof dbOn === 'undefined') {
+                        dbOn = GM_getValue('orderHistoryUseDatabase', true);
+                    }
+                    dbBox.checked = dbOn !== false;
+                }
+            }
             populateCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
             populateCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
             populateCheckbox('tm-setting-wifi-qr-enabled', 'wifiQrEnabled');
@@ -18254,15 +18289,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             
             const orderHistoryCheckbox = document.getElementById('tm-setting-order-history-enabled');
-            const orderHistoryDbCheckbox = document.getElementById('tm-setting-order-history-use-database');
-            const syncOrderHistoryDatabaseUi = () => {
-                const warn = document.getElementById('tm-order-history-offline-warn');
-                const dbBox = document.getElementById('tm-setting-order-history-use-database');
-                const featureOn = !!document.getElementById('tm-setting-order-history-enabled')?.checked;
-                if (dbBox) dbBox.disabled = !featureOn;
-                if (warn) {
-                    const useDb = dbBox ? !!dbBox.checked : true;
-                    warn.style.display = (featureOn && !useDb) ? '' : 'none';
+            const suiteDbCheckbox = document.getElementById('tm-setting-suite-use-database');
+            const syncSuiteDatabaseUi = () => {
+                const warn = document.getElementById('tm-suite-database-offline-warn');
+                const dbBox = document.getElementById('tm-setting-suite-use-database');
+                if (warn && dbBox) {
+                    warn.style.display = dbBox.checked ? 'none' : '';
                 }
             };
             if (orderHistoryCheckbox) {
@@ -18276,27 +18308,28 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     if (typeof window.updateOrderHistoryButtonVisibility === 'function') {
                         window.updateOrderHistoryButtonVisibility(config);
                     }
-                    syncOrderHistoryDatabaseUi();
                 });
             }
-            if (orderHistoryDbCheckbox) {
-                syncOrderHistoryDatabaseUi();
-                orderHistoryDbCheckbox.addEventListener('change', () => {
-                    const value = !!orderHistoryDbCheckbox.checked;
+            if (suiteDbCheckbox) {
+                syncSuiteDatabaseUi();
+                suiteDbCheckbox.addEventListener('change', () => {
+                    const value = !!suiteDbCheckbox.checked;
+                    GM_setValue('suiteUseDatabase', value);
                     GM_setValue('orderHistoryUseDatabase', value);
+                    config.suiteUseDatabase = value;
                     config.orderHistoryUseDatabase = value;
-                    syncOrderHistoryDatabaseUi();
+                    syncSuiteDatabaseUi();
                     if (!value && typeof window.seedOrderHistoryLocalFromCache === 'function') {
                         try { window.seedOrderHistoryLocalFromCache(); } catch (_) { /* optional */ }
                     }
                     if (typeof window.showPositiveMessage === 'function') {
                         window.showPositiveMessage(value
-                            ? 'Ιστορικό παραγγελιών: κοινή βάση (server). Ανανεώστε τη σελίδα.'
-                            : 'Ιστορικό παραγγελιών: τοπικό μόνο. Ανανεώστε τη σελίδα.');
+                            ? 'Server ενεργό — Chat, Whisper, κοινό ιστορικό. Ανανεώστε τη σελίδα.'
+                            : 'Τοπική λειτουργία — χωρίς Chat/Whisper/server. Ανανεώστε τη σελίδα.');
                     }
                 });
             } else {
-                syncOrderHistoryDatabaseUi();
+                syncSuiteDatabaseUi();
             }
 
             // Logic for the new checkbox
@@ -26918,6 +26951,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function initOfficeChatFeature(config, STORAGE_KEYS) {
         if (chatInitDone) return;
+
+        if (typeof window.suiteUseDatabase === 'function' && !window.suiteUseDatabase()) {
+            return;
+        }
 
         const settings = getChatSettings(STORAGE_KEYS);
         const enabled = settings.enabled === true || config?.officeChatEnabled === true;
@@ -65236,8 +65273,9 @@ if (document.body) {
     const orderHistoryStatusCheckEnabled = GM_getValue('orderHistoryStatusCheckEnabled', true);
     // Optional: background polling of order pages (even when not currently viewing them)
     const orderHistoryBackgroundEnabled = GM_getValue('orderHistoryBackgroundEnabled', true);
-    /** Shared PocketBase store history (default) vs local-only Tampermonkey copy. */
+    /** Shared PocketBase / server mode — see window.suiteUseDatabase in utils. */
     function ohUseDatabase() {
+        if (typeof window.suiteUseDatabase === 'function') return window.suiteUseDatabase();
         try {
             return GM_getValue('orderHistoryUseDatabase', true) !== false;
         } catch (_) {
@@ -72660,6 +72698,10 @@ if (typeof window !== 'undefined') {
             window.stopRepairCollabFeature();
             return;
         }
+        if (typeof window.suiteUseDatabase === 'function' && !window.suiteUseDatabase()) {
+            window.stopRepairCollabFeature();
+            return;
+        }
 
         if (!window.location.pathname.includes('service_edit.php')) return;
 
@@ -73025,7 +73067,8 @@ if (typeof window !== 'undefined') {
         weatherWidgetEnabled: true,
         phoneCatalogEnabled: true,
         orderHistoryEnabled: true,
-        orderHistoryUseDatabase: true, // shared store DB; false = local-only history on this PC
+        suiteUseDatabase: true, // PocketBase server: chat, whisper, shared order history
+        orderHistoryUseDatabase: true, // legacy mirror of suiteUseDatabase
         orderLinkEnabled: true,
         returnTo40ButtonEnabled: true,
         wifiQrEnabled: true,
@@ -73158,6 +73201,8 @@ if (typeof window !== 'undefined') {
             'scriptEnabled',
             'officeChatEnabled',
             'phoneCatalogEnabled',
+            'suiteUseDatabase',
+            'orderHistoryUseDatabase',
         ]);
         let written = 0;
         let kept = 0;
