@@ -1,11 +1,11 @@
 {
-  "version": "412",
+  "version": "413",
   "loaderVersion": "41",
-  "silentVersion": "56",
-  "displayVersion": "41.56",
+  "silentVersion": "57",
+  "displayVersion": "41.57",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Sort columns without running leftover 6826 search or clearing the search box",
+  "releaseNotes": "Stop leftover 6826 search on every list button, not only sort",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

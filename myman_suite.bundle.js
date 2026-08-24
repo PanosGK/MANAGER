@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v412 / Custom Ver. 41.56 — generated, do not edit */
+/* MyManager Suite bundle v413 / Custom Ver. 41.57 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '412',
+        version: '413',
         loaderVersion: '41',
-        silentVersion: '56',
-        displayVersion: '41.56',
+        silentVersion: '57',
+        displayVersion: '41.57',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -5632,52 +5632,237 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     window.getInstalledLoaderVersion = getInstalledLoaderVersion;
 
     /**
-     * Column sort must NOT re-run PHPRunner's leftover simple-search (e.g. 6826).
-     * Take over .rnr-orderlink clicks and go to a show-all + orderby URL.
+     * PHPRunner keeps the last simple-search (e.g. "6826") in session and in
+     * ctlSearchFor. Any list action — sort, pagination, toolbar — then re-runs
+     * that search. Only an explicit search (qs= URL, search button, or Enter
+     * in the box) should search. Do not wipe the box after the fact.
      */
-    (function installSortWithoutSessionSearch() {
+    (function installListActionsWithoutLeftoverSearch() {
         const LIST_RE = /service_list\.php|products_list\.php|sparepartstoorder_list\.php|srvorders_list\.php/i;
+        const ALLOW_KEY = 'tm_runner_native_qs';
+
+        let heldValue = '';
+        let holding = false;
+        const heldFields = [];
 
         function onListPage() {
             return LIST_RE.test(location.pathname || '');
         }
 
-        function sortTargetUrl(anchor) {
-            const raw = anchor.getAttribute('href') || anchor.href || '';
-            if (!raw || raw === '#' || raw.toLowerCase().indexOf('javascript:') === 0) {
-                return '';
-            }
+        function urlQs() {
             try {
-                const u = new URL(raw, location.origin);
-                if (!LIST_RE.test(u.pathname)) return '';
-                u.searchParams.delete('qs');
-                u.searchParams.set('a', 'showall');
-                return u.pathname + u.search + u.hash;
+                return String(new URLSearchParams(location.search).get('qs') || '').trim();
             } catch (_) {
                 return '';
             }
         }
 
-        function isSortAnchor(el) {
-            if (!el || typeof el.closest !== 'function') return null;
-            const a = el.closest('a');
-            if (!a) return null;
-            if (a.classList.contains('rnr-orderlink')) return a;
-            const href = a.getAttribute('href') || '';
-            if (/[?&]orderby=/i.test(href)) return a;
-            return null;
+        function nativeFields() {
+            return document.querySelectorAll('input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]');
         }
+
+        function leftoverQs() {
+            if (holding && heldValue) return heldValue;
+            let found = '';
+            nativeFields().forEach((el) => {
+                const v = String(el.value || '').trim();
+                if (v && !found) found = v;
+            });
+            return found;
+        }
+
+        function allowedNativeQs() {
+            try {
+                return String(sessionStorage.getItem(ALLOW_KEY) || '').trim();
+            } catch (_) {
+                return '';
+            }
+        }
+
+        function rememberNativeSearch() {
+            const q = leftoverQs();
+            try {
+                if (q) sessionStorage.setItem(ALLOW_KEY, q);
+                else sessionStorage.removeItem(ALLOW_KEY);
+            } catch (_) { /* ignore */ }
+        }
+
+        function forgetNativeSearch() {
+            try { sessionStorage.removeItem(ALLOW_KEY); } catch (_) { /* ignore */ }
+        }
+
+        function leftoverIsStale() {
+            if (!onListPage()) return false;
+            if (urlQs()) return false;
+            const leftover = leftoverQs();
+            if (!leftover) return false;
+            return leftover !== allowedNativeQs();
+        }
+
+        function isOurUi(el) {
+            return !!(el && el.closest && el.closest('[id^="tm-"], [class*="tm-"]'));
+        }
+
+        function isNativeSearchTrigger(el) {
+            if (!el || typeof el.closest !== 'function') return false;
+            return !!(el.closest(
+                'a[id^="searchButt"], a[id^="searchButton"], a.rnr-button[data-icon="search"], ' +
+                'button[id^="searchButt"], input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]'
+            ));
+        }
+
+        function isShowAllTrigger(el) {
+            if (!el || typeof el.closest !== 'function') return false;
+            return !!(el.closest('a[id^="showAll"], a[id^="clearSearch"]'));
+        }
+
+        function listUrlFromHref(href) {
+            if (!href || href === '#' || /^javascript:/i.test(href)) return null;
+            try {
+                const u = new URL(href, location.origin);
+                if (!LIST_RE.test(u.pathname)) return null;
+                return u;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function decoratedListUrl(u) {
+            const currentQs = urlQs();
+            if (currentQs) {
+                u.searchParams.set('qs', currentQs);
+                if (u.searchParams.get('a') === 'showall') u.searchParams.delete('a');
+                return u.pathname + u.search + u.hash;
+            }
+            if (String(u.searchParams.get('qs') || '').trim()) {
+                return u.pathname + u.search + u.hash;
+            }
+            if (leftoverIsStale()) {
+                u.searchParams.delete('qs');
+                u.searchParams.set('a', 'showall');
+                return u.pathname + u.search + u.hash;
+            }
+            return u.pathname + u.search + u.hash;
+        }
+
+        function holdLeftoverFields() {
+            if (holding || !leftoverIsStale()) return;
+            holding = true;
+            heldValue = leftoverQs();
+            heldFields.length = 0;
+            nativeFields().forEach((el) => {
+                heldFields.push({ el, value: el.value });
+                el.value = '';
+            });
+        }
+
+        function releaseLeftoverFields() {
+            if (!holding) return;
+            heldFields.forEach(({ el, value }) => {
+                if (el && !el.value) el.value = value;
+            });
+            heldFields.length = 0;
+            holding = false;
+            heldValue = '';
+        }
+
+        function patchListRequestUrl(url) {
+            if (!leftoverIsStale() || url == null || url === '') return url;
+            try {
+                const u = new URL(String(url), location.origin);
+                if (u.pathname !== location.pathname) return url;
+                if (String(u.searchParams.get('qs') || '').trim()) return url;
+                u.searchParams.delete('qs');
+                u.searchParams.set('a', 'showall');
+                if (/^https?:/i.test(String(url))) return u.href;
+                return u.pathname + u.search + u.hash;
+            } catch (_) {
+                return url;
+            }
+        }
+
+        if (urlQs()) forgetNativeSearch();
 
         document.addEventListener('click', (e) => {
             if (!onListPage()) return;
-            const a = isSortAnchor(e.target);
-            if (!a) return;
-            const dest = sortTargetUrl(a);
-            if (!dest) return;
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            window.location.assign(dest);
+            const t = e.target;
+            if (!t || typeof t.closest !== 'function') return;
+
+            if (isNativeSearchTrigger(t)) {
+                rememberNativeSearch();
+                return;
+            }
+            if (isShowAllTrigger(t)) {
+                forgetNativeSearch();
+                return;
+            }
+
+            const a = t.closest('a');
+            const u = a ? listUrlFromHref(a.getAttribute('href') || a.href || '') : null;
+            if (u) {
+                const original = u.pathname + u.search + u.hash;
+                const dest = decoratedListUrl(new URL(u.href));
+                if (dest && dest !== original) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    window.location.assign(dest);
+                    return;
+                }
+            }
+
+            if (isOurUi(t)) return;
+            if (!leftoverIsStale()) return;
+            holdLeftoverFields();
+            setTimeout(releaseLeftoverFields, 0);
+            setTimeout(releaseLeftoverFields, 300);
         }, true);
+
+        document.addEventListener('keydown', (e) => {
+            if (!onListPage() || e.key !== 'Enter') return;
+            const t = e.target;
+            if (t && t.matches && t.matches('input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]')) {
+                rememberNativeSearch();
+            }
+        }, true);
+
+        document.addEventListener('submit', (e) => {
+            if (!onListPage()) return;
+            const from = e.submitter || e.target;
+            if (isNativeSearchTrigger(from)) {
+                rememberNativeSearch();
+                return;
+            }
+            if (leftoverIsStale()) holdLeftoverFields();
+        }, true);
+
+        const origOpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+            return origOpen.call(this, method, patchListRequestUrl(url), ...rest);
+        };
+        const origSend = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.send = function (body) {
+            if (leftoverIsStale() && typeof body === 'string' && /ctlSearchFor/i.test(body)) {
+                body = body.replace(/(?:^|&)ctlSearchFor[^=]*=[^&]*/gi, '');
+            }
+            return origSend.call(this, body);
+        };
+        if (typeof window.fetch === 'function') {
+            const origFetch = window.fetch;
+            window.fetch = function (input, init) {
+                if (typeof input === 'string') {
+                    return origFetch.call(this, patchListRequestUrl(input), init);
+                }
+                if (input && typeof input.url === 'string') {
+                    try {
+                        const patched = patchListRequestUrl(input.url);
+                        if (patched !== input.url) {
+                            return origFetch.call(this, new Request(patched, input), init);
+                        }
+                    } catch (_) { /* ignore */ }
+                }
+                return origFetch.call(this, input, init);
+            };
+        }
     })();
 
 })();
