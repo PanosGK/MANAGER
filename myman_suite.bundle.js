@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v411 / Custom Ver. 41.55 — generated, do not edit */
+/* MyManager Suite bundle v412 / Custom Ver. 41.56 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '411',
+        version: '412',
         loaderVersion: '41',
-        silentVersion: '55',
-        displayVersion: '41.55',
+        silentVersion: '56',
+        displayVersion: '41.56',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -5632,161 +5632,52 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     window.getInstalledLoaderVersion = getInstalledLoaderVersion;
 
     /**
-     * PHPRunner keeps the last simple-search (e.g. "6826") in the ctlSearchFor
-     * field and in session. Clicking a column sort like
-     * service_list.php?orderby=adInvoiceDate then re-runs that search.
-     * If the URL has no qs=, treat leftover search as stale and drop it.
+     * Column sort must NOT re-run PHPRunner's leftover simple-search (e.g. 6826).
+     * Take over .rnr-orderlink clicks and go to a show-all + orderby URL.
      */
-    (function installStaleRunnerSearchGuard() {
+    (function installSortWithoutSessionSearch() {
         const LIST_RE = /service_list\.php|products_list\.php|sparepartstoorder_list\.php|srvorders_list\.php/i;
-        const CLEAR_KEY = 'tm_stale_runner_qs_cleared';
 
         function onListPage() {
             return LIST_RE.test(location.pathname || '');
         }
 
-        function urlQs() {
+        function sortTargetUrl(anchor) {
+            const raw = anchor.getAttribute('href') || anchor.href || '';
+            if (!raw || raw === '#' || raw.toLowerCase().indexOf('javascript:') === 0) {
+                return '';
+            }
             try {
-                return String(new URLSearchParams(location.search).get('qs') || '').trim();
+                const u = new URL(raw, location.origin);
+                if (!LIST_RE.test(u.pathname)) return '';
+                u.searchParams.delete('qs');
+                u.searchParams.set('a', 'showall');
+                return u.pathname + u.search + u.hash;
             } catch (_) {
                 return '';
             }
         }
 
-        function nativeFields() {
-            return document.querySelectorAll('input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]');
-        }
-
-        function leftoverQs() {
-            let found = '';
-            nativeFields().forEach((el) => {
-                const v = String(el.value || el.getAttribute('value') || '').trim();
-                if (v && !found) found = v;
-            });
-            return found;
-        }
-
-        function wipeNativeFields() {
-            nativeFields().forEach((el) => {
-                el.value = '';
-                el.defaultValue = '';
-                try { el.setAttribute('value', ''); } catch (_) { /* ignore */ }
-            });
-        }
-
-        function stripQsFromUrlString(href) {
-            if (!href || href === '#' || href.startsWith('javascript:')) return href;
-            try {
-                const u = new URL(href, location.origin);
-                if (!u.searchParams.has('qs')) return href;
-                u.searchParams.delete('qs');
-                return u.pathname + u.search + u.hash;
-            } catch (_) {
-                return href;
-            }
-        }
-
-        function dropSessionSearchKeepingSort() {
-            if (urlQs()) return;
-            const leftover = leftoverQs();
-            if (!leftover) return;
-            try {
-                if (sessionStorage.getItem(CLEAR_KEY) === leftover) {
-                    wipeNativeFields();
-                    return;
-                }
-                sessionStorage.setItem(CLEAR_KEY, leftover);
-            } catch (_) { /* ignore */ }
-
-            wipeNativeFields();
-            try {
-                const u = new URL(location.href);
-                u.searchParams.delete('qs');
-                u.searchParams.set('a', 'showall');
-                location.replace(u.pathname + u.search + u.hash);
-            } catch (_) { /* ignore */ }
-        }
-
-        function isSortLink(el) {
-            if (!el || el.nodeType !== 1) return false;
-            const a = el.closest?.('a');
-            if (!a) return false;
-            if (a.classList.contains('rnr-orderlink')) return true;
+        function isSortAnchor(el) {
+            if (!el || typeof el.closest !== 'function') return null;
+            const a = el.closest('a');
+            if (!a) return null;
+            if (a.classList.contains('rnr-orderlink')) return a;
             const href = a.getAttribute('href') || '';
-            return /[?&]orderby=/i.test(href);
+            if (/[?&]orderby=/i.test(href)) return a;
+            return null;
         }
 
         document.addEventListener('click', (e) => {
             if (!onListPage()) return;
-            const t = e.target;
-            if (!t || typeof t.closest !== 'function') return;
-
-            if (isSortLink(t)) {
-                wipeNativeFields();
-                const a = t.closest('a');
-                const cleaned = stripQsFromUrlString(a.getAttribute('href') || a.href || '');
-                if (cleaned && cleaned !== a.getAttribute('href')) {
-                    a.setAttribute('href', cleaned);
-                }
-                return;
-            }
-
-            if (!e.isTrusted) return;
-            const nativeBtn = t.closest(
-                'a[id^="searchButtTop"], a[id^="searchButton"], a.rnr-button[data-icon="search"]'
-            );
-            if (!nativeBtn) return;
-            if (urlQs()) return;
-            const q = leftoverQs();
-            if (!q) return;
+            const a = isSortAnchor(e.target);
+            if (!a) return;
+            const dest = sortTargetUrl(a);
+            if (!dest) return;
             e.preventDefault();
             e.stopImmediatePropagation();
-            wipeNativeFields();
+            window.location.assign(dest);
         }, true);
-
-        document.addEventListener('submit', (e) => {
-            if (!onListPage() || !e.isTrusted) return;
-            if (urlQs()) return;
-            const form = e.target;
-            if (!form || typeof form.querySelector !== 'function') return;
-            if (!form.querySelector('input[id^="ctlSearchFor"], input[name^="ctlSearchFor"]')) return;
-            const q = leftoverQs();
-            if (!q) return;
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            wipeNativeFields();
-        }, true);
-
-        document.addEventListener('keydown', (e) => {
-            if (!onListPage() || e.key !== 'Enter' || !e.isTrusted) return;
-            const t = e.target;
-            if (!t) return;
-            if (!/ctlSearchFor/i.test(String(t.id || '')) && !/ctlSearchFor/i.test(String(t.name || ''))) return;
-            // Allow a real typed search; block leftover-only Enter (no qs in URL).
-            if (urlQs()) return;
-            if (document.activeElement === t && String(t.value || '').trim()) {
-                // User is focused in the box — treat as intentional.
-                return;
-            }
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            wipeNativeFields();
-        }, true);
-
-        function boot() {
-            if (!onListPage()) return;
-            if (urlQs()) return;
-            dropSessionSearchKeepingSort();
-            wipeNativeFields();
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', boot);
-        } else {
-            boot();
-        }
-        window.addEventListener('pageshow', boot);
-        [0, 200, 800, 1600].forEach((ms) => setTimeout(boot, ms));
     })();
 
 })();
