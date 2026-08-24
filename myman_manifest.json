@@ -1,11 +1,11 @@
 {
-  "version": "409",
+  "version": "410",
   "loaderVersion": "41",
-  "silentVersion": "53",
-  "displayVersion": "41.53",
+  "silentVersion": "54",
+  "displayVersion": "41.54",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Block random native leftover search (e.g. 6826) unless typed this page",
+  "releaseNotes": "Remove footersearch module entirely",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
@@ -41,7 +41,6 @@
     "myman_eod.js",
     "myman_repair_reminders.js",
     "myman_repair_collab.js",
-    "myman_repair_phone.js",
-    "myman_footersearch.js"
+    "myman_repair_phone.js"
   ]
 }

@@ -5318,10 +5318,6 @@
         };
         trySetupFooterBranding();
 
-        if (typeof window.initFooterQuickSearch === 'function') {
-            window.initFooterQuickSearch(config);
-        }
-
         // End of Day Checklist fallback if footer layout is missing
         if (!document.getElementById('tm-footer-controls-right')
             && typeof window.initEODChecklist === 'function') {
