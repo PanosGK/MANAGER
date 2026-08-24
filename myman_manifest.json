@@ -1,11 +1,11 @@
 {
-  "version": "415",
+  "version": "416",
   "loaderVersion": "41",
-  "silentVersion": "59",
-  "displayVersion": "41.59",
+  "silentVersion": "60",
+  "displayVersion": "41.60",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Clear PHPRunner session search after background lookups via empty search + show-all",
+  "releaseNotes": "Stop automatic service-list lookups that leave a stale search in the PHPRunner session",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

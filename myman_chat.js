@@ -69,6 +69,14 @@
     const CHAT_DEFAULT_WORK_START = '09:00';
     const CHAT_DEFAULT_WORK_END = '18:00';
     const CHAT_REPAIR_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=';
+    /**
+     * Repair previews are built by searching the service list in the background.
+     * PHPRunner keeps that search in the server session and replays it on the
+     * next list navigation, so an unrelated repair number from chat ends up
+     * filtering the user's list. Off until a working session reset is known;
+     * cards fall back to plain links.
+     */
+    const CHAT_REPAIR_CARD_PREFETCH = false;
     const CHAT_REPAIR_LIST_URL = 'https://thefixers.mymanager.gr/mymanagerservice/service_list.php';
     const CHAT_TYPING_TTL_MS = 4200;
     const CHAT_MAX_LEN = 500;
@@ -1057,6 +1065,12 @@
             if (cached?.ok) {
                 return renderChatRepairCardHtml(num, cached);
             }
+            if (!CHAT_REPAIR_CARD_PREFETCH) {
+                return `<a class="tm-chat-repair-card" href="${escapeHtml(CHAT_REPAIR_SEARCH_URL + encodeURIComponent(num))}" target="_blank" rel="noopener noreferrer" data-repair="${escapeHtml(num)}" title="Άνοιγμα αναζήτησης">
+                    <span class="tm-chat-repair-card-id">#${escapeHtml(num)}</span>
+                    <span class="tm-chat-repair-card-miss">Άνοιγμα</span>
+                </a>`;
+            }
             return `<div class="tm-chat-repair-card is-loading" data-repair="${escapeHtml(num)}" aria-busy="true">
                 <span class="tm-chat-repair-card-id">#${escapeHtml(num)}</span>
                 <span class="tm-chat-repair-card-miss">Φόρτωση…</span>
@@ -1175,6 +1189,7 @@
     }
 
     function hydrateChatRepairCards(root) {
+        if (!CHAT_REPAIR_CARD_PREFETCH) return;
         const scope = root || document.getElementById('tm-chat-messages');
         if (!scope) return;
         scope.querySelectorAll('.tm-chat-repair-card[data-repair].is-loading, .tm-chat-repair-card.is-loading').forEach((el) => {

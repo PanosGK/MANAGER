@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v415 / Custom Ver. 41.59 — generated, do not edit */
+/* MyManager Suite bundle v416 / Custom Ver. 41.60 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '415',
+        version: '416',
         loaderVersion: '41',
-        silentVersion: '59',
-        displayVersion: '41.59',
+        silentVersion: '60',
+        displayVersion: '41.60',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -20858,6 +20858,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     const CHAT_DEFAULT_WORK_START = '09:00';
     const CHAT_DEFAULT_WORK_END = '18:00';
     const CHAT_REPAIR_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=';
+    /**
+     * Repair previews are built by searching the service list in the background.
+     * PHPRunner keeps that search in the server session and replays it on the
+     * next list navigation, so an unrelated repair number from chat ends up
+     * filtering the user's list. Off until a working session reset is known;
+     * cards fall back to plain links.
+     */
+    const CHAT_REPAIR_CARD_PREFETCH = false;
     const CHAT_REPAIR_LIST_URL = 'https://thefixers.mymanager.gr/mymanagerservice/service_list.php';
     const CHAT_TYPING_TTL_MS = 4200;
     const CHAT_MAX_LEN = 500;
@@ -21846,6 +21854,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             if (cached?.ok) {
                 return renderChatRepairCardHtml(num, cached);
             }
+            if (!CHAT_REPAIR_CARD_PREFETCH) {
+                return `<a class="tm-chat-repair-card" href="${escapeHtml(CHAT_REPAIR_SEARCH_URL + encodeURIComponent(num))}" target="_blank" rel="noopener noreferrer" data-repair="${escapeHtml(num)}" title="Άνοιγμα αναζήτησης">
+                    <span class="tm-chat-repair-card-id">#${escapeHtml(num)}</span>
+                    <span class="tm-chat-repair-card-miss">Άνοιγμα</span>
+                </a>`;
+            }
             return `<div class="tm-chat-repair-card is-loading" data-repair="${escapeHtml(num)}" aria-busy="true">
                 <span class="tm-chat-repair-card-id">#${escapeHtml(num)}</span>
                 <span class="tm-chat-repair-card-miss">Φόρτωση…</span>
@@ -21964,6 +21978,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function hydrateChatRepairCards(root) {
+        if (!CHAT_REPAIR_CARD_PREFETCH) return;
         const scope = root || document.getElementById('tm-chat-messages');
         if (!scope) return;
         scope.querySelectorAll('.tm-chat-repair-card[data-repair].is-loading, .tm-chat-repair-card.is-loading').forEach((el) => {
@@ -69514,6 +69529,15 @@ if (typeof window !== 'undefined') {
     console.log('[MMS Order Link] Module loaded');
 
     /**
+     * Turning the order's repair number into a direct link means searching the
+     * service list in the background. PHPRunner keeps that search in the server
+     * session and replays it on the user's next list navigation, filtering their
+     * list by an unrelated repair. Off until a working session reset is known;
+     * the button falls back to a search link.
+     */
+    const ORDER_REPAIR_LINK_PREFETCH = false;
+
+    /**
      * Gets the current repair status from the page
      * @returns {string|null} The status ID (e.g., '65') or null if not found
      */
@@ -70154,10 +70178,15 @@ if (typeof window !== 'undefined') {
         }
 
         console.log('[MMS Order Link] Order page repair ID:', repairId);
-        setRepairFromOrderButtonState(repairId, 'loading');
 
         const searchListUrl = `https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=${encodeURIComponent(repairId)}&statusid=all&menuItemId=1`;
 
+        if (!ORDER_REPAIR_LINK_PREFETCH) {
+            setRepairFromOrderButtonState(repairId, 'search-fallback', searchListUrl);
+            return;
+        }
+
+        setRepairFromOrderButtonState(repairId, 'loading');
         try {
             const repairUrl = await fetchRepairLinkForOrder(repairId);
             console.log('[MMS Order Link] Resolved repair URL:', repairUrl);

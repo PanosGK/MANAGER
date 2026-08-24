@@ -15,6 +15,15 @@
     console.log('[MMS Order Link] Module loaded');
 
     /**
+     * Turning the order's repair number into a direct link means searching the
+     * service list in the background. PHPRunner keeps that search in the server
+     * session and replays it on the user's next list navigation, filtering their
+     * list by an unrelated repair. Off until a working session reset is known;
+     * the button falls back to a search link.
+     */
+    const ORDER_REPAIR_LINK_PREFETCH = false;
+
+    /**
      * Gets the current repair status from the page
      * @returns {string|null} The status ID (e.g., '65') or null if not found
      */
@@ -655,10 +664,15 @@
         }
 
         console.log('[MMS Order Link] Order page repair ID:', repairId);
-        setRepairFromOrderButtonState(repairId, 'loading');
 
         const searchListUrl = `https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=${encodeURIComponent(repairId)}&statusid=all&menuItemId=1`;
 
+        if (!ORDER_REPAIR_LINK_PREFETCH) {
+            setRepairFromOrderButtonState(repairId, 'search-fallback', searchListUrl);
+            return;
+        }
+
+        setRepairFromOrderButtonState(repairId, 'loading');
         try {
             const repairUrl = await fetchRepairLinkForOrder(repairId);
             console.log('[MMS Order Link] Resolved repair URL:', repairUrl);
