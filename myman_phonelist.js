@@ -104,8 +104,12 @@ const PHONE_CATALOG_TRANSLATIONS = {
     'My store saved': '\u0391\u03C0\u03BF\u03B8\u03B7\u03BA\u03B5\u03C8\u03B5 \u03C4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03C3\u03B1\u03C2',
     'Select store': '\u0395\u03C0\u03B9\u03BB\u03AD\u03BE\u03C4\u03B5 \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1',
     'Store addresses': '\u0394\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03B7\u03BC\u03AC\u03C4\u03C9\u03BD',
-    'Store addresses hint': '\u0392\u03AC\u03BB\u03C4\u03B5 \u03C4\u03B7 \u03C4\u03B1\u03C7\u03C5\u03B4\u03C1\u03BF\u03BC\u03B7\u03C3\u03AF\u03B1 \u03BA\u03AC\u03B8\u03B5 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2 \u03B3\u03B9\u03B1 \u03BD\u03B1 \u03C4\u03B1\u03BE\u03B9\u03BD\u03BF\u03BC\u03BF\u03CD\u03BD\u03C4\u03B1\u03B9 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1 \u0386\u03BB\u03BB\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03B1\u03C0\u03CC \u03C4\u03B7 \u03BC\u03B9\u03BA\u03C1\u03CC\u03C4\u03B5\u03C1\u03B7 \u03C3\u03C4\u03B7 \u03BC\u03B5\u03B3\u03B1\u03BB\u03CD\u03C4\u03B5\u03C1\u03B7 \u03B1\u03C0\u03CC\u03C3\u03C4\u03B1\u03C3\u03B7.',
+    'Store addresses hint': '\u0392\u03AC\u03BB\u03C4\u03B5 \u03C4\u03B7 \u03C4\u03B1\u03C7\u03C5\u03B4\u03C1\u03BF\u03BC\u03B7\u03C3\u03AF\u03B1 \u03BA\u03B1\u03B9 \u03C4\u03BF \u03C4\u03B7\u03BB\u03AD\u03C6\u03C9\u03BD\u03BF \u03BA\u03AC\u03B8\u03B5 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2. \u0397 \u03B4\u03B9\u03B5\u03CD\u03B8\u03C5\u03BD\u03C3\u03B7 \u03C7\u03C1\u03B7\u03C3\u03B9\u03BC\u03B5\u03CD\u03B5\u03B9 \u03B3\u03B9\u03B1 \u03C4\u03B1\u03BE\u03B9\u03BD\u03CC\u03BC\u03B7\u03C3\u03B7 \u03B1\u03C0\u03CC\u03C3\u03C4\u03B1\u03C3\u03B7\u03C2\u00B7 \u03C4\u03BF \u03C4\u03B7\u03BB\u03AD\u03C6\u03C9\u03BD\u03BF \u03B5\u03BC\u03C6\u03B1\u03BD\u03AF\u03B6\u03B5\u03B9 \u03BA\u03BF\u03C5\u03BC\u03C0\u03AF \u03BA\u03BB\u03AE\u03C3\u03B7\u03C2 \u03C3\u03C4\u03BF\u03BD \u03BA\u03B1\u03C4\u03AC\u03BB\u03BF\u03B3\u03BF.',
     'Store address placeholder': '\u03A0.\u03C7. \u039A\u03B1\u03C3\u03C3\u03B1\u03BD\u03B4\u03C1\u03BF\u03CD 45, \u0392\u03C1\u03B9\u03BB\u03AE\u03C3\u03C3\u03B9\u03B1',
+    'Store phone': '\u03A4\u03B7\u03BB\u03AD\u03C6\u03C9\u03BD\u03BF \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2',
+    'Store phone placeholder': '\u03C0.\u03C7. 2101234567',
+    'Call store': '\u039A\u03BB\u03AE\u03C3\u03B7 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2',
+    'No store phone set': '\u0394\u03B5\u03BD \u03AD\u03C7\u03B5\u03B9 \u03BF\u03C1\u03B9\u03C3\u03C4\u03B5\u03AF \u03C4\u03B7\u03BB\u03AD\u03C6\u03C9\u03BD\u03BF',
     'Geocode addresses': '\u0395\u03C5\u03B8\u03B5\u03C4\u03B7\u03C3\u03AF\u03B1 \u03C3\u03C5\u03BD\u03C4\u03B5\u03C4\u03B1\u03B3\u03BC\u03AD\u03BD\u03C9\u03BD',
     'Geocoding stores': '\u0395\u03C5\u03B8\u03B5\u03C4\u03B7\u03C3\u03AF\u03B1 \u03C4\u03C9\u03BD \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03C9\u03BD\u2026',
     'Geocode done': '\u039F\u03B9 \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2 \u03B5\u03BD\u03B7\u03BC\u03B5\u03C1\u03CE\u03B8\u03B7\u03BA\u03B1\u03BD',
@@ -1591,21 +1595,49 @@ function getStoreAddressEntry(storeName) {
 function setStoreAddressEntry(storeName, data) {
     const map = loadStoreAddresses();
     const key = resolveStoreAddressKey(storeName, map) || normalizeStoreDisplayName(storeName);
-    const address = String(data?.address || '').trim();
-    if (!address) {
+    const prev = map[key] && typeof map[key] === 'object' ? { ...map[key] } : {};
+    const next = { ...prev };
+
+    if (data && Object.prototype.hasOwnProperty.call(data, 'address')) {
+        next.address = String(data.address || '').trim();
+        if (Object.prototype.hasOwnProperty.call(data, 'lat')) next.lat = data.lat;
+        if (Object.prototype.hasOwnProperty.call(data, 'lng')) next.lng = data.lng;
+        if (Object.prototype.hasOwnProperty.call(data, 'geocodedAt')) next.geocodedAt = data.geocodedAt;
+        if (!next.address) {
+            delete next.lat;
+            delete next.lng;
+            delete next.geocodedAt;
+            delete next.address;
+        }
+    }
+    if (data && Object.prototype.hasOwnProperty.call(data, 'phone')) {
+        const phone = String(data.phone || '').trim();
+        if (phone) next.phone = phone.slice(0, 40);
+        else delete next.phone;
+    }
+
+    if (!next.address && !next.phone) {
         delete map[key];
         saveStoreAddresses(map);
         return null;
     }
-    map[key] = {
-        ...(map[key] || {}),
-        address,
-        lat: data?.lat ?? map[key]?.lat,
-        lng: data?.lng ?? map[key]?.lng,
-        geocodedAt: data?.geocodedAt ?? map[key]?.geocodedAt,
-    };
+    map[key] = next;
     saveStoreAddresses(map);
     return map[key];
+}
+
+function getStorePhone(storeName) {
+    const entry = getStoreAddressEntry(storeName);
+    return String(entry?.phone || '').trim();
+}
+
+function normalizeStorePhoneForTel(phone) {
+    const raw = String(phone || '').trim();
+    if (!raw) return '';
+    const hasPlus = raw.startsWith('+');
+    const digits = raw.replace(/[^\d]/g, '');
+    if (!digits) return '';
+    return hasPlus ? `+${digits}` : digits;
 }
 
 function getStoreCoordinates(storeName) {
@@ -4130,6 +4162,8 @@ window.loadStoreAddresses = loadStoreAddresses;
 window.saveStoreAddresses = saveStoreAddresses;
 window.getStoreAddressEntry = getStoreAddressEntry;
 window.setStoreAddressEntry = setStoreAddressEntry;
+window.getStorePhone = getStorePhone;
+window.normalizeStorePhoneForTel = normalizeStorePhoneForTel;
 window.getStoreCoordinates = getStoreCoordinates;
 window.getStoreDistanceKm = getStoreDistanceKm;
 window.getStoreDistanceLabel = getStoreDistanceLabel;

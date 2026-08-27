@@ -934,9 +934,13 @@
                     row.classList.toggle('is-open');
                     head.setAttribute('aria-expanded', row.classList.contains('is-open') ? 'true' : 'false');
                 };
-                head.addEventListener('click', toggle);
+                head.addEventListener('click', (e) => {
+                    if (e.target.closest('[data-tm-sl-call-store], .tm-sl-store-call')) return;
+                    toggle();
+                });
                 head.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
+                        if (e.target.closest('[data-tm-sl-call-store], .tm-sl-store-call')) return;
                         e.preventDefault();
                         toggle();
                     }

@@ -565,23 +565,21 @@
         let draftOverrides = { ...rules.overrides };
 
         const persistAddressesFromForm = () => {
-            panel.querySelectorAll('.tm-store-address-input').forEach((input) => {
-                const storeName = input.dataset.store;
-                const address = input.value.trim();
-                const prev = window.getStoreAddressEntry?.(storeName);
-                if (!address) {
-                    window.setStoreAddressEntry?.(storeName, { address: '' });
-                    return;
+            panel.querySelectorAll('.tm-store-address-input').forEach((addressInput) => {
+                const storeName = addressInput.dataset.store;
+                if (!storeName) return;
+                const phoneInput = [...panel.querySelectorAll('.tm-store-phone-input')]
+                    .find((el) => el.dataset.store === storeName);
+                const address = addressInput.value.trim();
+                const phone = phoneInput ? phoneInput.value.trim() : '';
+                const prev = window.getStoreAddressEntry?.(storeName) || {};
+                const patch = { address, phone };
+                if (address && prev.address === address && prev.lat != null && prev.lng != null) {
+                    patch.lat = prev.lat;
+                    patch.lng = prev.lng;
+                    patch.geocodedAt = prev.geocodedAt;
                 }
-                if (prev?.address === address && prev?.lat != null && prev?.lng != null) {
-                    return;
-                }
-                window.setStoreAddressEntry?.(storeName, {
-                    address,
-                    lat: prev?.address === address ? prev?.lat : undefined,
-                    lng: prev?.address === address ? prev?.lng : undefined,
-                    geocodedAt: prev?.address === address ? prev?.geocodedAt : undefined,
-                });
+                window.setStoreAddressEntry?.(storeName, patch);
             });
         };
 
@@ -595,6 +593,7 @@
             addressListEl.innerHTML = stores.map((storeName) => {
                 const entry = window.getStoreAddressEntry?.(storeName) || {};
                 const address = entry.address || '';
+                const phone = entry.phone || '';
                 const distFromMe = myStore && myStore !== storeName
                     ? window.getStoreDistanceLabel?.(myStore, storeName)
                     : '';
@@ -604,11 +603,15 @@
                 } else if (address) {
                     status = t('Geocoding stores');
                 }
+                const phoneStatus = phone ? '' : `<div style="font-size:10px;opacity:0.55;margin-top:2px;">${t('No store phone set')}</div>`;
                 return `
                 <div class="tm-store-address-row" style="padding:8px 0;border-bottom:1px solid var(--tm-shop-item-border);">
                     <div style="font-size:12px;font-weight:700;margin-bottom:6px;word-break:break-word;">${storeName}</div>
                     <input type="text" class="tm-store-address-input" data-store="${storeName.replace(/"/g, '&quot;')}" value="${address.replace(/"/g, '&quot;')}" placeholder="${t('Store address placeholder')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
-                    <div class="tm-store-address-status" style="font-size:10px;opacity:0.65;margin-top:4px;">${status}</div>
+                    <div class="tm-store-address-status" style="font-size:10px;opacity:0.65;margin-top:4px;margin-bottom:6px;">${status}</div>
+                    <label style="display:block;font-size:11px;font-weight:600;margin-bottom:4px;opacity:0.85;">${t('Store phone')}</label>
+                    <input type="tel" class="tm-store-phone-input" data-store="${storeName.replace(/"/g, '&quot;')}" value="${phone.replace(/"/g, '&quot;')}" placeholder="${t('Store phone placeholder')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
+                    ${phoneStatus}
                 </div>`;
             }).join('');
         };

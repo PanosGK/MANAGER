@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v426 / Custom Ver. 42.10 — generated, do not edit */
+/* MyManager Suite bundle v427 / Custom Ver. 42.11 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '426',
+        version: '427',
         loaderVersion: '42',
-        silentVersion: '10',
-        displayVersion: '42.10',
+        silentVersion: '11',
+        displayVersion: '42.11',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
@@ -54232,6 +54232,7 @@ window.initOrderTracking = initOrderTracking;
         palette: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22a10 10 0 0 0 10-10c0-2-1-4-2.5-5.5"/></svg>',
         tag: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
         phone: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
+        phoneCall: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
         export: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
         emptyPhone: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
         emptySearch: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>',
@@ -54921,6 +54922,31 @@ window.initOrderTracking = initOrderTracking;
             color: var(--tm-primary-color);
             border: 1px solid color-mix(in srgb, var(--tm-primary-color) 24%, transparent);
             white-space: nowrap;
+        }
+        .tm-sl-store-call {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            border-radius: 8px;
+            border: 1px solid color-mix(in srgb, var(--tm-success-color, #22c55e) 35%, var(--tm-shop-item-border, #e2e8f0));
+            background: color-mix(in srgb, var(--tm-success-color, #22c55e) 12%, var(--tm-shop-item-bg, #fff));
+            color: var(--tm-success-color, #16a34a);
+            cursor: pointer;
+            flex-shrink: 0;
+            text-decoration: none;
+            transition: background 0.12s, transform 0.12s, border-color 0.12s;
+        }
+        .tm-sl-store-call:hover {
+            background: color-mix(in srgb, var(--tm-success-color, #22c55e) 22%, var(--tm-shop-item-bg, #fff));
+            border-color: var(--tm-success-color, #22c55e);
+            transform: scale(1.05);
+        }
+        .tm-sl-store-call:focus-visible {
+            outline: 2px solid color-mix(in srgb, var(--tm-success-color, #22c55e) 55%, transparent);
+            outline-offset: 2px;
         }
         .tm-sl-store-bb-status {
             display: inline-flex; align-items: center; gap: 4px;
@@ -57500,6 +57526,21 @@ window.initOrderTracking = initOrderTracking;
         </section>`;
     }
 
+    function buildStoreCallButtonHTML(storeName) {
+        const phone = typeof window.getStorePhone === 'function'
+            ? window.getStorePhone(storeName)
+            : '';
+        const tel = typeof window.normalizeStorePhoneForTel === 'function'
+            ? window.normalizeStorePhoneForTel(phone)
+            : String(phone || '').replace(/[^\d+]/g, '');
+        if (!tel) return '';
+        const label = typeof window.phoneCatalogT === 'function'
+            ? window.phoneCatalogT('Call store')
+            : 'Κλήση καταστήματος';
+        const title = `${label}: ${phone}`;
+        return `<a class="tm-sl-store-call" href="tel:${esc(tel)}" data-tm-sl-call-store="${esc(storeName)}" title="${esc(title)}" aria-label="${esc(title)}" onclick="event.stopPropagation()">${ICON.phoneCall}</a>`;
+    }
+
     function buildStoreRowHTML(store, idx, ctx) {
         const compact = !!ctx?.networkCompact;
         const signal = getStoreSignalClass(store.variants.length);
@@ -57519,6 +57560,7 @@ window.initOrderTracking = initOrderTracking;
         const distChip = distLabel
             ? `<span class="tm-sl-store-dist" title="Απόσταση από ${esc(getMyStoreLabel())}">${esc(distLabel)}</span>`
             : '';
+        const callBtn = buildStoreCallButtonHTML(store.name);
         const qtyLabel = compact
             ? String(store.variants.length)
             : (store.variants.length === 1 ? '1 τεμάχιο' : `${store.variants.length} τεμ.`);
@@ -57527,13 +57569,14 @@ window.initOrderTracking = initOrderTracking;
             ? `<div class="tm-sl-store-head tm-sl-store-head--inline" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button" aria-expanded="false">
                 <span class="tm-sl-store-icon">${ICON.store.replace('width="16"', 'width="15"').replace('height="16"', 'height="15"')}</span>
                 <span class="tm-sl-store-name">${esc(store.name)}</span>
-                <div class="tm-sl-store-head__meta">${bbBadge}${distChip}<span class="tm-sl-store-qty">${qtyLabel}</span></div>
+                <div class="tm-sl-store-head__meta">${callBtn}${bbBadge}${distChip}<span class="tm-sl-store-qty">${qtyLabel}</span></div>
                 <span class="tm-sl-store-chevron">${ICON.chevron.replace('width="16"', 'width="14"').replace('height="16"', 'height="14"')}</span>
             </div>`
             : `<div class="tm-sl-store-head" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button" aria-expanded="false">
                 <div class="tm-sl-store-head__top">
                     <span class="tm-sl-store-icon">${ICON.store}</span>
                     <span class="tm-sl-store-name">${esc(store.name)}</span>
+                    ${callBtn}
                     <span class="tm-sl-store-chevron">${ICON.chevron}</span>
                 </div>
                 <div class="tm-sl-store-head__meta">
@@ -57576,6 +57619,7 @@ window.initOrderTracking = initOrderTracking;
             <div class="tm-sl-mine-detail-head">
                 <h3>${esc(myStoreLabel)}</h3>
                 <div class="tm-sl-mine-detail-head__meta">
+                    ${buildStoreCallButtonHTML(myStoreLabel)}
                     <span>${esc(qtyLabel)}</span>
                     ${bbMeta}
                 </div>
@@ -57596,6 +57640,7 @@ window.initOrderTracking = initOrderTracking;
 
         return `<h3 id="tm-sl-network-store-title">${esc(store.name)}</h3>
             <div class="tm-sl-network-detail-head__meta" id="tm-sl-network-store-meta">
+                ${buildStoreCallButtonHTML(store.name)}
                 ${distLabel ? `<span class="tm-sl-store-dist">${esc(distLabel)}</span>` : ''}
                 ${bbBadge}
                 <span>${qtyLabel}</span>
@@ -58155,8 +58200,12 @@ const PHONE_CATALOG_TRANSLATIONS = {
     'My store saved': '\u0391\u03C0\u03BF\u03B8\u03B7\u03BA\u03B5\u03C8\u03B5 \u03C4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03C3\u03B1\u03C2',
     'Select store': '\u0395\u03C0\u03B9\u03BB\u03AD\u03BE\u03C4\u03B5 \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1',
     'Store addresses': '\u0394\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03B7\u03BC\u03AC\u03C4\u03C9\u03BD',
-    'Store addresses hint': '\u0392\u03AC\u03BB\u03C4\u03B5 \u03C4\u03B7 \u03C4\u03B1\u03C7\u03C5\u03B4\u03C1\u03BF\u03BC\u03B7\u03C3\u03AF\u03B1 \u03BA\u03AC\u03B8\u03B5 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2 \u03B3\u03B9\u03B1 \u03BD\u03B1 \u03C4\u03B1\u03BE\u03B9\u03BD\u03BF\u03BC\u03BF\u03CD\u03BD\u03C4\u03B1\u03B9 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1 \u0386\u03BB\u03BB\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03B1\u03C0\u03CC \u03C4\u03B7 \u03BC\u03B9\u03BA\u03C1\u03CC\u03C4\u03B5\u03C1\u03B7 \u03C3\u03C4\u03B7 \u03BC\u03B5\u03B3\u03B1\u03BB\u03CD\u03C4\u03B5\u03C1\u03B7 \u03B1\u03C0\u03CC\u03C3\u03C4\u03B1\u03C3\u03B7.',
+    'Store addresses hint': '\u0392\u03AC\u03BB\u03C4\u03B5 \u03C4\u03B7 \u03C4\u03B1\u03C7\u03C5\u03B4\u03C1\u03BF\u03BC\u03B7\u03C3\u03AF\u03B1 \u03BA\u03B1\u03B9 \u03C4\u03BF \u03C4\u03B7\u03BB\u03AD\u03C6\u03C9\u03BD\u03BF \u03BA\u03AC\u03B8\u03B5 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2. \u0397 \u03B4\u03B9\u03B5\u03CD\u03B8\u03C5\u03BD\u03C3\u03B7 \u03C7\u03C1\u03B7\u03C3\u03B9\u03BC\u03B5\u03CD\u03B5\u03B9 \u03B3\u03B9\u03B1 \u03C4\u03B1\u03BE\u03B9\u03BD\u03CC\u03BC\u03B7\u03C3\u03B7 \u03B1\u03C0\u03CC\u03C3\u03C4\u03B1\u03C3\u03B7\u03C2\u00B7 \u03C4\u03BF \u03C4\u03B7\u03BB\u03AD\u03C6\u03C9\u03BD\u03BF \u03B5\u03BC\u03C6\u03B1\u03BD\u03AF\u03B6\u03B5\u03B9 \u03BA\u03BF\u03C5\u03BC\u03C0\u03AF \u03BA\u03BB\u03AE\u03C3\u03B7\u03C2 \u03C3\u03C4\u03BF\u03BD \u03BA\u03B1\u03C4\u03AC\u03BB\u03BF\u03B3\u03BF.',
     'Store address placeholder': '\u03A0.\u03C7. \u039A\u03B1\u03C3\u03C3\u03B1\u03BD\u03B4\u03C1\u03BF\u03CD 45, \u0392\u03C1\u03B9\u03BB\u03AE\u03C3\u03C3\u03B9\u03B1',
+    'Store phone': '\u03A4\u03B7\u03BB\u03AD\u03C6\u03C9\u03BD\u03BF \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2',
+    'Store phone placeholder': '\u03C0.\u03C7. 2101234567',
+    'Call store': '\u039A\u03BB\u03AE\u03C3\u03B7 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2',
+    'No store phone set': '\u0394\u03B5\u03BD \u03AD\u03C7\u03B5\u03B9 \u03BF\u03C1\u03B9\u03C3\u03C4\u03B5\u03AF \u03C4\u03B7\u03BB\u03AD\u03C6\u03C9\u03BD\u03BF',
     'Geocode addresses': '\u0395\u03C5\u03B8\u03B5\u03C4\u03B7\u03C3\u03AF\u03B1 \u03C3\u03C5\u03BD\u03C4\u03B5\u03C4\u03B1\u03B3\u03BC\u03AD\u03BD\u03C9\u03BD',
     'Geocoding stores': '\u0395\u03C5\u03B8\u03B5\u03C4\u03B7\u03C3\u03AF\u03B1 \u03C4\u03C9\u03BD \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03C9\u03BD\u2026',
     'Geocode done': '\u039F\u03B9 \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2 \u03B5\u03BD\u03B7\u03BC\u03B5\u03C1\u03CE\u03B8\u03B7\u03BA\u03B1\u03BD',
@@ -59642,21 +59691,49 @@ function getStoreAddressEntry(storeName) {
 function setStoreAddressEntry(storeName, data) {
     const map = loadStoreAddresses();
     const key = resolveStoreAddressKey(storeName, map) || normalizeStoreDisplayName(storeName);
-    const address = String(data?.address || '').trim();
-    if (!address) {
+    const prev = map[key] && typeof map[key] === 'object' ? { ...map[key] } : {};
+    const next = { ...prev };
+
+    if (data && Object.prototype.hasOwnProperty.call(data, 'address')) {
+        next.address = String(data.address || '').trim();
+        if (Object.prototype.hasOwnProperty.call(data, 'lat')) next.lat = data.lat;
+        if (Object.prototype.hasOwnProperty.call(data, 'lng')) next.lng = data.lng;
+        if (Object.prototype.hasOwnProperty.call(data, 'geocodedAt')) next.geocodedAt = data.geocodedAt;
+        if (!next.address) {
+            delete next.lat;
+            delete next.lng;
+            delete next.geocodedAt;
+            delete next.address;
+        }
+    }
+    if (data && Object.prototype.hasOwnProperty.call(data, 'phone')) {
+        const phone = String(data.phone || '').trim();
+        if (phone) next.phone = phone.slice(0, 40);
+        else delete next.phone;
+    }
+
+    if (!next.address && !next.phone) {
         delete map[key];
         saveStoreAddresses(map);
         return null;
     }
-    map[key] = {
-        ...(map[key] || {}),
-        address,
-        lat: data?.lat ?? map[key]?.lat,
-        lng: data?.lng ?? map[key]?.lng,
-        geocodedAt: data?.geocodedAt ?? map[key]?.geocodedAt,
-    };
+    map[key] = next;
     saveStoreAddresses(map);
     return map[key];
+}
+
+function getStorePhone(storeName) {
+    const entry = getStoreAddressEntry(storeName);
+    return String(entry?.phone || '').trim();
+}
+
+function normalizeStorePhoneForTel(phone) {
+    const raw = String(phone || '').trim();
+    if (!raw) return '';
+    const hasPlus = raw.startsWith('+');
+    const digits = raw.replace(/[^\d]/g, '');
+    if (!digits) return '';
+    return hasPlus ? `+${digits}` : digits;
 }
 
 function getStoreCoordinates(storeName) {
@@ -62181,6 +62258,8 @@ window.loadStoreAddresses = loadStoreAddresses;
 window.saveStoreAddresses = saveStoreAddresses;
 window.getStoreAddressEntry = getStoreAddressEntry;
 window.setStoreAddressEntry = setStoreAddressEntry;
+window.getStorePhone = getStorePhone;
+window.normalizeStorePhoneForTel = normalizeStorePhoneForTel;
 window.getStoreCoordinates = getStoreCoordinates;
 window.getStoreDistanceKm = getStoreDistanceKm;
 window.getStoreDistanceLabel = getStoreDistanceLabel;
@@ -62793,23 +62872,21 @@ try {
         let draftOverrides = { ...rules.overrides };
 
         const persistAddressesFromForm = () => {
-            panel.querySelectorAll('.tm-store-address-input').forEach((input) => {
-                const storeName = input.dataset.store;
-                const address = input.value.trim();
-                const prev = window.getStoreAddressEntry?.(storeName);
-                if (!address) {
-                    window.setStoreAddressEntry?.(storeName, { address: '' });
-                    return;
+            panel.querySelectorAll('.tm-store-address-input').forEach((addressInput) => {
+                const storeName = addressInput.dataset.store;
+                if (!storeName) return;
+                const phoneInput = [...panel.querySelectorAll('.tm-store-phone-input')]
+                    .find((el) => el.dataset.store === storeName);
+                const address = addressInput.value.trim();
+                const phone = phoneInput ? phoneInput.value.trim() : '';
+                const prev = window.getStoreAddressEntry?.(storeName) || {};
+                const patch = { address, phone };
+                if (address && prev.address === address && prev.lat != null && prev.lng != null) {
+                    patch.lat = prev.lat;
+                    patch.lng = prev.lng;
+                    patch.geocodedAt = prev.geocodedAt;
                 }
-                if (prev?.address === address && prev?.lat != null && prev?.lng != null) {
-                    return;
-                }
-                window.setStoreAddressEntry?.(storeName, {
-                    address,
-                    lat: prev?.address === address ? prev?.lat : undefined,
-                    lng: prev?.address === address ? prev?.lng : undefined,
-                    geocodedAt: prev?.address === address ? prev?.geocodedAt : undefined,
-                });
+                window.setStoreAddressEntry?.(storeName, patch);
             });
         };
 
@@ -62823,6 +62900,7 @@ try {
             addressListEl.innerHTML = stores.map((storeName) => {
                 const entry = window.getStoreAddressEntry?.(storeName) || {};
                 const address = entry.address || '';
+                const phone = entry.phone || '';
                 const distFromMe = myStore && myStore !== storeName
                     ? window.getStoreDistanceLabel?.(myStore, storeName)
                     : '';
@@ -62832,11 +62910,15 @@ try {
                 } else if (address) {
                     status = t('Geocoding stores');
                 }
+                const phoneStatus = phone ? '' : `<div style="font-size:10px;opacity:0.55;margin-top:2px;">${t('No store phone set')}</div>`;
                 return `
                 <div class="tm-store-address-row" style="padding:8px 0;border-bottom:1px solid var(--tm-shop-item-border);">
                     <div style="font-size:12px;font-weight:700;margin-bottom:6px;word-break:break-word;">${storeName}</div>
                     <input type="text" class="tm-store-address-input" data-store="${storeName.replace(/"/g, '&quot;')}" value="${address.replace(/"/g, '&quot;')}" placeholder="${t('Store address placeholder')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
-                    <div class="tm-store-address-status" style="font-size:10px;opacity:0.65;margin-top:4px;">${status}</div>
+                    <div class="tm-store-address-status" style="font-size:10px;opacity:0.65;margin-top:4px;margin-bottom:6px;">${status}</div>
+                    <label style="display:block;font-size:11px;font-weight:600;margin-bottom:4px;opacity:0.85;">${t('Store phone')}</label>
+                    <input type="tel" class="tm-store-phone-input" data-store="${storeName.replace(/"/g, '&quot;')}" value="${phone.replace(/"/g, '&quot;')}" placeholder="${t('Store phone placeholder')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
+                    ${phoneStatus}
                 </div>`;
             }).join('');
         };
@@ -64231,9 +64313,13 @@ try {
                     row.classList.toggle('is-open');
                     head.setAttribute('aria-expanded', row.classList.contains('is-open') ? 'true' : 'false');
                 };
-                head.addEventListener('click', toggle);
+                head.addEventListener('click', (e) => {
+                    if (e.target.closest('[data-tm-sl-call-store], .tm-sl-store-call')) return;
+                    toggle();
+                });
                 head.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
+                        if (e.target.closest('[data-tm-sl-call-store], .tm-sl-store-call')) return;
                         e.preventDefault();
                         toggle();
                     }
