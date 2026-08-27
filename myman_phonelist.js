@@ -2981,17 +2981,35 @@ async function fetchPhoneList(options = {}) {
 }
 
 const USED_LAPTOP_PREFIX = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ ΦΟΡΗΤΟΣ ΥΠΟΛΟΓΙΣΤΗΣ';
+const USED_LAPTOP_PREFIX_ALT = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ ΦΟΡΗΤΟΣ ΗΛΕΚΤΡΟΝΙΚΟΣ ΥΠΟΛΟΓΙΣΤΗΣ';
 const LAPTOP_LIST_CACHE_KEY = 'tm_laptop_list_cache_v1';
 const LAPTOP_LIST_CACHE_TIMESTAMP_KEY = 'tm_laptop_list_cache_timestamp_v1';
 const OTHER_STORE_LAPTOP_CACHE_KEY = 'tm_laptop_other_store_cache_v1';
 const OTHER_STORE_LAPTOP_CACHE_TIMESTAMP_KEY = 'tm_laptop_other_store_cache_timestamp_v1';
 const LAPTOP_CACHE_EXPIRATION_DAYS = 3;
 
+function stripUsedLaptopPrefix(text) {
+    let out = String(text || '').replace(/\s+/g, ' ').trim();
+    const upper = out.toUpperCase();
+    for (const prefix of [USED_LAPTOP_PREFIX_ALT, USED_LAPTOP_PREFIX]) {
+        const idx = upper.indexOf(prefix);
+        if (idx >= 0) {
+            out = out.slice(idx + prefix.length).trim();
+            break;
+        }
+    }
+    // Truncated / variant markers
+    out = out.replace(/^ΗΛΕΚΤΡΟΝΙΚΟΣ\s+ΥΠΟΛΟΓΙΣΤΗΣ\s*/i, '');
+    out = out.replace(/^ΥΠΟΛΟΓΙΣΤΗΣ\s*/i, '');
+    return out.trim();
+}
+
 function isUsedLaptopTitle(name) {
     const upper = String(name || '').toUpperCase();
-    // Full prefix, or truncated list-cell text that still shows the laptop markers.
     return upper.includes(USED_LAPTOP_PREFIX)
+        || upper.includes(USED_LAPTOP_PREFIX_ALT)
         || upper.includes('ΦΟΡΗΤΟΣ ΥΠΟΛΟΓΙΣΤΗΣ')
+        || upper.includes('ΦΟΡΗΤΟΣ ΗΛΕΚΤΡΟΝΙΚΟΣ ΥΠΟΛΟΓΙΣΤΗΣ')
         || upper.includes('ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ ΦΟΡΗΤΟΣ');
 }
 
@@ -3005,32 +3023,313 @@ function isLaptopBarcode(barcode) {
     return /^(55|56)\./.test(String(barcode || '').trim());
 }
 
+const LAPTOP_BRAND_RULES = [
+    { name: 'Apple', re: /\bMACBOOK\b|\bAPPLE\b|\bIMAC\b/i },
+    { name: 'HP', re: /\b(?:NB\s+)?HP\b|\bHEWLETT\b|\bELITEBOOK\b|\bPROBOOK\b|\bPAVILION\b|\bZBOOK\b|\bCHROMEBOOK\b/i },
+    { name: 'Dell', re: /\bDELL\b|\bLATITUDE\b|\bXPS\b|\bINSPIRON\b|\bPRECISION\b/i },
+    { name: 'Lenovo', re: /\bLENOVO\b|\bTHINKPAD\b|\bTHINKBOOK\b|\bIDEAPAD\b|\bYOGA\b|\bLEGION\b/i },
+    { name: 'Asus', re: /\bASUS\b|\bVIVOBOOK\b|\bZEPHYRUS\b|\bTUF\b|\bZENBOOK\b|\bROG\b/i },
+    { name: 'Acer', re: /\bACER\b|\bPREDATOR\b|\bSWIFT\b|\bASPIRE\b|\bTRAVELMATE\b/i },
+    { name: 'MSI', re: /\bMSI\b/i },
+    { name: 'Microsoft', re: /\bSURFACE\b|\bMICROSOFT\b/i },
+    { name: 'Samsung', re: /\bSAMSUNG\b|\bGALAXY\s*BOOK\b/i },
+    { name: 'Huawei', re: /\bHUAWEI\b|\bMATEBOOK\b/i },
+    { name: 'Xiaomi', re: /\bXIAOMI\b|\bREDMI\s*BOOK\b|\bMIPAD\b/i },
+    { name: 'LG', re: /\bLG\b|\bGRAM\b/i },
+    { name: 'Toshiba', re: /\bTOSHIBA\b|\bDYNABOOK\b/i },
+    { name: 'Fujitsu', re: /\bFUJITSU\b|\bLIFEBOOK\b/i },
+    { name: 'Gigabyte', re: /\bGIGABYTE\b|\bAORUS\b/i },
+    { name: 'Razer', re: /\bRAZER\b/i },
+    { name: 'Chuwi', re: /\bCHUWI\b/i },
+];
+
+function normalizeLaptopCapacity(num, unit) {
+    const n = parseInt(String(num || ''), 10);
+    if (!Number.isFinite(n) || n <= 0) return '';
+    const u = String(unit || 'GB').toUpperCase().includes('TB') ? 'TB' : 'GB';
+    return `${n}${u}`;
+}
+
+function normalizeLaptopCpuToken(raw) {
+    let cpu = String(raw || '').replace(/\s+/g, ' ').trim().toUpperCase();
+    if (!cpu) return '';
+    // i58365U → I5-8365U
+    cpu = cpu.replace(/^([IΙ][3579])(\d{3,5}[A-Z0-9]{0,4})$/i, '$1-$2');
+    // Greek Ι → I
+    cpu = cpu.replace(/Ι/g, 'I');
+    // RYZEN3-7320U → RYZEN 3-7320U
+    cpu = cpu.replace(/^RYZEN\s*([3579])\s*-?/i, 'RYZEN $1-');
+    cpu = cpu.replace(/^RYZEN\s*([3579])-$/i, 'RYZEN $1');
+    // R3-4450U keep as R3-4450U
+    cpu = cpu.replace(/^R\s*([3579])\s*-/i, 'R$1-');
+    // I5 10TH / I5 8TH / I5 6TH
+    cpu = cpu.replace(/^([I][3579])\s*-?\s*(\d{1,2})\s*(?:TH|ST|ND|RD)?(?:\s*GEN)?$/i, '$1 $2TH');
+    // Bare I5/I7
+    cpu = cpu.replace(/^([I][3579])$/, '$1');
+    // Collapse leftover double spaces/dashes
+    cpu = cpu.replace(/\s*-\s*/g, '-').replace(/\s+/g, ' ').trim();
+    return cpu;
+}
+
+function extractLaptopCpu(text) {
+    const raw = String(text || '');
+    const patterns = [
+        /\b(M[1-4](?:\s*(?:PRO|MAX|ULTRA))?)\b/i,
+        /\b((?:INTEL\s+)?CORE\s+ULTRA\s+[3579]\s*[- ]?\d{3,4}[A-Z]?)\b/i,
+        // i5-8265U / I7-1185G7 / i5 8265U / I5-1135G7
+        /\b([IiΙι][3579]\s*[- ]?\d{3,5}[A-Za-z0-9]{0,4})\b/,
+        // i58365U (missing hyphen)
+        /\b([IiΙι][3579]\d{3,5}[A-Za-z0-9]{0,4})\b/,
+        // missing leading i: 5-10310u
+        /(?:^|[^A-Za-z0-9])([3579]-\d{4,5}[A-Za-z0-9]{0,4})\b/,
+        // AMD Ryzen 3-7320U / RYZEN3-7320U / R3-4450U
+        /\b(RYZEN\s*(?:AI\s*)?[3579]\s*-?\s*\d{3,5}[A-Z0-9]{0,4})\b/i,
+        /\b(R[3579]\s*-\s*\d{3,5}[A-Z0-9]{0,4})\b/i,
+        /\b(AMD\s*R[3579]\s*-\s*\d{3,5}[A-Z0-9]{0,4})\b/i,
+        // generation-only: i5 10th / i5 8th / i5-6th gen
+        /\b([IiΙι][3579]\s*-?\s*\d{1,2}(?:th|st|nd|rd)?(?:\s*gen)?)\b/i,
+        // bare family before specs: i5,8GB / I7/8GB / (i5,8GB
+        /\b([IiΙι][3579])(?=\s*[,\/\)]|\s+\d+\s*(?:GB|TB|SSD))/i,
+        /\b((?:INTEL\s+)?(?:CELERON|PENTIUM)[-\s]?[A-Z0-9]+)\b/i,
+        /\b(SNAPDRAGON\s*X\s*(?:ELITE|PLUS)?[-\s]?\w*)\b/i,
+    ];
+    for (const re of patterns) {
+        const m = raw.match(re);
+        if (!m) continue;
+        let token = String(m[1] || '').trim();
+        // Normalize missing-i SKUs to I#
+        if (/^[3579]-/.test(token)) token = `I${token}`;
+        if (/^AMD\s+/i.test(token)) token = token.replace(/^AMD\s+/i, '');
+        const normalized = normalizeLaptopCpuToken(token);
+        if (normalized) return normalized;
+    }
+    return '';
+}
+
+function extractLaptopBrand(text) {
+    const raw = String(text || '');
+    for (const rule of LAPTOP_BRAND_RULES) {
+        if (rule.re.test(raw)) return rule.name;
+    }
+    return '';
+}
+
+function extractLaptopRamStorage(text) {
+    const raw = String(text || '');
+    let ram = '';
+    let storage = '';
+
+    // 16GB/512GB | 16/256GB | 8GB/1TB | I7/8GB/1TB
+    const combo = raw.match(/\b(\d{1,2})\s*(?:GB|TB)?\s*[\/,]\s*(\d{1,4})\s*(GB|TB|SSD|NVME|NVM|HDD)?\b/i);
+    if (combo) {
+        const left = parseInt(combo[1], 10);
+        const right = parseInt(combo[2], 10);
+        const rightUnit = String(combo[3] || '').toUpperCase();
+        if ([4, 8, 12, 16, 24, 32, 36, 48, 64].includes(left)) {
+            ram = normalizeLaptopCapacity(left, 'GB');
+        }
+        if (rightUnit === 'TB' || right === 1 && /TB/i.test(raw)) {
+            storage = normalizeLaptopCapacity(right === 1 ? 1 : right, rightUnit === 'TB' || right <= 4 ? 'TB' : 'GB');
+        } else if ([64, 128, 256, 512, 1024, 2048].includes(right) || /SSD|NVM|HDD/i.test(rightUnit)) {
+            storage = normalizeLaptopCapacity(right, rightUnit === 'TB' ? 'TB' : 'GB');
+        }
+    }
+
+    // Slash path: .../8GB/256SSD or .../16GB/512S or .../14.0/8GB DDR (no storage yet)
+    if (!ram || !storage) {
+        const path = raw.match(/(?:\/|,)\s*(\d{1,2})\s*GB\s*(?:\/|,)\s*(\d{2,4})\s*(?:GB|SSD|NVM|NVME|HDD|S)?\b/i);
+        if (path) {
+            if (!ram) ram = normalizeLaptopCapacity(path[1], 'GB');
+            if (!storage) storage = normalizeLaptopCapacity(path[2], 'GB');
+        }
+    }
+    // .../8GB DDR with no storage token
+    if (!ram) {
+        const ramOnlyPath = raw.match(/\/\s*(\d{1,2})\s*GB\b/i);
+        if (ramOnlyPath) {
+            const n = parseInt(ramOnlyPath[1], 10);
+            if ([4, 8, 12, 16, 24, 32, 64].includes(n)) ram = normalizeLaptopCapacity(n, 'GB');
+        }
+    }
+
+    // 8GB,512SSD | 8GB,256GB | 8 GB 256 GB | 8GB DDR4 256GB
+    if (!ram) {
+        const ramMatch = raw.match(/\b(\d{1,2})\s*(GB|TB|G)\b(?!\s*SSD)/i)
+            || raw.match(/\b(\d{1,2})\s*GB\s*(?:RAM|DDR\d|ΜΝΗΜΗ)?\b/i);
+        if (ramMatch) {
+            const n = parseInt(ramMatch[1], 10);
+            if ([4, 8, 12, 16, 24, 32, 36, 48, 64].includes(n)) {
+                ram = normalizeLaptopCapacity(n, /TB/i.test(ramMatch[2] || '') ? 'TB' : 'GB');
+            }
+        }
+    }
+
+    // Truncated "8G" at end of title
+    if (!ram) {
+        const truncRam = raw.match(/\b(\d{1,2})\s*G(?:B)?\s*$/i) || raw.match(/\(\s*[^)]*?(\d{1,2})\s*G(?:B)?\s*$/i);
+        if (truncRam) {
+            const n = parseInt(truncRam[1], 10);
+            if ([4, 8, 12, 16, 24, 32, 64].includes(n)) ram = normalizeLaptopCapacity(n, 'GB');
+        }
+    }
+
+    if (!storage) {
+        const storageMatch = raw.match(/\b(\d{1,4})\s*(TB)\b/i)
+            || raw.match(/\b(\d{2,4})\s*(GB|G)?\s*(SSD|NVME|NVM|HDD|M\.?2)\b/i)
+            || raw.match(/\b(\d{2,4})\s*SSD\b/i)
+            || raw.match(/\b(\d{2,4})\s*GB\b/i);
+        if (storageMatch) {
+            const n = parseInt(storageMatch[1], 10);
+            const unitTok = `${storageMatch[2] || ''} ${storageMatch[3] || ''}`.toUpperCase();
+            if (/TB/.test(unitTok) || n === 1) {
+                storage = normalizeLaptopCapacity(n <= 4 ? n : n, n <= 4 ? 'TB' : 'GB');
+                if (n === 1) storage = '1TB';
+            } else if ([64, 128, 256, 512, 1024, 2048].includes(n)) {
+                storage = normalizeLaptopCapacity(n, 'GB');
+            }
+        }
+    }
+
+    // Truncated storage leftovers: "512" / "256" / "256G" after RAM mention
+    if (!storage) {
+        const truncStor = raw.match(/\b(?:GB|RAM|DDR\d)\s+(\d{2,4})\s*G?(?:\s|$)/i)
+            || raw.match(/,\s*(\d{2,4})\s*(?:SSD|S|G)?\s*(?:,|\(|$)/i)
+            || raw.match(/\b(\d{2,4})\s*(?:SSD|S)\b/i)
+            || raw.match(/\b(\d{2,4})\s*G(?:B)?\s*$/i);
+        if (truncStor) {
+            const n = parseInt(truncStor[1], 10);
+            if ([64, 128, 256, 512, 1024].includes(n)) storage = normalizeLaptopCapacity(n, 'GB');
+        }
+    }
+
+    // Chromebook eMMC 64GB
+    if (!storage) {
+        const e = raw.match(/\b(64)\s*(?:GB|G)?\b/i);
+        if (e && /CHROMEBOOK/i.test(raw)) storage = '64GB';
+    }
+
+    if (ram && storage && ram === storage) {
+        const ramN = parseInt(ram, 10);
+        if (ramN >= 128) {
+            storage = ram;
+            ram = '';
+        }
+    }
+
+    // Prefer storage when left combo captured screen size etc.
+    if (ram && !([4, 8, 12, 16, 24, 32, 36, 48, 64].includes(parseInt(ram, 10)))) {
+        ram = '';
+    }
+
+    return { ram, storage };
+}
+
+function buildLaptopModelLine(modelText, specs) {
+    let line = String(modelText || '').replace(/\s+/g, ' ').trim();
+    // Normalize Greek lookalikes in model codes (Τ470 → T470)
+    line = line.replace(/[Ττ]/g, 'T');
+    line = line.replace(/\(?\s*(?:BB|ΒΒ)\s*[:\-]?[^)]*\)?\s*$/i, '').trim();
+    line = line.replace(/\bBB\s*:\s*\(?[^)]*\)?\s*$/i, '').trim();
+    line = line.replace(/\([^)]*(?:i[3579]|ryzen|celeron|pentium|ssd|gb|tb|ddr\d)[^)]*$/ig, ' ');
+    line = line.replace(/\([^)]*(?:i[3579]|ryzen|celeron|pentium|ssd|gb|tb|ddr\d)[^)]*\)/ig, ' ');
+    line = line.replace(/\b\d{1,2}\s*(?:GB|TB)?\s*[\/,]\s*\d{1,4}\s*(?:GB|TB|SSD|NVME|NVM|HDD)?\b/ig, ' ');
+    line = line.replace(/\/\s*\d{1,2}\s*(?:GB|TB)?\s*\/\s*\d{2,4}\s*(?:GB|SSD|NVM|S)?\b/ig, ' ');
+    line = line.replace(/\/\d{1,2}(?:[.,]\d+)?(?:-FHD|-HD)?/ig, ' ');
+    line = line.replace(/\b\d{1,2}(?:[.,]\d+)?-FHD\b/ig, ' ');
+    line = line.replace(/\bGEN\s*(\d)\b/ig, 'G$1'); // keep gen marker compact
+    // Drop trailing orphan punctuation / DDR leftovers
+    line = line.replace(/\bDDR\d?\b/ig, ' ');
+    line = line.replace(/\s+[./-]+\s*$/g, ' ');
+    line = line.replace(/^\s*[./-]+|\s*[./-]+\s*$/g, ' ');
+    const keepCpuInModel = specs?.cpu && /^M[1-4]\b/i.test(specs.cpu);
+    if (specs?.cpu && !keepCpuInModel) {
+        const cpuRe = specs.cpu
+            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            .replace(/\s+/g, '\\s*')
+            .replace(/-/g, '[-\\s]*');
+        line = line.replace(new RegExp(`\\b${cpuRe}\\b`, 'ig'), ' ');
+        // Also strip bare family left behind
+        line = line.replace(/\b[Ii][3579]\b(?=\s*[,\/\)]|\s*$)/g, ' ');
+    }
+    if (specs?.ram) {
+        const n = parseInt(specs.ram, 10);
+        line = line.replace(new RegExp(`\\b${n}\\s*(?:GB|TB|G)\\b`, 'ig'), ' ');
+    }
+    if (specs?.storage) {
+        const n = parseInt(specs.storage, 10);
+        line = line.replace(new RegExp(`\\b${n}\\s*(?:GB|TB|G)?\\s*(?:SSD|NVME|NVM|HDD|S)?\\b`, 'ig'), ' ');
+    }
+    line = line.replace(/\b(?:SSD|NVME|NVM|HDD|DDR\d|FHD|TOUCH)\b/ig, ' ');
+    line = line.replace(/\b\d+\s*CORE(?:\s*CPU|\s*GPU)?\b/ig, ' ');
+    line = line.replace(/\bNB\b/ig, ' ');
+    line = line.replace(/\bAMD\b/ig, ' ');
+    line = line.replace(/\bA\d{4}\b/ig, ' '); // Apple board ids A2337
+    line = line.replace(/\b20[12]\d\b/g, ' '); // year
+    line = line.replace(/\b(SPACE\s*GREY|SPACE\s*GRAY|MIDNIGHT|STARLIGHT|SILVER|GOLD|BLACK|WHITE|GREY|GRAY|BLUE|RED|ROSE\s*GOLD|SPA|GOL|SIL)\b/ig, ' ');
+    // Screen size only when inch marks present
+    line = line.replace(/\b\d{1,2}(?:[.,]\d+)?\s*(?:''|"|′|’)\b/g, ' ');
+    line = line.replace(/[\/|,]+/g, ' ').replace(/[()]+/g, ' ').replace(/\s+/g, ' ').trim();
+    line = line.replace(/^APPLE\s+/i, '');
+    return line || String(modelText || '').trim();
+}
+
+function parseLaptopSpecs(fullName) {
+    let text = stripUsedLaptopPrefix(fullName);
+    text = text.replace(/\s*Περισσότερα\s*\.?\s*\.?\s*\.?\s*$/i, '').trim();
+    text = text.replace(/\(?\s*(?:BB|ΒΒ)\s*[:\-]?[^)]*\)?\s*$/i, '').trim();
+
+    const brand = extractLaptopBrand(text);
+    const cpu = extractLaptopCpu(text);
+    const { ram, storage } = extractLaptopRamStorage(text);
+    const modelLine = buildLaptopModelLine(text, { cpu, ram, storage });
+    return { brand, cpu, ram, storage, modelLine };
+}
+
+function hydrateLaptopItem(item) {
+    if (!item || typeof item !== 'object') return item;
+    const source = item.name || item.model || '';
+    const specs = parseLaptopSpecs(source);
+    const parsed = parseLaptopName(source);
+    return {
+        ...item,
+        name: parsed.fullName || item.name,
+        model: specs.modelLine || parsed.model || item.model,
+        grade: item.grade || parsed.grade || '',
+        imei: item.imei || parsed.imei || '',
+        brand: specs.brand || item.brand || '',
+        cpu: specs.cpu || item.cpu || '',
+        ram: specs.ram || item.ram || '',
+        storage: specs.storage || item.storage || '',
+        productKind: 'laptop',
+    };
+}
+
 function parseLaptopName(fullName) {
-    let model = String(fullName || '').replace(/\s+/g, ' ').trim();
+    let model = stripUsedLaptopPrefix(fullName);
     let grade = '';
     let imei = '';
-    const upper = model.toUpperCase();
-    if (upper.includes(USED_LAPTOP_PREFIX)) {
-        const idx = upper.indexOf(USED_LAPTOP_PREFIX);
-        model = model.slice(idx + USED_LAPTOP_PREFIX.length).trim();
-    }
-    // BB:A+ SERIAL or (BB:A+ SERIAL)
-    let m = model.match(/\(?\s*(?:BB|ΒΒ)\s*[:\-]?\s*([A-Z+]+\+?)\s+([A-Z0-9\-]+)\s*\)?\s*$/i);
+    // BB:A+ SERIAL or (BB:A+ SERIAL) or BB:(A-SERIAL
+    let m = model.match(/\(?\s*(?:BB|ΒΒ)\s*[:\-]?\s*\(?\s*([A-Z+]+\+?)\s*[-\s:]+([A-Z0-9\-]+)\s*\)?\s*$/i);
     if (m) {
         grade = String(m[1] || '').toUpperCase();
         imei = String(m[2] || '').trim();
         model = model.slice(0, m.index).trim();
     } else {
-        m = model.match(/\(?\s*(?:BB|ΒΒ)\s*[:\-]\s*([A-Z+]+\+?)\s*[-:]?\s*([A-Z0-9\-]+)\s*\)?\s*$/i);
+        m = model.match(/\(?\s*(?:BB|ΒΒ)\s*[:\-]\s*([A-Z+]+\+?)\s*$/i);
         if (m) {
             grade = String(m[1] || '').toUpperCase();
-            imei = String(m[2] || '').trim();
             model = model.slice(0, m.index).trim();
         }
     }
+    const specs = parseLaptopSpecs(String(fullName || ''));
     return {
         fullName: String(fullName || '').replace(/\s+/g, ' ').trim(),
-        model: model || String(fullName || '').trim(),
+        model: specs.modelLine || model || String(fullName || '').trim(),
+        modelLine: specs.modelLine || model,
+        brand: specs.brand,
+        cpu: specs.cpu,
+        ram: specs.ram,
+        storage: specs.storage,
         grade,
         imei,
     };
@@ -3050,7 +3349,9 @@ function loadLaptopListCache() {
         if (ageDays > LAPTOP_CACHE_EXPIRATION_DAYS) return null;
         const parsed = JSON.parse(GM_getValue(LAPTOP_LIST_CACHE_KEY, '[]'));
         if (!Array.isArray(parsed) || !parsed.length) return null;
-        const onlyLaptops = parsed.filter((item) => isUsedLaptopTitle(item?.name) && !isUsedPhoneProductTitle(item?.name));
+        const onlyLaptops = parsed
+            .filter((item) => isUsedLaptopTitle(item?.name) && !isUsedPhoneProductTitle(item?.name))
+            .map((item) => hydrateLaptopItem(item));
         return onlyLaptops.length ? onlyLaptops : null;
     } catch (_) {
         return null;
@@ -3071,7 +3372,9 @@ function getOtherStoreLaptopCache() {
         if (ageDays > 1) return null;
         const parsed = JSON.parse(GM_getValue(OTHER_STORE_LAPTOP_CACHE_KEY, '[]'));
         if (!Array.isArray(parsed) || !parsed.length) return null;
-        const onlyLaptops = parsed.filter((item) => isUsedLaptopTitle(item?.name) && !isUsedPhoneProductTitle(item?.name));
+        const onlyLaptops = parsed
+            .filter((item) => isUsedLaptopTitle(item?.name) && !isUsedPhoneProductTitle(item?.name))
+            .map((item) => hydrateLaptopItem(item));
         return onlyLaptops.length ? onlyLaptops : null;
     } catch (_) {
         return null;
@@ -3173,6 +3476,10 @@ async function expandLaptopNames(items, onProgress) {
                     item.model = parsed.model;
                     item.grade = parsed.grade || item.grade;
                     item.imei = parsed.imei || item.imei;
+                    item.brand = parsed.brand || item.brand;
+                    item.cpu = parsed.cpu || item.cpu;
+                    item.ram = parsed.ram || item.ram;
+                    item.storage = parsed.storage || item.storage;
                     item.isBuyback = isBuybackTitle(full) || !!item.isBuyback;
                 }
             } catch (_) { /* keep truncated */ }
@@ -3252,6 +3559,10 @@ function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherSto
             model: parsed.model,
             grade: parsed.grade,
             imei: parsed.imei,
+            brand: parsed.brand,
+            cpu: parsed.cpu,
+            ram: parsed.ram,
+            storage: parsed.storage,
             unitsRemaining,
             isBuyback: isBuybackTitle(name),
             retailPrice,
@@ -3317,7 +3628,9 @@ async function fetchLaptopList(options = {}) {
         });
     });
     // Title is authoritative — 55./56. barcodes include phones too.
-    laptops = laptops.filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name));
+    laptops = laptops
+        .filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name))
+        .map((item) => hydrateLaptopItem(item));
     saveLaptopListCache(laptops);
     onProgress({ phase: 'done', ratio: 1 });
     console.log(`[MMS Phone List] Parsed ${laptops.length} used laptops`);
@@ -3357,7 +3670,9 @@ async function fetchOtherStoreLaptops(options = {}) {
             total: info.total,
         });
     });
-    laptops = laptops.filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name));
+    laptops = laptops
+        .filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name))
+        .map((item) => hydrateLaptopItem(item));
     saveOtherStoreLaptopCache(laptops);
     onProgress({ phase: 'done', ratio: 1 });
     return laptops;
@@ -3848,6 +4163,7 @@ function stripModelToBaseRaw(model) {
         let base = model;
         
         base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '');
+        base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ\s+ΦΟΡΗΤΟΣ\s+ΗΛΕΚΤΡΟΝΙΚΟΣ\s+ΥΠΟΛΟΓΙΣΤΗΣ\s*/gi, '');
         base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ\s+ΦΟΡΗΤΟΣ\s+ΥΠΟΛΟΓΙΣΤΗΣ\s*/gi, '');
         base = base.replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ');
         base = base.replace(/\s*\(BB[^)]*\)?\s*/gi, ' ');
@@ -4451,6 +4767,8 @@ window.fetchOtherStoreLaptops = fetchOtherStoreLaptops;
 window.loadLaptopListCache = loadLaptopListCache;
 window.getOtherStoreLaptopCache = getOtherStoreLaptopCache;
 window.parseLaptopName = parseLaptopName;
+window.parseLaptopSpecs = parseLaptopSpecs;
+window.hydrateLaptopItem = hydrateLaptopItem;
 window.isUsedLaptopTitle = isUsedLaptopTitle;
 window.isLaptopBarcode = isLaptopBarcode;
 window.fetchOtherStorePhones = fetchOtherStorePhones;

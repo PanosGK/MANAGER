@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v430 / Custom Ver. 42.14 — generated, do not edit */
+/* MyManager Suite bundle v434 / Custom Ver. 42.18 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '430',
+        version: '434',
         loaderVersion: '42',
-        silentVersion: '14',
-        displayVersion: '42.14',
+        silentVersion: '18',
+        displayVersion: '42.18',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
@@ -56754,6 +56754,10 @@ window.initOrderTracking = initOrderTracking;
 
     function formatActiveFiltersSummary(active) {
         const bits = [];
+        if (active?.brand) bits.push(active.brand);
+        if (active?.cpu) bits.push(active.cpu);
+        if (active?.ram) bits.push(`RAM ${active.ram}`);
+        if (active?.storage) bits.push(active.storage);
         if (active?.grade) bits.push(`Βαθμ. ${active.grade}`);
         if (active?.gb) bits.push(active.gb);
         if (active?.color) bits.push(active.color);
@@ -57009,19 +57013,24 @@ window.initOrderTracking = initOrderTracking;
                 ).join('')}
             </div>`
             : '';
+        const placeholder = opts.placeholder || 'Μοντέλο, barcode ή IMEI';
+        const chips = opts.chipsHtml
+            ? `<div class="tm-sl-chips tm-sl-chips--model" id="tm-sl-chips">${opts.chipsHtml}</div>`
+            : '';
         return `
             <div class="tm-sl-toolbar-row">
                 <div class="tm-sl-search-wrap">
                     <span class="tm-sl-search-icon">${ICON.search}</span>
                     <input type="search" id="tm-sl-model-search" class="tm-sl-search"
-                        placeholder="Μοντέλο, barcode ή IMEI" autocomplete="off">
+                        placeholder="${esc(placeholder)}" autocomplete="off">
                     <span class="tm-sl-search-kbd" aria-hidden="true">/</span>
                 </div>
                 <select id="tm-sl-model-sort" class="tm-sl-sort-select" aria-label="Ταξινόμηση" data-tm-sl-sort-select>
                     ${options}
                 </select>
             </div>
-            ${recentHtml}`;
+            ${recentHtml}
+            ${chips}`;
     }
 
     function shortRecentLabel(model) {
@@ -57135,9 +57144,10 @@ window.initOrderTracking = initOrderTracking;
         const counts = ctx?.counts || {};
         const hexMap = ctx?.colorHexMap || {};
         const getGradeStyle = ctx?.getGradeStyle || (() => '');
+        const laptopFilters = !!ctx?.laptopFilters;
 
         const addGroup = (key, values) => {
-            if (!values.length) return;
+            if (!values?.length) return;
             values.forEach((val) => {
                 const isActive = active[key] === val;
                 const count = counts[key]?.[val];
@@ -57155,16 +57165,31 @@ window.initOrderTracking = initOrderTracking;
                         ? window.getTagColor(val)
                         : '#9e9e9e';
                     inner = `<span class="tm-sl-chip-tag-dot" style="background:${esc(color)}"></span>#${esc(name)}`;
+                } else if (key === 'ram') {
+                    inner = `RAM ${esc(val)}`;
                 }
                 parts.push(`<button type="button" class="tm-sl-chip${isActive ? ' is-active' : ''}${key === 'tag' ? ' tm-sl-chip--tag' : ''}"
                     data-tm-sl-filter="${esc(key)}" data-tm-sl-value="${esc(val)}">${inner}${countHtml}</button>`);
             });
         };
-        addGroup('grade', filters.grades);
-        addGroup('gb', filters.gbs);
-        addGroup('color', filters.colors);
-        addGroup('tag', filters.tags || []);
-        if (active.grade || active.gb || active.color || active.tag) {
+
+        if (laptopFilters) {
+            addGroup('brand', filters.brands);
+            addGroup('cpu', filters.cpus);
+            addGroup('ram', filters.rams);
+            addGroup('storage', filters.storages);
+            addGroup('grade', filters.grades);
+        } else {
+            addGroup('grade', filters.grades);
+            addGroup('gb', filters.gbs);
+            addGroup('color', filters.colors);
+            addGroup('tag', filters.tags || []);
+        }
+
+        const hasActive = laptopFilters
+            ? !!(active.brand || active.cpu || active.ram || active.storage || active.grade)
+            : !!(active.grade || active.gb || active.color || active.tag);
+        if (hasActive) {
             parts.push('<button type="button" class="tm-sl-chip" data-tm-sl-filter="clear">Καθαρισμός φίλτρων</button>');
         }
         return parts.join('');
@@ -61120,17 +61145,35 @@ async function fetchPhoneList(options = {}) {
 }
 
 const USED_LAPTOP_PREFIX = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ ΦΟΡΗΤΟΣ ΥΠΟΛΟΓΙΣΤΗΣ';
+const USED_LAPTOP_PREFIX_ALT = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ ΦΟΡΗΤΟΣ ΗΛΕΚΤΡΟΝΙΚΟΣ ΥΠΟΛΟΓΙΣΤΗΣ';
 const LAPTOP_LIST_CACHE_KEY = 'tm_laptop_list_cache_v1';
 const LAPTOP_LIST_CACHE_TIMESTAMP_KEY = 'tm_laptop_list_cache_timestamp_v1';
 const OTHER_STORE_LAPTOP_CACHE_KEY = 'tm_laptop_other_store_cache_v1';
 const OTHER_STORE_LAPTOP_CACHE_TIMESTAMP_KEY = 'tm_laptop_other_store_cache_timestamp_v1';
 const LAPTOP_CACHE_EXPIRATION_DAYS = 3;
 
+function stripUsedLaptopPrefix(text) {
+    let out = String(text || '').replace(/\s+/g, ' ').trim();
+    const upper = out.toUpperCase();
+    for (const prefix of [USED_LAPTOP_PREFIX_ALT, USED_LAPTOP_PREFIX]) {
+        const idx = upper.indexOf(prefix);
+        if (idx >= 0) {
+            out = out.slice(idx + prefix.length).trim();
+            break;
+        }
+    }
+    // Truncated / variant markers
+    out = out.replace(/^ΗΛΕΚΤΡΟΝΙΚΟΣ\s+ΥΠΟΛΟΓΙΣΤΗΣ\s*/i, '');
+    out = out.replace(/^ΥΠΟΛΟΓΙΣΤΗΣ\s*/i, '');
+    return out.trim();
+}
+
 function isUsedLaptopTitle(name) {
     const upper = String(name || '').toUpperCase();
-    // Full prefix, or truncated list-cell text that still shows the laptop markers.
     return upper.includes(USED_LAPTOP_PREFIX)
+        || upper.includes(USED_LAPTOP_PREFIX_ALT)
         || upper.includes('ΦΟΡΗΤΟΣ ΥΠΟΛΟΓΙΣΤΗΣ')
+        || upper.includes('ΦΟΡΗΤΟΣ ΗΛΕΚΤΡΟΝΙΚΟΣ ΥΠΟΛΟΓΙΣΤΗΣ')
         || upper.includes('ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ ΦΟΡΗΤΟΣ');
 }
 
@@ -61144,32 +61187,313 @@ function isLaptopBarcode(barcode) {
     return /^(55|56)\./.test(String(barcode || '').trim());
 }
 
+const LAPTOP_BRAND_RULES = [
+    { name: 'Apple', re: /\bMACBOOK\b|\bAPPLE\b|\bIMAC\b/i },
+    { name: 'HP', re: /\b(?:NB\s+)?HP\b|\bHEWLETT\b|\bELITEBOOK\b|\bPROBOOK\b|\bPAVILION\b|\bZBOOK\b|\bCHROMEBOOK\b/i },
+    { name: 'Dell', re: /\bDELL\b|\bLATITUDE\b|\bXPS\b|\bINSPIRON\b|\bPRECISION\b/i },
+    { name: 'Lenovo', re: /\bLENOVO\b|\bTHINKPAD\b|\bTHINKBOOK\b|\bIDEAPAD\b|\bYOGA\b|\bLEGION\b/i },
+    { name: 'Asus', re: /\bASUS\b|\bVIVOBOOK\b|\bZEPHYRUS\b|\bTUF\b|\bZENBOOK\b|\bROG\b/i },
+    { name: 'Acer', re: /\bACER\b|\bPREDATOR\b|\bSWIFT\b|\bASPIRE\b|\bTRAVELMATE\b/i },
+    { name: 'MSI', re: /\bMSI\b/i },
+    { name: 'Microsoft', re: /\bSURFACE\b|\bMICROSOFT\b/i },
+    { name: 'Samsung', re: /\bSAMSUNG\b|\bGALAXY\s*BOOK\b/i },
+    { name: 'Huawei', re: /\bHUAWEI\b|\bMATEBOOK\b/i },
+    { name: 'Xiaomi', re: /\bXIAOMI\b|\bREDMI\s*BOOK\b|\bMIPAD\b/i },
+    { name: 'LG', re: /\bLG\b|\bGRAM\b/i },
+    { name: 'Toshiba', re: /\bTOSHIBA\b|\bDYNABOOK\b/i },
+    { name: 'Fujitsu', re: /\bFUJITSU\b|\bLIFEBOOK\b/i },
+    { name: 'Gigabyte', re: /\bGIGABYTE\b|\bAORUS\b/i },
+    { name: 'Razer', re: /\bRAZER\b/i },
+    { name: 'Chuwi', re: /\bCHUWI\b/i },
+];
+
+function normalizeLaptopCapacity(num, unit) {
+    const n = parseInt(String(num || ''), 10);
+    if (!Number.isFinite(n) || n <= 0) return '';
+    const u = String(unit || 'GB').toUpperCase().includes('TB') ? 'TB' : 'GB';
+    return `${n}${u}`;
+}
+
+function normalizeLaptopCpuToken(raw) {
+    let cpu = String(raw || '').replace(/\s+/g, ' ').trim().toUpperCase();
+    if (!cpu) return '';
+    // i58365U → I5-8365U
+    cpu = cpu.replace(/^([IΙ][3579])(\d{3,5}[A-Z0-9]{0,4})$/i, '$1-$2');
+    // Greek Ι → I
+    cpu = cpu.replace(/Ι/g, 'I');
+    // RYZEN3-7320U → RYZEN 3-7320U
+    cpu = cpu.replace(/^RYZEN\s*([3579])\s*-?/i, 'RYZEN $1-');
+    cpu = cpu.replace(/^RYZEN\s*([3579])-$/i, 'RYZEN $1');
+    // R3-4450U keep as R3-4450U
+    cpu = cpu.replace(/^R\s*([3579])\s*-/i, 'R$1-');
+    // I5 10TH / I5 8TH / I5 6TH
+    cpu = cpu.replace(/^([I][3579])\s*-?\s*(\d{1,2})\s*(?:TH|ST|ND|RD)?(?:\s*GEN)?$/i, '$1 $2TH');
+    // Bare I5/I7
+    cpu = cpu.replace(/^([I][3579])$/, '$1');
+    // Collapse leftover double spaces/dashes
+    cpu = cpu.replace(/\s*-\s*/g, '-').replace(/\s+/g, ' ').trim();
+    return cpu;
+}
+
+function extractLaptopCpu(text) {
+    const raw = String(text || '');
+    const patterns = [
+        /\b(M[1-4](?:\s*(?:PRO|MAX|ULTRA))?)\b/i,
+        /\b((?:INTEL\s+)?CORE\s+ULTRA\s+[3579]\s*[- ]?\d{3,4}[A-Z]?)\b/i,
+        // i5-8265U / I7-1185G7 / i5 8265U / I5-1135G7
+        /\b([IiΙι][3579]\s*[- ]?\d{3,5}[A-Za-z0-9]{0,4})\b/,
+        // i58365U (missing hyphen)
+        /\b([IiΙι][3579]\d{3,5}[A-Za-z0-9]{0,4})\b/,
+        // missing leading i: 5-10310u
+        /(?:^|[^A-Za-z0-9])([3579]-\d{4,5}[A-Za-z0-9]{0,4})\b/,
+        // AMD Ryzen 3-7320U / RYZEN3-7320U / R3-4450U
+        /\b(RYZEN\s*(?:AI\s*)?[3579]\s*-?\s*\d{3,5}[A-Z0-9]{0,4})\b/i,
+        /\b(R[3579]\s*-\s*\d{3,5}[A-Z0-9]{0,4})\b/i,
+        /\b(AMD\s*R[3579]\s*-\s*\d{3,5}[A-Z0-9]{0,4})\b/i,
+        // generation-only: i5 10th / i5 8th / i5-6th gen
+        /\b([IiΙι][3579]\s*-?\s*\d{1,2}(?:th|st|nd|rd)?(?:\s*gen)?)\b/i,
+        // bare family before specs: i5,8GB / I7/8GB / (i5,8GB
+        /\b([IiΙι][3579])(?=\s*[,\/\)]|\s+\d+\s*(?:GB|TB|SSD))/i,
+        /\b((?:INTEL\s+)?(?:CELERON|PENTIUM)[-\s]?[A-Z0-9]+)\b/i,
+        /\b(SNAPDRAGON\s*X\s*(?:ELITE|PLUS)?[-\s]?\w*)\b/i,
+    ];
+    for (const re of patterns) {
+        const m = raw.match(re);
+        if (!m) continue;
+        let token = String(m[1] || '').trim();
+        // Normalize missing-i SKUs to I#
+        if (/^[3579]-/.test(token)) token = `I${token}`;
+        if (/^AMD\s+/i.test(token)) token = token.replace(/^AMD\s+/i, '');
+        const normalized = normalizeLaptopCpuToken(token);
+        if (normalized) return normalized;
+    }
+    return '';
+}
+
+function extractLaptopBrand(text) {
+    const raw = String(text || '');
+    for (const rule of LAPTOP_BRAND_RULES) {
+        if (rule.re.test(raw)) return rule.name;
+    }
+    return '';
+}
+
+function extractLaptopRamStorage(text) {
+    const raw = String(text || '');
+    let ram = '';
+    let storage = '';
+
+    // 16GB/512GB | 16/256GB | 8GB/1TB | I7/8GB/1TB
+    const combo = raw.match(/\b(\d{1,2})\s*(?:GB|TB)?\s*[\/,]\s*(\d{1,4})\s*(GB|TB|SSD|NVME|NVM|HDD)?\b/i);
+    if (combo) {
+        const left = parseInt(combo[1], 10);
+        const right = parseInt(combo[2], 10);
+        const rightUnit = String(combo[3] || '').toUpperCase();
+        if ([4, 8, 12, 16, 24, 32, 36, 48, 64].includes(left)) {
+            ram = normalizeLaptopCapacity(left, 'GB');
+        }
+        if (rightUnit === 'TB' || right === 1 && /TB/i.test(raw)) {
+            storage = normalizeLaptopCapacity(right === 1 ? 1 : right, rightUnit === 'TB' || right <= 4 ? 'TB' : 'GB');
+        } else if ([64, 128, 256, 512, 1024, 2048].includes(right) || /SSD|NVM|HDD/i.test(rightUnit)) {
+            storage = normalizeLaptopCapacity(right, rightUnit === 'TB' ? 'TB' : 'GB');
+        }
+    }
+
+    // Slash path: .../8GB/256SSD or .../16GB/512S or .../14.0/8GB DDR (no storage yet)
+    if (!ram || !storage) {
+        const path = raw.match(/(?:\/|,)\s*(\d{1,2})\s*GB\s*(?:\/|,)\s*(\d{2,4})\s*(?:GB|SSD|NVM|NVME|HDD|S)?\b/i);
+        if (path) {
+            if (!ram) ram = normalizeLaptopCapacity(path[1], 'GB');
+            if (!storage) storage = normalizeLaptopCapacity(path[2], 'GB');
+        }
+    }
+    // .../8GB DDR with no storage token
+    if (!ram) {
+        const ramOnlyPath = raw.match(/\/\s*(\d{1,2})\s*GB\b/i);
+        if (ramOnlyPath) {
+            const n = parseInt(ramOnlyPath[1], 10);
+            if ([4, 8, 12, 16, 24, 32, 64].includes(n)) ram = normalizeLaptopCapacity(n, 'GB');
+        }
+    }
+
+    // 8GB,512SSD | 8GB,256GB | 8 GB 256 GB | 8GB DDR4 256GB
+    if (!ram) {
+        const ramMatch = raw.match(/\b(\d{1,2})\s*(GB|TB|G)\b(?!\s*SSD)/i)
+            || raw.match(/\b(\d{1,2})\s*GB\s*(?:RAM|DDR\d|ΜΝΗΜΗ)?\b/i);
+        if (ramMatch) {
+            const n = parseInt(ramMatch[1], 10);
+            if ([4, 8, 12, 16, 24, 32, 36, 48, 64].includes(n)) {
+                ram = normalizeLaptopCapacity(n, /TB/i.test(ramMatch[2] || '') ? 'TB' : 'GB');
+            }
+        }
+    }
+
+    // Truncated "8G" at end of title
+    if (!ram) {
+        const truncRam = raw.match(/\b(\d{1,2})\s*G(?:B)?\s*$/i) || raw.match(/\(\s*[^)]*?(\d{1,2})\s*G(?:B)?\s*$/i);
+        if (truncRam) {
+            const n = parseInt(truncRam[1], 10);
+            if ([4, 8, 12, 16, 24, 32, 64].includes(n)) ram = normalizeLaptopCapacity(n, 'GB');
+        }
+    }
+
+    if (!storage) {
+        const storageMatch = raw.match(/\b(\d{1,4})\s*(TB)\b/i)
+            || raw.match(/\b(\d{2,4})\s*(GB|G)?\s*(SSD|NVME|NVM|HDD|M\.?2)\b/i)
+            || raw.match(/\b(\d{2,4})\s*SSD\b/i)
+            || raw.match(/\b(\d{2,4})\s*GB\b/i);
+        if (storageMatch) {
+            const n = parseInt(storageMatch[1], 10);
+            const unitTok = `${storageMatch[2] || ''} ${storageMatch[3] || ''}`.toUpperCase();
+            if (/TB/.test(unitTok) || n === 1) {
+                storage = normalizeLaptopCapacity(n <= 4 ? n : n, n <= 4 ? 'TB' : 'GB');
+                if (n === 1) storage = '1TB';
+            } else if ([64, 128, 256, 512, 1024, 2048].includes(n)) {
+                storage = normalizeLaptopCapacity(n, 'GB');
+            }
+        }
+    }
+
+    // Truncated storage leftovers: "512" / "256" / "256G" after RAM mention
+    if (!storage) {
+        const truncStor = raw.match(/\b(?:GB|RAM|DDR\d)\s+(\d{2,4})\s*G?(?:\s|$)/i)
+            || raw.match(/,\s*(\d{2,4})\s*(?:SSD|S|G)?\s*(?:,|\(|$)/i)
+            || raw.match(/\b(\d{2,4})\s*(?:SSD|S)\b/i)
+            || raw.match(/\b(\d{2,4})\s*G(?:B)?\s*$/i);
+        if (truncStor) {
+            const n = parseInt(truncStor[1], 10);
+            if ([64, 128, 256, 512, 1024].includes(n)) storage = normalizeLaptopCapacity(n, 'GB');
+        }
+    }
+
+    // Chromebook eMMC 64GB
+    if (!storage) {
+        const e = raw.match(/\b(64)\s*(?:GB|G)?\b/i);
+        if (e && /CHROMEBOOK/i.test(raw)) storage = '64GB';
+    }
+
+    if (ram && storage && ram === storage) {
+        const ramN = parseInt(ram, 10);
+        if (ramN >= 128) {
+            storage = ram;
+            ram = '';
+        }
+    }
+
+    // Prefer storage when left combo captured screen size etc.
+    if (ram && !([4, 8, 12, 16, 24, 32, 36, 48, 64].includes(parseInt(ram, 10)))) {
+        ram = '';
+    }
+
+    return { ram, storage };
+}
+
+function buildLaptopModelLine(modelText, specs) {
+    let line = String(modelText || '').replace(/\s+/g, ' ').trim();
+    // Normalize Greek lookalikes in model codes (Τ470 → T470)
+    line = line.replace(/[Ττ]/g, 'T');
+    line = line.replace(/\(?\s*(?:BB|ΒΒ)\s*[:\-]?[^)]*\)?\s*$/i, '').trim();
+    line = line.replace(/\bBB\s*:\s*\(?[^)]*\)?\s*$/i, '').trim();
+    line = line.replace(/\([^)]*(?:i[3579]|ryzen|celeron|pentium|ssd|gb|tb|ddr\d)[^)]*$/ig, ' ');
+    line = line.replace(/\([^)]*(?:i[3579]|ryzen|celeron|pentium|ssd|gb|tb|ddr\d)[^)]*\)/ig, ' ');
+    line = line.replace(/\b\d{1,2}\s*(?:GB|TB)?\s*[\/,]\s*\d{1,4}\s*(?:GB|TB|SSD|NVME|NVM|HDD)?\b/ig, ' ');
+    line = line.replace(/\/\s*\d{1,2}\s*(?:GB|TB)?\s*\/\s*\d{2,4}\s*(?:GB|SSD|NVM|S)?\b/ig, ' ');
+    line = line.replace(/\/\d{1,2}(?:[.,]\d+)?(?:-FHD|-HD)?/ig, ' ');
+    line = line.replace(/\b\d{1,2}(?:[.,]\d+)?-FHD\b/ig, ' ');
+    line = line.replace(/\bGEN\s*(\d)\b/ig, 'G$1'); // keep gen marker compact
+    // Drop trailing orphan punctuation / DDR leftovers
+    line = line.replace(/\bDDR\d?\b/ig, ' ');
+    line = line.replace(/\s+[./-]+\s*$/g, ' ');
+    line = line.replace(/^\s*[./-]+|\s*[./-]+\s*$/g, ' ');
+    const keepCpuInModel = specs?.cpu && /^M[1-4]\b/i.test(specs.cpu);
+    if (specs?.cpu && !keepCpuInModel) {
+        const cpuRe = specs.cpu
+            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            .replace(/\s+/g, '\\s*')
+            .replace(/-/g, '[-\\s]*');
+        line = line.replace(new RegExp(`\\b${cpuRe}\\b`, 'ig'), ' ');
+        // Also strip bare family left behind
+        line = line.replace(/\b[Ii][3579]\b(?=\s*[,\/\)]|\s*$)/g, ' ');
+    }
+    if (specs?.ram) {
+        const n = parseInt(specs.ram, 10);
+        line = line.replace(new RegExp(`\\b${n}\\s*(?:GB|TB|G)\\b`, 'ig'), ' ');
+    }
+    if (specs?.storage) {
+        const n = parseInt(specs.storage, 10);
+        line = line.replace(new RegExp(`\\b${n}\\s*(?:GB|TB|G)?\\s*(?:SSD|NVME|NVM|HDD|S)?\\b`, 'ig'), ' ');
+    }
+    line = line.replace(/\b(?:SSD|NVME|NVM|HDD|DDR\d|FHD|TOUCH)\b/ig, ' ');
+    line = line.replace(/\b\d+\s*CORE(?:\s*CPU|\s*GPU)?\b/ig, ' ');
+    line = line.replace(/\bNB\b/ig, ' ');
+    line = line.replace(/\bAMD\b/ig, ' ');
+    line = line.replace(/\bA\d{4}\b/ig, ' '); // Apple board ids A2337
+    line = line.replace(/\b20[12]\d\b/g, ' '); // year
+    line = line.replace(/\b(SPACE\s*GREY|SPACE\s*GRAY|MIDNIGHT|STARLIGHT|SILVER|GOLD|BLACK|WHITE|GREY|GRAY|BLUE|RED|ROSE\s*GOLD|SPA|GOL|SIL)\b/ig, ' ');
+    // Screen size only when inch marks present
+    line = line.replace(/\b\d{1,2}(?:[.,]\d+)?\s*(?:''|"|′|’)\b/g, ' ');
+    line = line.replace(/[\/|,]+/g, ' ').replace(/[()]+/g, ' ').replace(/\s+/g, ' ').trim();
+    line = line.replace(/^APPLE\s+/i, '');
+    return line || String(modelText || '').trim();
+}
+
+function parseLaptopSpecs(fullName) {
+    let text = stripUsedLaptopPrefix(fullName);
+    text = text.replace(/\s*Περισσότερα\s*\.?\s*\.?\s*\.?\s*$/i, '').trim();
+    text = text.replace(/\(?\s*(?:BB|ΒΒ)\s*[:\-]?[^)]*\)?\s*$/i, '').trim();
+
+    const brand = extractLaptopBrand(text);
+    const cpu = extractLaptopCpu(text);
+    const { ram, storage } = extractLaptopRamStorage(text);
+    const modelLine = buildLaptopModelLine(text, { cpu, ram, storage });
+    return { brand, cpu, ram, storage, modelLine };
+}
+
+function hydrateLaptopItem(item) {
+    if (!item || typeof item !== 'object') return item;
+    const source = item.name || item.model || '';
+    const specs = parseLaptopSpecs(source);
+    const parsed = parseLaptopName(source);
+    return {
+        ...item,
+        name: parsed.fullName || item.name,
+        model: specs.modelLine || parsed.model || item.model,
+        grade: item.grade || parsed.grade || '',
+        imei: item.imei || parsed.imei || '',
+        brand: specs.brand || item.brand || '',
+        cpu: specs.cpu || item.cpu || '',
+        ram: specs.ram || item.ram || '',
+        storage: specs.storage || item.storage || '',
+        productKind: 'laptop',
+    };
+}
+
 function parseLaptopName(fullName) {
-    let model = String(fullName || '').replace(/\s+/g, ' ').trim();
+    let model = stripUsedLaptopPrefix(fullName);
     let grade = '';
     let imei = '';
-    const upper = model.toUpperCase();
-    if (upper.includes(USED_LAPTOP_PREFIX)) {
-        const idx = upper.indexOf(USED_LAPTOP_PREFIX);
-        model = model.slice(idx + USED_LAPTOP_PREFIX.length).trim();
-    }
-    // BB:A+ SERIAL or (BB:A+ SERIAL)
-    let m = model.match(/\(?\s*(?:BB|ΒΒ)\s*[:\-]?\s*([A-Z+]+\+?)\s+([A-Z0-9\-]+)\s*\)?\s*$/i);
+    // BB:A+ SERIAL or (BB:A+ SERIAL) or BB:(A-SERIAL
+    let m = model.match(/\(?\s*(?:BB|ΒΒ)\s*[:\-]?\s*\(?\s*([A-Z+]+\+?)\s*[-\s:]+([A-Z0-9\-]+)\s*\)?\s*$/i);
     if (m) {
         grade = String(m[1] || '').toUpperCase();
         imei = String(m[2] || '').trim();
         model = model.slice(0, m.index).trim();
     } else {
-        m = model.match(/\(?\s*(?:BB|ΒΒ)\s*[:\-]\s*([A-Z+]+\+?)\s*[-:]?\s*([A-Z0-9\-]+)\s*\)?\s*$/i);
+        m = model.match(/\(?\s*(?:BB|ΒΒ)\s*[:\-]\s*([A-Z+]+\+?)\s*$/i);
         if (m) {
             grade = String(m[1] || '').toUpperCase();
-            imei = String(m[2] || '').trim();
             model = model.slice(0, m.index).trim();
         }
     }
+    const specs = parseLaptopSpecs(String(fullName || ''));
     return {
         fullName: String(fullName || '').replace(/\s+/g, ' ').trim(),
-        model: model || String(fullName || '').trim(),
+        model: specs.modelLine || model || String(fullName || '').trim(),
+        modelLine: specs.modelLine || model,
+        brand: specs.brand,
+        cpu: specs.cpu,
+        ram: specs.ram,
+        storage: specs.storage,
         grade,
         imei,
     };
@@ -61189,7 +61513,9 @@ function loadLaptopListCache() {
         if (ageDays > LAPTOP_CACHE_EXPIRATION_DAYS) return null;
         const parsed = JSON.parse(GM_getValue(LAPTOP_LIST_CACHE_KEY, '[]'));
         if (!Array.isArray(parsed) || !parsed.length) return null;
-        const onlyLaptops = parsed.filter((item) => isUsedLaptopTitle(item?.name) && !isUsedPhoneProductTitle(item?.name));
+        const onlyLaptops = parsed
+            .filter((item) => isUsedLaptopTitle(item?.name) && !isUsedPhoneProductTitle(item?.name))
+            .map((item) => hydrateLaptopItem(item));
         return onlyLaptops.length ? onlyLaptops : null;
     } catch (_) {
         return null;
@@ -61210,7 +61536,9 @@ function getOtherStoreLaptopCache() {
         if (ageDays > 1) return null;
         const parsed = JSON.parse(GM_getValue(OTHER_STORE_LAPTOP_CACHE_KEY, '[]'));
         if (!Array.isArray(parsed) || !parsed.length) return null;
-        const onlyLaptops = parsed.filter((item) => isUsedLaptopTitle(item?.name) && !isUsedPhoneProductTitle(item?.name));
+        const onlyLaptops = parsed
+            .filter((item) => isUsedLaptopTitle(item?.name) && !isUsedPhoneProductTitle(item?.name))
+            .map((item) => hydrateLaptopItem(item));
         return onlyLaptops.length ? onlyLaptops : null;
     } catch (_) {
         return null;
@@ -61312,6 +61640,10 @@ async function expandLaptopNames(items, onProgress) {
                     item.model = parsed.model;
                     item.grade = parsed.grade || item.grade;
                     item.imei = parsed.imei || item.imei;
+                    item.brand = parsed.brand || item.brand;
+                    item.cpu = parsed.cpu || item.cpu;
+                    item.ram = parsed.ram || item.ram;
+                    item.storage = parsed.storage || item.storage;
                     item.isBuyback = isBuybackTitle(full) || !!item.isBuyback;
                 }
             } catch (_) { /* keep truncated */ }
@@ -61391,6 +61723,10 @@ function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherSto
             model: parsed.model,
             grade: parsed.grade,
             imei: parsed.imei,
+            brand: parsed.brand,
+            cpu: parsed.cpu,
+            ram: parsed.ram,
+            storage: parsed.storage,
             unitsRemaining,
             isBuyback: isBuybackTitle(name),
             retailPrice,
@@ -61456,7 +61792,9 @@ async function fetchLaptopList(options = {}) {
         });
     });
     // Title is authoritative — 55./56. barcodes include phones too.
-    laptops = laptops.filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name));
+    laptops = laptops
+        .filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name))
+        .map((item) => hydrateLaptopItem(item));
     saveLaptopListCache(laptops);
     onProgress({ phase: 'done', ratio: 1 });
     console.log(`[MMS Phone List] Parsed ${laptops.length} used laptops`);
@@ -61496,7 +61834,9 @@ async function fetchOtherStoreLaptops(options = {}) {
             total: info.total,
         });
     });
-    laptops = laptops.filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name));
+    laptops = laptops
+        .filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name))
+        .map((item) => hydrateLaptopItem(item));
     saveOtherStoreLaptopCache(laptops);
     onProgress({ phase: 'done', ratio: 1 });
     return laptops;
@@ -61987,6 +62327,7 @@ function stripModelToBaseRaw(model) {
         let base = model;
         
         base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '');
+        base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ\s+ΦΟΡΗΤΟΣ\s+ΗΛΕΚΤΡΟΝΙΚΟΣ\s+ΥΠΟΛΟΓΙΣΤΗΣ\s*/gi, '');
         base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ\s+ΦΟΡΗΤΟΣ\s+ΥΠΟΛΟΓΙΣΤΗΣ\s*/gi, '');
         base = base.replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ');
         base = base.replace(/\s*\(BB[^)]*\)?\s*/gi, ' ');
@@ -62590,6 +62931,8 @@ window.fetchOtherStoreLaptops = fetchOtherStoreLaptops;
 window.loadLaptopListCache = loadLaptopListCache;
 window.getOtherStoreLaptopCache = getOtherStoreLaptopCache;
 window.parseLaptopName = parseLaptopName;
+window.parseLaptopSpecs = parseLaptopSpecs;
+window.hydrateLaptopItem = hydrateLaptopItem;
 window.isUsedLaptopTitle = isUsedLaptopTitle;
 window.isLaptopBarcode = isLaptopBarcode;
 window.fetchOtherStorePhones = fetchOtherStorePhones;
@@ -64058,7 +64401,10 @@ try {
     }
 
     function emptyActiveFilters() {
-        return { grade: '', gb: '', color: '', tag: '' };
+        return {
+            grade: '', gb: '', color: '', tag: '',
+            brand: '', cpu: '', ram: '', storage: '',
+        };
     }
 
     function phoneTagKeys(phone) {
@@ -64066,7 +64412,136 @@ try {
         return window.getPhoneTags(phone?.barcode) || [];
     }
 
-    function collectFiltersForModel(allPhones, otherStorePhones, model, helpers, catalogView = 'mine') {
+    function getLaptopSpecs(phone) {
+        if (!phone) return { brand: '', cpu: '', ram: '', storage: '' };
+        if (phone.brand || phone.cpu || phone.ram || phone.storage) {
+            return {
+                brand: phone.brand || '',
+                cpu: phone.cpu || '',
+                ram: phone.ram || '',
+                storage: phone.storage || '',
+            };
+        }
+        if (typeof window.parseLaptopSpecs === 'function') {
+            return window.parseLaptopSpecs(phone.name || phone.model || '');
+        }
+        return { brand: '', cpu: '', ram: '', storage: '' };
+    }
+
+    function sortLaptopRamStorage(a, b) {
+        const num = (s) => {
+            const raw = String(s || '');
+            const n = parseInt(raw, 10) || 0;
+            return /TB/i.test(raw) ? n * 1024 : n;
+        };
+        return num(a) - num(b);
+    }
+
+    function collectLaptopFilterOptions(allPhones, otherStorePhones, helpers, catalogView = 'mine', model = null) {
+        const { extractBaseModel, filterIphoneTitlePhones } = helpers;
+        const brands = new Set();
+        const cpus = new Set();
+        const rams = new Set();
+        const storages = new Set();
+        const grades = new Set();
+
+        const addPhone = (phone) => {
+            if (model && extractBaseModel(phone.model) !== model) return;
+            const specs = getLaptopSpecs(phone);
+            if (specs.brand) brands.add(specs.brand);
+            if (specs.cpu) cpus.add(specs.cpu);
+            if (specs.ram) rams.add(specs.ram);
+            if (specs.storage) storages.add(specs.storage);
+            if (phone.grade) grades.add(phone.grade);
+        };
+
+        if (catalogView !== 'network') {
+            filterIphoneTitlePhones(allPhones).forEach((p) => {
+                if ((p.unitsRemaining || 0) > 0) addPhone(p);
+            });
+        }
+        if (catalogView !== 'mine') {
+            filterIphoneTitlePhones(otherStorePhones).forEach(addPhone);
+        }
+
+        return {
+            brands: [...brands].sort((a, b) => a.localeCompare(b, 'el')),
+            cpus: [...cpus].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })),
+            rams: [...rams].sort(sortLaptopRamStorage),
+            storages: [...storages].sort(sortLaptopRamStorage),
+            grades: [...grades].sort((a, b) => helpers.comparePhoneGrades(a, b)),
+            gbs: [],
+            colors: [],
+            tags: [],
+        };
+    }
+
+    function collectLaptopFilterCounts(allPhones, otherStorePhones, activeFilters, helpers, catalogView = 'mine', model = null) {
+        const { extractBaseModel, filterIphoneTitlePhones } = helpers;
+        const counts = { brand: {}, cpu: {}, ram: {}, storage: {}, grade: {} };
+        const phones = [];
+
+        if (catalogView !== 'network') {
+            filterIphoneTitlePhones(allPhones).forEach((p) => {
+                if ((p.unitsRemaining || 0) > 0 && (!model || extractBaseModel(p.model) === model)) phones.push(p);
+            });
+        }
+        if (catalogView !== 'mine') {
+            filterIphoneTitlePhones(otherStorePhones).forEach((p) => {
+                if (!model || extractBaseModel(p.model) === model) phones.push(p);
+            });
+        }
+
+        function matchesExcept(phone, exceptKey) {
+            const filters = { ...activeFilters, [exceptKey]: '' };
+            if (model) return phoneMatchesFilters(phone, model, filters, helpers);
+            return laptopMatchesFilters(phone, filters, helpers);
+        }
+
+        phones.forEach((phone) => {
+            const specs = getLaptopSpecs(phone);
+            if (matchesExcept(phone, 'brand') && specs.brand) {
+                counts.brand[specs.brand] = (counts.brand[specs.brand] || 0) + 1;
+            }
+            if (matchesExcept(phone, 'cpu') && specs.cpu) {
+                counts.cpu[specs.cpu] = (counts.cpu[specs.cpu] || 0) + 1;
+            }
+            if (matchesExcept(phone, 'ram') && specs.ram) {
+                counts.ram[specs.ram] = (counts.ram[specs.ram] || 0) + 1;
+            }
+            if (matchesExcept(phone, 'storage') && specs.storage) {
+                counts.storage[specs.storage] = (counts.storage[specs.storage] || 0) + 1;
+            }
+            if (matchesExcept(phone, 'grade') && phone.grade) {
+                counts.grade[phone.grade] = (counts.grade[phone.grade] || 0) + 1;
+            }
+        });
+
+        return counts;
+    }
+
+    function laptopMatchesFilters(phone, filters, helpers) {
+        if (!filters) return true;
+        const specs = getLaptopSpecs(phone);
+        if (filters.brand && specs.brand !== filters.brand) return false;
+        if (filters.cpu && specs.cpu !== filters.cpu) return false;
+        if (filters.ram && specs.ram !== filters.ram) return false;
+        if (filters.storage && specs.storage !== filters.storage) return false;
+        if (filters.grade && phone.grade !== filters.grade) return false;
+        if (filters.tag) {
+            const tagKey = typeof window.normalizeTagKey === 'function'
+                ? window.normalizeTagKey(filters.tag)
+                : String(filters.tag || '').trim().toLowerCase();
+            if (!phoneTagKeys(phone).includes(tagKey)) return false;
+        }
+        void helpers;
+        return true;
+    }
+
+    function collectFiltersForModel(allPhones, otherStorePhones, model, helpers, catalogView = 'mine', category = 'phones') {
+        if (category === 'laptops') {
+            return collectLaptopFilterOptions(allPhones, otherStorePhones, helpers, catalogView, model);
+        }
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const grades = new Set();
         const gbs = new Set();
@@ -64109,10 +64584,17 @@ try {
             gbs: [...gbs].sort(sortGb),
             colors: [...colors].sort((a, b) => a.localeCompare(b, 'el')),
             tags: [...tags].sort(sortTag),
+            brands: [],
+            cpus: [],
+            rams: [],
+            storages: [],
         };
     }
 
-    function collectFilterCounts(allPhones, otherStorePhones, model, activeFilters, helpers, catalogView = 'mine') {
+    function collectFilterCounts(allPhones, otherStorePhones, model, activeFilters, helpers, catalogView = 'mine', category = 'phones') {
+        if (category === 'laptops') {
+            return collectLaptopFilterCounts(allPhones, otherStorePhones, activeFilters, helpers, catalogView, model);
+        }
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const counts = { grade: {}, gb: {}, color: {}, tag: {} };
 
@@ -64161,6 +64643,9 @@ try {
     function phoneMatchesFilters(phone, model, filters, helpers) {
         const { extractBaseModel, extractGB, extractColor } = helpers;
         if (extractBaseModel(phone.model) !== model) return false;
+        if (phone.productKind === 'laptop' || filters.brand || filters.cpu || filters.ram || filters.storage) {
+            if (!laptopMatchesFilters(phone, filters, helpers)) return false;
+        }
         if (filters.grade && phone.grade !== filters.grade) return false;
         const gb = extractGB(phone.name || phone.model);
         if (filters.gb && gb !== filters.gb) return false;
@@ -64376,13 +64861,25 @@ try {
 
         const UI = window.PhoneCatalogUI;
         const helpers = {
-            extractBaseModel: window.extractBaseModel || ((m) => m),
+            extractBaseModel: (m) => {
+                if (requestedCategory === 'laptops') {
+                    if (typeof window.parseLaptopSpecs === 'function') {
+                        const specs = window.parseLaptopSpecs(m);
+                        if (specs?.modelLine) return specs.modelLine;
+                    }
+                    if (typeof window.parseLaptopName === 'function') {
+                        const parsed = window.parseLaptopName(m);
+                        if (parsed?.model) return parsed.model;
+                    }
+                }
+                return (window.extractBaseModel || ((x) => x))(m);
+            },
             extractGB: window.extractGB || (() => ''),
             extractColor: window.extractColor || (() => ''),
             normalizePhoneGrade: window.normalizePhoneGrade || ((g) => g),
             comparePhoneGrades: window.comparePhoneGrades || ((a, b) => a.localeCompare(b)),
             filterIphoneTitlePhones: (list) => {
-                if (catalogCategory === 'laptops') return Array.isArray(list) ? list : [];
+                if (requestedCategory === 'laptops') return Array.isArray(list) ? list : [];
                 return (window.filterIphoneTitlePhones || ((p) => p))(list);
             },
             filterOneUnitStores: window.filterOneUnitStores || ((s) => s),
@@ -64769,7 +65266,8 @@ try {
                         const val = chip.getAttribute('data-tm-sl-value') || '';
                         activeFilters[key] = activeFilters[key] === val ? '' : val;
                     }
-                    renderStoresStep();
+                    if (step === 'stores' && selectedModel) renderStoresStep();
+                    else renderModelsStep();
                 });
             });
         }
@@ -64813,8 +65311,6 @@ try {
                 selectedModel = null;
                 // Keep activeFilters across mine ↔ network so a GB/grade filter survives the switch.
                 syncCatalogHeaders();
-                toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, { recentModels });
-                wireModelSearchToolbar();
 
                 const needsFetch = catalogView === 'network' && !isNetworkPoolLoaded();
                 let skeletonTimer = null;
@@ -64907,7 +65403,13 @@ try {
         }
 
         function getFilteredModels() {
-            let models = buildModelIndex(getLocalPool(), getNetworkPool(), helpers, catalogView);
+            const localPool = catalogCategory === 'laptops'
+                ? applyLaptopFiltersToPool(getLocalPool())
+                : getLocalPool();
+            const networkPool = catalogCategory === 'laptops'
+                ? applyLaptopFiltersToPool(getNetworkPool())
+                : getNetworkPool();
+            let models = buildModelIndex(localPool, networkPool, helpers, catalogView);
             models = sortModels(models, modelSort);
             if (modelQuery) {
                 const q = modelQuery;
@@ -64998,7 +65500,28 @@ try {
         }
 
         function hasActiveFilters() {
-            return !!(activeFilters.grade || activeFilters.gb || activeFilters.color || activeFilters.tag);
+            return !!(
+                activeFilters.grade || activeFilters.gb || activeFilters.color || activeFilters.tag
+                || activeFilters.brand || activeFilters.cpu || activeFilters.ram || activeFilters.storage
+            );
+        }
+
+        function buildLaptopChipsHtml(model = null) {
+            const filterOptions = model
+                ? collectFiltersForModel(getLocalPool(), getNetworkPool(), model, helpers, catalogView, 'laptops')
+                : collectLaptopFilterOptions(getLocalPool(), getNetworkPool(), helpers, catalogView, null);
+            const filterCounts = model
+                ? collectFilterCounts(getLocalPool(), getNetworkPool(), model, activeFilters, helpers, catalogView, 'laptops')
+                : collectLaptopFilterCounts(getLocalPool(), getNetworkPool(), activeFilters, helpers, catalogView, null);
+            return UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({
+                counts: filterCounts,
+                laptopFilters: true,
+            }));
+        }
+
+        function applyLaptopFiltersToPool(pool) {
+            if (!hasActiveFilters()) return pool;
+            return (pool || []).filter((p) => laptopMatchesFilters(p, activeFilters, helpers));
         }
 
         function mergeNetworkStoreHints() {
@@ -65047,8 +65570,16 @@ try {
             lastTrackedNetworkModel = null;
             UI.updateBreadcrumb(overlay, 'models');
             syncCatalogHeaders();
-            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, { recentModels });
+            const chipsHtml = catalogCategory === 'laptops' ? buildLaptopChipsHtml(null) : '';
+            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, {
+                recentModels,
+                chipsHtml,
+                placeholder: catalogCategory === 'laptops'
+                    ? 'Μάρκα, μοντέλο, CPU, barcode'
+                    : 'Μοντέλο, barcode ή IMEI',
+            });
             wireModelSearchToolbar();
+            if (catalogCategory === 'laptops') wireFilterChips(toolbarEl);
 
             const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
             if (searchInput) {
@@ -65068,9 +65599,16 @@ try {
                 ? `${resolveMyStoreLabel()} · κλικ στο barcode για αντιγραφή`
                 : 'Διαθεσιμότητα σε άλλα καταστήματα');
 
-            const filterOptions = collectFiltersForModel(getLocalPool(), getNetworkPool(), selectedModel, helpers, catalogView);
-            const filterCounts = collectFilterCounts(getLocalPool(), getNetworkPool(), selectedModel, activeFilters, helpers, catalogView);
-            const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({ counts: filterCounts }));
+            const filterOptions = collectFiltersForModel(
+                getLocalPool(), getNetworkPool(), selectedModel, helpers, catalogView, catalogCategory
+            );
+            const filterCounts = collectFilterCounts(
+                getLocalPool(), getNetworkPool(), selectedModel, activeFilters, helpers, catalogView, catalogCategory
+            );
+            const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({
+                counts: filterCounts,
+                laptopFilters: catalogCategory === 'laptops',
+            }));
             const isNetwork = catalogView === 'network';
             const filtersSummary = typeof UI.formatActiveFiltersSummary === 'function'
                 ? UI.formatActiveFiltersSummary(activeFilters)
@@ -65092,7 +65630,8 @@ try {
             });
 
             toolbarEl.querySelector('#tm-sl-back')?.addEventListener('click', () => {
-                activeFilters = emptyActiveFilters();
+                // Keep laptop facet filters when returning to model list.
+                if (catalogCategory !== 'laptops') activeFilters = emptyActiveFilters();
                 renderModelsStep();
             });
             wireFilterChips(toolbarEl);
@@ -65595,7 +66134,7 @@ try {
     }
 
     function getLaptopCatalogMenuLabel() {
-        return 'Κατάλογος Φορητών';
+        return 'Κατάλογος Laptop';
     }
 
     function cloneNativeMenuItem(templateLi, label, iconKind) {

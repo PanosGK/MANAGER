@@ -240,7 +240,10 @@
     }
 
     function emptyActiveFilters() {
-        return { grade: '', gb: '', color: '', tag: '' };
+        return {
+            grade: '', gb: '', color: '', tag: '',
+            brand: '', cpu: '', ram: '', storage: '',
+        };
     }
 
     function phoneTagKeys(phone) {
@@ -248,7 +251,136 @@
         return window.getPhoneTags(phone?.barcode) || [];
     }
 
-    function collectFiltersForModel(allPhones, otherStorePhones, model, helpers, catalogView = 'mine') {
+    function getLaptopSpecs(phone) {
+        if (!phone) return { brand: '', cpu: '', ram: '', storage: '' };
+        if (phone.brand || phone.cpu || phone.ram || phone.storage) {
+            return {
+                brand: phone.brand || '',
+                cpu: phone.cpu || '',
+                ram: phone.ram || '',
+                storage: phone.storage || '',
+            };
+        }
+        if (typeof window.parseLaptopSpecs === 'function') {
+            return window.parseLaptopSpecs(phone.name || phone.model || '');
+        }
+        return { brand: '', cpu: '', ram: '', storage: '' };
+    }
+
+    function sortLaptopRamStorage(a, b) {
+        const num = (s) => {
+            const raw = String(s || '');
+            const n = parseInt(raw, 10) || 0;
+            return /TB/i.test(raw) ? n * 1024 : n;
+        };
+        return num(a) - num(b);
+    }
+
+    function collectLaptopFilterOptions(allPhones, otherStorePhones, helpers, catalogView = 'mine', model = null) {
+        const { extractBaseModel, filterIphoneTitlePhones } = helpers;
+        const brands = new Set();
+        const cpus = new Set();
+        const rams = new Set();
+        const storages = new Set();
+        const grades = new Set();
+
+        const addPhone = (phone) => {
+            if (model && extractBaseModel(phone.model) !== model) return;
+            const specs = getLaptopSpecs(phone);
+            if (specs.brand) brands.add(specs.brand);
+            if (specs.cpu) cpus.add(specs.cpu);
+            if (specs.ram) rams.add(specs.ram);
+            if (specs.storage) storages.add(specs.storage);
+            if (phone.grade) grades.add(phone.grade);
+        };
+
+        if (catalogView !== 'network') {
+            filterIphoneTitlePhones(allPhones).forEach((p) => {
+                if ((p.unitsRemaining || 0) > 0) addPhone(p);
+            });
+        }
+        if (catalogView !== 'mine') {
+            filterIphoneTitlePhones(otherStorePhones).forEach(addPhone);
+        }
+
+        return {
+            brands: [...brands].sort((a, b) => a.localeCompare(b, 'el')),
+            cpus: [...cpus].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })),
+            rams: [...rams].sort(sortLaptopRamStorage),
+            storages: [...storages].sort(sortLaptopRamStorage),
+            grades: [...grades].sort((a, b) => helpers.comparePhoneGrades(a, b)),
+            gbs: [],
+            colors: [],
+            tags: [],
+        };
+    }
+
+    function collectLaptopFilterCounts(allPhones, otherStorePhones, activeFilters, helpers, catalogView = 'mine', model = null) {
+        const { extractBaseModel, filterIphoneTitlePhones } = helpers;
+        const counts = { brand: {}, cpu: {}, ram: {}, storage: {}, grade: {} };
+        const phones = [];
+
+        if (catalogView !== 'network') {
+            filterIphoneTitlePhones(allPhones).forEach((p) => {
+                if ((p.unitsRemaining || 0) > 0 && (!model || extractBaseModel(p.model) === model)) phones.push(p);
+            });
+        }
+        if (catalogView !== 'mine') {
+            filterIphoneTitlePhones(otherStorePhones).forEach((p) => {
+                if (!model || extractBaseModel(p.model) === model) phones.push(p);
+            });
+        }
+
+        function matchesExcept(phone, exceptKey) {
+            const filters = { ...activeFilters, [exceptKey]: '' };
+            if (model) return phoneMatchesFilters(phone, model, filters, helpers);
+            return laptopMatchesFilters(phone, filters, helpers);
+        }
+
+        phones.forEach((phone) => {
+            const specs = getLaptopSpecs(phone);
+            if (matchesExcept(phone, 'brand') && specs.brand) {
+                counts.brand[specs.brand] = (counts.brand[specs.brand] || 0) + 1;
+            }
+            if (matchesExcept(phone, 'cpu') && specs.cpu) {
+                counts.cpu[specs.cpu] = (counts.cpu[specs.cpu] || 0) + 1;
+            }
+            if (matchesExcept(phone, 'ram') && specs.ram) {
+                counts.ram[specs.ram] = (counts.ram[specs.ram] || 0) + 1;
+            }
+            if (matchesExcept(phone, 'storage') && specs.storage) {
+                counts.storage[specs.storage] = (counts.storage[specs.storage] || 0) + 1;
+            }
+            if (matchesExcept(phone, 'grade') && phone.grade) {
+                counts.grade[phone.grade] = (counts.grade[phone.grade] || 0) + 1;
+            }
+        });
+
+        return counts;
+    }
+
+    function laptopMatchesFilters(phone, filters, helpers) {
+        if (!filters) return true;
+        const specs = getLaptopSpecs(phone);
+        if (filters.brand && specs.brand !== filters.brand) return false;
+        if (filters.cpu && specs.cpu !== filters.cpu) return false;
+        if (filters.ram && specs.ram !== filters.ram) return false;
+        if (filters.storage && specs.storage !== filters.storage) return false;
+        if (filters.grade && phone.grade !== filters.grade) return false;
+        if (filters.tag) {
+            const tagKey = typeof window.normalizeTagKey === 'function'
+                ? window.normalizeTagKey(filters.tag)
+                : String(filters.tag || '').trim().toLowerCase();
+            if (!phoneTagKeys(phone).includes(tagKey)) return false;
+        }
+        void helpers;
+        return true;
+    }
+
+    function collectFiltersForModel(allPhones, otherStorePhones, model, helpers, catalogView = 'mine', category = 'phones') {
+        if (category === 'laptops') {
+            return collectLaptopFilterOptions(allPhones, otherStorePhones, helpers, catalogView, model);
+        }
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const grades = new Set();
         const gbs = new Set();
@@ -291,10 +423,17 @@
             gbs: [...gbs].sort(sortGb),
             colors: [...colors].sort((a, b) => a.localeCompare(b, 'el')),
             tags: [...tags].sort(sortTag),
+            brands: [],
+            cpus: [],
+            rams: [],
+            storages: [],
         };
     }
 
-    function collectFilterCounts(allPhones, otherStorePhones, model, activeFilters, helpers, catalogView = 'mine') {
+    function collectFilterCounts(allPhones, otherStorePhones, model, activeFilters, helpers, catalogView = 'mine', category = 'phones') {
+        if (category === 'laptops') {
+            return collectLaptopFilterCounts(allPhones, otherStorePhones, activeFilters, helpers, catalogView, model);
+        }
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const counts = { grade: {}, gb: {}, color: {}, tag: {} };
 
@@ -343,6 +482,9 @@
     function phoneMatchesFilters(phone, model, filters, helpers) {
         const { extractBaseModel, extractGB, extractColor } = helpers;
         if (extractBaseModel(phone.model) !== model) return false;
+        if (phone.productKind === 'laptop' || filters.brand || filters.cpu || filters.ram || filters.storage) {
+            if (!laptopMatchesFilters(phone, filters, helpers)) return false;
+        }
         if (filters.grade && phone.grade !== filters.grade) return false;
         const gb = extractGB(phone.name || phone.model);
         if (filters.gb && gb !== filters.gb) return false;
@@ -558,13 +700,25 @@
 
         const UI = window.PhoneCatalogUI;
         const helpers = {
-            extractBaseModel: window.extractBaseModel || ((m) => m),
+            extractBaseModel: (m) => {
+                if (requestedCategory === 'laptops') {
+                    if (typeof window.parseLaptopSpecs === 'function') {
+                        const specs = window.parseLaptopSpecs(m);
+                        if (specs?.modelLine) return specs.modelLine;
+                    }
+                    if (typeof window.parseLaptopName === 'function') {
+                        const parsed = window.parseLaptopName(m);
+                        if (parsed?.model) return parsed.model;
+                    }
+                }
+                return (window.extractBaseModel || ((x) => x))(m);
+            },
             extractGB: window.extractGB || (() => ''),
             extractColor: window.extractColor || (() => ''),
             normalizePhoneGrade: window.normalizePhoneGrade || ((g) => g),
             comparePhoneGrades: window.comparePhoneGrades || ((a, b) => a.localeCompare(b)),
             filterIphoneTitlePhones: (list) => {
-                if (catalogCategory === 'laptops') return Array.isArray(list) ? list : [];
+                if (requestedCategory === 'laptops') return Array.isArray(list) ? list : [];
                 return (window.filterIphoneTitlePhones || ((p) => p))(list);
             },
             filterOneUnitStores: window.filterOneUnitStores || ((s) => s),
@@ -951,7 +1105,8 @@
                         const val = chip.getAttribute('data-tm-sl-value') || '';
                         activeFilters[key] = activeFilters[key] === val ? '' : val;
                     }
-                    renderStoresStep();
+                    if (step === 'stores' && selectedModel) renderStoresStep();
+                    else renderModelsStep();
                 });
             });
         }
@@ -995,8 +1150,6 @@
                 selectedModel = null;
                 // Keep activeFilters across mine ↔ network so a GB/grade filter survives the switch.
                 syncCatalogHeaders();
-                toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, { recentModels });
-                wireModelSearchToolbar();
 
                 const needsFetch = catalogView === 'network' && !isNetworkPoolLoaded();
                 let skeletonTimer = null;
@@ -1089,7 +1242,13 @@
         }
 
         function getFilteredModels() {
-            let models = buildModelIndex(getLocalPool(), getNetworkPool(), helpers, catalogView);
+            const localPool = catalogCategory === 'laptops'
+                ? applyLaptopFiltersToPool(getLocalPool())
+                : getLocalPool();
+            const networkPool = catalogCategory === 'laptops'
+                ? applyLaptopFiltersToPool(getNetworkPool())
+                : getNetworkPool();
+            let models = buildModelIndex(localPool, networkPool, helpers, catalogView);
             models = sortModels(models, modelSort);
             if (modelQuery) {
                 const q = modelQuery;
@@ -1180,7 +1339,28 @@
         }
 
         function hasActiveFilters() {
-            return !!(activeFilters.grade || activeFilters.gb || activeFilters.color || activeFilters.tag);
+            return !!(
+                activeFilters.grade || activeFilters.gb || activeFilters.color || activeFilters.tag
+                || activeFilters.brand || activeFilters.cpu || activeFilters.ram || activeFilters.storage
+            );
+        }
+
+        function buildLaptopChipsHtml(model = null) {
+            const filterOptions = model
+                ? collectFiltersForModel(getLocalPool(), getNetworkPool(), model, helpers, catalogView, 'laptops')
+                : collectLaptopFilterOptions(getLocalPool(), getNetworkPool(), helpers, catalogView, null);
+            const filterCounts = model
+                ? collectFilterCounts(getLocalPool(), getNetworkPool(), model, activeFilters, helpers, catalogView, 'laptops')
+                : collectLaptopFilterCounts(getLocalPool(), getNetworkPool(), activeFilters, helpers, catalogView, null);
+            return UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({
+                counts: filterCounts,
+                laptopFilters: true,
+            }));
+        }
+
+        function applyLaptopFiltersToPool(pool) {
+            if (!hasActiveFilters()) return pool;
+            return (pool || []).filter((p) => laptopMatchesFilters(p, activeFilters, helpers));
         }
 
         function mergeNetworkStoreHints() {
@@ -1229,8 +1409,16 @@
             lastTrackedNetworkModel = null;
             UI.updateBreadcrumb(overlay, 'models');
             syncCatalogHeaders();
-            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, { recentModels });
+            const chipsHtml = catalogCategory === 'laptops' ? buildLaptopChipsHtml(null) : '';
+            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, {
+                recentModels,
+                chipsHtml,
+                placeholder: catalogCategory === 'laptops'
+                    ? 'Μάρκα, μοντέλο, CPU, barcode'
+                    : 'Μοντέλο, barcode ή IMEI',
+            });
             wireModelSearchToolbar();
+            if (catalogCategory === 'laptops') wireFilterChips(toolbarEl);
 
             const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
             if (searchInput) {
@@ -1250,9 +1438,16 @@
                 ? `${resolveMyStoreLabel()} · κλικ στο barcode για αντιγραφή`
                 : 'Διαθεσιμότητα σε άλλα καταστήματα');
 
-            const filterOptions = collectFiltersForModel(getLocalPool(), getNetworkPool(), selectedModel, helpers, catalogView);
-            const filterCounts = collectFilterCounts(getLocalPool(), getNetworkPool(), selectedModel, activeFilters, helpers, catalogView);
-            const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({ counts: filterCounts }));
+            const filterOptions = collectFiltersForModel(
+                getLocalPool(), getNetworkPool(), selectedModel, helpers, catalogView, catalogCategory
+            );
+            const filterCounts = collectFilterCounts(
+                getLocalPool(), getNetworkPool(), selectedModel, activeFilters, helpers, catalogView, catalogCategory
+            );
+            const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({
+                counts: filterCounts,
+                laptopFilters: catalogCategory === 'laptops',
+            }));
             const isNetwork = catalogView === 'network';
             const filtersSummary = typeof UI.formatActiveFiltersSummary === 'function'
                 ? UI.formatActiveFiltersSummary(activeFilters)
@@ -1274,7 +1469,8 @@
             });
 
             toolbarEl.querySelector('#tm-sl-back')?.addEventListener('click', () => {
-                activeFilters = emptyActiveFilters();
+                // Keep laptop facet filters when returning to model list.
+                if (catalogCategory !== 'laptops') activeFilters = emptyActiveFilters();
                 renderModelsStep();
             });
             wireFilterChips(toolbarEl);
@@ -1777,7 +1973,7 @@
     }
 
     function getLaptopCatalogMenuLabel() {
-        return 'Κατάλογος Φορητών';
+        return 'Κατάλογος Laptop';
     }
 
     function cloneNativeMenuItem(templateLi, label, iconKind) {

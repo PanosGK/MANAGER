@@ -2534,6 +2534,10 @@
 
     function formatActiveFiltersSummary(active) {
         const bits = [];
+        if (active?.brand) bits.push(active.brand);
+        if (active?.cpu) bits.push(active.cpu);
+        if (active?.ram) bits.push(`RAM ${active.ram}`);
+        if (active?.storage) bits.push(active.storage);
         if (active?.grade) bits.push(`Βαθμ. ${active.grade}`);
         if (active?.gb) bits.push(active.gb);
         if (active?.color) bits.push(active.color);
@@ -2789,19 +2793,24 @@
                 ).join('')}
             </div>`
             : '';
+        const placeholder = opts.placeholder || 'Μοντέλο, barcode ή IMEI';
+        const chips = opts.chipsHtml
+            ? `<div class="tm-sl-chips tm-sl-chips--model" id="tm-sl-chips">${opts.chipsHtml}</div>`
+            : '';
         return `
             <div class="tm-sl-toolbar-row">
                 <div class="tm-sl-search-wrap">
                     <span class="tm-sl-search-icon">${ICON.search}</span>
                     <input type="search" id="tm-sl-model-search" class="tm-sl-search"
-                        placeholder="Μοντέλο, barcode ή IMEI" autocomplete="off">
+                        placeholder="${esc(placeholder)}" autocomplete="off">
                     <span class="tm-sl-search-kbd" aria-hidden="true">/</span>
                 </div>
                 <select id="tm-sl-model-sort" class="tm-sl-sort-select" aria-label="Ταξινόμηση" data-tm-sl-sort-select>
                     ${options}
                 </select>
             </div>
-            ${recentHtml}`;
+            ${recentHtml}
+            ${chips}`;
     }
 
     function shortRecentLabel(model) {
@@ -2915,9 +2924,10 @@
         const counts = ctx?.counts || {};
         const hexMap = ctx?.colorHexMap || {};
         const getGradeStyle = ctx?.getGradeStyle || (() => '');
+        const laptopFilters = !!ctx?.laptopFilters;
 
         const addGroup = (key, values) => {
-            if (!values.length) return;
+            if (!values?.length) return;
             values.forEach((val) => {
                 const isActive = active[key] === val;
                 const count = counts[key]?.[val];
@@ -2935,16 +2945,31 @@
                         ? window.getTagColor(val)
                         : '#9e9e9e';
                     inner = `<span class="tm-sl-chip-tag-dot" style="background:${esc(color)}"></span>#${esc(name)}`;
+                } else if (key === 'ram') {
+                    inner = `RAM ${esc(val)}`;
                 }
                 parts.push(`<button type="button" class="tm-sl-chip${isActive ? ' is-active' : ''}${key === 'tag' ? ' tm-sl-chip--tag' : ''}"
                     data-tm-sl-filter="${esc(key)}" data-tm-sl-value="${esc(val)}">${inner}${countHtml}</button>`);
             });
         };
-        addGroup('grade', filters.grades);
-        addGroup('gb', filters.gbs);
-        addGroup('color', filters.colors);
-        addGroup('tag', filters.tags || []);
-        if (active.grade || active.gb || active.color || active.tag) {
+
+        if (laptopFilters) {
+            addGroup('brand', filters.brands);
+            addGroup('cpu', filters.cpus);
+            addGroup('ram', filters.rams);
+            addGroup('storage', filters.storages);
+            addGroup('grade', filters.grades);
+        } else {
+            addGroup('grade', filters.grades);
+            addGroup('gb', filters.gbs);
+            addGroup('color', filters.colors);
+            addGroup('tag', filters.tags || []);
+        }
+
+        const hasActive = laptopFilters
+            ? !!(active.brand || active.cpu || active.ram || active.storage || active.grade)
+            : !!(active.grade || active.gb || active.color || active.tag);
+        if (hasActive) {
             parts.push('<button type="button" class="tm-sl-chip" data-tm-sl-filter="clear">Καθαρισμός φίλτρων</button>');
         }
         return parts.join('');
