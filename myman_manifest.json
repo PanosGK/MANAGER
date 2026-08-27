@@ -1,11 +1,11 @@
 {
-  "version": "429",
+  "version": "430",
   "loaderVersion": "42",
-  "silentVersion": "13",
-  "displayVersion": "42.13",
+  "silentVersion": "14",
+  "displayVersion": "42.14",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test",
-  "releaseNotes": "Filter laptop catalog to ΦΟΡΗΤΟΣ titles; parse fulltext textCont JSON",
+  "releaseNotes": "Separate laptop catalog left-menu button",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

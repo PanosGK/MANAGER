@@ -2735,10 +2735,6 @@
                         <button type="button" id="tm-sl-close" class="tm-sl-btn tm-sl-btn--icon" aria-label="Κλείσιμο">×</button>
                     </div>
                 </div>
-                <nav class="tm-sl-category-tabs" role="tablist" aria-label="Κατηγορία καταλόγου">
-                    <button type="button" id="tm-sl-cat-phones" class="tm-sl-category-tab is-active" role="tab" aria-selected="true">Κινητά</button>
-                    <button type="button" id="tm-sl-cat-laptops" class="tm-sl-category-tab" role="tab" aria-selected="false">Φορητοί</button>
-                </nav>
                 <nav class="tm-sl-view-tabs" role="tablist" aria-label="Προβολή καταλόγου">
                     <button type="button" id="tm-sl-view-mine" class="tm-sl-view-tab is-active" role="tab" aria-selected="true" title="${esc(myStoreLabel)}">${esc(myStoreLabel)}</button>
                     <button type="button" id="tm-sl-view-network" class="tm-sl-view-tab" role="tab" aria-selected="false">Άλλα καταστήματα</button>
@@ -3792,16 +3788,9 @@
     }
 
     function updateCategoryTabs(overlay, category) {
-        const phonesTab = overlay?.querySelector('#tm-sl-cat-phones');
-        const laptopsTab = overlay?.querySelector('#tm-sl-cat-laptops');
         const shell = overlay?.querySelector('#tm-sl-shell');
-        if (!phonesTab || !laptopsTab) return;
-        const isLaptops = category === 'laptops';
-        phonesTab.classList.toggle('is-active', !isLaptops);
-        laptopsTab.classList.toggle('is-active', isLaptops);
-        phonesTab.setAttribute('aria-selected', !isLaptops ? 'true' : 'false');
-        laptopsTab.setAttribute('aria-selected', isLaptops ? 'true' : 'false');
-        shell?.classList.toggle('tm-sl-category--laptops', isLaptops);
+        if (!shell) return;
+        shell.classList.toggle('tm-sl-category--laptops', category === 'laptops');
     }
 
     const UI_SCALE_STEPS = [1, 1.15, 1.3, 1.45];

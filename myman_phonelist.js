@@ -3913,12 +3913,16 @@ function extractBaseModel(model) {
 /**
  * Opens the store locator (model → store availability).
  */
-async function showPhoneListModal() {
+async function showPhoneListModal(options = {}) {
     if (document.querySelector('.tm-modal-overlay, .tm-sl-overlay')) return;
     if (typeof window.showStoreLocatorModal === 'function') {
-        return window.showStoreLocatorModal();
+        return window.showStoreLocatorModal(options);
     }
     console.error('[MMS Phone List] Store locator module not loaded');
+}
+
+async function showLaptopCatalogModal() {
+    return showPhoneListModal({ category: 'laptops' });
 }
 
 // ===================================================================
@@ -4439,6 +4443,7 @@ window.pcNotifyConfigChanged = pcNotifyConfigChanged;
 window.pcNotifyTagsChanged = pcNotifyTagsChanged;
 
 window.showPhoneListModal = showPhoneListModal;
+window.showLaptopCatalogModal = showLaptopCatalogModal;
 window.showPhoneListModalLegacy = null;
 window.fetchPhoneList = fetchPhoneList;
 window.fetchLaptopList = fetchLaptopList;

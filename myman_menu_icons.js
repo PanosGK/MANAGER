@@ -21,6 +21,12 @@
                 <rect x="4.75" y="1.75" width="6.5" height="12.5" rx="1.2" fill="none" stroke="#000" stroke-width="1.6"/>
                 <path d="M6.75 4.75h2.5M6.75 6.75h2.5M6.75 8.75h1.75" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/>
                 <circle cx="8" cy="12.25" r="0.75" fill="#000"/>
+            </svg>`,
+        'laptop-catalog': `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true">
+                <rect x="2.5" y="3.25" width="11" height="7.5" rx="1" fill="none" stroke="#000" stroke-width="1.6"/>
+                <path d="M1.75 12.25h12.5" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M5.5 12.25h5" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/>
             </svg>`
     };
 

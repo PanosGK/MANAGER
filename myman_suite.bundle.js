@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v429 / Custom Ver. 42.13 — generated, do not edit */
+/* MyManager Suite bundle v430 / Custom Ver. 42.14 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '429',
+        version: '430',
         loaderVersion: '42',
-        silentVersion: '13',
-        displayVersion: '42.13',
+        silentVersion: '14',
+        displayVersion: '42.14',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
@@ -19585,6 +19585,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 <rect x="4.75" y="1.75" width="6.5" height="12.5" rx="1.2" fill="none" stroke="#000" stroke-width="1.6"/>
                 <path d="M6.75 4.75h2.5M6.75 6.75h2.5M6.75 8.75h1.75" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/>
                 <circle cx="8" cy="12.25" r="0.75" fill="#000"/>
+            </svg>`,
+        'laptop-catalog': `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true">
+                <rect x="2.5" y="3.25" width="11" height="7.5" rx="1" fill="none" stroke="#000" stroke-width="1.6"/>
+                <path d="M1.75 12.25h12.5" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M5.5 12.25h5" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/>
             </svg>`
     };
 
@@ -19936,6 +19942,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         function findSearchMenuInsertPoint(menu) {
+            const laptopCatalogItem = document.getElementById('tm-laptop-catalog-menu-item');
+            if (laptopCatalogItem?.parentElement === menu) {
+                return laptopCatalogItem.nextElementSibling;
+            }
             const phoneCatalogItem = document.getElementById('tm-phone-catalog-menu-item');
             if (phoneCatalogItem?.parentElement === menu) {
                 return phoneCatalogItem.nextElementSibling;
@@ -56945,10 +56955,6 @@ window.initOrderTracking = initOrderTracking;
                         <button type="button" id="tm-sl-close" class="tm-sl-btn tm-sl-btn--icon" aria-label="Κλείσιμο">×</button>
                     </div>
                 </div>
-                <nav class="tm-sl-category-tabs" role="tablist" aria-label="Κατηγορία καταλόγου">
-                    <button type="button" id="tm-sl-cat-phones" class="tm-sl-category-tab is-active" role="tab" aria-selected="true">Κινητά</button>
-                    <button type="button" id="tm-sl-cat-laptops" class="tm-sl-category-tab" role="tab" aria-selected="false">Φορητοί</button>
-                </nav>
                 <nav class="tm-sl-view-tabs" role="tablist" aria-label="Προβολή καταλόγου">
                     <button type="button" id="tm-sl-view-mine" class="tm-sl-view-tab is-active" role="tab" aria-selected="true" title="${esc(myStoreLabel)}">${esc(myStoreLabel)}</button>
                     <button type="button" id="tm-sl-view-network" class="tm-sl-view-tab" role="tab" aria-selected="false">Άλλα καταστήματα</button>
@@ -58002,16 +58008,9 @@ window.initOrderTracking = initOrderTracking;
     }
 
     function updateCategoryTabs(overlay, category) {
-        const phonesTab = overlay?.querySelector('#tm-sl-cat-phones');
-        const laptopsTab = overlay?.querySelector('#tm-sl-cat-laptops');
         const shell = overlay?.querySelector('#tm-sl-shell');
-        if (!phonesTab || !laptopsTab) return;
-        const isLaptops = category === 'laptops';
-        phonesTab.classList.toggle('is-active', !isLaptops);
-        laptopsTab.classList.toggle('is-active', isLaptops);
-        phonesTab.setAttribute('aria-selected', !isLaptops ? 'true' : 'false');
-        laptopsTab.setAttribute('aria-selected', isLaptops ? 'true' : 'false');
-        shell?.classList.toggle('tm-sl-category--laptops', isLaptops);
+        if (!shell) return;
+        shell.classList.toggle('tm-sl-category--laptops', category === 'laptops');
     }
 
     const UI_SCALE_STEPS = [1, 1.15, 1.3, 1.45];
@@ -62053,12 +62052,16 @@ function extractBaseModel(model) {
 /**
  * Opens the store locator (model → store availability).
  */
-async function showPhoneListModal() {
+async function showPhoneListModal(options = {}) {
     if (document.querySelector('.tm-modal-overlay, .tm-sl-overlay')) return;
     if (typeof window.showStoreLocatorModal === 'function') {
-        return window.showStoreLocatorModal();
+        return window.showStoreLocatorModal(options);
     }
     console.error('[MMS Phone List] Store locator module not loaded');
+}
+
+async function showLaptopCatalogModal() {
+    return showPhoneListModal({ category: 'laptops' });
 }
 
 // ===================================================================
@@ -62579,6 +62582,7 @@ window.pcNotifyConfigChanged = pcNotifyConfigChanged;
 window.pcNotifyTagsChanged = pcNotifyTagsChanged;
 
 window.showPhoneListModal = showPhoneListModal;
+window.showLaptopCatalogModal = showLaptopCatalogModal;
 window.showPhoneListModalLegacy = null;
 window.fetchPhoneList = fetchPhoneList;
 window.fetchLaptopList = fetchLaptopList;
@@ -64352,7 +64356,7 @@ try {
         });
     }
 
-    async function showStoreLocatorModal() {
+    async function showStoreLocatorModal(options = {}) {
         if (document.querySelector('.tm-sl-overlay')) return;
 
         // Inject CSS before building DOM so the first paint is already styled.
@@ -64367,6 +64371,8 @@ try {
         if (typeof window.detectAndCacheCurrentStoreName === 'function') {
             window.detectAndCacheCurrentStoreName(document);
         }
+
+        const requestedCategory = options?.category === 'laptops' ? 'laptops' : 'phones';
 
         const UI = window.PhoneCatalogUI;
         const helpers = {
@@ -64401,7 +64407,8 @@ try {
         let modelQuery = '';
         let modelSort = GM_getValue(SORT_KEY, 'name');
         let catalogView = GM_getValue(CATALOG_VIEW_KEY, 'mine');
-        let catalogCategory = GM_getValue(CATALOG_CATEGORY_KEY, 'phones') === 'laptops' ? 'laptops' : 'phones';
+        let catalogCategory = requestedCategory;
+        GM_setValue(CATALOG_CATEGORY_KEY, catalogCategory);
         let densityCompact = GM_getValue(DENSITY_KEY, false);
         const defaultScale = UI.UI_SCALE_DEFAULT || 1.15;
         let uiScale = typeof UI.normalizeUiScale === 'function'
@@ -64825,61 +64832,7 @@ try {
             networkTab?.addEventListener('click', () => switchView('network'));
         }
 
-        function wireCategoryTabs() {
-            const phonesTab = overlay.querySelector('#tm-sl-cat-phones');
-            const laptopsTab = overlay.querySelector('#tm-sl-cat-laptops');
-            const switchCategory = async (category) => {
-                if (catalogCategory === category) return;
-                catalogCategory = category;
-                GM_setValue(CATALOG_CATEGORY_KEY, catalogCategory);
-                UI.updateCategoryTabs?.(overlay, catalogCategory);
-                step = 'models';
-                selectedModel = null;
-                activeFilters = emptyActiveFilters();
-                modelQuery = '';
-                syncCatalogHeaders();
-                toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, { recentModels });
-                wireModelSearchToolbar();
-                bodyEl.innerHTML = UI.buildSkeletonGrid(8);
-                setStatus(category === 'laptops' ? 'Φόρτωση φορητών…' : 'Φόρτωση καταλόγου…');
-
-                if (category === 'laptops') {
-                    const cached = typeof window.loadLaptopListCache === 'function'
-                        ? window.loadLaptopListCache()
-                        : null;
-                    if (cached?.length) {
-                        allLaptops = cached;
-                        const ts = Number(GM_getValue('tm_laptop_list_cache_timestamp_v1', Date.now())) || Date.now();
-                        lastUpdated = new Date(ts);
-                        syncFreshness();
-                        renderModelsStep();
-                    }
-                    const otherCached = typeof window.getOtherStoreLaptopCache === 'function'
-                        ? window.getOtherStoreLaptopCache()
-                        : null;
-                    if (otherCached?.length) {
-                        otherStoreLaptops = otherCached;
-                        otherStoreLaptopsLoaded = true;
-                    }
-                    await refreshData({ quiet: !!cached?.length });
-                    return;
-                }
-
-                const cached = typeof window.loadPhoneListCache === 'function'
-                    ? window.loadPhoneListCache()
-                    : null;
-                if (cached?.length) {
-                    allPhones = helpers.filterIphoneTitlePhones(cached);
-                    renderModelsStep();
-                }
-                await refreshData({ quiet: !!cached?.length });
-            };
-            phonesTab?.addEventListener('click', () => switchCategory('phones'));
-            laptopsTab?.addEventListener('click', () => switchCategory('laptops'));
-        }
-
         wireViewTabs();
-        wireCategoryTabs();
 
         let modelSearchTimer = null;
 
@@ -65627,6 +65580,7 @@ try {
     window.showStoreLocatorModal = showStoreLocatorModal;
 
     const PHONE_CATALOG_MENU_ID = 'tm-phone-catalog-menu-item';
+    const LAPTOP_CATALOG_MENU_ID = 'tm-laptop-catalog-menu-item';
 
     function removeLegacyPhoneCatalogButton() {
         document.getElementById('tm-phone-catalog-btn')?.remove();
@@ -65640,9 +65594,13 @@ try {
         return 'Κατάλογος Συσκευών';
     }
 
-    function cloneNativeMenuItem(templateLi, label) {
+    function getLaptopCatalogMenuLabel() {
+        return 'Κατάλογος Φορητών';
+    }
+
+    function cloneNativeMenuItem(templateLi, label, iconKind) {
         if (typeof window.createSuiteMenuItem === 'function') {
-            return window.createSuiteMenuItem(templateLi, label, 'phone-catalog');
+            return window.createSuiteMenuItem(templateLi, label, iconKind);
         }
         const li = templateLi.cloneNode(true);
         li.classList.remove('current', 'expanded');
@@ -65656,9 +65614,9 @@ try {
         return li;
     }
 
-    function createFallbackMenuItem(label) {
+    function createFallbackMenuItem(label, iconKind) {
         if (typeof window.createSuiteMenuItem === 'function') {
-            return window.createSuiteMenuItem(null, label, 'phone-catalog');
+            return window.createSuiteMenuItem(null, label, iconKind);
         }
         const li = document.createElement('li');
         li.innerHTML = `<div><div><a href="#">${label}</a></div></div>`;
@@ -65675,55 +65633,68 @@ try {
         return null;
     }
 
+    function findLaptopMenuInsertPoint(menu) {
+        const phoneItem = document.getElementById(PHONE_CATALOG_MENU_ID);
+        if (phoneItem?.parentElement === menu) {
+            return phoneItem.nextElementSibling;
+        }
+        return findMenuInsertPoint(menu);
+    }
+
     function openPhoneCatalogFromMenu() {
         if (typeof window.showPhoneListModal === 'function') {
-            window.showPhoneListModal();
+            window.showPhoneListModal({ category: 'phones' });
         }
     }
 
-    function ensurePhoneCatalogMenuItem(config) {
-        removeLegacyPhoneCatalogButton();
+    function openLaptopCatalogFromMenu() {
+        if (typeof window.showLaptopCatalogModal === 'function') {
+            window.showLaptopCatalogModal();
+        } else if (typeof window.showPhoneListModal === 'function') {
+            window.showPhoneListModal({ category: 'laptops' });
+        } else if (typeof window.showStoreLocatorModal === 'function') {
+            window.showStoreLocatorModal({ category: 'laptops' });
+        }
+    }
 
+    function ensureSuiteCatalogMenuItem({
+        menuId,
+        suiteKey,
+        menuDataId,
+        label,
+        iconKind,
+        onOpen,
+        insertBefore,
+    }) {
         const menu = document.querySelector('.rnr-b-vmenu.simple.main');
         if (!menu) return false;
 
-        const enabled = config?.phoneCatalogEnabled !== false;
-        let item = document.getElementById(PHONE_CATALOG_MENU_ID);
-
-        if (!enabled) {
-            if (item) item.style.display = 'none';
-            return true;
-        }
-
-        const label = getPhoneCatalogMenuLabel();
-
+        let item = document.getElementById(menuId);
         if (!item) {
             const template = menu.querySelector(':scope > li:not(.menuGroup):not([data-tm-special]):not([data-tm-suite-item])')
                 || menu.querySelector('li:not([data-tm-special]):not([data-tm-suite-item])');
             item = template
-                ? cloneNativeMenuItem(template, label)
-                : createFallbackMenuItem(label);
+                ? cloneNativeMenuItem(template, label, iconKind)
+                : createFallbackMenuItem(label, iconKind);
 
-            item.id = PHONE_CATALOG_MENU_ID;
-            item.setAttribute('data-tm-suite-item', 'phone-catalog');
-            item.setAttribute('data-menu-id', 'suite-phone-catalog');
+            item.id = menuId;
+            item.setAttribute('data-tm-suite-item', suiteKey);
+            item.setAttribute('data-menu-id', menuDataId);
             item.addEventListener('click', (e) => {
                 e.preventDefault();
-                openPhoneCatalogFromMenu();
+                onOpen();
             });
 
-            const insertBefore = findMenuInsertPoint(menu);
             if (insertBefore) menu.insertBefore(item, insertBefore);
             else menu.appendChild(item);
         } else {
             const link = item.querySelector('a[href]');
             if (link && typeof window.populateSuiteMenuLink === 'function') {
-                window.populateSuiteMenuLink(link, label, 'phone-catalog');
+                window.populateSuiteMenuLink(link, label, iconKind);
             } else if (link) {
                 link.textContent = label;
             }
             if (!item.parentElement) {
-                const insertBefore = findMenuInsertPoint(menu);
                 if (insertBefore) menu.insertBefore(item, insertBefore);
                 else menu.appendChild(item);
             }
@@ -65733,11 +65704,51 @@ try {
         return true;
     }
 
+    function ensurePhoneCatalogMenuItem(config) {
+        removeLegacyPhoneCatalogButton();
+
+        const menu = document.querySelector('.rnr-b-vmenu.simple.main');
+        if (!menu) return false;
+
+        const enabled = config?.phoneCatalogEnabled !== false;
+        const phoneItem = document.getElementById(PHONE_CATALOG_MENU_ID);
+        const laptopItem = document.getElementById(LAPTOP_CATALOG_MENU_ID);
+
+        if (!enabled) {
+            if (phoneItem) phoneItem.style.display = 'none';
+            if (laptopItem) laptopItem.style.display = 'none';
+            return true;
+        }
+
+        const phoneOk = ensureSuiteCatalogMenuItem({
+            menuId: PHONE_CATALOG_MENU_ID,
+            suiteKey: 'phone-catalog',
+            menuDataId: 'suite-phone-catalog',
+            label: getPhoneCatalogMenuLabel(),
+            iconKind: 'phone-catalog',
+            onOpen: openPhoneCatalogFromMenu,
+            insertBefore: findMenuInsertPoint(menu),
+        });
+
+        const laptopOk = ensureSuiteCatalogMenuItem({
+            menuId: LAPTOP_CATALOG_MENU_ID,
+            suiteKey: 'laptop-catalog',
+            menuDataId: 'suite-laptop-catalog',
+            label: getLaptopCatalogMenuLabel(),
+            iconKind: 'laptop-catalog',
+            onOpen: openLaptopCatalogFromMenu,
+            insertBefore: findLaptopMenuInsertPoint(menu),
+        });
+
+        return phoneOk && laptopOk;
+    }
+
     function initPhoneCatalogMenuItem(config) {
         removeLegacyPhoneCatalogButton();
 
         if (config?.phoneCatalogEnabled === false) {
             document.getElementById(PHONE_CATALOG_MENU_ID)?.remove();
+            document.getElementById(LAPTOP_CATALOG_MENU_ID)?.remove();
             return;
         }
 

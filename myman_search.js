@@ -297,6 +297,10 @@
         }
 
         function findSearchMenuInsertPoint(menu) {
+            const laptopCatalogItem = document.getElementById('tm-laptop-catalog-menu-item');
+            if (laptopCatalogItem?.parentElement === menu) {
+                return laptopCatalogItem.nextElementSibling;
+            }
             const phoneCatalogItem = document.getElementById('tm-phone-catalog-menu-item');
             if (phoneCatalogItem?.parentElement === menu) {
                 return phoneCatalogItem.nextElementSibling;
