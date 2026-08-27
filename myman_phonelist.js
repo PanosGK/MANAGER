@@ -2980,6 +2980,357 @@ async function fetchPhoneList(options = {}) {
     });
 }
 
+const USED_LAPTOP_PREFIX = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ ΦΟΡΗΤΟΣ ΥΠΟΛΟΓΙΣΤΗΣ';
+const LAPTOP_LIST_CACHE_KEY = 'tm_laptop_list_cache_v1';
+const LAPTOP_LIST_CACHE_TIMESTAMP_KEY = 'tm_laptop_list_cache_timestamp_v1';
+const OTHER_STORE_LAPTOP_CACHE_KEY = 'tm_laptop_other_store_cache_v1';
+const OTHER_STORE_LAPTOP_CACHE_TIMESTAMP_KEY = 'tm_laptop_other_store_cache_timestamp_v1';
+const LAPTOP_CACHE_EXPIRATION_DAYS = 3;
+
+function isUsedLaptopTitle(name) {
+    return String(name || '').toUpperCase().includes(USED_LAPTOP_PREFIX);
+}
+
+function isLaptopBarcode(barcode) {
+    return /^(55|56)\./.test(String(barcode || '').trim());
+}
+
+function parseLaptopName(fullName) {
+    let model = String(fullName || '').replace(/\s+/g, ' ').trim();
+    let grade = '';
+    let imei = '';
+    const upper = model.toUpperCase();
+    if (upper.includes(USED_LAPTOP_PREFIX)) {
+        const idx = upper.indexOf(USED_LAPTOP_PREFIX);
+        model = model.slice(idx + USED_LAPTOP_PREFIX.length).trim();
+    }
+    // BB:A+ SERIAL or (BB:A+ SERIAL)
+    let m = model.match(/\(?\s*(?:BB|ΒΒ)\s*[:\-]?\s*([A-Z+]+\+?)\s+([A-Z0-9\-]+)\s*\)?\s*$/i);
+    if (m) {
+        grade = String(m[1] || '').toUpperCase();
+        imei = String(m[2] || '').trim();
+        model = model.slice(0, m.index).trim();
+    } else {
+        m = model.match(/\(?\s*(?:BB|ΒΒ)\s*[:\-]\s*([A-Z+]+\+?)\s*[-:]?\s*([A-Z0-9\-]+)\s*\)?\s*$/i);
+        if (m) {
+            grade = String(m[1] || '').toUpperCase();
+            imei = String(m[2] || '').trim();
+            model = model.slice(0, m.index).trim();
+        }
+    }
+    return {
+        fullName: String(fullName || '').replace(/\s+/g, ' ').trim(),
+        model: model || String(fullName || '').trim(),
+        grade,
+        imei,
+    };
+}
+
+function saveLaptopListCache(laptops) {
+    if (!Array.isArray(laptops) || !laptops.length) return;
+    GM_setValue(LAPTOP_LIST_CACHE_KEY, JSON.stringify(laptops));
+    GM_setValue(LAPTOP_LIST_CACHE_TIMESTAMP_KEY, Date.now());
+}
+
+function loadLaptopListCache() {
+    try {
+        const ts = Number(GM_getValue(LAPTOP_LIST_CACHE_TIMESTAMP_KEY, 0)) || 0;
+        if (!ts) return null;
+        const ageDays = (Date.now() - ts) / (24 * 60 * 60 * 1000);
+        if (ageDays > LAPTOP_CACHE_EXPIRATION_DAYS) return null;
+        const parsed = JSON.parse(GM_getValue(LAPTOP_LIST_CACHE_KEY, '[]'));
+        return Array.isArray(parsed) && parsed.length ? parsed : null;
+    } catch (_) {
+        return null;
+    }
+}
+
+function saveOtherStoreLaptopCache(laptops) {
+    if (!Array.isArray(laptops) || !laptops.length) return;
+    GM_setValue(OTHER_STORE_LAPTOP_CACHE_KEY, JSON.stringify(laptops));
+    GM_setValue(OTHER_STORE_LAPTOP_CACHE_TIMESTAMP_KEY, Date.now());
+}
+
+function getOtherStoreLaptopCache() {
+    try {
+        const ts = Number(GM_getValue(OTHER_STORE_LAPTOP_CACHE_TIMESTAMP_KEY, 0)) || 0;
+        if (!ts) return null;
+        const ageDays = (Date.now() - ts) / (24 * 60 * 60 * 1000);
+        if (ageDays > 1) return null;
+        const parsed = JSON.parse(GM_getValue(OTHER_STORE_LAPTOP_CACHE_KEY, '[]'));
+        return Array.isArray(parsed) && parsed.length ? parsed : null;
+    } catch (_) {
+        return null;
+    }
+}
+
+function pcRequestHtml(url) {
+    return new Promise((resolve) => {
+        const xhr = typeof GM_xmlhttpRequest === 'function' ? GM_xmlhttpRequest : null;
+        if (!xhr) {
+            resolve({ ok: false, text: '' });
+            return;
+        }
+        xhr({
+            method: 'GET',
+            url,
+            timeout: 20000,
+            onload(res) {
+                resolve({
+                    ok: res.status >= 200 && res.status < 300,
+                    text: String(res.responseText || ''),
+                    status: res.status,
+                });
+            },
+            onerror() { resolve({ ok: false, text: '' }); },
+            ontimeout() { resolve({ ok: false, text: '' }); },
+        });
+    });
+}
+
+function findProductFulltextQuery(nameEl, row) {
+    const roots = [nameEl, row].filter(Boolean);
+    for (const root of roots) {
+        const link = root.querySelector?.('a[data-query*="fulltext.php"]')
+            || root.querySelector?.('a[href*="fulltext.php"]');
+        if (!link) continue;
+        const q = link.getAttribute('data-query') || link.getAttribute('href') || '';
+        if (q.includes('fulltext.php')) return q.replace(/^javascript:void\(0\);?/i, '').trim();
+    }
+    return '';
+}
+
+function parseFulltextResponse(text) {
+    const raw = String(text || '').trim();
+    if (!raw) return '';
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(raw, 'text/html');
+        const bodyText = (doc.body?.textContent || '').replace(/\s+/g, ' ').trim();
+        if (bodyText && bodyText.length > 8) return bodyText;
+    } catch (_) { /* ignore */ }
+    return raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+async function fetchProductFullName(barcode, dataQuery) {
+    const code = String(barcode || '').trim();
+    let path = String(dataQuery || '').trim();
+    if (!path && code) {
+        path = `fulltext.php?pagetype=list&table=products&field=strProductName&key1=${encodeURIComponent(code)}`;
+    }
+    if (!path) return '';
+    if (path.startsWith('javascript:')) return '';
+    const url = path.startsWith('http')
+        ? path
+        : `https://thefixers.mymanager.gr/mymanagerservice/${path.replace(/^\//, '')}`;
+    const res = await pcRequestHtml(url);
+    if (!res.ok) return '';
+    return parseFulltextResponse(res.text);
+}
+
+async function expandLaptopNames(items, onProgress) {
+    const needExpand = items.filter((item) => item?._needsFullName && item.barcode);
+    if (!needExpand.length) return items;
+    const concurrency = 4;
+    let done = 0;
+    for (let i = 0; i < needExpand.length; i += concurrency) {
+        const batch = needExpand.slice(i, i + concurrency);
+        await Promise.all(batch.map(async (item) => {
+            try {
+                const full = await fetchProductFullName(item.barcode, item._fulltextQuery);
+                if (full && full.length > String(item.name || '').length) {
+                    const parsed = parseLaptopName(full);
+                    item.name = parsed.fullName;
+                    item.model = parsed.model;
+                    item.grade = parsed.grade || item.grade;
+                    item.imei = parsed.imei || item.imei;
+                    item.isBuyback = isBuybackTitle(full) || !!item.isBuyback;
+                }
+            } catch (_) { /* keep truncated */ }
+            delete item._needsFullName;
+            delete item._fulltextQuery;
+            done += 1;
+            if (typeof onProgress === 'function') {
+                onProgress({ phase: 'expand', done, total: needExpand.length, ratio: done / needExpand.length });
+            }
+        }));
+    }
+    items.forEach((item) => {
+        delete item._needsFullName;
+        delete item._fulltextQuery;
+    });
+    return items;
+}
+
+function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherStock = false } = {}) {
+    let table = doc.querySelector('table.rnr-c.rnr-cont.rnr-c-grid.rnr-b-grid.rnr-gridtable.hoverable')
+        || doc.querySelector('table.rnr-b-grid.rnr-gridtable')
+        || doc.querySelector('table.rnr-b-grid')
+        || doc.querySelector('.rnr-c-grid table, table.rnr-gridtable');
+    if (!table) return [];
+    let rows = table.querySelectorAll('tbody tr');
+    if (!rows.length) rows = table.querySelectorAll('tr');
+    if (!rows.length) rows = table.querySelectorAll('tr[id^="gridRow"]');
+    const laptops = [];
+    rows.forEach((row, rowIndex) => {
+        if (rowIndex === 0 && row.querySelector('th')) return;
+        let barcodeEl = row.querySelector('span[id*="strProductID"]');
+        let nameEl = row.querySelector('span[id*="strProductName"]');
+        let unitsRemainingEl = row.querySelector('span[id*="iUnitsRemaining"]');
+        let otherStoreEl = row.querySelector('span[id*="iUnitsRemainingOtherStoreHouses"]');
+        if (!barcodeEl || !nameEl || !unitsRemainingEl || !otherStoreEl) {
+            row.querySelectorAll('[id]').forEach((node) => {
+                const id = (node.id || '').toLowerCase();
+                if (!barcodeEl && id.includes('strproductid')) barcodeEl = node;
+                if (!nameEl && id.includes('strproductname')) nameEl = node;
+                if (!otherStoreEl && id.includes('iunitsremainingotherstorehouses')) otherStoreEl = node;
+                if (!unitsRemainingEl && id.includes('iunitsremaining') && !id.includes('otherstorehouses')) {
+                    unitsRemainingEl = node;
+                }
+            });
+        }
+        const unitsRemaining = parseInt((unitsRemainingEl?.textContent || '').trim(), 10) || 0;
+        let otherStoreCount = 0;
+        let otherStores = [];
+        if (otherStoreEl) {
+            otherStoreCount = parseInt((otherStoreEl.textContent || '').trim(), 10) || 0;
+            if (otherStoreCount > 0) {
+                otherStores = parseOtherStorehouses(otherStoreEl);
+                if (!otherStores.length) otherStores = parseOtherStorehousesFromRow(row);
+            }
+        }
+        if (requireLocalStock && unitsRemaining <= 0) return;
+        if (requireOtherStock && otherStoreCount <= 0) return;
+        if (!barcodeEl || !nameEl) return;
+
+        let barcode = (barcodeEl.textContent || '').replace(/\s+/g, ' ').trim();
+        let name = (nameEl.textContent || '').replace(/\s+/g, ' ').trim();
+        const hadMoreLink = /Περισσότερα/i.test(name) || !!findProductFulltextQuery(nameEl, row);
+        name = name.replace(/\s*Περισσότερα\s*\.\.\.\s*/i, '').trim();
+        if (!barcode || !name) return;
+        if (!isLaptopBarcode(barcode) && !isUsedLaptopTitle(name)) return;
+        if (!isUsedLaptopTitle(name) && !hadMoreLink) return;
+
+        const fulltextQuery = findProductFulltextQuery(nameEl, row);
+        const parsed = parseLaptopName(name);
+        const retailPrice = extractProductRetailPrice(row);
+        laptops.push({
+            barcode,
+            name: parsed.fullName,
+            model: parsed.model,
+            grade: parsed.grade,
+            imei: parsed.imei,
+            unitsRemaining,
+            isBuyback: isBuybackTitle(name),
+            retailPrice,
+            otherStoreCount,
+            otherStores,
+            productKind: 'laptop',
+            _needsFullName: !!(hadMoreLink || fulltextQuery || /Περισσότερα/i.test(nameEl?.textContent || '')),
+            _fulltextQuery: fulltextQuery,
+        });
+    });
+    return laptops;
+}
+
+async function fetchProductListHtml(qsPrefix, onProgress) {
+    const first = await pcRequestHtml(
+        `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(qsPrefix)}&recordspp=-1`
+    );
+    if (!first.ok) throw new Error(`Laptop list seed failed (${qsPrefix})`);
+    if (typeof onProgress === 'function') onProgress({ phase: 'download', ratio: 0.15, qs: qsPrefix });
+    const second = await pcRequestHtml(
+        'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|'
+    );
+    if (!second.ok) throw new Error(`Laptop list page failed (${qsPrefix})`);
+    if (typeof onProgress === 'function') onProgress({ phase: 'parse', ratio: 0.55, qs: qsPrefix });
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(second.text, 'text/html');
+    try { detectAndCacheCurrentStoreName(doc); } catch (_) { /* ignore */ }
+    return doc;
+}
+
+async function fetchLaptopList(options = {}) {
+    const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
+    if (!options.force) {
+        const cached = loadLaptopListCache();
+        if (cached) {
+            onProgress({ phase: 'done', ratio: 1, fromCache: true });
+            return cached;
+        }
+    }
+    onProgress({ phase: 'init', ratio: 0.04 });
+    const prefixes = ['55.', '56.'];
+    const byBarcode = new Map();
+    for (let i = 0; i < prefixes.length; i += 1) {
+        const qs = prefixes[i];
+        const doc = await fetchProductListHtml(qs, (info) => {
+            onProgress({
+                ...info,
+                ratio: 0.08 + ((i + (info.ratio || 0.5)) / prefixes.length) * 0.55,
+            });
+        });
+        parseLaptopRowsFromDoc(doc, { requireLocalStock: true }).forEach((item) => {
+            if (!byBarcode.has(item.barcode)) byBarcode.set(item.barcode, item);
+        });
+    }
+    let laptops = [...byBarcode.values()];
+    onProgress({ phase: 'expand', ratio: 0.7, total: laptops.length });
+    laptops = await expandLaptopNames(laptops, (info) => {
+        onProgress({
+            phase: 'expand',
+            ratio: 0.7 + 0.25 * (info.ratio || 0),
+            done: info.done,
+            total: info.total,
+        });
+    });
+    // Keep only confirmed laptop titles after expansion
+    laptops = laptops.filter((item) => isUsedLaptopTitle(item.name) || isLaptopBarcode(item.barcode));
+    saveLaptopListCache(laptops);
+    onProgress({ phase: 'done', ratio: 1 });
+    console.log(`[MMS Phone List] Parsed ${laptops.length} used laptops`);
+    return laptops;
+}
+
+async function fetchOtherStoreLaptops(options = {}) {
+    const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
+    if (!options.force) {
+        const cached = getOtherStoreLaptopCache();
+        if (cached) {
+            onProgress({ phase: 'done', ratio: 1, fromCache: true });
+            return cached;
+        }
+    }
+    onProgress({ phase: 'init', ratio: 0.04 });
+    const prefixes = ['55.', '56.'];
+    const byBarcode = new Map();
+    for (let i = 0; i < prefixes.length; i += 1) {
+        const qs = prefixes[i];
+        const doc = await fetchProductListHtml(qs, (info) => {
+            onProgress({
+                ...info,
+                ratio: 0.08 + ((i + (info.ratio || 0.5)) / prefixes.length) * 0.55,
+            });
+        });
+        parseLaptopRowsFromDoc(doc, { requireLocalStock: false, requireOtherStock: true }).forEach((item) => {
+            if (!byBarcode.has(item.barcode)) byBarcode.set(item.barcode, item);
+        });
+    }
+    let laptops = [...byBarcode.values()];
+    laptops = await expandLaptopNames(laptops, (info) => {
+        onProgress({
+            phase: 'expand',
+            ratio: 0.7 + 0.25 * (info.ratio || 0),
+            done: info.done,
+            total: info.total,
+        });
+    });
+    laptops = laptops.filter((item) => isUsedLaptopTitle(item.name) || isLaptopBarcode(item.barcode));
+    saveOtherStoreLaptopCache(laptops);
+    onProgress({ phase: 'done', ratio: 1 });
+    return laptops;
+}
+
 /**
  * Fetch and parse phones that are available in other storehouses (iUnitsRemainingOtherStoreHouses > 0)
  */
@@ -3465,6 +3816,7 @@ function stripModelToBaseRaw(model) {
         let base = model;
         
         base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '');
+        base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ\s+ΦΟΡΗΤΟΣ\s+ΥΠΟΛΟΓΙΣΤΗΣ\s*/gi, '');
         base = base.replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ');
         base = base.replace(/\s*\(BB[^)]*\)?\s*/gi, ' ');
         base = base.replace(/\s+(BB|ΒΒ):\s*$/gi, ' ');
@@ -4057,6 +4409,13 @@ window.pcNotifyTagsChanged = pcNotifyTagsChanged;
 window.showPhoneListModal = showPhoneListModal;
 window.showPhoneListModalLegacy = null;
 window.fetchPhoneList = fetchPhoneList;
+window.fetchLaptopList = fetchLaptopList;
+window.fetchOtherStoreLaptops = fetchOtherStoreLaptops;
+window.loadLaptopListCache = loadLaptopListCache;
+window.getOtherStoreLaptopCache = getOtherStoreLaptopCache;
+window.parseLaptopName = parseLaptopName;
+window.isUsedLaptopTitle = isUsedLaptopTitle;
+window.isLaptopBarcode = isLaptopBarcode;
 window.fetchOtherStorePhones = fetchOtherStorePhones;
 window.loadPhoneListCache = loadPhoneListCache;
 window.loadPhoneListRefreshMeta = loadPhoneListRefreshMeta;

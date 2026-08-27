@@ -774,6 +774,32 @@
             background: color-mix(in srgb, var(--tm-shop-item-border) 35%, transparent);
             border: 1px solid var(--tm-shop-item-border);
         }
+        .tm-sl-category-tabs {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            padding: 3px;
+            border-radius: 10px;
+            background: color-mix(in srgb, var(--tm-primary-color) 8%, transparent);
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 18%, var(--tm-shop-item-border));
+        }
+        .tm-sl-category-tab {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            background: transparent;
+            color: var(--tm-shop-item-text);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .tm-sl-category-tab.is-active {
+            background: var(--tm-shop-item-bg, #fff);
+            color: var(--tm-primary-color);
+            box-shadow: 0 1px 2px color-mix(in srgb, var(--tm-shadow-color, #0f172a) 12%, transparent);
+        }
         .tm-sl-view-tab {
             flex: 1;
             min-width: 0;
@@ -2709,6 +2735,10 @@
                         <button type="button" id="tm-sl-close" class="tm-sl-btn tm-sl-btn--icon" aria-label="Κλείσιμο">×</button>
                     </div>
                 </div>
+                <nav class="tm-sl-category-tabs" role="tablist" aria-label="Κατηγορία καταλόγου">
+                    <button type="button" id="tm-sl-cat-phones" class="tm-sl-category-tab is-active" role="tab" aria-selected="true">Κινητά</button>
+                    <button type="button" id="tm-sl-cat-laptops" class="tm-sl-category-tab" role="tab" aria-selected="false">Φορητοί</button>
+                </nav>
                 <nav class="tm-sl-view-tabs" role="tablist" aria-label="Προβολή καταλόγου">
                     <button type="button" id="tm-sl-view-mine" class="tm-sl-view-tab is-active" role="tab" aria-selected="true" title="${esc(myStoreLabel)}">${esc(myStoreLabel)}</button>
                     <button type="button" id="tm-sl-view-network" class="tm-sl-view-tab" role="tab" aria-selected="false">Άλλα καταστήματα</button>
@@ -3761,6 +3791,19 @@
         updateMyStoreLabels(overlay);
     }
 
+    function updateCategoryTabs(overlay, category) {
+        const phonesTab = overlay?.querySelector('#tm-sl-cat-phones');
+        const laptopsTab = overlay?.querySelector('#tm-sl-cat-laptops');
+        const shell = overlay?.querySelector('#tm-sl-shell');
+        if (!phonesTab || !laptopsTab) return;
+        const isLaptops = category === 'laptops';
+        phonesTab.classList.toggle('is-active', !isLaptops);
+        laptopsTab.classList.toggle('is-active', isLaptops);
+        phonesTab.setAttribute('aria-selected', !isLaptops ? 'true' : 'false');
+        laptopsTab.setAttribute('aria-selected', isLaptops ? 'true' : 'false');
+        shell?.classList.toggle('tm-sl-category--laptops', isLaptops);
+    }
+
     const UI_SCALE_STEPS = [1, 1.15, 1.3, 1.45];
     const UI_SCALE_DEFAULT = 1.15;
 
@@ -3875,6 +3918,7 @@
         clearStoresModelHeader,
         updateBreadcrumb,
         updateViewTabs,
+        updateCategoryTabs,
         setDensity,
         setUiScale,
         normalizeUiScale,
