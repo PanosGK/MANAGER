@@ -3553,7 +3553,7 @@
         }, opts.durationMs || 2600);
     }
 
-    function updateFreshness(overlay, lastUpdated) {
+    function updateFreshness(overlay, lastUpdated, refreshedBy) {
         const wrap = overlay?.querySelector('#tm-sl-freshness');
         const updatedEl = overlay?.querySelector('#tm-sl-updated');
         if (!wrap || !lastUpdated) return;
@@ -3571,7 +3571,9 @@
             label = 'Παλιά δεδομένα';
         }
         if (updatedEl) {
-            updatedEl.textContent = `${label} · ${lastUpdated.toLocaleString('el-GR')}`;
+            const when = lastUpdated.toLocaleString('el-GR');
+            const by = String(refreshedBy || '').trim();
+            updatedEl.textContent = by ? `${label} · ${when} · ${by}` : `${label} · ${when}`;
         }
     }
 

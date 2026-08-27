@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v425 / Custom Ver. 42.9 — generated, do not edit */
+/* MyManager Suite bundle v426 / Custom Ver. 42.10 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '425',
+        version: '426',
         loaderVersion: '42',
-        silentVersion: '9',
-        displayVersion: '42.9',
+        silentVersion: '10',
+        displayVersion: '42.10',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
@@ -57763,7 +57763,7 @@ window.initOrderTracking = initOrderTracking;
         }, opts.durationMs || 2600);
     }
 
-    function updateFreshness(overlay, lastUpdated) {
+    function updateFreshness(overlay, lastUpdated, refreshedBy) {
         const wrap = overlay?.querySelector('#tm-sl-freshness');
         const updatedEl = overlay?.querySelector('#tm-sl-updated');
         if (!wrap || !lastUpdated) return;
@@ -57781,7 +57781,9 @@ window.initOrderTracking = initOrderTracking;
             label = 'Παλιά δεδομένα';
         }
         if (updatedEl) {
-            updatedEl.textContent = `${label} · ${lastUpdated.toLocaleString('el-GR')}`;
+            const when = lastUpdated.toLocaleString('el-GR');
+            const by = String(refreshedBy || '').trim();
+            updatedEl.textContent = by ? `${label} · ${when} · ${by}` : `${label} · ${when}`;
         }
     }
 
@@ -58054,6 +58056,8 @@ window.initOrderTracking = initOrderTracking;
 // Cache constants
 const PHONE_LIST_CACHE_KEY = 'tm_phone_list_cache';
 const PHONE_LIST_CACHE_TIMESTAMP_KEY = 'tm_phone_list_cache_timestamp';
+/** Who last refreshed the scraped catalog + when ({ at, by }). */
+const PHONE_LIST_REFRESH_META_KEY = 'tm_phone_list_refresh_meta_v1';
 /** Hard-expire local list cache after this many days (discard + force fetch). */
 const CACHE_EXPIRATION_DAYS = 3;
 /** Soft-stale: quiet background refresh when older than this (ms). */
@@ -60205,13 +60209,70 @@ function parsePhoneName(fullName) {
  * Saves phone list to cache
  * @param {Array} phones - The phone list to cache
  */
+function getPhoneCatalogActorName() {
+    try {
+        if (typeof window.MMS_PROFILES?.getLoggedInDisplayName === 'function') {
+            const n = String(window.MMS_PROFILES.getLoggedInDisplayName({ fallback: null }) || '').trim();
+            if (n) return n.slice(0, 64);
+        }
+    } catch (_) { /* ignore */ }
+    try {
+        if (typeof window.MMS_PROFILES?.parseLoginBlockDisplayName === 'function') {
+            const n = String(window.MMS_PROFILES.parseLoginBlockDisplayName() || '').trim();
+            if (n) return n.slice(0, 64);
+        }
+    } catch (_) { /* ignore */ }
+    const el = document.querySelector('#login_block1 b, .rnr-b-loggedas b');
+    if (el) {
+        const n = String(el.textContent || '').replace(/^.*ως\s+/i, '').trim();
+        if (n) return n.slice(0, 64);
+    }
+    try {
+        const fallback = String(
+            window.tmCurrentUser
+            || window.config?.currentUser
+            || window.config?.profileLabel
+            || window.MMS_PROFILES?.getActiveProfileLabel?.()
+            || ''
+        ).trim();
+        if (fallback && fallback !== '_unknown') return fallback.slice(0, 64);
+    } catch (_) { /* ignore */ }
+    return 'Τεχνικός';
+}
+
+function loadPhoneListRefreshMeta() {
+    try {
+        const raw = GM_getValue(PHONE_LIST_REFRESH_META_KEY, null);
+        if (!raw) return null;
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (!parsed || typeof parsed !== 'object') return null;
+        const at = Number(parsed.at) || 0;
+        const by = String(parsed.by || '').trim().slice(0, 64);
+        if (!at && !by) return null;
+        return { at, by };
+    } catch (_) {
+        return null;
+    }
+}
+
+function savePhoneListRefreshMeta(meta) {
+    const at = Number(meta?.at) || Date.now();
+    const by = String(meta?.by || getPhoneCatalogActorName() || '').trim().slice(0, 64);
+    const next = { at, by };
+    GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify(next));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('list_refresh');
+    return next;
+}
+
 function savePhoneListCache(phones) {
     if (!Array.isArray(phones) || !phones.length) {
         console.warn('[MMS Phone List] Skipping cache save — empty list (keeping previous snapshot)');
         return;
     }
+    const at = Date.now();
     GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(phones));
-    GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, Date.now());
+    GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, at);
+    savePhoneListRefreshMeta({ at, by: getPhoneCatalogActorName() });
     console.log('[MMS Phone List] Cache saved');
 }
 
@@ -61668,6 +61729,8 @@ function pcReadLocalConfigPayload(kind) {
             return loadPhoneCanonicalModels();
         case 'store_addresses':
             return loadStoreAddresses();
+        case 'list_refresh':
+            return loadPhoneListRefreshMeta() || { at: getPhoneListCacheTimestamp() || 0, by: '' };
         default:
             return null;
     }
@@ -61694,6 +61757,10 @@ function pcApplyConfigPayload(kind, payload) {
             } catch (_) { /* ignore */ }
         } else if (kind === 'store_addresses' && payload && typeof payload === 'object') {
             GM_setValue(STORE_ADDRESSES_KEY, JSON.stringify(payload));
+        } else if (kind === 'list_refresh' && payload && typeof payload === 'object') {
+            const at = Number(payload.at) || 0;
+            const by = String(payload.by || '').trim().slice(0, 64);
+            GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify({ at, by }));
         }
     } finally {
         pcApplyingServer = false;
@@ -61953,6 +62020,7 @@ async function migratePhoneCatalogToServerOnce({ force = false } = {}) {
         const kinds = [
             'colors', 'color_aliases', 'colors_removed',
             'tag_definitions', 'store_rules', 'canonical_models', 'store_addresses',
+            'list_refresh',
         ];
         let uploaded = 0;
         for (const kind of kinds) {
@@ -62010,6 +62078,8 @@ window.showPhoneListModalLegacy = null;
 window.fetchPhoneList = fetchPhoneList;
 window.fetchOtherStorePhones = fetchOtherStorePhones;
 window.loadPhoneListCache = loadPhoneListCache;
+window.loadPhoneListRefreshMeta = loadPhoneListRefreshMeta;
+window.getPhoneCatalogActorName = getPhoneCatalogActorName;
 window.isPhoneListCacheStale = isPhoneListCacheStale;
 window.getPhoneListCacheAgeMs = getPhoneListCacheAgeMs;
 window.getOtherStoreCache = getOtherStoreCache;
@@ -63908,7 +63978,19 @@ try {
         }
 
         function syncFreshness() {
-            if (lastUpdated) UI.updateFreshness(overlay, lastUpdated);
+            if (!lastUpdated) return;
+            let by = '';
+            try {
+                const meta = typeof window.loadPhoneListRefreshMeta === 'function'
+                    ? window.loadPhoneListRefreshMeta()
+                    : null;
+                if (meta?.by) by = String(meta.by).trim();
+                if (meta?.at) {
+                    const metaDate = new Date(meta.at);
+                    if (!Number.isNaN(metaDate.getTime())) lastUpdated = metaDate;
+                }
+            } catch (_) { /* ignore */ }
+            UI.updateFreshness(overlay, lastUpdated, by);
         }
 
         function wireModelCards() {

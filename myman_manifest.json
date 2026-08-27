@@ -1,11 +1,11 @@
 {
-  "version": "425",
+  "version": "426",
   "loaderVersion": "42",
-  "silentVersion": "9",
-  "displayVersion": "42.9",
+  "silentVersion": "10",
+  "displayVersion": "42.10",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test",
-  "releaseNotes": "Sync phone catalog tags/colors/rules to PocketBase",
+  "releaseNotes": "Show who refreshed phone catalog beside date",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

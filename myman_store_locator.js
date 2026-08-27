@@ -681,7 +681,19 @@
         }
 
         function syncFreshness() {
-            if (lastUpdated) UI.updateFreshness(overlay, lastUpdated);
+            if (!lastUpdated) return;
+            let by = '';
+            try {
+                const meta = typeof window.loadPhoneListRefreshMeta === 'function'
+                    ? window.loadPhoneListRefreshMeta()
+                    : null;
+                if (meta?.by) by = String(meta.by).trim();
+                if (meta?.at) {
+                    const metaDate = new Date(meta.at);
+                    if (!Number.isNaN(metaDate.getTime())) lastUpdated = metaDate;
+                }
+            } catch (_) { /* ignore */ }
+            UI.updateFreshness(overlay, lastUpdated, by);
         }
 
         function wireModelCards() {
