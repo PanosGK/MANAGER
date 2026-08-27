@@ -169,6 +169,7 @@ function saveRemovedPhoneColors(removed) {
         .filter(Boolean)
         .sort();
     GM_setValue(PHONE_COLORS_REMOVED_KEY, JSON.stringify(list));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('colors_removed');
 }
 
 function isPhoneColorRemoved(name) {
@@ -217,6 +218,7 @@ function loadTagDefinitions() {
 
 function saveTagDefinitions(defs) {
     GM_setValue(PHONE_TAG_DEFINITIONS_KEY, JSON.stringify(defs));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('tag_definitions');
 }
 
 function normalizeTagDefinitionEntry(value, key) {
@@ -302,6 +304,7 @@ function loadPhoneTags() {
 
 function savePhoneTags(tags) {
     GM_setValue(PHONE_TAGS_STORAGE_KEY, JSON.stringify(tags));
+    if (typeof pcNotifyTagsChanged === 'function') pcNotifyTagsChanged(tags);
 }
 
 function getPhoneTags(barcode) {
@@ -506,6 +509,7 @@ function loadColorDisplayAliases() {
 
 function saveColorDisplayAliases(aliases) {
     GM_setValue(PHONE_COLOR_ALIASES_KEY, JSON.stringify(aliases));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('color_aliases');
 }
 
 function resolveDisplayColorName(colorName) {
@@ -793,6 +797,7 @@ function loadPhoneColors() {
 
 function savePhoneColors(colors) {
     GM_setValue(PHONE_COLORS_STORAGE_KEY, JSON.stringify(colors));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('colors');
 }
 
 function normalizeTextForColorMatch(text) {
@@ -1231,6 +1236,7 @@ function loadPhoneStoreRules() {
 
 function savePhoneStoreRules(rules) {
     GM_setValue(PHONE_STORE_RULES_KEY, JSON.stringify(rules));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('store_rules');
 }
 
 function normalizeStoreDisplayName(name) {
@@ -1560,6 +1566,7 @@ function loadStoreAddresses() {
 
 function saveStoreAddresses(map) {
     GM_setValue(STORE_ADDRESSES_KEY, JSON.stringify(map || {}));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('store_addresses');
 }
 
 function resolveStoreAddressKey(storeName, map) {
@@ -3252,6 +3259,7 @@ function savePhoneCanonicalModels(models) {
     GM_setValue(PHONE_CANONICAL_MODELS_KEY, JSON.stringify(cleaned));
     rebuildCanonModelTokens(cleaned);
     extractBaseModelCacheGlobal.clear();
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('canonical_models');
     return cleaned;
 }
 
@@ -3263,6 +3271,7 @@ function resetPhoneCanonicalModels() {
     GM_setValue(PHONE_CANONICAL_MODELS_KEY, null);
     rebuildCanonModelTokens(getDefaultPhoneCanonicalModels());
     extractBaseModelCacheGlobal.clear();
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('canonical_models');
     return getDefaultPhoneCanonicalModels();
 }
 
@@ -3437,6 +3446,516 @@ async function showPhoneListModal() {
     console.error('[MMS Phone List] Store locator module not loaded');
 }
 
+// ===================================================================
+// === PHONE CATALOG SERVER SYNC (tags/colors/rules/models — not stock)
+// Collections: phone_catalog_config, phone_tags (PocketBase)
+// ===================================================================
+const PC_PB_BASE = 'https://mngerchat.littlejol.mywire.org';
+const PC_CONFIG_COLL = 'phone_catalog_config';
+const PC_TAGS_COLL = 'phone_tags';
+const PC_MIGRATED_KEY = 'tm_pc_migrated_v1';
+const PC_PENDING_CONFIG_KEY = 'tm_pc_pending_config_v1';
+const PC_PENDING_TAGS_KEY = 'tm_pc_pending_tags_v1';
+/** Shared network-wide catalog annotations (not per-store stock). */
+const PC_NETWORK_STORE_KEY = '*';
+const PC_FLUSH_MS = 1800;
+
+let pcApplyingServer = false;
+let pcServerUnsupported = false;
+let pcHintShown = false;
+let pcFlushTimer = null;
+let pcBusy = false;
+let pcPendingKinds = new Set();
+let pcPendingBarcodes = new Set();
+let pcInitStarted = false;
+
+function pcUseDatabase() {
+    try {
+        if (typeof window.suiteUseDatabase === 'function') return !!window.suiteUseDatabase();
+    } catch (_) { /* ignore */ }
+    try {
+        const v = GM_getValue('suiteUseDatabase', null);
+        if (v === null || typeof v === 'undefined') {
+            return GM_getValue('orderHistoryUseDatabase', true) !== false;
+        }
+        return v !== false;
+    } catch (_) {
+        return true;
+    }
+}
+
+function pcHint(msg) {
+    if (pcHintShown) return;
+    pcHintShown = true;
+    console.warn('[MMS Phone Catalog]', msg);
+    try {
+        if (typeof window.showNegativeMessage === 'function') window.showNegativeMessage(msg);
+    } catch (_) { /* ignore */ }
+}
+
+function pcDisplayName() {
+    try {
+        if (typeof window.MMS_PROFILES?.getLoggedInDisplayName === 'function') {
+            const n = String(window.MMS_PROFILES.getLoggedInDisplayName({ fallback: null }) || '').trim();
+            if (n) return n.slice(0, 64);
+        }
+    } catch (_) { /* ignore */ }
+    const el = document.querySelector('#login_block1 b, .rnr-b-loggedas b');
+    if (el) {
+        const n = String(el.textContent || '').replace(/^.*ως\s+/i, '').trim();
+        if (n) return n.slice(0, 64);
+    }
+    return 'Τεχνικός';
+}
+
+function pcRequestJson({ method, url, headers, data, timeout }) {
+    return new Promise((resolve) => {
+        const xhr = (typeof GM_xmlhttpRequest === 'function')
+            ? GM_xmlhttpRequest
+            : (typeof GM !== 'undefined' && GM.xmlHttpRequest ? GM.xmlHttpRequest : null);
+        if (!xhr) {
+            resolve({ status: 0, body: null, raw: 'no xhr' });
+            return;
+        }
+        xhr({
+            method: method || 'GET',
+            url,
+            headers: headers || {},
+            data: data || undefined,
+            timeout: timeout || 20000,
+            onload(res) {
+                let body = null;
+                const raw = String(res.responseText || '');
+                try { body = raw ? JSON.parse(raw) : null; } catch (_) { body = null; }
+                resolve({ status: res.status, body, raw });
+            },
+            onerror() { resolve({ status: 0, body: null, raw: 'network' }); },
+            ontimeout() { resolve({ status: 0, body: null, raw: 'timeout' }); },
+        });
+    });
+}
+
+async function pcEnsureAuthToken() {
+    if (typeof window.ensureMymanPocketBaseAuth === 'function') {
+        return window.ensureMymanPocketBaseAuth(window.STORAGE_KEYS);
+    }
+    if (typeof window.ensureOfficeChatAuthToken === 'function') {
+        return window.ensureOfficeChatAuthToken(window.STORAGE_KEYS);
+    }
+    throw new Error('PocketBase auth helper missing');
+}
+
+function pcLoadPendingSet(key) {
+    try {
+        const raw = GM_getValue(key, '[]');
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+    } catch (_) {
+        return new Set();
+    }
+}
+
+function pcSavePendingSet(key, set) {
+    try {
+        GM_setValue(key, JSON.stringify([...set]));
+    } catch (_) { /* ignore */ }
+}
+
+function pcRestorePendingQueues() {
+    pcLoadPendingSet(PC_PENDING_CONFIG_KEY).forEach((k) => pcPendingKinds.add(k));
+    pcLoadPendingSet(PC_PENDING_TAGS_KEY).forEach((b) => pcPendingBarcodes.add(b));
+}
+
+function pcPersistPendingQueues() {
+    pcSavePendingSet(PC_PENDING_CONFIG_KEY, pcPendingKinds);
+    pcSavePendingSet(PC_PENDING_TAGS_KEY, pcPendingBarcodes);
+}
+
+function pcScheduleFlush(delayMs) {
+    if (!pcUseDatabase() || pcServerUnsupported || pcApplyingServer) return;
+    if (pcFlushTimer) clearTimeout(pcFlushTimer);
+    pcFlushTimer = setTimeout(() => {
+        pcFlushTimer = null;
+        pcFlushPending().catch((err) => console.warn('[MMS Phone Catalog] flush failed', err));
+    }, delayMs == null ? PC_FLUSH_MS : delayMs);
+}
+
+function pcNotifyConfigChanged(kind) {
+    if (pcApplyingServer || !pcUseDatabase() || pcServerUnsupported) return;
+    if (!kind) return;
+    pcPendingKinds.add(String(kind));
+    pcPersistPendingQueues();
+    pcScheduleFlush();
+}
+
+function pcNotifyTagsChanged(tagsMap) {
+    if (pcApplyingServer || !pcUseDatabase() || pcServerUnsupported) return;
+    const map = tagsMap && typeof tagsMap === 'object' ? tagsMap : loadPhoneTags();
+    Object.keys(map).forEach((barcode) => {
+        const code = String(barcode || '').trim();
+        if (code) pcPendingBarcodes.add(code);
+    });
+    // Always flush full map barcodes that exist; also re-queue known pending ones
+    pcPersistPendingQueues();
+    pcScheduleFlush();
+}
+
+function pcReadLocalConfigPayload(kind) {
+    switch (kind) {
+        case 'colors':
+            try {
+                const raw = GM_getValue(PHONE_COLORS_STORAGE_KEY, null);
+                return raw ? JSON.parse(raw) : {};
+            } catch (_) { return {}; }
+        case 'color_aliases':
+            return loadColorDisplayAliases();
+        case 'colors_removed':
+            return [...loadRemovedPhoneColors()];
+        case 'tag_definitions':
+            return loadTagDefinitions();
+        case 'store_rules':
+            return loadPhoneStoreRules();
+        case 'canonical_models':
+            return loadPhoneCanonicalModels();
+        case 'store_addresses':
+            return loadStoreAddresses();
+        default:
+            return null;
+    }
+}
+
+function pcApplyConfigPayload(kind, payload) {
+    pcApplyingServer = true;
+    try {
+        if (kind === 'colors' && payload && typeof payload === 'object') {
+            GM_setValue(PHONE_COLORS_STORAGE_KEY, JSON.stringify(payload));
+        } else if (kind === 'color_aliases' && payload && typeof payload === 'object') {
+            GM_setValue(PHONE_COLOR_ALIASES_KEY, JSON.stringify(payload));
+        } else if (kind === 'colors_removed' && Array.isArray(payload)) {
+            GM_setValue(PHONE_COLORS_REMOVED_KEY, JSON.stringify(payload));
+        } else if (kind === 'tag_definitions' && payload && typeof payload === 'object') {
+            GM_setValue(PHONE_TAG_DEFINITIONS_KEY, JSON.stringify(payload));
+        } else if (kind === 'store_rules' && payload && typeof payload === 'object') {
+            GM_setValue(PHONE_STORE_RULES_KEY, JSON.stringify(payload));
+        } else if (kind === 'canonical_models' && Array.isArray(payload)) {
+            GM_setValue(PHONE_CANONICAL_MODELS_KEY, JSON.stringify(payload));
+            try {
+                rebuildCanonModelTokens(payload);
+                extractBaseModelCacheGlobal.clear();
+            } catch (_) { /* ignore */ }
+        } else if (kind === 'store_addresses' && payload && typeof payload === 'object') {
+            GM_setValue(STORE_ADDRESSES_KEY, JSON.stringify(payload));
+        }
+    } finally {
+        pcApplyingServer = false;
+    }
+}
+
+function pcParsePayload(raw) {
+    if (raw == null) return null;
+    if (typeof raw === 'object') return raw;
+    try { return JSON.parse(String(raw)); } catch (_) { return null; }
+}
+
+async function pcUpsertConfig(token, kind, payload) {
+    const base = PC_PB_BASE.replace(/\/$/, '');
+    const storeKey = PC_NETWORK_STORE_KEY;
+    const dedupeKey = `${storeKey}|${kind}`.slice(0, 128);
+    const headers = { Authorization: token, 'Content-Type': 'application/json' };
+    const filter = encodeURIComponent(`dedupeKey="${dedupeKey}"`);
+    const listed = await pcRequestJson({
+        method: 'GET',
+        url: `${base}/api/collections/${PC_CONFIG_COLL}/records?page=1&perPage=1&filter=${filter}`,
+        headers: { Authorization: token },
+        timeout: 15000,
+    });
+    const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
+    if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
+        pcServerUnsupported = true;
+        pcHint('Phone catalog: δημιούργησε collection phone_catalog_config στο PocketBase');
+        return { ok: false, unsupported: true };
+    }
+    if (listed.status === 403 || listed.status === 401) {
+        pcHint('Phone catalog: ξεκλείδωσε List/Create/Update στο phone_catalog_config');
+        return { ok: false, status: listed.status };
+    }
+    const record = {
+        kind: String(kind).slice(0, 64),
+        storeKey,
+        dedupeKey,
+        payload: typeof payload === 'string' ? payload : JSON.stringify(payload ?? null),
+        updatedAt: new Date().toISOString(),
+        updatedBy: pcDisplayName(),
+    };
+    const existingId = listed.body?.items?.[0]?.id;
+    if (existingId) {
+        const updated = await pcRequestJson({
+            method: 'PATCH',
+            url: `${base}/api/collections/${PC_CONFIG_COLL}/records/${encodeURIComponent(existingId)}`,
+            headers,
+            data: JSON.stringify(record),
+            timeout: 15000,
+        });
+        return { ok: updated.status >= 200 && updated.status < 300, id: existingId, status: updated.status };
+    }
+    const created = await pcRequestJson({
+        method: 'POST',
+        url: `${base}/api/collections/${PC_CONFIG_COLL}/records`,
+        headers,
+        data: JSON.stringify(record),
+        timeout: 15000,
+    });
+    if (created.status >= 200 && created.status < 300) return { ok: true, id: created.body?.id };
+    if (/unique|duplicate/i.test(JSON.stringify(created.body || {}))) {
+        return pcUpsertConfig(token, kind, payload);
+    }
+    return { ok: false, status: created.status, body: created.body };
+}
+
+async function pcUpsertTag(token, barcode, tags) {
+    const base = PC_PB_BASE.replace(/\/$/, '');
+    const storeKey = PC_NETWORK_STORE_KEY;
+    const code = String(barcode || '').trim().slice(0, 64);
+    if (!code) return { ok: false };
+    const dedupeKey = `${storeKey}|${code}`.slice(0, 128);
+    const headers = { Authorization: token, 'Content-Type': 'application/json' };
+    const filter = encodeURIComponent(`dedupeKey="${dedupeKey}"`);
+    const listed = await pcRequestJson({
+        method: 'GET',
+        url: `${base}/api/collections/${PC_TAGS_COLL}/records?page=1&perPage=1&filter=${filter}`,
+        headers: { Authorization: token },
+        timeout: 15000,
+    });
+    const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
+    if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
+        pcServerUnsupported = true;
+        pcHint('Phone catalog: δημιούργησε collection phone_tags στο PocketBase');
+        return { ok: false, unsupported: true };
+    }
+    if (listed.status === 403 || listed.status === 401) {
+        pcHint('Phone catalog: ξεκλείδωσε List/Create/Update στο phone_tags');
+        return { ok: false, status: listed.status };
+    }
+    const tagList = Array.isArray(tags) ? tags.map(normalizeTagKey).filter(Boolean) : [];
+    const record = {
+        barcode: code,
+        storeKey,
+        dedupeKey,
+        tags: JSON.stringify(tagList),
+        updatedAt: new Date().toISOString(),
+        updatedBy: pcDisplayName(),
+    };
+    const existingId = listed.body?.items?.[0]?.id;
+    if (existingId) {
+        const updated = await pcRequestJson({
+            method: 'PATCH',
+            url: `${base}/api/collections/${PC_TAGS_COLL}/records/${encodeURIComponent(existingId)}`,
+            headers,
+            data: JSON.stringify(record),
+            timeout: 15000,
+        });
+        return { ok: updated.status >= 200 && updated.status < 300, id: existingId };
+    }
+    const created = await pcRequestJson({
+        method: 'POST',
+        url: `${base}/api/collections/${PC_TAGS_COLL}/records`,
+        headers,
+        data: JSON.stringify(record),
+        timeout: 15000,
+    });
+    if (created.status >= 200 && created.status < 300) return { ok: true, id: created.body?.id };
+    if (/unique|duplicate/i.test(JSON.stringify(created.body || {}))) {
+        return pcUpsertTag(token, barcode, tags);
+    }
+    return { ok: false, status: created.status };
+}
+
+async function pcFlushPending() {
+    if (!pcUseDatabase() || pcServerUnsupported || pcBusy) return { ok: false, busy: true };
+    pcRestorePendingQueues();
+    if (!pcPendingKinds.size && !pcPendingBarcodes.size) return { ok: true, empty: true };
+    pcBusy = true;
+    try {
+        const token = await pcEnsureAuthToken();
+        const kinds = [...pcPendingKinds];
+        for (const kind of kinds) {
+            const payload = pcReadLocalConfigPayload(kind);
+            if (payload == null) {
+                pcPendingKinds.delete(kind);
+                continue;
+            }
+            const res = await pcUpsertConfig(token, kind, payload);
+            if (res.unsupported) break;
+            if (res.ok) pcPendingKinds.delete(kind);
+        }
+        if (!pcServerUnsupported) {
+            const allTags = loadPhoneTags();
+            const barcodes = [...pcPendingBarcodes];
+            for (const barcode of barcodes) {
+                const tags = Array.isArray(allTags[barcode]) ? allTags[barcode] : [];
+                const res = await pcUpsertTag(token, barcode, tags);
+                if (res.unsupported) break;
+                if (res.ok) pcPendingBarcodes.delete(barcode);
+            }
+        }
+        pcPersistPendingQueues();
+        return { ok: true };
+    } catch (err) {
+        console.warn('[MMS Phone Catalog] flush error', err);
+        return { ok: false, error: err };
+    } finally {
+        pcBusy = false;
+    }
+}
+
+async function pcPullConfigs(token) {
+    const base = PC_PB_BASE.replace(/\/$/, '');
+    const filter = encodeURIComponent(`storeKey="${PC_NETWORK_STORE_KEY}"`);
+    const listed = await pcRequestJson({
+        method: 'GET',
+        url: `${base}/api/collections/${PC_CONFIG_COLL}/records?page=1&perPage=50&filter=${filter}`,
+        headers: { Authorization: token },
+        timeout: 20000,
+    });
+    const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
+    if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
+        pcServerUnsupported = true;
+        pcHint('Phone catalog: δημιούργησε collection phone_catalog_config στο PocketBase');
+        return { ok: false, unsupported: true };
+    }
+    if (listed.status < 200 || listed.status >= 300) {
+        return { ok: false, status: listed.status };
+    }
+    const items = Array.isArray(listed.body?.items) ? listed.body.items : [];
+    items.forEach((rec) => {
+        const kind = String(rec.kind || '').trim();
+        const payload = pcParsePayload(rec.payload);
+        if (kind && payload != null) pcApplyConfigPayload(kind, payload);
+    });
+    return { ok: true, count: items.length };
+}
+
+async function pcPullTags(token) {
+    const base = PC_PB_BASE.replace(/\/$/, '');
+    const filter = encodeURIComponent(`storeKey="${PC_NETWORK_STORE_KEY}"`);
+    let page = 1;
+    const merged = {};
+    for (;;) {
+        const listed = await pcRequestJson({
+            method: 'GET',
+            url: `${base}/api/collections/${PC_TAGS_COLL}/records?page=${page}&perPage=200&filter=${filter}`,
+            headers: { Authorization: token },
+            timeout: 20000,
+        });
+        const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
+        if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
+            pcServerUnsupported = true;
+            pcHint('Phone catalog: δημιούργησε collection phone_tags στο PocketBase');
+            return { ok: false, unsupported: true };
+        }
+        if (listed.status < 200 || listed.status >= 300) {
+            return { ok: false, status: listed.status };
+        }
+        const items = Array.isArray(listed.body?.items) ? listed.body.items : [];
+        items.forEach((rec) => {
+            const code = String(rec.barcode || '').trim();
+            if (!code) return;
+            let tags = pcParsePayload(rec.tags);
+            if (!Array.isArray(tags)) {
+                try { tags = JSON.parse(String(rec.tags || '[]')); } catch (_) { tags = []; }
+            }
+            merged[code] = (Array.isArray(tags) ? tags : []).map(normalizeTagKey).filter(Boolean);
+        });
+        const totalPages = Number(listed.body?.totalPages || 1);
+        if (page >= totalPages || !items.length) break;
+        page += 1;
+        if (page > 50) break;
+    }
+    pcApplyingServer = true;
+    try {
+        GM_setValue(PHONE_TAGS_STORAGE_KEY, JSON.stringify(merged));
+    } finally {
+        pcApplyingServer = false;
+    }
+    return { ok: true, count: Object.keys(merged).length };
+}
+
+async function migratePhoneCatalogToServerOnce({ force = false } = {}) {
+    if (!pcUseDatabase()) return { ok: true, skipped: true, reason: 'local-mode' };
+    if (pcServerUnsupported) return { ok: false, reason: 'unsupported' };
+    let migrated = false;
+    try {
+        migrated = !!GM_getValue(PC_MIGRATED_KEY, false);
+    } catch (_) { migrated = false; }
+    if (migrated && !force) return { ok: true, skipped: true };
+
+    try {
+        const token = await pcEnsureAuthToken();
+        // If server already has shared catalog config, adopt it — do not clobber with local defaults.
+        const pulled = await pcPullConfigs(token);
+        if (pulled.unsupported) return { ok: false, unsupported: true };
+        if (pulled.ok && Number(pulled.count || 0) > 0) {
+            await pcPullTags(token);
+            GM_setValue(PC_MIGRATED_KEY, Date.now());
+            console.log(`[MMS Phone Catalog] adopted server annotations (${pulled.count} configs)`);
+            return { ok: true, adopted: true, count: pulled.count };
+        }
+
+        const kinds = [
+            'colors', 'color_aliases', 'colors_removed',
+            'tag_definitions', 'store_rules', 'canonical_models', 'store_addresses',
+        ];
+        let uploaded = 0;
+        for (const kind of kinds) {
+            const payload = pcReadLocalConfigPayload(kind);
+            const res = await pcUpsertConfig(token, kind, payload);
+            if (res.unsupported) return { ok: false, unsupported: true };
+            if (res.ok) uploaded += 1;
+        }
+        const allTags = loadPhoneTags();
+        const barcodes = Object.keys(allTags);
+        for (const barcode of barcodes) {
+            const res = await pcUpsertTag(token, barcode, allTags[barcode]);
+            if (res.unsupported) return { ok: false, unsupported: true };
+            if (res.ok) uploaded += 1;
+        }
+        GM_setValue(PC_MIGRATED_KEY, Date.now());
+        console.log(`[MMS Phone Catalog] migrated local annotations → server (${uploaded} upserts)`);
+        return { ok: true, uploaded };
+    } catch (err) {
+        console.warn('[MMS Phone Catalog] migration failed', err);
+        return { ok: false, error: err };
+    }
+}
+
+async function initPhoneCatalogServerSync() {
+    if (pcInitStarted) return;
+    pcInitStarted = true;
+    if (!pcUseDatabase()) {
+        console.log('[MMS Phone Catalog] server sync off (local mode)');
+        return;
+    }
+    pcRestorePendingQueues();
+    try {
+        await migratePhoneCatalogToServerOnce();
+        if (pcServerUnsupported) return;
+        const token = await pcEnsureAuthToken();
+        await pcPullConfigs(token);
+        await pcPullTags(token);
+        if (pcPendingKinds.size || pcPendingBarcodes.size) {
+            pcScheduleFlush(600);
+        }
+        console.log('[MMS Phone Catalog] server sync ready');
+    } catch (err) {
+        console.warn('[MMS Phone Catalog] init sync failed — staying local cache', err);
+    }
+}
+
+window.initPhoneCatalogServerSync = initPhoneCatalogServerSync;
+window.migratePhoneCatalogToServer = (opts) => migratePhoneCatalogToServerOnce({ force: true, ...(opts || {}) });
+window.pcNotifyConfigChanged = pcNotifyConfigChanged;
+window.pcNotifyTagsChanged = pcNotifyTagsChanged;
+
 window.showPhoneListModal = showPhoneListModal;
 window.showPhoneListModalLegacy = null;
 window.fetchPhoneList = fetchPhoneList;
@@ -3585,4 +4104,12 @@ if (document.body) {
         detectAndCacheCurrentStoreName(document);
     }, { once: true });
 }
+
+try {
+    if (typeof window.initPhoneCatalogServerSync === 'function') {
+        setTimeout(() => {
+            window.initPhoneCatalogServerSync().catch(() => {});
+        }, 1200);
+    }
+} catch (_) { /* ignore */ }
 
