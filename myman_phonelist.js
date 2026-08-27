@@ -2988,7 +2988,17 @@ const OTHER_STORE_LAPTOP_CACHE_TIMESTAMP_KEY = 'tm_laptop_other_store_cache_time
 const LAPTOP_CACHE_EXPIRATION_DAYS = 3;
 
 function isUsedLaptopTitle(name) {
-    return String(name || '').toUpperCase().includes(USED_LAPTOP_PREFIX);
+    const upper = String(name || '').toUpperCase();
+    // Full prefix, or truncated list-cell text that still shows the laptop markers.
+    return upper.includes(USED_LAPTOP_PREFIX)
+        || upper.includes('ΦΟΡΗΤΟΣ ΥΠΟΛΟΓΙΣΤΗΣ')
+        || upper.includes('ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ ΦΟΡΗΤΟΣ');
+}
+
+function isUsedPhoneProductTitle(name) {
+    const upper = String(name || '').toUpperCase();
+    if (isUsedLaptopTitle(upper)) return false;
+    return upper.includes('ΚΙΝΗΤΟ') || upper.includes('ΤΗΛΕΦΩΝΟ');
 }
 
 function isLaptopBarcode(barcode) {
@@ -3039,7 +3049,9 @@ function loadLaptopListCache() {
         const ageDays = (Date.now() - ts) / (24 * 60 * 60 * 1000);
         if (ageDays > LAPTOP_CACHE_EXPIRATION_DAYS) return null;
         const parsed = JSON.parse(GM_getValue(LAPTOP_LIST_CACHE_KEY, '[]'));
-        return Array.isArray(parsed) && parsed.length ? parsed : null;
+        if (!Array.isArray(parsed) || !parsed.length) return null;
+        const onlyLaptops = parsed.filter((item) => isUsedLaptopTitle(item?.name) && !isUsedPhoneProductTitle(item?.name));
+        return onlyLaptops.length ? onlyLaptops : null;
     } catch (_) {
         return null;
     }
@@ -3058,7 +3070,9 @@ function getOtherStoreLaptopCache() {
         const ageDays = (Date.now() - ts) / (24 * 60 * 60 * 1000);
         if (ageDays > 1) return null;
         const parsed = JSON.parse(GM_getValue(OTHER_STORE_LAPTOP_CACHE_KEY, '[]'));
-        return Array.isArray(parsed) && parsed.length ? parsed : null;
+        if (!Array.isArray(parsed) || !parsed.length) return null;
+        const onlyLaptops = parsed.filter((item) => isUsedLaptopTitle(item?.name) && !isUsedPhoneProductTitle(item?.name));
+        return onlyLaptops.length ? onlyLaptops : null;
     } catch (_) {
         return null;
     }
@@ -3103,11 +3117,26 @@ function findProductFulltextQuery(nameEl, row) {
 function parseFulltextResponse(text) {
     const raw = String(text || '').trim();
     if (!raw) return '';
+    // API returns JSON: {"success":true,"textCont":"..."}
+    if (raw.startsWith('{') || raw.startsWith('[')) {
+        try {
+            const json = JSON.parse(raw);
+            const fromJson = String(json?.textCont ?? json?.text ?? json?.content ?? '').trim();
+            if (fromJson) return fromJson.replace(/\s+/g, ' ').trim();
+        } catch (_) { /* fall through */ }
+    }
     try {
         const parser = new DOMParser();
         const doc = parser.parseFromString(raw, 'text/html');
         const bodyText = (doc.body?.textContent || '').replace(/\s+/g, ' ').trim();
-        if (bodyText && bodyText.length > 8) return bodyText;
+        if (bodyText && bodyText.startsWith('{')) {
+            try {
+                const json = JSON.parse(bodyText);
+                const fromJson = String(json?.textCont ?? json?.text ?? json?.content ?? '').trim();
+                if (fromJson) return fromJson.replace(/\s+/g, ' ').trim();
+            } catch (_) { /* ignore */ }
+        }
+        if (bodyText && bodyText.length > 8 && !bodyText.includes('"textCont"')) return bodyText;
     } catch (_) { /* ignore */ }
     return raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
@@ -3208,8 +3237,11 @@ function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherSto
         const hadMoreLink = /Περισσότερα/i.test(name) || !!findProductFulltextQuery(nameEl, row);
         name = name.replace(/\s*Περισσότερα\s*\.\.\.\s*/i, '').trim();
         if (!barcode || !name) return;
+        // 55./56. also cover phones — never keep clear phone titles.
+        if (isUsedPhoneProductTitle(name)) return;
         if (!isLaptopBarcode(barcode) && !isUsedLaptopTitle(name)) return;
-        if (!isUsedLaptopTitle(name) && !hadMoreLink) return;
+        // Require laptop markers in the visible name (even when truncated).
+        if (!isUsedLaptopTitle(name)) return;
 
         const fulltextQuery = findProductFulltextQuery(nameEl, row);
         const parsed = parseLaptopName(name);
@@ -3284,8 +3316,8 @@ async function fetchLaptopList(options = {}) {
             total: info.total,
         });
     });
-    // Keep only confirmed laptop titles after expansion
-    laptops = laptops.filter((item) => isUsedLaptopTitle(item.name) || isLaptopBarcode(item.barcode));
+    // Title is authoritative — 55./56. barcodes include phones too.
+    laptops = laptops.filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name));
     saveLaptopListCache(laptops);
     onProgress({ phase: 'done', ratio: 1 });
     console.log(`[MMS Phone List] Parsed ${laptops.length} used laptops`);
@@ -3325,7 +3357,7 @@ async function fetchOtherStoreLaptops(options = {}) {
             total: info.total,
         });
     });
-    laptops = laptops.filter((item) => isUsedLaptopTitle(item.name) || isLaptopBarcode(item.barcode));
+    laptops = laptops.filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name));
     saveOtherStoreLaptopCache(laptops);
     onProgress({ phase: 'done', ratio: 1 });
     return laptops;
