@@ -1,11 +1,11 @@
 {
-  "version": "435",
+  "version": "436",
   "loaderVersion": "42",
-  "silentVersion": "19",
-  "displayVersion": "42.19",
+  "silentVersion": "20",
+  "displayVersion": "42.20",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test",
-  "releaseNotes": "Disable laptop catalog panel by default; re-enable via settings",
+  "releaseNotes": "Move laptop catalog toggle to debug Experimental section",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

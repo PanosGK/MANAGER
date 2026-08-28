@@ -590,7 +590,7 @@
             saveNumber('tm-setting-recent-repairs-max', 'recentRepairsMaxItems');
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             saveCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
-            saveCheckbox('tm-setting-laptop-catalog-enabled', 'laptopCatalogEnabled');
+            saveCheckbox('tm-debug-laptop-catalog-enabled', 'laptopCatalogEnabled');
             saveCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             saveCheckbox('tm-setting-suite-use-database', 'suiteUseDatabase');
             {
@@ -919,6 +919,21 @@
                 </div>
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
+                        <h3>Experimental</h3>
+                        <p class="tm-settings-section-desc">Features under development — not for normal use.</p>
+                    </header>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-debug-laptop-catalog-enabled">Κατάλογος Laptop</label>
+                            </div>
+                            <p class="tm-setting-description">Μεταχειρισμένα laptop — αναζήτηση, φίλτρα CPU/RAM/SSD. Εμφανίζει στο αριστερό μενού.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-debug-laptop-catalog-enabled"></div>
+                    </div>
+                </div>
+                <div class="tm-settings-section">
+                    <header class="tm-settings-section-head">
                         <h3>Εργαλεία debug</h3>
                         <p class="tm-settings-section-desc">Μόνο για δοκιμές — μην χρησιμοποιείτε σε κανονική εργασία.</p>
                     </header>
@@ -1198,15 +1213,6 @@
                             <p class="tm-setting-description">Μεταχειρισμένες συσκευές με αναζήτηση και CSV.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-phone-catalog-enabled"></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-laptop-catalog-enabled">Κατάλογος Laptop</label>
-                            </div>
-                            <p class="tm-setting-description">Μεταχειρισμένα laptop — αναζήτηση, φίλτρα CPU/RAM/SSD.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-laptop-catalog-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -2037,7 +2043,7 @@
             populateCheckbox('tm-setting-repair-collab-enabled', 'repairCollabEnabled');
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
-            populateCheckbox('tm-setting-laptop-catalog-enabled', 'laptopCatalogEnabled');
+            populateCheckbox('tm-debug-laptop-catalog-enabled', 'laptopCatalogEnabled');
             populateCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             {
                 const dbBox = document.getElementById('tm-setting-suite-use-database');
@@ -2156,18 +2162,6 @@
                     config.phoneCatalogEnabled = value;
                     
                     // Update phone catalog button visibility
-                    if (typeof window.updatePhoneCatalogButtonVisibility === 'function') {
-                        window.updatePhoneCatalogButtonVisibility(config);
-                    }
-                });
-            }
-
-            const laptopCatalogCheckbox = document.getElementById('tm-setting-laptop-catalog-enabled');
-            if (laptopCatalogCheckbox) {
-                laptopCatalogCheckbox.addEventListener('change', () => {
-                    const value = laptopCatalogCheckbox.checked;
-                    GM_setValue('laptopCatalogEnabled', value);
-                    config.laptopCatalogEnabled = value;
                     if (typeof window.updatePhoneCatalogButtonVisibility === 'function') {
                         window.updatePhoneCatalogButtonVisibility(config);
                     }
@@ -2332,6 +2326,18 @@
 
         function initDebugControls(config) {
             if (!config.debugEnabled) return;
+
+            const laptopCatalogCheckbox = document.getElementById('tm-debug-laptop-catalog-enabled');
+            if (laptopCatalogCheckbox) {
+                laptopCatalogCheckbox.addEventListener('change', () => {
+                    const value = laptopCatalogCheckbox.checked;
+                    GM_setValue('laptopCatalogEnabled', value);
+                    config.laptopCatalogEnabled = value;
+                    if (typeof window.updatePhoneCatalogButtonVisibility === 'function') {
+                        window.updatePhoneCatalogButtonVisibility(config);
+                    }
+                });
+            }
 
             document.getElementById('tm-debug-set-level-btn')?.addEventListener('click', () => {
                 const newLevel = parseInt(document.getElementById('tm-debug-level-input').value, 10);
