@@ -107,7 +107,7 @@
         },
         phone_catalog: {
             title: 'Κατάλογος συσκευών',
-            what: 'Κατάλογος μεταχειρισμένων συσκευών (μοντέλο, βαθμίδα, IMEI, χωρητικότητα, χρώμα) με αναζήτηση, φίλτρα και CSV.',
+            what: 'Κατάλογος μεταχειρισμένων συσκευών (μοντέλο, βαθμίδα, IMEI, χωρητικότητα, χρώμα) με αναζήτηση, φίλτρα και CSV. Με ενεργή βάση συγχρονίζονται tags, χρώματα, κανόνες και μοντέλα· το απόθεμα παραμένει από MyManager.',
             where: 'Ξεχωριστό UI καταλόγου από το suite.',
             when: 'Όταν ψάχνετε ή εξάγετε διαθέσιμες μεταχειρισμένες συσκευές του καταστήματος.',
         },
@@ -119,8 +119,8 @@
         },
         suite_database: {
             title: 'Σύνδεση με βάση δεδομένων (server)',
-            what: 'Όταν είναι ενεργό, λειτουργίες που βασίζονται στο PocketBase server συγχρονίζονται μεταξύ τεχνικών και PC. Όταν είναι ανενεργό, δουλεύετε τοπικά — χωρίς chat, whisper, κοινό ιστορικό.',
-            where: 'Ρυθμίσεις → Γενικές · επηρεάζει Chat, Whisper, ιστορικό παραγγελιών και άλλα server features.',
+            what: 'Όταν είναι ενεργό, Chat, Whisper, κοινό ιστορικό παραγγελιών και κοινές ρυθμίσεις καταλόγου (tags/χρώματα/κανόνες) συγχρονίζονται μέσω PocketBase. Όταν είναι ανενεργό, όλα μένουν τοπικά σε αυτόν τον υπολογιστή.',
+            where: 'Ρυθμίσεις → Γενικές · επηρεάζει Chat, Whisper, ιστορικό παραγγελιών και κατάλογο συσκευών (annotations).',
             when: 'Αμέσως μετά την αποθήκευση — κάντε ανανέωση σελίδας για πλήρη εφαρμογή.',
         },
         order_link: {
@@ -590,6 +590,7 @@
             saveNumber('tm-setting-recent-repairs-max', 'recentRepairsMaxItems');
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             saveCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
+            saveCheckbox('tm-debug-laptop-catalog-enabled', 'laptopCatalogEnabled');
             saveCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             saveCheckbox('tm-setting-suite-use-database', 'suiteUseDatabase');
             {
@@ -766,9 +767,82 @@
         }
 
         // --- Settings Modal HTML Generators (for better readability) ---
+        /** Flat top-level toggles for Γενικές — one row each, no nested grouping. */
+        const GENERAL_UI_TOGGLE_ROWS = [
+            {
+                id: 'tm-setting-dashboard-enabled',
+                label: 'Widget «Σήμερα»',
+                helpKey: 'dashboard',
+                description: 'Στατιστικά της τρέχουσας ημέρας στο footer.',
+            },
+            {
+                id: 'tm-setting-hidden-menu-enabled',
+                label: 'Απόκρυψη αριστερού μενού',
+                helpKey: 'hidden_menu',
+                description: 'Επιλέξτε ποια στοιχεία εμφανίζονται.',
+                controlExtra: '<button type="button" id="tm-manage-hidden-menu-btn" class="tm-settings-ghost-btn">Κρυφά στοιχεία</button>',
+            },
+            {
+                id: 'tm-setting-debug-enabled',
+                label: 'Λειτουργία ανάπτυξης',
+                helpKey: 'debug',
+                description: 'Δοκιμές και δωρεάν αντικείμενα. Απαιτεί κωδικό.',
+                variant: 'warn',
+            },
+            {
+                id: 'tm-setting-suite-use-database',
+                label: 'Σύνδεση με βάση δεδομένων',
+                helpKey: 'suite_database',
+                description: 'Ενεργό = κοινά δεδομένα μέσω server (PocketBase). Ανενεργό = τοπική λειτουργία σε αυτόν τον υπολογιστή.',
+            },
+        ];
+
+        function renderSettingToggleRow(row, info) {
+            const variantClass = row.variant ? ` tm-setting-row--${row.variant}` : '';
+            return `
+                    <div class="tm-setting-row${variantClass}">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="${row.id}">${row.label}</label>
+                                ${row.helpKey ? info(row.helpKey) : ''}
+                            </div>
+                            <p class="tm-setting-description">${row.description}</p>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="checkbox" id="${row.id}">
+                            ${row.controlExtra || ''}
+                        </div>
+                    </div>`;
+        }
+
+        function getSuiteDatabaseOfflineWarnHTML() {
+            return `
+                    <div id="tm-suite-database-offline-warn" class="tm-setting-row tm-setting-row--warn tm-setting-row--stack" style="display:none;">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <strong>Τοπική λειτουργία — τι δεν λειτουργεί χωρίς server</strong>
+                            </div>
+                            <p class="tm-setting-description" style="margin-top:6px;">
+                                Με απενεργοποιημένη τη βάση <strong>δεν</strong> έχετε:
+                            </p>
+                            <ul class="tm-setting-description" style="margin:6px 0 0 1.1em;padding:0;list-style:disc;">
+                                <li><strong>Office Chat</strong> — μηνύματα, @mentions, presence, φωτογραφία προφίλ</li>
+                                <li><strong>Whisper</strong> — κοινά σημειώματα στην επισκευή (service_edit)</li>
+                                <li><strong>Κοινό ιστορικό παραγγελιών</strong> — συγχρονισμός με άλλους τεχνικούς / PC του καταστήματος</li>
+                                <li><strong>Κοινός κατάλογος</strong> — tags, χρώματα, κανόνες καταστημάτων, λίστα μοντέλων</li>
+                                <li>Ανανέωση ιστορικού από server (νεότερα 200 εγγραφές καταστήματος)</li>
+                                <li>Συνέχεια αν αλλάξετε browser ή PC — τα τοπικά μένουν μόνο εδώ</li>
+                            </ul>
+                            <p class="tm-setting-description" style="margin-top:8px;">
+                                <strong>Συνεχίζουν να δουλεύουν τοπικά:</strong> απόθεμα καταλόγου (scrape MyManager), αναζήτηση, themes, gamification, WiFi QR, αυτόματη ανανέωση κ.λπ. Το ιστορικό παραγγελιών (αν είναι ενεργό) χτίζεται μόνο από αποδοχές σε αυτόν τον υπολογιστή.
+                            </p>
+                        </div>
+                    </div>`;
+        }
+
         function getGeneralUISettingsHTML() {
             const info = tmSettingsInfoBtn;
-            // Merged General and Login settings
+            const toggleRows = GENERAL_UI_TOGGLE_ROWS.map((row) => renderSettingToggleRow(row, info)).join('');
             return `
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
@@ -797,70 +871,8 @@
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-notifications-enabled"></div>
                     </div>
-                    <h4 class="tm-settings-subgroup">Server / βάση δεδομένων</h4>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-suite-use-database">Σύνδεση με βάση δεδομένων</label>
-                                ${info('suite_database')}
-                            </div>
-                            <p class="tm-setting-description">Ενεργό = κοινά δεδομένα μέσω server (PocketBase). Ανενεργό = τοπική λειτουργία σε αυτόν τον υπολογιστή.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-suite-use-database"></div>
-                    </div>
-                    <div id="tm-suite-database-offline-warn" class="tm-setting-row tm-setting-row--warn" style="display:none;align-items:flex-start;">
-                        <div class="tm-setting-label" style="flex:1;">
-                            <div class="tm-setting-label-row">
-                                <strong>Τοπική λειτουργία — τι δεν λειτουργεί χωρίς server</strong>
-                            </div>
-                            <p class="tm-setting-description" style="margin-top:6px;">
-                                Με απενεργοποιημένη τη βάση <strong>δεν</strong> έχετε:
-                            </p>
-                            <ul class="tm-setting-description" style="margin:6px 0 0 1.1em;padding:0;list-style:disc;">
-                                <li><strong>Office Chat</strong> — μηνύματα, @mentions, presence, φωτογραφία προφίλ</li>
-                                <li><strong>Whisper</strong> — κοινά σημειώματα στην επισκευή (service_edit)</li>
-                                <li><strong>Κοινό ιστορικό παραγγελιών</strong> — συγχρονισμός με άλλους τεχνικούς / PC του καταστήματος</li>
-                                <li>Ανανέωση ιστορικού από server (νεότερα 200 εγγραφές καταστήματος)</li>
-                                <li>Συνέχεια αν αλλάξετε browser ή PC — τα τοπικά μένουν μόνο εδώ</li>
-                            </ul>
-                            <p class="tm-setting-description" style="margin-top:8px;">
-                                <strong>Συνεχίζουν να δουλεύουν τοπικά:</strong> κατάλογος συσκευών, αναζήτηση, themes, gamification, WiFi QR, αυτόματη ανανέωση κ.λπ. Το ιστορικό παραγγελιών (αν είναι ενεργό) χτίζεται μόνο από αποδοχές σε αυτόν τον υπολογιστή.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-dashboard-enabled">Widget «Σήμερα»</label>
-                                ${info('dashboard')}
-                            </div>
-                            <p class="tm-setting-description">Στατιστικά της τρέχουσας ημέρας στο footer.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-dashboard-enabled"></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-hidden-menu-enabled">Απόκρυψη αριστερού μενού</label>
-                                ${info('hidden_menu')}
-                            </div>
-                            <p class="tm-setting-description">Επιλέξτε ποια στοιχεία εμφανίζονται.</p>
-                        </div>
-                        <div class="tm-setting-control">
-                            <input type="checkbox" id="tm-setting-hidden-menu-enabled">
-                            <button type="button" id="tm-manage-hidden-menu-btn" class="tm-settings-ghost-btn">Κρυφά στοιχεία</button>
-                        </div>
-                    </div>
-                    <div class="tm-setting-row tm-setting-row--warn">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-debug-enabled">Λειτουργία ανάπτυξης</label>
-                                ${info('debug')}
-                            </div>
-                            <p class="tm-setting-description">Δοκιμές και δωρεάν αντικείμενα. Απαιτεί κωδικό.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-debug-enabled"></div>
-                    </div>
+                    ${toggleRows}
+                    ${getSuiteDatabaseOfflineWarnHTML()}
                 </div>
             `;
         }
@@ -903,6 +915,21 @@
                         <div class="tm-setting-control">
                             <input type="password" id="tm-setting-status40-admin-password" class="tm-settings-input" value="${String(status40AdminPass).replace(/"/g, '&quot;')}" autocomplete="new-password">
                         </div>
+                    </div>
+                </div>
+                <div class="tm-settings-section">
+                    <header class="tm-settings-section-head">
+                        <h3>Experimental</h3>
+                        <p class="tm-settings-section-desc">Features under development — not for normal use.</p>
+                    </header>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-debug-laptop-catalog-enabled">Κατάλογος Laptop</label>
+                            </div>
+                            <p class="tm-setting-description">Μεταχειρισμένα laptop — αναζήτηση, φίλτρα CPU/RAM/SSD. Εμφανίζει στο αριστερό μενού.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-debug-laptop-catalog-enabled"></div>
                     </div>
                 </div>
                 <div class="tm-settings-section">
@@ -2016,6 +2043,7 @@
             populateCheckbox('tm-setting-repair-collab-enabled', 'repairCollabEnabled');
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
+            populateCheckbox('tm-debug-laptop-catalog-enabled', 'laptopCatalogEnabled');
             populateCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             {
                 const dbBox = document.getElementById('tm-setting-suite-use-database');
@@ -2159,7 +2187,7 @@
                 const warn = document.getElementById('tm-suite-database-offline-warn');
                 const dbBox = document.getElementById('tm-setting-suite-use-database');
                 if (warn && dbBox) {
-                    warn.style.display = dbBox.checked ? 'none' : '';
+                    warn.style.display = dbBox.checked ? 'none' : 'flex';
                 }
             };
             if (orderHistoryCheckbox) {
@@ -2298,6 +2326,18 @@
 
         function initDebugControls(config) {
             if (!config.debugEnabled) return;
+
+            const laptopCatalogCheckbox = document.getElementById('tm-debug-laptop-catalog-enabled');
+            if (laptopCatalogCheckbox) {
+                laptopCatalogCheckbox.addEventListener('change', () => {
+                    const value = laptopCatalogCheckbox.checked;
+                    GM_setValue('laptopCatalogEnabled', value);
+                    config.laptopCatalogEnabled = value;
+                    if (typeof window.updatePhoneCatalogButtonVisibility === 'function') {
+                        window.updatePhoneCatalogButtonVisibility(config);
+                    }
+                });
+            }
 
             document.getElementById('tm-debug-set-level-btn')?.addEventListener('click', () => {
                 const newLevel = parseInt(document.getElementById('tm-debug-level-input').value, 10);

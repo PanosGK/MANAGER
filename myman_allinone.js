@@ -144,8 +144,9 @@
         // Weather Widget
         weatherWidgetEnabled: true,
         phoneCatalogEnabled: true,
+        laptopCatalogEnabled: false,
         orderHistoryEnabled: true,
-        suiteUseDatabase: true, // PocketBase server: chat, whisper, shared order history
+        suiteUseDatabase: true, // PocketBase: chat, whisper, shared order history, phone catalog annotations
         orderHistoryUseDatabase: true, // legacy mirror of suiteUseDatabase
         orderLinkEnabled: true,
         returnTo40ButtonEnabled: true,

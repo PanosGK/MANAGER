@@ -22,6 +22,7 @@
         palette: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22a10 10 0 0 0 10-10c0-2-1-4-2.5-5.5"/></svg>',
         tag: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
         phone: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
+        phoneCall: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
         export: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
         emptyPhone: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
         emptySearch: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>',
@@ -712,6 +713,31 @@
             border: 1px solid color-mix(in srgb, var(--tm-primary-color) 24%, transparent);
             white-space: nowrap;
         }
+        .tm-sl-store-call {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            border-radius: 8px;
+            border: 1px solid color-mix(in srgb, var(--tm-success-color, #22c55e) 35%, var(--tm-shop-item-border, #e2e8f0));
+            background: color-mix(in srgb, var(--tm-success-color, #22c55e) 12%, var(--tm-shop-item-bg, #fff));
+            color: var(--tm-success-color, #16a34a);
+            cursor: pointer;
+            flex-shrink: 0;
+            text-decoration: none;
+            transition: background 0.12s, transform 0.12s, border-color 0.12s;
+        }
+        .tm-sl-store-call:hover {
+            background: color-mix(in srgb, var(--tm-success-color, #22c55e) 22%, var(--tm-shop-item-bg, #fff));
+            border-color: var(--tm-success-color, #22c55e);
+            transform: scale(1.05);
+        }
+        .tm-sl-store-call:focus-visible {
+            outline: 2px solid color-mix(in srgb, var(--tm-success-color, #22c55e) 55%, transparent);
+            outline-offset: 2px;
+        }
         .tm-sl-store-bb-status {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 2px 7px; border-radius: 999px;
@@ -747,6 +773,32 @@
             border-radius: 12px;
             background: color-mix(in srgb, var(--tm-shop-item-border) 35%, transparent);
             border: 1px solid var(--tm-shop-item-border);
+        }
+        .tm-sl-category-tabs {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            padding: 3px;
+            border-radius: 10px;
+            background: color-mix(in srgb, var(--tm-primary-color) 8%, transparent);
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 18%, var(--tm-shop-item-border));
+        }
+        .tm-sl-category-tab {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            background: transparent;
+            color: var(--tm-shop-item-text);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .tm-sl-category-tab.is-active {
+            background: var(--tm-shop-item-bg, #fff);
+            color: var(--tm-primary-color);
+            box-shadow: 0 1px 2px color-mix(in srgb, var(--tm-shadow-color, #0f172a) 12%, transparent);
         }
         .tm-sl-view-tab {
             flex: 1;
@@ -2482,6 +2534,10 @@
 
     function formatActiveFiltersSummary(active) {
         const bits = [];
+        if (active?.brand) bits.push(active.brand);
+        if (active?.cpu) bits.push(active.cpu);
+        if (active?.ram) bits.push(`RAM ${active.ram}`);
+        if (active?.storage) bits.push(active.storage);
         if (active?.grade) bits.push(`Βαθμ. ${active.grade}`);
         if (active?.gb) bits.push(active.gb);
         if (active?.color) bits.push(active.color);
@@ -2737,19 +2793,24 @@
                 ).join('')}
             </div>`
             : '';
+        const placeholder = opts.placeholder || 'Μοντέλο, barcode ή IMEI';
+        const chips = opts.chipsHtml
+            ? `<div class="tm-sl-chips tm-sl-chips--model" id="tm-sl-chips">${opts.chipsHtml}</div>`
+            : '';
         return `
             <div class="tm-sl-toolbar-row">
                 <div class="tm-sl-search-wrap">
                     <span class="tm-sl-search-icon">${ICON.search}</span>
                     <input type="search" id="tm-sl-model-search" class="tm-sl-search"
-                        placeholder="Μοντέλο, barcode ή IMEI" autocomplete="off">
+                        placeholder="${esc(placeholder)}" autocomplete="off">
                     <span class="tm-sl-search-kbd" aria-hidden="true">/</span>
                 </div>
                 <select id="tm-sl-model-sort" class="tm-sl-sort-select" aria-label="Ταξινόμηση" data-tm-sl-sort-select>
                     ${options}
                 </select>
             </div>
-            ${recentHtml}`;
+            ${recentHtml}
+            ${chips}`;
     }
 
     function shortRecentLabel(model) {
@@ -2863,9 +2924,10 @@
         const counts = ctx?.counts || {};
         const hexMap = ctx?.colorHexMap || {};
         const getGradeStyle = ctx?.getGradeStyle || (() => '');
+        const laptopFilters = !!ctx?.laptopFilters;
 
         const addGroup = (key, values) => {
-            if (!values.length) return;
+            if (!values?.length) return;
             values.forEach((val) => {
                 const isActive = active[key] === val;
                 const count = counts[key]?.[val];
@@ -2883,16 +2945,31 @@
                         ? window.getTagColor(val)
                         : '#9e9e9e';
                     inner = `<span class="tm-sl-chip-tag-dot" style="background:${esc(color)}"></span>#${esc(name)}`;
+                } else if (key === 'ram') {
+                    inner = `RAM ${esc(val)}`;
                 }
                 parts.push(`<button type="button" class="tm-sl-chip${isActive ? ' is-active' : ''}${key === 'tag' ? ' tm-sl-chip--tag' : ''}"
                     data-tm-sl-filter="${esc(key)}" data-tm-sl-value="${esc(val)}">${inner}${countHtml}</button>`);
             });
         };
-        addGroup('grade', filters.grades);
-        addGroup('gb', filters.gbs);
-        addGroup('color', filters.colors);
-        addGroup('tag', filters.tags || []);
-        if (active.grade || active.gb || active.color || active.tag) {
+
+        if (laptopFilters) {
+            addGroup('brand', filters.brands);
+            addGroup('cpu', filters.cpus);
+            addGroup('ram', filters.rams);
+            addGroup('storage', filters.storages);
+            addGroup('grade', filters.grades);
+        } else {
+            addGroup('grade', filters.grades);
+            addGroup('gb', filters.gbs);
+            addGroup('color', filters.colors);
+            addGroup('tag', filters.tags || []);
+        }
+
+        const hasActive = laptopFilters
+            ? !!(active.brand || active.cpu || active.ram || active.storage || active.grade)
+            : !!(active.grade || active.gb || active.color || active.tag);
+        if (hasActive) {
             parts.push('<button type="button" class="tm-sl-chip" data-tm-sl-filter="clear">Καθαρισμός φίλτρων</button>');
         }
         return parts.join('');
@@ -3290,6 +3367,21 @@
         </section>`;
     }
 
+    function buildStoreCallButtonHTML(storeName) {
+        const phone = typeof window.getStorePhone === 'function'
+            ? window.getStorePhone(storeName)
+            : '';
+        const tel = typeof window.normalizeStorePhoneForTel === 'function'
+            ? window.normalizeStorePhoneForTel(phone)
+            : String(phone || '').replace(/[^\d+]/g, '');
+        if (!tel) return '';
+        const label = typeof window.phoneCatalogT === 'function'
+            ? window.phoneCatalogT('Call store')
+            : 'Κλήση καταστήματος';
+        const title = `${label}: ${phone}`;
+        return `<a class="tm-sl-store-call" href="tel:${esc(tel)}" data-tm-sl-call-store="${esc(storeName)}" title="${esc(title)}" aria-label="${esc(title)}" onclick="event.stopPropagation()">${ICON.phoneCall}</a>`;
+    }
+
     function buildStoreRowHTML(store, idx, ctx) {
         const compact = !!ctx?.networkCompact;
         const signal = getStoreSignalClass(store.variants.length);
@@ -3309,6 +3401,7 @@
         const distChip = distLabel
             ? `<span class="tm-sl-store-dist" title="Απόσταση από ${esc(getMyStoreLabel())}">${esc(distLabel)}</span>`
             : '';
+        const callBtn = buildStoreCallButtonHTML(store.name);
         const qtyLabel = compact
             ? String(store.variants.length)
             : (store.variants.length === 1 ? '1 τεμάχιο' : `${store.variants.length} τεμ.`);
@@ -3317,13 +3410,14 @@
             ? `<div class="tm-sl-store-head tm-sl-store-head--inline" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button" aria-expanded="false">
                 <span class="tm-sl-store-icon">${ICON.store.replace('width="16"', 'width="15"').replace('height="16"', 'height="15"')}</span>
                 <span class="tm-sl-store-name">${esc(store.name)}</span>
-                <div class="tm-sl-store-head__meta">${bbBadge}${distChip}<span class="tm-sl-store-qty">${qtyLabel}</span></div>
+                <div class="tm-sl-store-head__meta">${callBtn}${bbBadge}${distChip}<span class="tm-sl-store-qty">${qtyLabel}</span></div>
                 <span class="tm-sl-store-chevron">${ICON.chevron.replace('width="16"', 'width="14"').replace('height="16"', 'height="14"')}</span>
             </div>`
             : `<div class="tm-sl-store-head" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button" aria-expanded="false">
                 <div class="tm-sl-store-head__top">
                     <span class="tm-sl-store-icon">${ICON.store}</span>
                     <span class="tm-sl-store-name">${esc(store.name)}</span>
+                    ${callBtn}
                     <span class="tm-sl-store-chevron">${ICON.chevron}</span>
                 </div>
                 <div class="tm-sl-store-head__meta">
@@ -3366,6 +3460,7 @@
             <div class="tm-sl-mine-detail-head">
                 <h3>${esc(myStoreLabel)}</h3>
                 <div class="tm-sl-mine-detail-head__meta">
+                    ${buildStoreCallButtonHTML(myStoreLabel)}
                     <span>${esc(qtyLabel)}</span>
                     ${bbMeta}
                 </div>
@@ -3386,6 +3481,7 @@
 
         return `<h3 id="tm-sl-network-store-title">${esc(store.name)}</h3>
             <div class="tm-sl-network-detail-head__meta" id="tm-sl-network-store-meta">
+                ${buildStoreCallButtonHTML(store.name)}
                 ${distLabel ? `<span class="tm-sl-store-dist">${esc(distLabel)}</span>` : ''}
                 ${bbBadge}
                 <span>${qtyLabel}</span>
@@ -3553,7 +3649,7 @@
         }, opts.durationMs || 2600);
     }
 
-    function updateFreshness(overlay, lastUpdated) {
+    function updateFreshness(overlay, lastUpdated, refreshedBy) {
         const wrap = overlay?.querySelector('#tm-sl-freshness');
         const updatedEl = overlay?.querySelector('#tm-sl-updated');
         if (!wrap || !lastUpdated) return;
@@ -3571,7 +3667,9 @@
             label = 'Παλιά δεδομένα';
         }
         if (updatedEl) {
-            updatedEl.textContent = `${label} · ${lastUpdated.toLocaleString('el-GR')}`;
+            const when = lastUpdated.toLocaleString('el-GR');
+            const by = String(refreshedBy || '').trim();
+            updatedEl.textContent = by ? `${label} · ${when} · ${by}` : `${label} · ${when}`;
         }
     }
 
@@ -3714,6 +3812,12 @@
         updateMyStoreLabels(overlay);
     }
 
+    function updateCategoryTabs(overlay, category) {
+        const shell = overlay?.querySelector('#tm-sl-shell');
+        if (!shell) return;
+        shell.classList.toggle('tm-sl-category--laptops', category === 'laptops');
+    }
+
     const UI_SCALE_STEPS = [1, 1.15, 1.3, 1.45];
     const UI_SCALE_DEFAULT = 1.15;
 
@@ -3828,6 +3932,7 @@
         clearStoresModelHeader,
         updateBreadcrumb,
         updateViewTabs,
+        updateCategoryTabs,
         setDensity,
         setUiScale,
         normalizeUiScale,

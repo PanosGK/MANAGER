@@ -5,6 +5,8 @@
 // Cache constants
 const PHONE_LIST_CACHE_KEY = 'tm_phone_list_cache';
 const PHONE_LIST_CACHE_TIMESTAMP_KEY = 'tm_phone_list_cache_timestamp';
+/** Who last refreshed the scraped catalog + when ({ at, by }). */
+const PHONE_LIST_REFRESH_META_KEY = 'tm_phone_list_refresh_meta_v1';
 /** Hard-expire local list cache after this many days (discard + force fetch). */
 const CACHE_EXPIRATION_DAYS = 3;
 /** Soft-stale: quiet background refresh when older than this (ms). */
@@ -102,8 +104,12 @@ const PHONE_CATALOG_TRANSLATIONS = {
     'My store saved': '\u0391\u03C0\u03BF\u03B8\u03B7\u03BA\u03B5\u03C8\u03B5 \u03C4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03C3\u03B1\u03C2',
     'Select store': '\u0395\u03C0\u03B9\u03BB\u03AD\u03BE\u03C4\u03B5 \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1',
     'Store addresses': '\u0394\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03B7\u03BC\u03AC\u03C4\u03C9\u03BD',
-    'Store addresses hint': '\u0392\u03AC\u03BB\u03C4\u03B5 \u03C4\u03B7 \u03C4\u03B1\u03C7\u03C5\u03B4\u03C1\u03BF\u03BC\u03B7\u03C3\u03AF\u03B1 \u03BA\u03AC\u03B8\u03B5 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2 \u03B3\u03B9\u03B1 \u03BD\u03B1 \u03C4\u03B1\u03BE\u03B9\u03BD\u03BF\u03BC\u03BF\u03CD\u03BD\u03C4\u03B1\u03B9 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1 \u0386\u03BB\u03BB\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03B1\u03C0\u03CC \u03C4\u03B7 \u03BC\u03B9\u03BA\u03C1\u03CC\u03C4\u03B5\u03C1\u03B7 \u03C3\u03C4\u03B7 \u03BC\u03B5\u03B3\u03B1\u03BB\u03CD\u03C4\u03B5\u03C1\u03B7 \u03B1\u03C0\u03CC\u03C3\u03C4\u03B1\u03C3\u03B7.',
+    'Store addresses hint': '\u0392\u03AC\u03BB\u03C4\u03B5 \u03C4\u03B7 \u03C4\u03B1\u03C7\u03C5\u03B4\u03C1\u03BF\u03BC\u03B7\u03C3\u03AF\u03B1 \u03BA\u03B1\u03B9 \u03C4\u03BF \u03C4\u03B7\u03BB\u03AD\u03C6\u03C9\u03BD\u03BF \u03BA\u03AC\u03B8\u03B5 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2. \u0397 \u03B4\u03B9\u03B5\u03CD\u03B8\u03C5\u03BD\u03C3\u03B7 \u03C7\u03C1\u03B7\u03C3\u03B9\u03BC\u03B5\u03CD\u03B5\u03B9 \u03B3\u03B9\u03B1 \u03C4\u03B1\u03BE\u03B9\u03BD\u03CC\u03BC\u03B7\u03C3\u03B7 \u03B1\u03C0\u03CC\u03C3\u03C4\u03B1\u03C3\u03B7\u03C2\u00B7 \u03C4\u03BF \u03C4\u03B7\u03BB\u03AD\u03C6\u03C9\u03BD\u03BF \u03B5\u03BC\u03C6\u03B1\u03BD\u03AF\u03B6\u03B5\u03B9 \u03BA\u03BF\u03C5\u03BC\u03C0\u03AF \u03BA\u03BB\u03AE\u03C3\u03B7\u03C2 \u03C3\u03C4\u03BF\u03BD \u03BA\u03B1\u03C4\u03AC\u03BB\u03BF\u03B3\u03BF.',
     'Store address placeholder': '\u03A0.\u03C7. \u039A\u03B1\u03C3\u03C3\u03B1\u03BD\u03B4\u03C1\u03BF\u03CD 45, \u0392\u03C1\u03B9\u03BB\u03AE\u03C3\u03C3\u03B9\u03B1',
+    'Store phone': '\u03A4\u03B7\u03BB\u03AD\u03C6\u03C9\u03BD\u03BF \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2',
+    'Store phone placeholder': '\u03C0.\u03C7. 2101234567',
+    'Call store': '\u039A\u03BB\u03AE\u03C3\u03B7 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2',
+    'No store phone set': '\u0394\u03B5\u03BD \u03AD\u03C7\u03B5\u03B9 \u03BF\u03C1\u03B9\u03C3\u03C4\u03B5\u03AF \u03C4\u03B7\u03BB\u03AD\u03C6\u03C9\u03BD\u03BF',
     'Geocode addresses': '\u0395\u03C5\u03B8\u03B5\u03C4\u03B7\u03C3\u03AF\u03B1 \u03C3\u03C5\u03BD\u03C4\u03B5\u03C4\u03B1\u03B3\u03BC\u03AD\u03BD\u03C9\u03BD',
     'Geocoding stores': '\u0395\u03C5\u03B8\u03B5\u03C4\u03B7\u03C3\u03AF\u03B1 \u03C4\u03C9\u03BD \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03C9\u03BD\u2026',
     'Geocode done': '\u039F\u03B9 \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2 \u03B5\u03BD\u03B7\u03BC\u03B5\u03C1\u03CE\u03B8\u03B7\u03BA\u03B1\u03BD',
@@ -169,6 +175,7 @@ function saveRemovedPhoneColors(removed) {
         .filter(Boolean)
         .sort();
     GM_setValue(PHONE_COLORS_REMOVED_KEY, JSON.stringify(list));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('colors_removed');
 }
 
 function isPhoneColorRemoved(name) {
@@ -217,6 +224,7 @@ function loadTagDefinitions() {
 
 function saveTagDefinitions(defs) {
     GM_setValue(PHONE_TAG_DEFINITIONS_KEY, JSON.stringify(defs));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('tag_definitions');
 }
 
 function normalizeTagDefinitionEntry(value, key) {
@@ -302,6 +310,7 @@ function loadPhoneTags() {
 
 function savePhoneTags(tags) {
     GM_setValue(PHONE_TAGS_STORAGE_KEY, JSON.stringify(tags));
+    if (typeof pcNotifyTagsChanged === 'function') pcNotifyTagsChanged(tags);
 }
 
 function getPhoneTags(barcode) {
@@ -506,6 +515,7 @@ function loadColorDisplayAliases() {
 
 function saveColorDisplayAliases(aliases) {
     GM_setValue(PHONE_COLOR_ALIASES_KEY, JSON.stringify(aliases));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('color_aliases');
 }
 
 function resolveDisplayColorName(colorName) {
@@ -793,6 +803,7 @@ function loadPhoneColors() {
 
 function savePhoneColors(colors) {
     GM_setValue(PHONE_COLORS_STORAGE_KEY, JSON.stringify(colors));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('colors');
 }
 
 function normalizeTextForColorMatch(text) {
@@ -1231,6 +1242,7 @@ function loadPhoneStoreRules() {
 
 function savePhoneStoreRules(rules) {
     GM_setValue(PHONE_STORE_RULES_KEY, JSON.stringify(rules));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('store_rules');
 }
 
 function normalizeStoreDisplayName(name) {
@@ -1560,6 +1572,7 @@ function loadStoreAddresses() {
 
 function saveStoreAddresses(map) {
     GM_setValue(STORE_ADDRESSES_KEY, JSON.stringify(map || {}));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('store_addresses');
 }
 
 function resolveStoreAddressKey(storeName, map) {
@@ -1582,21 +1595,49 @@ function getStoreAddressEntry(storeName) {
 function setStoreAddressEntry(storeName, data) {
     const map = loadStoreAddresses();
     const key = resolveStoreAddressKey(storeName, map) || normalizeStoreDisplayName(storeName);
-    const address = String(data?.address || '').trim();
-    if (!address) {
+    const prev = map[key] && typeof map[key] === 'object' ? { ...map[key] } : {};
+    const next = { ...prev };
+
+    if (data && Object.prototype.hasOwnProperty.call(data, 'address')) {
+        next.address = String(data.address || '').trim();
+        if (Object.prototype.hasOwnProperty.call(data, 'lat')) next.lat = data.lat;
+        if (Object.prototype.hasOwnProperty.call(data, 'lng')) next.lng = data.lng;
+        if (Object.prototype.hasOwnProperty.call(data, 'geocodedAt')) next.geocodedAt = data.geocodedAt;
+        if (!next.address) {
+            delete next.lat;
+            delete next.lng;
+            delete next.geocodedAt;
+            delete next.address;
+        }
+    }
+    if (data && Object.prototype.hasOwnProperty.call(data, 'phone')) {
+        const phone = String(data.phone || '').trim();
+        if (phone) next.phone = phone.slice(0, 40);
+        else delete next.phone;
+    }
+
+    if (!next.address && !next.phone) {
         delete map[key];
         saveStoreAddresses(map);
         return null;
     }
-    map[key] = {
-        ...(map[key] || {}),
-        address,
-        lat: data?.lat ?? map[key]?.lat,
-        lng: data?.lng ?? map[key]?.lng,
-        geocodedAt: data?.geocodedAt ?? map[key]?.geocodedAt,
-    };
+    map[key] = next;
     saveStoreAddresses(map);
     return map[key];
+}
+
+function getStorePhone(storeName) {
+    const entry = getStoreAddressEntry(storeName);
+    return String(entry?.phone || '').trim();
+}
+
+function normalizeStorePhoneForTel(phone) {
+    const raw = String(phone || '').trim();
+    if (!raw) return '';
+    const hasPlus = raw.startsWith('+');
+    const digits = raw.replace(/[^\d]/g, '');
+    if (!digits) return '';
+    return hasPlus ? `+${digits}` : digits;
 }
 
 function getStoreCoordinates(storeName) {
@@ -2149,13 +2190,70 @@ function parsePhoneName(fullName) {
  * Saves phone list to cache
  * @param {Array} phones - The phone list to cache
  */
+function getPhoneCatalogActorName() {
+    try {
+        if (typeof window.MMS_PROFILES?.getLoggedInDisplayName === 'function') {
+            const n = String(window.MMS_PROFILES.getLoggedInDisplayName({ fallback: null }) || '').trim();
+            if (n) return n.slice(0, 64);
+        }
+    } catch (_) { /* ignore */ }
+    try {
+        if (typeof window.MMS_PROFILES?.parseLoginBlockDisplayName === 'function') {
+            const n = String(window.MMS_PROFILES.parseLoginBlockDisplayName() || '').trim();
+            if (n) return n.slice(0, 64);
+        }
+    } catch (_) { /* ignore */ }
+    const el = document.querySelector('#login_block1 b, .rnr-b-loggedas b');
+    if (el) {
+        const n = String(el.textContent || '').replace(/^.*ως\s+/i, '').trim();
+        if (n) return n.slice(0, 64);
+    }
+    try {
+        const fallback = String(
+            window.tmCurrentUser
+            || window.config?.currentUser
+            || window.config?.profileLabel
+            || window.MMS_PROFILES?.getActiveProfileLabel?.()
+            || ''
+        ).trim();
+        if (fallback && fallback !== '_unknown') return fallback.slice(0, 64);
+    } catch (_) { /* ignore */ }
+    return 'Τεχνικός';
+}
+
+function loadPhoneListRefreshMeta() {
+    try {
+        const raw = GM_getValue(PHONE_LIST_REFRESH_META_KEY, null);
+        if (!raw) return null;
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (!parsed || typeof parsed !== 'object') return null;
+        const at = Number(parsed.at) || 0;
+        const by = String(parsed.by || '').trim().slice(0, 64);
+        if (!at && !by) return null;
+        return { at, by };
+    } catch (_) {
+        return null;
+    }
+}
+
+function savePhoneListRefreshMeta(meta) {
+    const at = Number(meta?.at) || Date.now();
+    const by = String(meta?.by || getPhoneCatalogActorName() || '').trim().slice(0, 64);
+    const next = { at, by };
+    GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify(next));
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('list_refresh');
+    return next;
+}
+
 function savePhoneListCache(phones) {
     if (!Array.isArray(phones) || !phones.length) {
         console.warn('[MMS Phone List] Skipping cache save — empty list (keeping previous snapshot)');
         return;
     }
+    const at = Date.now();
     GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(phones));
-    GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, Date.now());
+    GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, at);
+    savePhoneListRefreshMeta({ at, by: getPhoneCatalogActorName() });
     console.log('[MMS Phone List] Cache saved');
 }
 
@@ -2882,6 +2980,704 @@ async function fetchPhoneList(options = {}) {
     });
 }
 
+const USED_LAPTOP_PREFIX = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ ΦΟΡΗΤΟΣ ΥΠΟΛΟΓΙΣΤΗΣ';
+const USED_LAPTOP_PREFIX_ALT = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ ΦΟΡΗΤΟΣ ΗΛΕΚΤΡΟΝΙΚΟΣ ΥΠΟΛΟΓΙΣΤΗΣ';
+const LAPTOP_LIST_CACHE_KEY = 'tm_laptop_list_cache_v1';
+const LAPTOP_LIST_CACHE_TIMESTAMP_KEY = 'tm_laptop_list_cache_timestamp_v1';
+const OTHER_STORE_LAPTOP_CACHE_KEY = 'tm_laptop_other_store_cache_v1';
+const OTHER_STORE_LAPTOP_CACHE_TIMESTAMP_KEY = 'tm_laptop_other_store_cache_timestamp_v1';
+const LAPTOP_CACHE_EXPIRATION_DAYS = 3;
+
+function stripUsedLaptopPrefix(text) {
+    let out = String(text || '').replace(/\s+/g, ' ').trim();
+    const upper = out.toUpperCase();
+    for (const prefix of [USED_LAPTOP_PREFIX_ALT, USED_LAPTOP_PREFIX]) {
+        const idx = upper.indexOf(prefix);
+        if (idx >= 0) {
+            out = out.slice(idx + prefix.length).trim();
+            break;
+        }
+    }
+    // Truncated / variant markers
+    out = out.replace(/^ΗΛΕΚΤΡΟΝΙΚΟΣ\s+ΥΠΟΛΟΓΙΣΤΗΣ\s*/i, '');
+    out = out.replace(/^ΥΠΟΛΟΓΙΣΤΗΣ\s*/i, '');
+    return out.trim();
+}
+
+function isUsedLaptopTitle(name) {
+    const upper = String(name || '').toUpperCase();
+    return upper.includes(USED_LAPTOP_PREFIX)
+        || upper.includes(USED_LAPTOP_PREFIX_ALT)
+        || upper.includes('ΦΟΡΗΤΟΣ ΥΠΟΛΟΓΙΣΤΗΣ')
+        || upper.includes('ΦΟΡΗΤΟΣ ΗΛΕΚΤΡΟΝΙΚΟΣ ΥΠΟΛΟΓΙΣΤΗΣ')
+        || upper.includes('ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ ΦΟΡΗΤΟΣ');
+}
+
+function isUsedPhoneProductTitle(name) {
+    const upper = String(name || '').toUpperCase();
+    if (isUsedLaptopTitle(upper)) return false;
+    return upper.includes('ΚΙΝΗΤΟ') || upper.includes('ΤΗΛΕΦΩΝΟ');
+}
+
+function isLaptopBarcode(barcode) {
+    return /^(55|56)\./.test(String(barcode || '').trim());
+}
+
+const LAPTOP_BRAND_RULES = [
+    { name: 'Apple', re: /\bMACBOOK\b|\bAPPLE\b|\bIMAC\b/i },
+    { name: 'HP', re: /\b(?:NB\s+)?HP\b|\bHEWLETT\b|\bELITEBOOK\b|\bPROBOOK\b|\bPAVILION\b|\bZBOOK\b|\bCHROMEBOOK\b/i },
+    { name: 'Dell', re: /\bDELL\b|\bLATITUDE\b|\bXPS\b|\bINSPIRON\b|\bPRECISION\b/i },
+    { name: 'Lenovo', re: /\bLENOVO\b|\bTHINKPAD\b|\bTHINKBOOK\b|\bIDEAPAD\b|\bYOGA\b|\bLEGION\b/i },
+    { name: 'Asus', re: /\bASUS\b|\bVIVOBOOK\b|\bZEPHYRUS\b|\bTUF\b|\bZENBOOK\b|\bROG\b/i },
+    { name: 'Acer', re: /\bACER\b|\bPREDATOR\b|\bSWIFT\b|\bASPIRE\b|\bTRAVELMATE\b/i },
+    { name: 'MSI', re: /\bMSI\b/i },
+    { name: 'Microsoft', re: /\bSURFACE\b|\bMICROSOFT\b/i },
+    { name: 'Samsung', re: /\bSAMSUNG\b|\bGALAXY\s*BOOK\b/i },
+    { name: 'Huawei', re: /\bHUAWEI\b|\bMATEBOOK\b/i },
+    { name: 'Xiaomi', re: /\bXIAOMI\b|\bREDMI\s*BOOK\b|\bMIPAD\b/i },
+    { name: 'LG', re: /\bLG\b|\bGRAM\b/i },
+    { name: 'Toshiba', re: /\bTOSHIBA\b|\bDYNABOOK\b/i },
+    { name: 'Fujitsu', re: /\bFUJITSU\b|\bLIFEBOOK\b/i },
+    { name: 'Gigabyte', re: /\bGIGABYTE\b|\bAORUS\b/i },
+    { name: 'Razer', re: /\bRAZER\b/i },
+    { name: 'Chuwi', re: /\bCHUWI\b/i },
+];
+
+function normalizeLaptopCapacity(num, unit) {
+    const n = parseInt(String(num || ''), 10);
+    if (!Number.isFinite(n) || n <= 0) return '';
+    const u = String(unit || 'GB').toUpperCase().includes('TB') ? 'TB' : 'GB';
+    return `${n}${u}`;
+}
+
+function normalizeLaptopCpuToken(raw) {
+    let cpu = String(raw || '').replace(/\s+/g, ' ').trim().toUpperCase();
+    if (!cpu) return '';
+    // i58365U → I5-8365U
+    cpu = cpu.replace(/^([IΙ][3579])(\d{3,5}[A-Z0-9]{0,4})$/i, '$1-$2');
+    // Greek Ι → I
+    cpu = cpu.replace(/Ι/g, 'I');
+    // RYZEN3-7320U → RYZEN 3-7320U
+    cpu = cpu.replace(/^RYZEN\s*([3579])\s*-?/i, 'RYZEN $1-');
+    cpu = cpu.replace(/^RYZEN\s*([3579])-$/i, 'RYZEN $1');
+    // R3-4450U keep as R3-4450U
+    cpu = cpu.replace(/^R\s*([3579])\s*-/i, 'R$1-');
+    // I5 10TH / I5 8TH / I5 6TH
+    cpu = cpu.replace(/^([I][3579])\s*-?\s*(\d{1,2})\s*(?:TH|ST|ND|RD)?(?:\s*GEN)?$/i, '$1 $2TH');
+    // Bare I5/I7
+    cpu = cpu.replace(/^([I][3579])$/, '$1');
+    // Collapse leftover double spaces/dashes
+    cpu = cpu.replace(/\s*-\s*/g, '-').replace(/\s+/g, ' ').trim();
+    return cpu;
+}
+
+function extractLaptopCpu(text) {
+    const raw = String(text || '');
+    const patterns = [
+        /\b(M[1-4](?:\s*(?:PRO|MAX|ULTRA))?)\b/i,
+        /\b((?:INTEL\s+)?CORE\s+ULTRA\s+[3579]\s*[- ]?\d{3,4}[A-Z]?)\b/i,
+        // i5-8265U / I7-1185G7 / i5 8265U / I5-1135G7
+        /\b([IiΙι][3579]\s*[- ]?\d{3,5}[A-Za-z0-9]{0,4})\b/,
+        // i58365U (missing hyphen)
+        /\b([IiΙι][3579]\d{3,5}[A-Za-z0-9]{0,4})\b/,
+        // missing leading i: 5-10310u
+        /(?:^|[^A-Za-z0-9])([3579]-\d{4,5}[A-Za-z0-9]{0,4})\b/,
+        // AMD Ryzen 3-7320U / RYZEN3-7320U / R3-4450U
+        /\b(RYZEN\s*(?:AI\s*)?[3579]\s*-?\s*\d{3,5}[A-Z0-9]{0,4})\b/i,
+        /\b(R[3579]\s*-\s*\d{3,5}[A-Z0-9]{0,4})\b/i,
+        /\b(AMD\s*R[3579]\s*-\s*\d{3,5}[A-Z0-9]{0,4})\b/i,
+        // generation-only: i5 10th / i5 8th / i5-6th gen
+        /\b([IiΙι][3579]\s*-?\s*\d{1,2}(?:th|st|nd|rd)?(?:\s*gen)?)\b/i,
+        // bare family before specs: i5,8GB / I7/8GB / (i5,8GB
+        /\b([IiΙι][3579])(?=\s*[,\/\)]|\s+\d+\s*(?:GB|TB|SSD))/i,
+        /\b((?:INTEL\s+)?(?:CELERON|PENTIUM)[-\s]?[A-Z0-9]+)\b/i,
+        /\b(SNAPDRAGON\s*X\s*(?:ELITE|PLUS)?[-\s]?\w*)\b/i,
+    ];
+    for (const re of patterns) {
+        const m = raw.match(re);
+        if (!m) continue;
+        let token = String(m[1] || '').trim();
+        // Normalize missing-i SKUs to I#
+        if (/^[3579]-/.test(token)) token = `I${token}`;
+        if (/^AMD\s+/i.test(token)) token = token.replace(/^AMD\s+/i, '');
+        const normalized = normalizeLaptopCpuToken(token);
+        if (normalized) return normalized;
+    }
+    return '';
+}
+
+function extractLaptopBrand(text) {
+    const raw = String(text || '');
+    for (const rule of LAPTOP_BRAND_RULES) {
+        if (rule.re.test(raw)) return rule.name;
+    }
+    return '';
+}
+
+function extractLaptopRamStorage(text) {
+    const raw = String(text || '');
+    let ram = '';
+    let storage = '';
+
+    // 16GB/512GB | 16/256GB | 8GB/1TB | I7/8GB/1TB
+    const combo = raw.match(/\b(\d{1,2})\s*(?:GB|TB)?\s*[\/,]\s*(\d{1,4})\s*(GB|TB|SSD|NVME|NVM|HDD)?\b/i);
+    if (combo) {
+        const left = parseInt(combo[1], 10);
+        const right = parseInt(combo[2], 10);
+        const rightUnit = String(combo[3] || '').toUpperCase();
+        if ([4, 8, 12, 16, 24, 32, 36, 48, 64].includes(left)) {
+            ram = normalizeLaptopCapacity(left, 'GB');
+        }
+        if (rightUnit === 'TB' || right === 1 && /TB/i.test(raw)) {
+            storage = normalizeLaptopCapacity(right === 1 ? 1 : right, rightUnit === 'TB' || right <= 4 ? 'TB' : 'GB');
+        } else if ([64, 128, 256, 512, 1024, 2048].includes(right) || /SSD|NVM|HDD/i.test(rightUnit)) {
+            storage = normalizeLaptopCapacity(right, rightUnit === 'TB' ? 'TB' : 'GB');
+        }
+    }
+
+    // Slash path: .../8GB/256SSD or .../16GB/512S or .../14.0/8GB DDR (no storage yet)
+    if (!ram || !storage) {
+        const path = raw.match(/(?:\/|,)\s*(\d{1,2})\s*GB\s*(?:\/|,)\s*(\d{2,4})\s*(?:GB|SSD|NVM|NVME|HDD|S)?\b/i);
+        if (path) {
+            if (!ram) ram = normalizeLaptopCapacity(path[1], 'GB');
+            if (!storage) storage = normalizeLaptopCapacity(path[2], 'GB');
+        }
+    }
+    // .../8GB DDR with no storage token
+    if (!ram) {
+        const ramOnlyPath = raw.match(/\/\s*(\d{1,2})\s*GB\b/i);
+        if (ramOnlyPath) {
+            const n = parseInt(ramOnlyPath[1], 10);
+            if ([4, 8, 12, 16, 24, 32, 64].includes(n)) ram = normalizeLaptopCapacity(n, 'GB');
+        }
+    }
+
+    // 8GB,512SSD | 8GB,256GB | 8 GB 256 GB | 8GB DDR4 256GB
+    if (!ram) {
+        const ramMatch = raw.match(/\b(\d{1,2})\s*(GB|TB|G)\b(?!\s*SSD)/i)
+            || raw.match(/\b(\d{1,2})\s*GB\s*(?:RAM|DDR\d|ΜΝΗΜΗ)?\b/i);
+        if (ramMatch) {
+            const n = parseInt(ramMatch[1], 10);
+            if ([4, 8, 12, 16, 24, 32, 36, 48, 64].includes(n)) {
+                ram = normalizeLaptopCapacity(n, /TB/i.test(ramMatch[2] || '') ? 'TB' : 'GB');
+            }
+        }
+    }
+
+    // Truncated "8G" at end of title
+    if (!ram) {
+        const truncRam = raw.match(/\b(\d{1,2})\s*G(?:B)?\s*$/i) || raw.match(/\(\s*[^)]*?(\d{1,2})\s*G(?:B)?\s*$/i);
+        if (truncRam) {
+            const n = parseInt(truncRam[1], 10);
+            if ([4, 8, 12, 16, 24, 32, 64].includes(n)) ram = normalizeLaptopCapacity(n, 'GB');
+        }
+    }
+
+    if (!storage) {
+        const storageMatch = raw.match(/\b(\d{1,4})\s*(TB)\b/i)
+            || raw.match(/\b(\d{2,4})\s*(GB|G)?\s*(SSD|NVME|NVM|HDD|M\.?2)\b/i)
+            || raw.match(/\b(\d{2,4})\s*SSD\b/i)
+            || raw.match(/\b(\d{2,4})\s*GB\b/i);
+        if (storageMatch) {
+            const n = parseInt(storageMatch[1], 10);
+            const unitTok = `${storageMatch[2] || ''} ${storageMatch[3] || ''}`.toUpperCase();
+            if (/TB/.test(unitTok) || n === 1) {
+                storage = normalizeLaptopCapacity(n <= 4 ? n : n, n <= 4 ? 'TB' : 'GB');
+                if (n === 1) storage = '1TB';
+            } else if ([64, 128, 256, 512, 1024, 2048].includes(n)) {
+                storage = normalizeLaptopCapacity(n, 'GB');
+            }
+        }
+    }
+
+    // Truncated storage leftovers: "512" / "256" / "256G" after RAM mention
+    if (!storage) {
+        const truncStor = raw.match(/\b(?:GB|RAM|DDR\d)\s+(\d{2,4})\s*G?(?:\s|$)/i)
+            || raw.match(/,\s*(\d{2,4})\s*(?:SSD|S|G)?\s*(?:,|\(|$)/i)
+            || raw.match(/\b(\d{2,4})\s*(?:SSD|S)\b/i)
+            || raw.match(/\b(\d{2,4})\s*G(?:B)?\s*$/i);
+        if (truncStor) {
+            const n = parseInt(truncStor[1], 10);
+            if ([64, 128, 256, 512, 1024].includes(n)) storage = normalizeLaptopCapacity(n, 'GB');
+        }
+    }
+
+    // Chromebook eMMC 64GB
+    if (!storage) {
+        const e = raw.match(/\b(64)\s*(?:GB|G)?\b/i);
+        if (e && /CHROMEBOOK/i.test(raw)) storage = '64GB';
+    }
+
+    if (ram && storage && ram === storage) {
+        const ramN = parseInt(ram, 10);
+        if (ramN >= 128) {
+            storage = ram;
+            ram = '';
+        }
+    }
+
+    // Prefer storage when left combo captured screen size etc.
+    if (ram && !([4, 8, 12, 16, 24, 32, 36, 48, 64].includes(parseInt(ram, 10)))) {
+        ram = '';
+    }
+
+    return { ram, storage };
+}
+
+function buildLaptopModelLine(modelText, specs) {
+    let line = String(modelText || '').replace(/\s+/g, ' ').trim();
+    // Normalize Greek lookalikes in model codes (Τ470 → T470)
+    line = line.replace(/[Ττ]/g, 'T');
+    line = line.replace(/\(?\s*(?:BB|ΒΒ)\s*[:\-]?[^)]*\)?\s*$/i, '').trim();
+    line = line.replace(/\bBB\s*:\s*\(?[^)]*\)?\s*$/i, '').trim();
+    line = line.replace(/\([^)]*(?:i[3579]|ryzen|celeron|pentium|ssd|gb|tb|ddr\d)[^)]*$/ig, ' ');
+    line = line.replace(/\([^)]*(?:i[3579]|ryzen|celeron|pentium|ssd|gb|tb|ddr\d)[^)]*\)/ig, ' ');
+    line = line.replace(/\b\d{1,2}\s*(?:GB|TB)?\s*[\/,]\s*\d{1,4}\s*(?:GB|TB|SSD|NVME|NVM|HDD)?\b/ig, ' ');
+    line = line.replace(/\/\s*\d{1,2}\s*(?:GB|TB)?\s*\/\s*\d{2,4}\s*(?:GB|SSD|NVM|S)?\b/ig, ' ');
+    line = line.replace(/\/\d{1,2}(?:[.,]\d+)?(?:-FHD|-HD)?/ig, ' ');
+    line = line.replace(/\b\d{1,2}(?:[.,]\d+)?-FHD\b/ig, ' ');
+    line = line.replace(/\bGEN\s*(\d)\b/ig, 'G$1'); // keep gen marker compact
+    // Drop trailing orphan punctuation / DDR leftovers
+    line = line.replace(/\bDDR\d?\b/ig, ' ');
+    line = line.replace(/\s+[./-]+\s*$/g, ' ');
+    line = line.replace(/^\s*[./-]+|\s*[./-]+\s*$/g, ' ');
+    const keepCpuInModel = specs?.cpu && /^M[1-4]\b/i.test(specs.cpu);
+    if (specs?.cpu && !keepCpuInModel) {
+        const cpuRe = specs.cpu
+            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            .replace(/\s+/g, '\\s*')
+            .replace(/-/g, '[-\\s]*');
+        line = line.replace(new RegExp(`\\b${cpuRe}\\b`, 'ig'), ' ');
+        // Also strip bare family left behind
+        line = line.replace(/\b[Ii][3579]\b(?=\s*[,\/\)]|\s*$)/g, ' ');
+    }
+    if (specs?.ram) {
+        const n = parseInt(specs.ram, 10);
+        line = line.replace(new RegExp(`\\b${n}\\s*(?:GB|TB|G)\\b`, 'ig'), ' ');
+    }
+    if (specs?.storage) {
+        const n = parseInt(specs.storage, 10);
+        line = line.replace(new RegExp(`\\b${n}\\s*(?:GB|TB|G)?\\s*(?:SSD|NVME|NVM|HDD|S)?\\b`, 'ig'), ' ');
+    }
+    line = line.replace(/\b(?:SSD|NVME|NVM|HDD|DDR\d|FHD|TOUCH)\b/ig, ' ');
+    line = line.replace(/\b\d+\s*CORE(?:\s*CPU|\s*GPU)?\b/ig, ' ');
+    line = line.replace(/\bNB\b/ig, ' ');
+    line = line.replace(/\bAMD\b/ig, ' ');
+    line = line.replace(/\bA\d{4}\b/ig, ' '); // Apple board ids A2337
+    line = line.replace(/\b20[12]\d\b/g, ' '); // year
+    line = line.replace(/\b(SPACE\s*GREY|SPACE\s*GRAY|MIDNIGHT|STARLIGHT|SILVER|GOLD|BLACK|WHITE|GREY|GRAY|BLUE|RED|ROSE\s*GOLD|SPA|GOL|SIL)\b/ig, ' ');
+    // Screen size only when inch marks present
+    line = line.replace(/\b\d{1,2}(?:[.,]\d+)?\s*(?:''|"|′|’)\b/g, ' ');
+    line = line.replace(/[\/|,]+/g, ' ').replace(/[()]+/g, ' ').replace(/\s+/g, ' ').trim();
+    line = line.replace(/^APPLE\s+/i, '');
+    return line || String(modelText || '').trim();
+}
+
+function parseLaptopSpecs(fullName) {
+    let text = stripUsedLaptopPrefix(fullName);
+    text = text.replace(/\s*Περισσότερα\s*\.?\s*\.?\s*\.?\s*$/i, '').trim();
+    text = text.replace(/\(?\s*(?:BB|ΒΒ)\s*[:\-]?[^)]*\)?\s*$/i, '').trim();
+
+    const brand = extractLaptopBrand(text);
+    const cpu = extractLaptopCpu(text);
+    const { ram, storage } = extractLaptopRamStorage(text);
+    const modelLine = buildLaptopModelLine(text, { cpu, ram, storage });
+    return { brand, cpu, ram, storage, modelLine };
+}
+
+function hydrateLaptopItem(item) {
+    if (!item || typeof item !== 'object') return item;
+    const source = item.name || item.model || '';
+    const specs = parseLaptopSpecs(source);
+    const parsed = parseLaptopName(source);
+    return {
+        ...item,
+        name: parsed.fullName || item.name,
+        model: specs.modelLine || parsed.model || item.model,
+        grade: item.grade || parsed.grade || '',
+        imei: item.imei || parsed.imei || '',
+        brand: specs.brand || item.brand || '',
+        cpu: specs.cpu || item.cpu || '',
+        ram: specs.ram || item.ram || '',
+        storage: specs.storage || item.storage || '',
+        productKind: 'laptop',
+    };
+}
+
+function parseLaptopName(fullName) {
+    let model = stripUsedLaptopPrefix(fullName);
+    let grade = '';
+    let imei = '';
+    // BB:A+ SERIAL or (BB:A+ SERIAL) or BB:(A-SERIAL
+    let m = model.match(/\(?\s*(?:BB|ΒΒ)\s*[:\-]?\s*\(?\s*([A-Z+]+\+?)\s*[-\s:]+([A-Z0-9\-]+)\s*\)?\s*$/i);
+    if (m) {
+        grade = String(m[1] || '').toUpperCase();
+        imei = String(m[2] || '').trim();
+        model = model.slice(0, m.index).trim();
+    } else {
+        m = model.match(/\(?\s*(?:BB|ΒΒ)\s*[:\-]\s*([A-Z+]+\+?)\s*$/i);
+        if (m) {
+            grade = String(m[1] || '').toUpperCase();
+            model = model.slice(0, m.index).trim();
+        }
+    }
+    const specs = parseLaptopSpecs(String(fullName || ''));
+    return {
+        fullName: String(fullName || '').replace(/\s+/g, ' ').trim(),
+        model: specs.modelLine || model || String(fullName || '').trim(),
+        modelLine: specs.modelLine || model,
+        brand: specs.brand,
+        cpu: specs.cpu,
+        ram: specs.ram,
+        storage: specs.storage,
+        grade,
+        imei,
+    };
+}
+
+function saveLaptopListCache(laptops) {
+    if (!Array.isArray(laptops) || !laptops.length) return;
+    GM_setValue(LAPTOP_LIST_CACHE_KEY, JSON.stringify(laptops));
+    GM_setValue(LAPTOP_LIST_CACHE_TIMESTAMP_KEY, Date.now());
+}
+
+function loadLaptopListCache() {
+    try {
+        const ts = Number(GM_getValue(LAPTOP_LIST_CACHE_TIMESTAMP_KEY, 0)) || 0;
+        if (!ts) return null;
+        const ageDays = (Date.now() - ts) / (24 * 60 * 60 * 1000);
+        if (ageDays > LAPTOP_CACHE_EXPIRATION_DAYS) return null;
+        const parsed = JSON.parse(GM_getValue(LAPTOP_LIST_CACHE_KEY, '[]'));
+        if (!Array.isArray(parsed) || !parsed.length) return null;
+        const onlyLaptops = parsed
+            .filter((item) => isUsedLaptopTitle(item?.name) && !isUsedPhoneProductTitle(item?.name))
+            .map((item) => hydrateLaptopItem(item));
+        return onlyLaptops.length ? onlyLaptops : null;
+    } catch (_) {
+        return null;
+    }
+}
+
+function saveOtherStoreLaptopCache(laptops) {
+    if (!Array.isArray(laptops) || !laptops.length) return;
+    GM_setValue(OTHER_STORE_LAPTOP_CACHE_KEY, JSON.stringify(laptops));
+    GM_setValue(OTHER_STORE_LAPTOP_CACHE_TIMESTAMP_KEY, Date.now());
+}
+
+function getOtherStoreLaptopCache() {
+    try {
+        const ts = Number(GM_getValue(OTHER_STORE_LAPTOP_CACHE_TIMESTAMP_KEY, 0)) || 0;
+        if (!ts) return null;
+        const ageDays = (Date.now() - ts) / (24 * 60 * 60 * 1000);
+        if (ageDays > 1) return null;
+        const parsed = JSON.parse(GM_getValue(OTHER_STORE_LAPTOP_CACHE_KEY, '[]'));
+        if (!Array.isArray(parsed) || !parsed.length) return null;
+        const onlyLaptops = parsed
+            .filter((item) => isUsedLaptopTitle(item?.name) && !isUsedPhoneProductTitle(item?.name))
+            .map((item) => hydrateLaptopItem(item));
+        return onlyLaptops.length ? onlyLaptops : null;
+    } catch (_) {
+        return null;
+    }
+}
+
+function pcRequestHtml(url) {
+    return new Promise((resolve) => {
+        const xhr = typeof GM_xmlhttpRequest === 'function' ? GM_xmlhttpRequest : null;
+        if (!xhr) {
+            resolve({ ok: false, text: '' });
+            return;
+        }
+        xhr({
+            method: 'GET',
+            url,
+            timeout: 20000,
+            onload(res) {
+                resolve({
+                    ok: res.status >= 200 && res.status < 300,
+                    text: String(res.responseText || ''),
+                    status: res.status,
+                });
+            },
+            onerror() { resolve({ ok: false, text: '' }); },
+            ontimeout() { resolve({ ok: false, text: '' }); },
+        });
+    });
+}
+
+function findProductFulltextQuery(nameEl, row) {
+    const roots = [nameEl, row].filter(Boolean);
+    for (const root of roots) {
+        const link = root.querySelector?.('a[data-query*="fulltext.php"]')
+            || root.querySelector?.('a[href*="fulltext.php"]');
+        if (!link) continue;
+        const q = link.getAttribute('data-query') || link.getAttribute('href') || '';
+        if (q.includes('fulltext.php')) return q.replace(/^javascript:void\(0\);?/i, '').trim();
+    }
+    return '';
+}
+
+function parseFulltextResponse(text) {
+    const raw = String(text || '').trim();
+    if (!raw) return '';
+    // API returns JSON: {"success":true,"textCont":"..."}
+    if (raw.startsWith('{') || raw.startsWith('[')) {
+        try {
+            const json = JSON.parse(raw);
+            const fromJson = String(json?.textCont ?? json?.text ?? json?.content ?? '').trim();
+            if (fromJson) return fromJson.replace(/\s+/g, ' ').trim();
+        } catch (_) { /* fall through */ }
+    }
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(raw, 'text/html');
+        const bodyText = (doc.body?.textContent || '').replace(/\s+/g, ' ').trim();
+        if (bodyText && bodyText.startsWith('{')) {
+            try {
+                const json = JSON.parse(bodyText);
+                const fromJson = String(json?.textCont ?? json?.text ?? json?.content ?? '').trim();
+                if (fromJson) return fromJson.replace(/\s+/g, ' ').trim();
+            } catch (_) { /* ignore */ }
+        }
+        if (bodyText && bodyText.length > 8 && !bodyText.includes('"textCont"')) return bodyText;
+    } catch (_) { /* ignore */ }
+    return raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+async function fetchProductFullName(barcode, dataQuery) {
+    const code = String(barcode || '').trim();
+    let path = String(dataQuery || '').trim();
+    if (!path && code) {
+        path = `fulltext.php?pagetype=list&table=products&field=strProductName&key1=${encodeURIComponent(code)}`;
+    }
+    if (!path) return '';
+    if (path.startsWith('javascript:')) return '';
+    const url = path.startsWith('http')
+        ? path
+        : `https://thefixers.mymanager.gr/mymanagerservice/${path.replace(/^\//, '')}`;
+    const res = await pcRequestHtml(url);
+    if (!res.ok) return '';
+    return parseFulltextResponse(res.text);
+}
+
+async function expandLaptopNames(items, onProgress) {
+    const needExpand = items.filter((item) => item?._needsFullName && item.barcode);
+    if (!needExpand.length) return items;
+    const concurrency = 4;
+    let done = 0;
+    for (let i = 0; i < needExpand.length; i += concurrency) {
+        const batch = needExpand.slice(i, i + concurrency);
+        await Promise.all(batch.map(async (item) => {
+            try {
+                const full = await fetchProductFullName(item.barcode, item._fulltextQuery);
+                if (full && full.length > String(item.name || '').length) {
+                    const parsed = parseLaptopName(full);
+                    item.name = parsed.fullName;
+                    item.model = parsed.model;
+                    item.grade = parsed.grade || item.grade;
+                    item.imei = parsed.imei || item.imei;
+                    item.brand = parsed.brand || item.brand;
+                    item.cpu = parsed.cpu || item.cpu;
+                    item.ram = parsed.ram || item.ram;
+                    item.storage = parsed.storage || item.storage;
+                    item.isBuyback = isBuybackTitle(full) || !!item.isBuyback;
+                }
+            } catch (_) { /* keep truncated */ }
+            delete item._needsFullName;
+            delete item._fulltextQuery;
+            done += 1;
+            if (typeof onProgress === 'function') {
+                onProgress({ phase: 'expand', done, total: needExpand.length, ratio: done / needExpand.length });
+            }
+        }));
+    }
+    items.forEach((item) => {
+        delete item._needsFullName;
+        delete item._fulltextQuery;
+    });
+    return items;
+}
+
+function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherStock = false } = {}) {
+    let table = doc.querySelector('table.rnr-c.rnr-cont.rnr-c-grid.rnr-b-grid.rnr-gridtable.hoverable')
+        || doc.querySelector('table.rnr-b-grid.rnr-gridtable')
+        || doc.querySelector('table.rnr-b-grid')
+        || doc.querySelector('.rnr-c-grid table, table.rnr-gridtable');
+    if (!table) return [];
+    let rows = table.querySelectorAll('tbody tr');
+    if (!rows.length) rows = table.querySelectorAll('tr');
+    if (!rows.length) rows = table.querySelectorAll('tr[id^="gridRow"]');
+    const laptops = [];
+    rows.forEach((row, rowIndex) => {
+        if (rowIndex === 0 && row.querySelector('th')) return;
+        let barcodeEl = row.querySelector('span[id*="strProductID"]');
+        let nameEl = row.querySelector('span[id*="strProductName"]');
+        let unitsRemainingEl = row.querySelector('span[id*="iUnitsRemaining"]');
+        let otherStoreEl = row.querySelector('span[id*="iUnitsRemainingOtherStoreHouses"]');
+        if (!barcodeEl || !nameEl || !unitsRemainingEl || !otherStoreEl) {
+            row.querySelectorAll('[id]').forEach((node) => {
+                const id = (node.id || '').toLowerCase();
+                if (!barcodeEl && id.includes('strproductid')) barcodeEl = node;
+                if (!nameEl && id.includes('strproductname')) nameEl = node;
+                if (!otherStoreEl && id.includes('iunitsremainingotherstorehouses')) otherStoreEl = node;
+                if (!unitsRemainingEl && id.includes('iunitsremaining') && !id.includes('otherstorehouses')) {
+                    unitsRemainingEl = node;
+                }
+            });
+        }
+        const unitsRemaining = parseInt((unitsRemainingEl?.textContent || '').trim(), 10) || 0;
+        let otherStoreCount = 0;
+        let otherStores = [];
+        if (otherStoreEl) {
+            otherStoreCount = parseInt((otherStoreEl.textContent || '').trim(), 10) || 0;
+            if (otherStoreCount > 0) {
+                otherStores = parseOtherStorehouses(otherStoreEl);
+                if (!otherStores.length) otherStores = parseOtherStorehousesFromRow(row);
+            }
+        }
+        if (requireLocalStock && unitsRemaining <= 0) return;
+        if (requireOtherStock && otherStoreCount <= 0) return;
+        if (!barcodeEl || !nameEl) return;
+
+        let barcode = (barcodeEl.textContent || '').replace(/\s+/g, ' ').trim();
+        let name = (nameEl.textContent || '').replace(/\s+/g, ' ').trim();
+        const hadMoreLink = /Περισσότερα/i.test(name) || !!findProductFulltextQuery(nameEl, row);
+        name = name.replace(/\s*Περισσότερα\s*\.\.\.\s*/i, '').trim();
+        if (!barcode || !name) return;
+        // 55./56. also cover phones — never keep clear phone titles.
+        if (isUsedPhoneProductTitle(name)) return;
+        if (!isLaptopBarcode(barcode) && !isUsedLaptopTitle(name)) return;
+        // Require laptop markers in the visible name (even when truncated).
+        if (!isUsedLaptopTitle(name)) return;
+
+        const fulltextQuery = findProductFulltextQuery(nameEl, row);
+        const parsed = parseLaptopName(name);
+        const retailPrice = extractProductRetailPrice(row);
+        laptops.push({
+            barcode,
+            name: parsed.fullName,
+            model: parsed.model,
+            grade: parsed.grade,
+            imei: parsed.imei,
+            brand: parsed.brand,
+            cpu: parsed.cpu,
+            ram: parsed.ram,
+            storage: parsed.storage,
+            unitsRemaining,
+            isBuyback: isBuybackTitle(name),
+            retailPrice,
+            otherStoreCount,
+            otherStores,
+            productKind: 'laptop',
+            _needsFullName: !!(hadMoreLink || fulltextQuery || /Περισσότερα/i.test(nameEl?.textContent || '')),
+            _fulltextQuery: fulltextQuery,
+        });
+    });
+    return laptops;
+}
+
+async function fetchProductListHtml(qsPrefix, onProgress) {
+    const first = await pcRequestHtml(
+        `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(qsPrefix)}&recordspp=-1`
+    );
+    if (!first.ok) throw new Error(`Laptop list seed failed (${qsPrefix})`);
+    if (typeof onProgress === 'function') onProgress({ phase: 'download', ratio: 0.15, qs: qsPrefix });
+    const second = await pcRequestHtml(
+        'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|'
+    );
+    if (!second.ok) throw new Error(`Laptop list page failed (${qsPrefix})`);
+    if (typeof onProgress === 'function') onProgress({ phase: 'parse', ratio: 0.55, qs: qsPrefix });
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(second.text, 'text/html');
+    try { detectAndCacheCurrentStoreName(doc); } catch (_) { /* ignore */ }
+    return doc;
+}
+
+async function fetchLaptopList(options = {}) {
+    const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
+    if (!options.force) {
+        const cached = loadLaptopListCache();
+        if (cached) {
+            onProgress({ phase: 'done', ratio: 1, fromCache: true });
+            return cached;
+        }
+    }
+    onProgress({ phase: 'init', ratio: 0.04 });
+    const prefixes = ['55.', '56.'];
+    const byBarcode = new Map();
+    for (let i = 0; i < prefixes.length; i += 1) {
+        const qs = prefixes[i];
+        const doc = await fetchProductListHtml(qs, (info) => {
+            onProgress({
+                ...info,
+                ratio: 0.08 + ((i + (info.ratio || 0.5)) / prefixes.length) * 0.55,
+            });
+        });
+        parseLaptopRowsFromDoc(doc, { requireLocalStock: true }).forEach((item) => {
+            if (!byBarcode.has(item.barcode)) byBarcode.set(item.barcode, item);
+        });
+    }
+    let laptops = [...byBarcode.values()];
+    onProgress({ phase: 'expand', ratio: 0.7, total: laptops.length });
+    laptops = await expandLaptopNames(laptops, (info) => {
+        onProgress({
+            phase: 'expand',
+            ratio: 0.7 + 0.25 * (info.ratio || 0),
+            done: info.done,
+            total: info.total,
+        });
+    });
+    // Title is authoritative — 55./56. barcodes include phones too.
+    laptops = laptops
+        .filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name))
+        .map((item) => hydrateLaptopItem(item));
+    saveLaptopListCache(laptops);
+    onProgress({ phase: 'done', ratio: 1 });
+    console.log(`[MMS Phone List] Parsed ${laptops.length} used laptops`);
+    return laptops;
+}
+
+async function fetchOtherStoreLaptops(options = {}) {
+    const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
+    if (!options.force) {
+        const cached = getOtherStoreLaptopCache();
+        if (cached) {
+            onProgress({ phase: 'done', ratio: 1, fromCache: true });
+            return cached;
+        }
+    }
+    onProgress({ phase: 'init', ratio: 0.04 });
+    const prefixes = ['55.', '56.'];
+    const byBarcode = new Map();
+    for (let i = 0; i < prefixes.length; i += 1) {
+        const qs = prefixes[i];
+        const doc = await fetchProductListHtml(qs, (info) => {
+            onProgress({
+                ...info,
+                ratio: 0.08 + ((i + (info.ratio || 0.5)) / prefixes.length) * 0.55,
+            });
+        });
+        parseLaptopRowsFromDoc(doc, { requireLocalStock: false, requireOtherStock: true }).forEach((item) => {
+            if (!byBarcode.has(item.barcode)) byBarcode.set(item.barcode, item);
+        });
+    }
+    let laptops = [...byBarcode.values()];
+    laptops = await expandLaptopNames(laptops, (info) => {
+        onProgress({
+            phase: 'expand',
+            ratio: 0.7 + 0.25 * (info.ratio || 0),
+            done: info.done,
+            total: info.total,
+        });
+    });
+    laptops = laptops
+        .filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name))
+        .map((item) => hydrateLaptopItem(item));
+    saveOtherStoreLaptopCache(laptops);
+    onProgress({ phase: 'done', ratio: 1 });
+    return laptops;
+}
+
 /**
  * Fetch and parse phones that are available in other storehouses (iUnitsRemainingOtherStoreHouses > 0)
  */
@@ -3252,6 +4048,7 @@ function savePhoneCanonicalModels(models) {
     GM_setValue(PHONE_CANONICAL_MODELS_KEY, JSON.stringify(cleaned));
     rebuildCanonModelTokens(cleaned);
     extractBaseModelCacheGlobal.clear();
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('canonical_models');
     return cleaned;
 }
 
@@ -3263,6 +4060,7 @@ function resetPhoneCanonicalModels() {
     GM_setValue(PHONE_CANONICAL_MODELS_KEY, null);
     rebuildCanonModelTokens(getDefaultPhoneCanonicalModels());
     extractBaseModelCacheGlobal.clear();
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('canonical_models');
     return getDefaultPhoneCanonicalModels();
 }
 
@@ -3365,6 +4163,8 @@ function stripModelToBaseRaw(model) {
         let base = model;
         
         base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '');
+        base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ\s+ΦΟΡΗΤΟΣ\s+ΗΛΕΚΤΡΟΝΙΚΟΣ\s+ΥΠΟΛΟΓΙΣΤΗΣ\s*/gi, '');
+        base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ\s+ΦΟΡΗΤΟΣ\s+ΥΠΟΛΟΓΙΣΤΗΣ\s*/gi, '');
         base = base.replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ');
         base = base.replace(/\s*\(BB[^)]*\)?\s*/gi, ' ');
         base = base.replace(/\s+(BB|ΒΒ):\s*$/gi, ' ');
@@ -3429,19 +4229,553 @@ function extractBaseModel(model) {
 /**
  * Opens the store locator (model → store availability).
  */
-async function showPhoneListModal() {
+async function showPhoneListModal(options = {}) {
     if (document.querySelector('.tm-modal-overlay, .tm-sl-overlay')) return;
     if (typeof window.showStoreLocatorModal === 'function') {
-        return window.showStoreLocatorModal();
+        return window.showStoreLocatorModal(options);
     }
     console.error('[MMS Phone List] Store locator module not loaded');
 }
 
+async function showLaptopCatalogModal() {
+    if (window.config?.laptopCatalogEnabled === false) return;
+    return showPhoneListModal({ category: 'laptops' });
+}
+
+// ===================================================================
+// === PHONE CATALOG SERVER SYNC (tags/colors/rules/models — not stock)
+// Collections: phone_catalog_config, phone_tags (PocketBase)
+// ===================================================================
+const PC_PB_BASE = 'https://mngerchat.littlejol.mywire.org';
+const PC_CONFIG_COLL = 'phone_catalog_config';
+const PC_TAGS_COLL = 'phone_tags';
+const PC_MIGRATED_KEY = 'tm_pc_migrated_v1';
+const PC_PENDING_CONFIG_KEY = 'tm_pc_pending_config_v1';
+const PC_PENDING_TAGS_KEY = 'tm_pc_pending_tags_v1';
+/** Shared network-wide catalog annotations (not per-store stock). */
+const PC_NETWORK_STORE_KEY = '*';
+const PC_FLUSH_MS = 1800;
+
+let pcApplyingServer = false;
+let pcServerUnsupported = false;
+let pcHintShown = false;
+let pcFlushTimer = null;
+let pcBusy = false;
+let pcPendingKinds = new Set();
+let pcPendingBarcodes = new Set();
+let pcInitStarted = false;
+
+function pcUseDatabase() {
+    try {
+        if (typeof window.suiteUseDatabase === 'function') return !!window.suiteUseDatabase();
+    } catch (_) { /* ignore */ }
+    try {
+        const v = GM_getValue('suiteUseDatabase', null);
+        if (v === null || typeof v === 'undefined') {
+            return GM_getValue('orderHistoryUseDatabase', true) !== false;
+        }
+        return v !== false;
+    } catch (_) {
+        return true;
+    }
+}
+
+function pcHint(msg) {
+    if (pcHintShown) return;
+    pcHintShown = true;
+    console.warn('[MMS Phone Catalog]', msg);
+    try {
+        if (typeof window.showNegativeMessage === 'function') window.showNegativeMessage(msg);
+    } catch (_) { /* ignore */ }
+}
+
+function pcDisplayName() {
+    try {
+        if (typeof window.MMS_PROFILES?.getLoggedInDisplayName === 'function') {
+            const n = String(window.MMS_PROFILES.getLoggedInDisplayName({ fallback: null }) || '').trim();
+            if (n) return n.slice(0, 64);
+        }
+    } catch (_) { /* ignore */ }
+    const el = document.querySelector('#login_block1 b, .rnr-b-loggedas b');
+    if (el) {
+        const n = String(el.textContent || '').replace(/^.*ως\s+/i, '').trim();
+        if (n) return n.slice(0, 64);
+    }
+    return 'Τεχνικός';
+}
+
+function pcRequestJson({ method, url, headers, data, timeout }) {
+    return new Promise((resolve) => {
+        const xhr = (typeof GM_xmlhttpRequest === 'function')
+            ? GM_xmlhttpRequest
+            : (typeof GM !== 'undefined' && GM.xmlHttpRequest ? GM.xmlHttpRequest : null);
+        if (!xhr) {
+            resolve({ status: 0, body: null, raw: 'no xhr' });
+            return;
+        }
+        xhr({
+            method: method || 'GET',
+            url,
+            headers: headers || {},
+            data: data || undefined,
+            timeout: timeout || 20000,
+            onload(res) {
+                let body = null;
+                const raw = String(res.responseText || '');
+                try { body = raw ? JSON.parse(raw) : null; } catch (_) { body = null; }
+                resolve({ status: res.status, body, raw });
+            },
+            onerror() { resolve({ status: 0, body: null, raw: 'network' }); },
+            ontimeout() { resolve({ status: 0, body: null, raw: 'timeout' }); },
+        });
+    });
+}
+
+async function pcEnsureAuthToken() {
+    if (typeof window.ensureMymanPocketBaseAuth === 'function') {
+        return window.ensureMymanPocketBaseAuth(window.STORAGE_KEYS);
+    }
+    if (typeof window.ensureOfficeChatAuthToken === 'function') {
+        return window.ensureOfficeChatAuthToken(window.STORAGE_KEYS);
+    }
+    throw new Error('PocketBase auth helper missing');
+}
+
+function pcLoadPendingSet(key) {
+    try {
+        const raw = GM_getValue(key, '[]');
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+    } catch (_) {
+        return new Set();
+    }
+}
+
+function pcSavePendingSet(key, set) {
+    try {
+        GM_setValue(key, JSON.stringify([...set]));
+    } catch (_) { /* ignore */ }
+}
+
+function pcRestorePendingQueues() {
+    pcLoadPendingSet(PC_PENDING_CONFIG_KEY).forEach((k) => pcPendingKinds.add(k));
+    pcLoadPendingSet(PC_PENDING_TAGS_KEY).forEach((b) => pcPendingBarcodes.add(b));
+}
+
+function pcPersistPendingQueues() {
+    pcSavePendingSet(PC_PENDING_CONFIG_KEY, pcPendingKinds);
+    pcSavePendingSet(PC_PENDING_TAGS_KEY, pcPendingBarcodes);
+}
+
+function pcScheduleFlush(delayMs) {
+    if (!pcUseDatabase() || pcServerUnsupported || pcApplyingServer) return;
+    if (pcFlushTimer) clearTimeout(pcFlushTimer);
+    pcFlushTimer = setTimeout(() => {
+        pcFlushTimer = null;
+        pcFlushPending().catch((err) => console.warn('[MMS Phone Catalog] flush failed', err));
+    }, delayMs == null ? PC_FLUSH_MS : delayMs);
+}
+
+function pcNotifyConfigChanged(kind) {
+    if (pcApplyingServer || !pcUseDatabase() || pcServerUnsupported) return;
+    if (!kind) return;
+    pcPendingKinds.add(String(kind));
+    pcPersistPendingQueues();
+    pcScheduleFlush();
+}
+
+function pcNotifyTagsChanged(tagsMap) {
+    if (pcApplyingServer || !pcUseDatabase() || pcServerUnsupported) return;
+    const map = tagsMap && typeof tagsMap === 'object' ? tagsMap : loadPhoneTags();
+    Object.keys(map).forEach((barcode) => {
+        const code = String(barcode || '').trim();
+        if (code) pcPendingBarcodes.add(code);
+    });
+    // Always flush full map barcodes that exist; also re-queue known pending ones
+    pcPersistPendingQueues();
+    pcScheduleFlush();
+}
+
+function pcReadLocalConfigPayload(kind) {
+    switch (kind) {
+        case 'colors':
+            try {
+                const raw = GM_getValue(PHONE_COLORS_STORAGE_KEY, null);
+                return raw ? JSON.parse(raw) : {};
+            } catch (_) { return {}; }
+        case 'color_aliases':
+            return loadColorDisplayAliases();
+        case 'colors_removed':
+            return [...loadRemovedPhoneColors()];
+        case 'tag_definitions':
+            return loadTagDefinitions();
+        case 'store_rules':
+            return loadPhoneStoreRules();
+        case 'canonical_models':
+            return loadPhoneCanonicalModels();
+        case 'store_addresses':
+            return loadStoreAddresses();
+        case 'list_refresh':
+            return loadPhoneListRefreshMeta() || { at: getPhoneListCacheTimestamp() || 0, by: '' };
+        default:
+            return null;
+    }
+}
+
+function pcApplyConfigPayload(kind, payload) {
+    pcApplyingServer = true;
+    try {
+        if (kind === 'colors' && payload && typeof payload === 'object') {
+            GM_setValue(PHONE_COLORS_STORAGE_KEY, JSON.stringify(payload));
+        } else if (kind === 'color_aliases' && payload && typeof payload === 'object') {
+            GM_setValue(PHONE_COLOR_ALIASES_KEY, JSON.stringify(payload));
+        } else if (kind === 'colors_removed' && Array.isArray(payload)) {
+            GM_setValue(PHONE_COLORS_REMOVED_KEY, JSON.stringify(payload));
+        } else if (kind === 'tag_definitions' && payload && typeof payload === 'object') {
+            GM_setValue(PHONE_TAG_DEFINITIONS_KEY, JSON.stringify(payload));
+        } else if (kind === 'store_rules' && payload && typeof payload === 'object') {
+            GM_setValue(PHONE_STORE_RULES_KEY, JSON.stringify(payload));
+        } else if (kind === 'canonical_models' && Array.isArray(payload)) {
+            GM_setValue(PHONE_CANONICAL_MODELS_KEY, JSON.stringify(payload));
+            try {
+                rebuildCanonModelTokens(payload);
+                extractBaseModelCacheGlobal.clear();
+            } catch (_) { /* ignore */ }
+        } else if (kind === 'store_addresses' && payload && typeof payload === 'object') {
+            GM_setValue(STORE_ADDRESSES_KEY, JSON.stringify(payload));
+        } else if (kind === 'list_refresh' && payload && typeof payload === 'object') {
+            const at = Number(payload.at) || 0;
+            const by = String(payload.by || '').trim().slice(0, 64);
+            GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify({ at, by }));
+        }
+    } finally {
+        pcApplyingServer = false;
+    }
+}
+
+function pcParsePayload(raw) {
+    if (raw == null) return null;
+    if (typeof raw === 'object') return raw;
+    try { return JSON.parse(String(raw)); } catch (_) { return null; }
+}
+
+async function pcUpsertConfig(token, kind, payload) {
+    const base = PC_PB_BASE.replace(/\/$/, '');
+    const storeKey = PC_NETWORK_STORE_KEY;
+    const dedupeKey = `${storeKey}|${kind}`.slice(0, 128);
+    const headers = { Authorization: token, 'Content-Type': 'application/json' };
+    const filter = encodeURIComponent(`dedupeKey="${dedupeKey}"`);
+    const listed = await pcRequestJson({
+        method: 'GET',
+        url: `${base}/api/collections/${PC_CONFIG_COLL}/records?page=1&perPage=1&filter=${filter}`,
+        headers: { Authorization: token },
+        timeout: 15000,
+    });
+    const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
+    if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
+        pcServerUnsupported = true;
+        pcHint('Phone catalog: δημιούργησε collection phone_catalog_config στο PocketBase');
+        return { ok: false, unsupported: true };
+    }
+    if (listed.status === 403 || listed.status === 401) {
+        pcHint('Phone catalog: ξεκλείδωσε List/Create/Update στο phone_catalog_config');
+        return { ok: false, status: listed.status };
+    }
+    const record = {
+        kind: String(kind).slice(0, 64),
+        storeKey,
+        dedupeKey,
+        payload: typeof payload === 'string' ? payload : JSON.stringify(payload ?? null),
+        updatedAt: new Date().toISOString(),
+        updatedBy: pcDisplayName(),
+    };
+    const existingId = listed.body?.items?.[0]?.id;
+    if (existingId) {
+        const updated = await pcRequestJson({
+            method: 'PATCH',
+            url: `${base}/api/collections/${PC_CONFIG_COLL}/records/${encodeURIComponent(existingId)}`,
+            headers,
+            data: JSON.stringify(record),
+            timeout: 15000,
+        });
+        return { ok: updated.status >= 200 && updated.status < 300, id: existingId, status: updated.status };
+    }
+    const created = await pcRequestJson({
+        method: 'POST',
+        url: `${base}/api/collections/${PC_CONFIG_COLL}/records`,
+        headers,
+        data: JSON.stringify(record),
+        timeout: 15000,
+    });
+    if (created.status >= 200 && created.status < 300) return { ok: true, id: created.body?.id };
+    if (/unique|duplicate/i.test(JSON.stringify(created.body || {}))) {
+        return pcUpsertConfig(token, kind, payload);
+    }
+    return { ok: false, status: created.status, body: created.body };
+}
+
+async function pcUpsertTag(token, barcode, tags) {
+    const base = PC_PB_BASE.replace(/\/$/, '');
+    const storeKey = PC_NETWORK_STORE_KEY;
+    const code = String(barcode || '').trim().slice(0, 64);
+    if (!code) return { ok: false };
+    const dedupeKey = `${storeKey}|${code}`.slice(0, 128);
+    const headers = { Authorization: token, 'Content-Type': 'application/json' };
+    const filter = encodeURIComponent(`dedupeKey="${dedupeKey}"`);
+    const listed = await pcRequestJson({
+        method: 'GET',
+        url: `${base}/api/collections/${PC_TAGS_COLL}/records?page=1&perPage=1&filter=${filter}`,
+        headers: { Authorization: token },
+        timeout: 15000,
+    });
+    const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
+    if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
+        pcServerUnsupported = true;
+        pcHint('Phone catalog: δημιούργησε collection phone_tags στο PocketBase');
+        return { ok: false, unsupported: true };
+    }
+    if (listed.status === 403 || listed.status === 401) {
+        pcHint('Phone catalog: ξεκλείδωσε List/Create/Update στο phone_tags');
+        return { ok: false, status: listed.status };
+    }
+    const tagList = Array.isArray(tags) ? tags.map(normalizeTagKey).filter(Boolean) : [];
+    const record = {
+        barcode: code,
+        storeKey,
+        dedupeKey,
+        tags: JSON.stringify(tagList),
+        updatedAt: new Date().toISOString(),
+        updatedBy: pcDisplayName(),
+    };
+    const existingId = listed.body?.items?.[0]?.id;
+    if (existingId) {
+        const updated = await pcRequestJson({
+            method: 'PATCH',
+            url: `${base}/api/collections/${PC_TAGS_COLL}/records/${encodeURIComponent(existingId)}`,
+            headers,
+            data: JSON.stringify(record),
+            timeout: 15000,
+        });
+        return { ok: updated.status >= 200 && updated.status < 300, id: existingId };
+    }
+    const created = await pcRequestJson({
+        method: 'POST',
+        url: `${base}/api/collections/${PC_TAGS_COLL}/records`,
+        headers,
+        data: JSON.stringify(record),
+        timeout: 15000,
+    });
+    if (created.status >= 200 && created.status < 300) return { ok: true, id: created.body?.id };
+    if (/unique|duplicate/i.test(JSON.stringify(created.body || {}))) {
+        return pcUpsertTag(token, barcode, tags);
+    }
+    return { ok: false, status: created.status };
+}
+
+async function pcFlushPending() {
+    if (!pcUseDatabase() || pcServerUnsupported || pcBusy) return { ok: false, busy: true };
+    pcRestorePendingQueues();
+    if (!pcPendingKinds.size && !pcPendingBarcodes.size) return { ok: true, empty: true };
+    pcBusy = true;
+    try {
+        const token = await pcEnsureAuthToken();
+        const kinds = [...pcPendingKinds];
+        for (const kind of kinds) {
+            const payload = pcReadLocalConfigPayload(kind);
+            if (payload == null) {
+                pcPendingKinds.delete(kind);
+                continue;
+            }
+            const res = await pcUpsertConfig(token, kind, payload);
+            if (res.unsupported) break;
+            if (res.ok) pcPendingKinds.delete(kind);
+        }
+        if (!pcServerUnsupported) {
+            const allTags = loadPhoneTags();
+            const barcodes = [...pcPendingBarcodes];
+            for (const barcode of barcodes) {
+                const tags = Array.isArray(allTags[barcode]) ? allTags[barcode] : [];
+                const res = await pcUpsertTag(token, barcode, tags);
+                if (res.unsupported) break;
+                if (res.ok) pcPendingBarcodes.delete(barcode);
+            }
+        }
+        pcPersistPendingQueues();
+        return { ok: true };
+    } catch (err) {
+        console.warn('[MMS Phone Catalog] flush error', err);
+        return { ok: false, error: err };
+    } finally {
+        pcBusy = false;
+    }
+}
+
+async function pcPullConfigs(token) {
+    const base = PC_PB_BASE.replace(/\/$/, '');
+    const filter = encodeURIComponent(`storeKey="${PC_NETWORK_STORE_KEY}"`);
+    const listed = await pcRequestJson({
+        method: 'GET',
+        url: `${base}/api/collections/${PC_CONFIG_COLL}/records?page=1&perPage=50&filter=${filter}`,
+        headers: { Authorization: token },
+        timeout: 20000,
+    });
+    const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
+    if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
+        pcServerUnsupported = true;
+        pcHint('Phone catalog: δημιούργησε collection phone_catalog_config στο PocketBase');
+        return { ok: false, unsupported: true };
+    }
+    if (listed.status < 200 || listed.status >= 300) {
+        return { ok: false, status: listed.status };
+    }
+    const items = Array.isArray(listed.body?.items) ? listed.body.items : [];
+    items.forEach((rec) => {
+        const kind = String(rec.kind || '').trim();
+        const payload = pcParsePayload(rec.payload);
+        if (kind && payload != null) pcApplyConfigPayload(kind, payload);
+    });
+    return { ok: true, count: items.length };
+}
+
+async function pcPullTags(token) {
+    const base = PC_PB_BASE.replace(/\/$/, '');
+    const filter = encodeURIComponent(`storeKey="${PC_NETWORK_STORE_KEY}"`);
+    let page = 1;
+    const merged = {};
+    for (;;) {
+        const listed = await pcRequestJson({
+            method: 'GET',
+            url: `${base}/api/collections/${PC_TAGS_COLL}/records?page=${page}&perPage=200&filter=${filter}`,
+            headers: { Authorization: token },
+            timeout: 20000,
+        });
+        const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
+        if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
+            pcServerUnsupported = true;
+            pcHint('Phone catalog: δημιούργησε collection phone_tags στο PocketBase');
+            return { ok: false, unsupported: true };
+        }
+        if (listed.status < 200 || listed.status >= 300) {
+            return { ok: false, status: listed.status };
+        }
+        const items = Array.isArray(listed.body?.items) ? listed.body.items : [];
+        items.forEach((rec) => {
+            const code = String(rec.barcode || '').trim();
+            if (!code) return;
+            let tags = pcParsePayload(rec.tags);
+            if (!Array.isArray(tags)) {
+                try { tags = JSON.parse(String(rec.tags || '[]')); } catch (_) { tags = []; }
+            }
+            merged[code] = (Array.isArray(tags) ? tags : []).map(normalizeTagKey).filter(Boolean);
+        });
+        const totalPages = Number(listed.body?.totalPages || 1);
+        if (page >= totalPages || !items.length) break;
+        page += 1;
+        if (page > 50) break;
+    }
+    pcApplyingServer = true;
+    try {
+        GM_setValue(PHONE_TAGS_STORAGE_KEY, JSON.stringify(merged));
+    } finally {
+        pcApplyingServer = false;
+    }
+    return { ok: true, count: Object.keys(merged).length };
+}
+
+async function migratePhoneCatalogToServerOnce({ force = false } = {}) {
+    if (!pcUseDatabase()) return { ok: true, skipped: true, reason: 'local-mode' };
+    if (pcServerUnsupported) return { ok: false, reason: 'unsupported' };
+    let migrated = false;
+    try {
+        migrated = !!GM_getValue(PC_MIGRATED_KEY, false);
+    } catch (_) { migrated = false; }
+    if (migrated && !force) return { ok: true, skipped: true };
+
+    try {
+        const token = await pcEnsureAuthToken();
+        // If server already has shared catalog config, adopt it — do not clobber with local defaults.
+        const pulled = await pcPullConfigs(token);
+        if (pulled.unsupported) return { ok: false, unsupported: true };
+        if (pulled.ok && Number(pulled.count || 0) > 0) {
+            await pcPullTags(token);
+            GM_setValue(PC_MIGRATED_KEY, Date.now());
+            console.log(`[MMS Phone Catalog] adopted server annotations (${pulled.count} configs)`);
+            return { ok: true, adopted: true, count: pulled.count };
+        }
+
+        const kinds = [
+            'colors', 'color_aliases', 'colors_removed',
+            'tag_definitions', 'store_rules', 'canonical_models', 'store_addresses',
+            'list_refresh',
+        ];
+        let uploaded = 0;
+        for (const kind of kinds) {
+            const payload = pcReadLocalConfigPayload(kind);
+            const res = await pcUpsertConfig(token, kind, payload);
+            if (res.unsupported) return { ok: false, unsupported: true };
+            if (res.ok) uploaded += 1;
+        }
+        const allTags = loadPhoneTags();
+        const barcodes = Object.keys(allTags);
+        for (const barcode of barcodes) {
+            const res = await pcUpsertTag(token, barcode, allTags[barcode]);
+            if (res.unsupported) return { ok: false, unsupported: true };
+            if (res.ok) uploaded += 1;
+        }
+        GM_setValue(PC_MIGRATED_KEY, Date.now());
+        console.log(`[MMS Phone Catalog] migrated local annotations → server (${uploaded} upserts)`);
+        return { ok: true, uploaded };
+    } catch (err) {
+        console.warn('[MMS Phone Catalog] migration failed', err);
+        return { ok: false, error: err };
+    }
+}
+
+async function initPhoneCatalogServerSync() {
+    if (pcInitStarted) return;
+    pcInitStarted = true;
+    if (!pcUseDatabase()) {
+        console.log('[MMS Phone Catalog] server sync off (local mode)');
+        return;
+    }
+    pcRestorePendingQueues();
+    try {
+        await migratePhoneCatalogToServerOnce();
+        if (pcServerUnsupported) return;
+        const token = await pcEnsureAuthToken();
+        await pcPullConfigs(token);
+        await pcPullTags(token);
+        if (pcPendingKinds.size || pcPendingBarcodes.size) {
+            pcScheduleFlush(600);
+        }
+        console.log('[MMS Phone Catalog] server sync ready');
+    } catch (err) {
+        console.warn('[MMS Phone Catalog] init sync failed — staying local cache', err);
+    }
+}
+
+window.initPhoneCatalogServerSync = initPhoneCatalogServerSync;
+window.migratePhoneCatalogToServer = (opts) => migratePhoneCatalogToServerOnce({ force: true, ...(opts || {}) });
+window.pcNotifyConfigChanged = pcNotifyConfigChanged;
+window.pcNotifyTagsChanged = pcNotifyTagsChanged;
+
 window.showPhoneListModal = showPhoneListModal;
+window.showLaptopCatalogModal = showLaptopCatalogModal;
 window.showPhoneListModalLegacy = null;
 window.fetchPhoneList = fetchPhoneList;
+window.fetchLaptopList = fetchLaptopList;
+window.fetchOtherStoreLaptops = fetchOtherStoreLaptops;
+window.loadLaptopListCache = loadLaptopListCache;
+window.getOtherStoreLaptopCache = getOtherStoreLaptopCache;
+window.parseLaptopName = parseLaptopName;
+window.parseLaptopSpecs = parseLaptopSpecs;
+window.hydrateLaptopItem = hydrateLaptopItem;
+window.isUsedLaptopTitle = isUsedLaptopTitle;
+window.isLaptopBarcode = isLaptopBarcode;
 window.fetchOtherStorePhones = fetchOtherStorePhones;
 window.loadPhoneListCache = loadPhoneListCache;
+window.loadPhoneListRefreshMeta = loadPhoneListRefreshMeta;
+window.getPhoneCatalogActorName = getPhoneCatalogActorName;
 window.isPhoneListCacheStale = isPhoneListCacheStale;
 window.getPhoneListCacheAgeMs = getPhoneListCacheAgeMs;
 window.getOtherStoreCache = getOtherStoreCache;
@@ -3543,6 +4877,8 @@ window.loadStoreAddresses = loadStoreAddresses;
 window.saveStoreAddresses = saveStoreAddresses;
 window.getStoreAddressEntry = getStoreAddressEntry;
 window.setStoreAddressEntry = setStoreAddressEntry;
+window.getStorePhone = getStorePhone;
+window.normalizeStorePhoneForTel = normalizeStorePhoneForTel;
 window.getStoreCoordinates = getStoreCoordinates;
 window.getStoreDistanceKm = getStoreDistanceKm;
 window.getStoreDistanceLabel = getStoreDistanceLabel;
@@ -3585,4 +4921,12 @@ if (document.body) {
         detectAndCacheCurrentStoreName(document);
     }, { once: true });
 }
+
+try {
+    if (typeof window.initPhoneCatalogServerSync === 'function') {
+        setTimeout(() => {
+            window.initPhoneCatalogServerSync().catch(() => {});
+        }, 1200);
+    }
+} catch (_) { /* ignore */ }
 

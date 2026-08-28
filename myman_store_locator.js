@@ -20,6 +20,7 @@
     const UI_SCALE_KEY = 'tm_sl_ui_scale_v1';
     const SORT_KEY = 'tm_sl_model_sort';
     const CATALOG_VIEW_KEY = 'tm_sl_catalog_view';
+    const CATALOG_CATEGORY_KEY = 'tm_sl_catalog_category_v1';
     const RECENT_MODELS_KEY = 'tm_sl_recent_models_v1';
     const LOAD_STATS_KEY = 'tm_sl_load_stats_v1';
     const DEFAULT_LOAD_STATS = {
@@ -239,7 +240,10 @@
     }
 
     function emptyActiveFilters() {
-        return { grade: '', gb: '', color: '', tag: '' };
+        return {
+            grade: '', gb: '', color: '', tag: '',
+            brand: '', cpu: '', ram: '', storage: '',
+        };
     }
 
     function phoneTagKeys(phone) {
@@ -247,7 +251,136 @@
         return window.getPhoneTags(phone?.barcode) || [];
     }
 
-    function collectFiltersForModel(allPhones, otherStorePhones, model, helpers, catalogView = 'mine') {
+    function getLaptopSpecs(phone) {
+        if (!phone) return { brand: '', cpu: '', ram: '', storage: '' };
+        if (phone.brand || phone.cpu || phone.ram || phone.storage) {
+            return {
+                brand: phone.brand || '',
+                cpu: phone.cpu || '',
+                ram: phone.ram || '',
+                storage: phone.storage || '',
+            };
+        }
+        if (typeof window.parseLaptopSpecs === 'function') {
+            return window.parseLaptopSpecs(phone.name || phone.model || '');
+        }
+        return { brand: '', cpu: '', ram: '', storage: '' };
+    }
+
+    function sortLaptopRamStorage(a, b) {
+        const num = (s) => {
+            const raw = String(s || '');
+            const n = parseInt(raw, 10) || 0;
+            return /TB/i.test(raw) ? n * 1024 : n;
+        };
+        return num(a) - num(b);
+    }
+
+    function collectLaptopFilterOptions(allPhones, otherStorePhones, helpers, catalogView = 'mine', model = null) {
+        const { extractBaseModel, filterIphoneTitlePhones } = helpers;
+        const brands = new Set();
+        const cpus = new Set();
+        const rams = new Set();
+        const storages = new Set();
+        const grades = new Set();
+
+        const addPhone = (phone) => {
+            if (model && extractBaseModel(phone.model) !== model) return;
+            const specs = getLaptopSpecs(phone);
+            if (specs.brand) brands.add(specs.brand);
+            if (specs.cpu) cpus.add(specs.cpu);
+            if (specs.ram) rams.add(specs.ram);
+            if (specs.storage) storages.add(specs.storage);
+            if (phone.grade) grades.add(phone.grade);
+        };
+
+        if (catalogView !== 'network') {
+            filterIphoneTitlePhones(allPhones).forEach((p) => {
+                if ((p.unitsRemaining || 0) > 0) addPhone(p);
+            });
+        }
+        if (catalogView !== 'mine') {
+            filterIphoneTitlePhones(otherStorePhones).forEach(addPhone);
+        }
+
+        return {
+            brands: [...brands].sort((a, b) => a.localeCompare(b, 'el')),
+            cpus: [...cpus].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })),
+            rams: [...rams].sort(sortLaptopRamStorage),
+            storages: [...storages].sort(sortLaptopRamStorage),
+            grades: [...grades].sort((a, b) => helpers.comparePhoneGrades(a, b)),
+            gbs: [],
+            colors: [],
+            tags: [],
+        };
+    }
+
+    function collectLaptopFilterCounts(allPhones, otherStorePhones, activeFilters, helpers, catalogView = 'mine', model = null) {
+        const { extractBaseModel, filterIphoneTitlePhones } = helpers;
+        const counts = { brand: {}, cpu: {}, ram: {}, storage: {}, grade: {} };
+        const phones = [];
+
+        if (catalogView !== 'network') {
+            filterIphoneTitlePhones(allPhones).forEach((p) => {
+                if ((p.unitsRemaining || 0) > 0 && (!model || extractBaseModel(p.model) === model)) phones.push(p);
+            });
+        }
+        if (catalogView !== 'mine') {
+            filterIphoneTitlePhones(otherStorePhones).forEach((p) => {
+                if (!model || extractBaseModel(p.model) === model) phones.push(p);
+            });
+        }
+
+        function matchesExcept(phone, exceptKey) {
+            const filters = { ...activeFilters, [exceptKey]: '' };
+            if (model) return phoneMatchesFilters(phone, model, filters, helpers);
+            return laptopMatchesFilters(phone, filters, helpers);
+        }
+
+        phones.forEach((phone) => {
+            const specs = getLaptopSpecs(phone);
+            if (matchesExcept(phone, 'brand') && specs.brand) {
+                counts.brand[specs.brand] = (counts.brand[specs.brand] || 0) + 1;
+            }
+            if (matchesExcept(phone, 'cpu') && specs.cpu) {
+                counts.cpu[specs.cpu] = (counts.cpu[specs.cpu] || 0) + 1;
+            }
+            if (matchesExcept(phone, 'ram') && specs.ram) {
+                counts.ram[specs.ram] = (counts.ram[specs.ram] || 0) + 1;
+            }
+            if (matchesExcept(phone, 'storage') && specs.storage) {
+                counts.storage[specs.storage] = (counts.storage[specs.storage] || 0) + 1;
+            }
+            if (matchesExcept(phone, 'grade') && phone.grade) {
+                counts.grade[phone.grade] = (counts.grade[phone.grade] || 0) + 1;
+            }
+        });
+
+        return counts;
+    }
+
+    function laptopMatchesFilters(phone, filters, helpers) {
+        if (!filters) return true;
+        const specs = getLaptopSpecs(phone);
+        if (filters.brand && specs.brand !== filters.brand) return false;
+        if (filters.cpu && specs.cpu !== filters.cpu) return false;
+        if (filters.ram && specs.ram !== filters.ram) return false;
+        if (filters.storage && specs.storage !== filters.storage) return false;
+        if (filters.grade && phone.grade !== filters.grade) return false;
+        if (filters.tag) {
+            const tagKey = typeof window.normalizeTagKey === 'function'
+                ? window.normalizeTagKey(filters.tag)
+                : String(filters.tag || '').trim().toLowerCase();
+            if (!phoneTagKeys(phone).includes(tagKey)) return false;
+        }
+        void helpers;
+        return true;
+    }
+
+    function collectFiltersForModel(allPhones, otherStorePhones, model, helpers, catalogView = 'mine', category = 'phones') {
+        if (category === 'laptops') {
+            return collectLaptopFilterOptions(allPhones, otherStorePhones, helpers, catalogView, model);
+        }
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const grades = new Set();
         const gbs = new Set();
@@ -290,10 +423,17 @@
             gbs: [...gbs].sort(sortGb),
             colors: [...colors].sort((a, b) => a.localeCompare(b, 'el')),
             tags: [...tags].sort(sortTag),
+            brands: [],
+            cpus: [],
+            rams: [],
+            storages: [],
         };
     }
 
-    function collectFilterCounts(allPhones, otherStorePhones, model, activeFilters, helpers, catalogView = 'mine') {
+    function collectFilterCounts(allPhones, otherStorePhones, model, activeFilters, helpers, catalogView = 'mine', category = 'phones') {
+        if (category === 'laptops') {
+            return collectLaptopFilterCounts(allPhones, otherStorePhones, activeFilters, helpers, catalogView, model);
+        }
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const counts = { grade: {}, gb: {}, color: {}, tag: {} };
 
@@ -342,6 +482,9 @@
     function phoneMatchesFilters(phone, model, filters, helpers) {
         const { extractBaseModel, extractGB, extractColor } = helpers;
         if (extractBaseModel(phone.model) !== model) return false;
+        if (phone.productKind === 'laptop' || filters.brand || filters.cpu || filters.ram || filters.storage) {
+            if (!laptopMatchesFilters(phone, filters, helpers)) return false;
+        }
         if (filters.grade && phone.grade !== filters.grade) return false;
         const gb = extractGB(phone.name || phone.model);
         if (filters.gb && gb !== filters.gb) return false;
@@ -537,7 +680,7 @@
         });
     }
 
-    async function showStoreLocatorModal() {
+    async function showStoreLocatorModal(options = {}) {
         if (document.querySelector('.tm-sl-overlay')) return;
 
         // Inject CSS before building DOM so the first paint is already styled.
@@ -553,14 +696,31 @@
             window.detectAndCacheCurrentStoreName(document);
         }
 
+        const requestedCategory = options?.category === 'laptops' ? 'laptops' : 'phones';
+
         const UI = window.PhoneCatalogUI;
         const helpers = {
-            extractBaseModel: window.extractBaseModel || ((m) => m),
+            extractBaseModel: (m) => {
+                if (requestedCategory === 'laptops') {
+                    if (typeof window.parseLaptopSpecs === 'function') {
+                        const specs = window.parseLaptopSpecs(m);
+                        if (specs?.modelLine) return specs.modelLine;
+                    }
+                    if (typeof window.parseLaptopName === 'function') {
+                        const parsed = window.parseLaptopName(m);
+                        if (parsed?.model) return parsed.model;
+                    }
+                }
+                return (window.extractBaseModel || ((x) => x))(m);
+            },
             extractGB: window.extractGB || (() => ''),
             extractColor: window.extractColor || (() => ''),
             normalizePhoneGrade: window.normalizePhoneGrade || ((g) => g),
             comparePhoneGrades: window.comparePhoneGrades || ((a, b) => a.localeCompare(b)),
-            filterIphoneTitlePhones: window.filterIphoneTitlePhones || ((p) => p),
+            filterIphoneTitlePhones: (list) => {
+                if (requestedCategory === 'laptops') return Array.isArray(list) ? list : [];
+                return (window.filterIphoneTitlePhones || ((p) => p))(list);
+            },
             filterOneUnitStores: window.filterOneUnitStores || ((s) => s),
             getPhoneGradeCircleStyle: window.getPhoneGradeCircleStyle || (() => ''),
             getEffectivePhoneStores: window.getEffectivePhoneStores || ((p) => (window.filterOneUnitStores || ((s) => s))(p.stores || p.otherStores || [])),
@@ -583,6 +743,8 @@
         let modelQuery = '';
         let modelSort = GM_getValue(SORT_KEY, 'name');
         let catalogView = GM_getValue(CATALOG_VIEW_KEY, 'mine');
+        let catalogCategory = requestedCategory;
+        GM_setValue(CATALOG_CATEGORY_KEY, catalogCategory);
         let densityCompact = GM_getValue(DENSITY_KEY, false);
         const defaultScale = UI.UI_SCALE_DEFAULT || 1.15;
         let uiScale = typeof UI.normalizeUiScale === 'function'
@@ -592,6 +754,9 @@
         let allPhones = [];
         let otherStorePhones = [];
         let otherStoreLoaded = false;
+        let allLaptops = [];
+        let otherStoreLaptops = [];
+        let otherStoreLaptopsLoaded = false;
         let storesResolving = false;
         let lastUpdated = null;
         let keyboardBound = false;
@@ -603,14 +768,35 @@
             uiScale = UI.setUiScale(overlay, uiScale);
         }
         UI.updateViewTabs(overlay, catalogView);
+        UI.updateCategoryTabs?.(overlay, catalogCategory);
 
         let recentModels = loadRecentModels();
         let pendingFlashBarcode = null;
+
+        function getLocalPool() {
+            return catalogCategory === 'laptops' ? allLaptops : allPhones;
+        }
+        function getNetworkPool() {
+            return catalogCategory === 'laptops' ? otherStoreLaptops : otherStorePhones;
+        }
+        function isNetworkPoolLoaded() {
+            return catalogCategory === 'laptops' ? otherStoreLaptopsLoaded : otherStoreLoaded;
+        }
 
         function syncCatalogHeaders() {
             if (step === 'stores' && selectedModel) return;
             UI.clearStoresModelHeader(overlay);
             UI.updateMyStoreLabels(overlay);
+            if (catalogCategory === 'laptops') {
+                if (catalogView === 'mine') {
+                    titleEl.textContent = 'Φορητοί · ' + UI.getMyStoreLabel();
+                    subtitleEl.textContent = 'Μεταχειρισμένοι φορητοί υπολογιστές σε stock';
+                } else {
+                    titleEl.textContent = 'Φορητοί · Άλλα καταστήματα';
+                    subtitleEl.textContent = 'Πού υπάρχουν φορητοί στο δίκτυο';
+                }
+                return;
+            }
             if (catalogView === 'mine') {
                 titleEl.textContent = UI.getMyStoreLabel();
                 subtitleEl.textContent = 'Τι έχετε σε stock τώρα';
@@ -622,11 +808,11 @@
 
         function getSettingsCtx() {
             return {
-                allPhones,
-                otherStorePhones,
+                allPhones: getLocalPool(),
+                otherStorePhones: getNetworkPool(),
                 onChange: () => {
                     if (typeof window.syncPhoneColorCatalog === 'function') {
-                        window.syncPhoneColorCatalog(allPhones);
+                        window.syncPhoneColorCatalog(getLocalPool());
                     }
                     if (typeof window.clearPhoneCatalogParseCaches === 'function') {
                         window.clearPhoneCatalogParseCaches();
@@ -642,9 +828,9 @@
                 },
                 getExportPhones: () => {
                     if (catalogView === 'mine') {
-                        return allPhones.filter((p) => (p.unitsRemaining || 0) > 0);
+                        return getLocalPool().filter((p) => (p.unitsRemaining || 0) > 0);
                     }
-                    return otherStorePhones;
+                    return getNetworkPool();
                 },
             };
         }
@@ -681,7 +867,19 @@
         }
 
         function syncFreshness() {
-            if (lastUpdated) UI.updateFreshness(overlay, lastUpdated);
+            if (!lastUpdated) return;
+            let by = '';
+            try {
+                const meta = typeof window.loadPhoneListRefreshMeta === 'function'
+                    ? window.loadPhoneListRefreshMeta()
+                    : null;
+                if (meta?.by) by = String(meta.by).trim();
+                if (meta?.at) {
+                    const metaDate = new Date(meta.at);
+                    if (!Number.isNaN(metaDate.getTime())) lastUpdated = metaDate;
+                }
+            } catch (_) { /* ignore */ }
+            UI.updateFreshness(overlay, lastUpdated, by);
         }
 
         function wireModelCards() {
@@ -907,7 +1105,8 @@
                         const val = chip.getAttribute('data-tm-sl-value') || '';
                         activeFilters[key] = activeFilters[key] === val ? '' : val;
                     }
-                    renderStoresStep();
+                    if (step === 'stores' && selectedModel) renderStoresStep();
+                    else renderModelsStep();
                 });
             });
         }
@@ -922,9 +1121,13 @@
                     row.classList.toggle('is-open');
                     head.setAttribute('aria-expanded', row.classList.contains('is-open') ? 'true' : 'false');
                 };
-                head.addEventListener('click', toggle);
+                head.addEventListener('click', (e) => {
+                    if (e.target.closest('[data-tm-sl-call-store], .tm-sl-store-call')) return;
+                    toggle();
+                });
                 head.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
+                        if (e.target.closest('[data-tm-sl-call-store], .tm-sl-store-call')) return;
                         e.preventDefault();
                         toggle();
                     }
@@ -947,15 +1150,13 @@
                 selectedModel = null;
                 // Keep activeFilters across mine ↔ network so a GB/grade filter survives the switch.
                 syncCatalogHeaders();
-                toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, { recentModels });
-                wireModelSearchToolbar();
 
-                const needsFetch = catalogView === 'network' && !otherStoreLoaded;
+                const needsFetch = catalogView === 'network' && !isNetworkPoolLoaded();
                 let skeletonTimer = null;
                 if (needsFetch) {
                     skeletonTimer = setTimeout(() => {
                         bodyEl.innerHTML = UI.buildSkeletonGrid(8);
-                        setStatus('Φόρτωση δικτύου…');
+                        setStatus(catalogCategory === 'laptops' ? 'Φόρτωση φορητών δικτύου…' : 'Φόρτωση δικτύου…');
                     }, 80);
                     await ensureOtherStores();
                     clearTimeout(skeletonTimer);
@@ -991,8 +1192,8 @@
 
         function findPhoneByUnitCode(code) {
             const pools = catalogView === 'mine'
-                ? [allPhones]
-                : [otherStorePhones, allPhones];
+                ? [getLocalPool()]
+                : [getNetworkPool(), getLocalPool()];
             for (const pool of pools) {
                 const hit = (pool || []).find((p) => phoneMatchesUnitCode(p, code));
                 if (hit) return hit;
@@ -1004,15 +1205,15 @@
             const code = normalizeUnitCode(rawQuery);
             if (!looksLikeUnitCode(code)) return false;
 
-            if (catalogView === 'network' && !otherStoreLoaded) {
+            if (catalogView === 'network' && !isNetworkPoolLoaded()) {
                 await ensureOtherStores();
             }
 
             let phone = findPhoneByUnitCode(code);
             if (!phone && catalogView === 'mine') {
                 // Fallback: check network if not in mine stock.
-                if (!otherStoreLoaded) await ensureOtherStores();
-                phone = (otherStorePhones || []).find((p) => phoneMatchesUnitCode(p, code));
+                if (!isNetworkPoolLoaded()) await ensureOtherStores();
+                phone = (getNetworkPool() || []).find((p) => phoneMatchesUnitCode(p, code));
                 if (phone) {
                     catalogView = 'network';
                     GM_setValue(CATALOG_VIEW_KEY, catalogView);
@@ -1041,7 +1242,13 @@
         }
 
         function getFilteredModels() {
-            let models = buildModelIndex(allPhones, otherStorePhones, helpers, catalogView);
+            const localPool = catalogCategory === 'laptops'
+                ? applyLaptopFiltersToPool(getLocalPool())
+                : getLocalPool();
+            const networkPool = catalogCategory === 'laptops'
+                ? applyLaptopFiltersToPool(getNetworkPool())
+                : getNetworkPool();
+            let models = buildModelIndex(localPool, networkPool, helpers, catalogView);
             models = sortModels(models, modelSort);
             if (modelQuery) {
                 const q = modelQuery;
@@ -1064,10 +1271,10 @@
                 getNearestStoreHint,
             }));
             if (catalogView === 'mine') {
-                const mineCount = allPhones.filter((p) => (p.unitsRemaining || 0) > 0).length;
+                const mineCount = getLocalPool().filter((p) => (p.unitsRemaining || 0) > 0).length;
                 setStatus(`${models.length} μοντέλα · ${mineCount} συσκευές στο ${resolveMyStoreLabel()}`);
             } else {
-                setStatus(`${models.length} μοντέλα · ${otherStorePhones.length} συσκευές στο δίκτυο`);
+                setStatus(`${models.length} μοντέλα · ${getNetworkPool().length} συσκευές στο δίκτυο`);
             }
             wireModelCards();
             wireUnitActions();
@@ -1132,10 +1339,32 @@
         }
 
         function hasActiveFilters() {
-            return !!(activeFilters.grade || activeFilters.gb || activeFilters.color || activeFilters.tag);
+            return !!(
+                activeFilters.grade || activeFilters.gb || activeFilters.color || activeFilters.tag
+                || activeFilters.brand || activeFilters.cpu || activeFilters.ram || activeFilters.storage
+            );
+        }
+
+        function buildLaptopChipsHtml(model = null) {
+            const filterOptions = model
+                ? collectFiltersForModel(getLocalPool(), getNetworkPool(), model, helpers, catalogView, 'laptops')
+                : collectLaptopFilterOptions(getLocalPool(), getNetworkPool(), helpers, catalogView, null);
+            const filterCounts = model
+                ? collectFilterCounts(getLocalPool(), getNetworkPool(), model, activeFilters, helpers, catalogView, 'laptops')
+                : collectLaptopFilterCounts(getLocalPool(), getNetworkPool(), activeFilters, helpers, catalogView, null);
+            return UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({
+                counts: filterCounts,
+                laptopFilters: true,
+            }));
+        }
+
+        function applyLaptopFiltersToPool(pool) {
+            if (!hasActiveFilters()) return pool;
+            return (pool || []).filter((p) => laptopMatchesFilters(p, activeFilters, helpers));
         }
 
         function mergeNetworkStoreHints() {
+            if (catalogCategory === 'laptops') return;
             if (typeof window.mergeOtherStoresFromAllPhones === 'function') {
                 window.mergeOtherStoresFromAllPhones(allPhones, otherStorePhones);
             }
@@ -1144,9 +1373,10 @@
         async function resolveNetworkStoreDetails(modelFilter = null, onProgress = null) {
             if (storesResolving || typeof window.resolvePhonesStoreDetails !== 'function') return;
             mergeNetworkStoreHints();
+            const networkPool = getNetworkPool();
             const phones = modelFilter
-                ? otherStorePhones.filter(modelFilter)
-                : otherStorePhones;
+                ? networkPool.filter(modelFilter)
+                : networkPool;
             const needsResolve = phones.some((p) => {
                 const stores = helpers.getEffectivePhoneStores(p);
                 return !stores.length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
@@ -1158,10 +1388,10 @@
 
             storesResolving = true;
             try {
-                await window.resolvePhonesStoreDetails(otherStorePhones, {
+                await window.resolvePhonesStoreDetails(networkPool, {
                     concurrency: 8,
                     filter: modelFilter || undefined,
-                    persistOtherStoreCache: true,
+                    persistOtherStoreCache: catalogCategory !== 'laptops',
                     onProgress: (done, total) => {
                         setStatus(`Φόρτωση καταστημάτων ${done}/${total}…`);
                         onProgress?.(done, total);
@@ -1179,8 +1409,16 @@
             lastTrackedNetworkModel = null;
             UI.updateBreadcrumb(overlay, 'models');
             syncCatalogHeaders();
-            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, { recentModels });
+            const chipsHtml = catalogCategory === 'laptops' ? buildLaptopChipsHtml(null) : '';
+            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, {
+                recentModels,
+                chipsHtml,
+                placeholder: catalogCategory === 'laptops'
+                    ? 'Μάρκα, μοντέλο, CPU, barcode'
+                    : 'Μοντέλο, barcode ή IMEI',
+            });
             wireModelSearchToolbar();
+            if (catalogCategory === 'laptops') wireFilterChips(toolbarEl);
 
             const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
             if (searchInput) {
@@ -1200,9 +1438,16 @@
                 ? `${resolveMyStoreLabel()} · κλικ στο barcode για αντιγραφή`
                 : 'Διαθεσιμότητα σε άλλα καταστήματα');
 
-            const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers, catalogView);
-            const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers, catalogView);
-            const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({ counts: filterCounts }));
+            const filterOptions = collectFiltersForModel(
+                getLocalPool(), getNetworkPool(), selectedModel, helpers, catalogView, catalogCategory
+            );
+            const filterCounts = collectFilterCounts(
+                getLocalPool(), getNetworkPool(), selectedModel, activeFilters, helpers, catalogView, catalogCategory
+            );
+            const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({
+                counts: filterCounts,
+                laptopFilters: catalogCategory === 'laptops',
+            }));
             const isNetwork = catalogView === 'network';
             const filtersSummary = typeof UI.formatActiveFiltersSummary === 'function'
                 ? UI.formatActiveFiltersSummary(activeFilters)
@@ -1212,7 +1457,7 @@
             let qtyLabel = '';
             let mineVariants = null;
             if (!isNetwork) {
-                mineVariants = buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
+                mineVariants = buildMyStoreUnitsData(selectedModel, getLocalPool(), activeFilters, helpers);
                 qtyLabel = `${mineVariants.length} τεμ.`;
             }
 
@@ -1224,13 +1469,14 @@
             });
 
             toolbarEl.querySelector('#tm-sl-back')?.addEventListener('click', () => {
-                activeFilters = emptyActiveFilters();
+                // Keep laptop facet filters when returning to model list.
+                if (catalogCategory !== 'laptops') activeFilters = emptyActiveFilters();
                 renderModelsStep();
             });
             wireFilterChips(toolbarEl);
 
             if (catalogView === 'mine') {
-                const variants = mineVariants || buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
+                const variants = mineVariants || buildMyStoreUnitsData(selectedModel, getLocalPool(), activeFilters, helpers);
                 bodyEl.innerHTML = UI.buildMyStoreBoard(selectedModel, variants, buildUiCtx({
                     hideStoreInUnits: true,
                     hasActiveFilters: filtersActive,
@@ -1244,7 +1490,7 @@
                 return;
             }
 
-            const needsResolve = otherStorePhones.some((p) => {
+            const needsResolve = getNetworkPool().some((p) => {
                 if (helpers.extractBaseModel(p.model) !== selectedModel) return false;
                 const stores = helpers.getEffectivePhoneStores(p);
                 return !stores.length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
@@ -1267,7 +1513,7 @@
                 await resolveNetworkStoreDetails(modelFilter);
             }
 
-            const storeRows = buildNetworkStoreBoardData(selectedModel, otherStorePhones, activeFilters, helpers);
+            const storeRows = buildNetworkStoreBoardData(selectedModel, getNetworkPool(), activeFilters, helpers);
             bodyEl.innerHTML = UI.buildNetworkStoreBoard(selectedModel, storeRows, buildUiCtx({
                 showPurchaseStatus: true,
                 hideStoreInUnits: true,
@@ -1289,6 +1535,13 @@
         }
 
         async function ensureOtherStores(onProgress) {
+            if (catalogCategory === 'laptops') {
+                if (otherStoreLaptopsLoaded) return;
+                if (typeof window.fetchOtherStoreLaptops !== 'function') return;
+                otherStoreLaptops = await window.fetchOtherStoreLaptops({ onProgress });
+                otherStoreLaptopsLoaded = true;
+                return;
+            }
             if (otherStoreLoaded) return;
             if (typeof window.fetchOtherStorePhones !== 'function') return;
             otherStorePhones = helpers.filterIphoneTitlePhones(
@@ -1402,59 +1655,93 @@
 
             try {
                 if (!quiet) {
-                    progress.startIndeterminate('Φόρτωση καταλόγου συσκευών…', progress.stats.phoneListMs);
+                    progress.startIndeterminate(
+                        catalogCategory === 'laptops'
+                            ? 'Φόρτωση μεταχειρισμένων φορητών…'
+                            : 'Φόρτωση καταλόγου συσκευών…',
+                        progress.stats.phoneListMs
+                    );
                 } else {
                     setStatus('Ενημέρωση στο παρασκήνιο…');
                 }
                 progress.beginPhaseClock();
-                if (typeof window.fetchPhoneList === 'function') {
+                const onListProgress = quiet
+                    ? () => {}
+                    : (info) => {
+                        if (!info) return;
+                        if (info.phase === 'expand') {
+                            UI.updateLoadProgress(overlay, {
+                                label: 'Ανάκτηση πλήρων ονομάτων…',
+                                ratio: Math.min(0.98, 0.7 + (info.ratio || 0) * 0.25),
+                                indeterminate: false,
+                                etaMs: 1200,
+                                meta: info.total ? `${info.done || 0}/${info.total}` : 'Περισσότερα…',
+                            });
+                            setStatus('Ανάκτηση πλήρων ονομάτων…');
+                            return;
+                        }
+                        if (info.phase === 'download' && info.ratio != null) {
+                            const remain = Math.max(
+                                600,
+                                (progress.stats.phoneListMs || 9000) * (1 - info.ratio)
+                            );
+                            UI.updateLoadProgress(overlay, {
+                                label: catalogCategory === 'laptops' ? 'Λήψη φορητών…' : 'Λήψη καταλόγου…',
+                                ratio: Math.min(0.9, 0.08 + info.ratio * 0.75),
+                                indeterminate: false,
+                                etaMs: remain,
+                                meta: info.total
+                                    ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
+                                    : 'Λήψη δεδομένων…',
+                            });
+                            setStatus(catalogCategory === 'laptops' ? 'Λήψη φορητών…' : 'Λήψη καταλόγου…');
+                        } else if (info.phase === 'parse') {
+                            UI.updateLoadProgress(overlay, {
+                                label: 'Επεξεργασία καταλόγου…',
+                                ratio: 0.92,
+                                indeterminate: false,
+                                etaMs: 900,
+                                meta: 'Ανάλυση συσκευών…',
+                            });
+                        } else if (info.phase === 'init') {
+                            UI.updateLoadProgress(overlay, {
+                                label: 'Σύνδεση με τον κατάλογο…',
+                                indeterminate: true,
+                                etaMs: progress.stats.phoneListMs,
+                                meta: 'Προετοιμασία…',
+                            });
+                        }
+                    };
+
+                if (catalogCategory === 'laptops') {
+                    if (typeof window.fetchLaptopList === 'function') {
+                        allLaptops = await window.fetchLaptopList({
+                            force: !quiet,
+                            onProgress: onListProgress,
+                        });
+                    }
+                } else if (typeof window.fetchPhoneList === 'function') {
                     allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList({
-                        onProgress: quiet
-                            ? () => {}
-                            : (info) => {
-                                if (!info) return;
-                                if (info.phase === 'download' && info.ratio != null) {
-                                    const remain = Math.max(
-                                        600,
-                                        (progress.stats.phoneListMs || 9000) * (1 - info.ratio)
-                                    );
-                                    UI.updateLoadProgress(overlay, {
-                                        label: 'Λήψη καταλόγου…',
-                                        ratio: Math.min(0.9, 0.08 + info.ratio * 0.75),
-                                        indeterminate: false,
-                                        etaMs: remain,
-                                        meta: info.total
-                                            ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
-                                            : 'Λήψη δεδομένων…',
-                                    });
-                                    setStatus('Λήψη καταλόγου…');
-                                } else if (info.phase === 'parse') {
-                                    UI.updateLoadProgress(overlay, {
-                                        label: 'Επεξεργασία καταλόγου…',
-                                        ratio: 0.92,
-                                        indeterminate: false,
-                                        etaMs: 900,
-                                        meta: 'Ανάλυση συσκευών…',
-                                    });
-                                } else if (info.phase === 'init') {
-                                    UI.updateLoadProgress(overlay, {
-                                        label: 'Σύνδεση με τον κατάλογο…',
-                                        indeterminate: true,
-                                        etaMs: progress.stats.phoneListMs,
-                                        meta: 'Προετοιμασία…',
-                                    });
-                                }
-                            },
+                        onProgress: onListProgress,
                     }));
                 }
                 progress.finishPhase('phoneListMs', progress.getPhaseElapsed());
 
                 if (!quiet) {
-                    otherStoreLoaded = false;
-                    GM_setValue('tm_phone_other_store_cache_v3', null);
-                    GM_setValue('tm_phone_other_store_cache_timestamp', 0);
+                    if (catalogCategory === 'laptops') {
+                        otherStoreLaptopsLoaded = false;
+                        GM_setValue('tm_laptop_other_store_cache_v1', null);
+                        GM_setValue('tm_laptop_other_store_cache_timestamp_v1', 0);
+                    } else {
+                        otherStoreLoaded = false;
+                        GM_setValue('tm_phone_other_store_cache_v3', null);
+                        GM_setValue('tm_phone_other_store_cache_timestamp', 0);
+                    }
 
-                    progress.startIndeterminate('Φόρτωση δικτύου καταστημάτων…', progress.stats.otherStoresMs);
+                    progress.startIndeterminate(
+                        catalogCategory === 'laptops' ? 'Φόρτωση φορητών δικτύου…' : 'Φόρτωση δικτύου καταστημάτων…',
+                        progress.stats.otherStoresMs
+                    );
                     progress.beginPhaseClock();
                     await ensureOtherStores((info) => {
                         if (info?.phase === 'download' && info.ratio != null) {
@@ -1467,13 +1754,15 @@
                                     ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
                                     : 'Λήψη δεδομένων…',
                             });
-                        } else if (info?.phase === 'parse') {
+                        } else if (info?.phase === 'parse' || info?.phase === 'expand') {
                             UI.updateLoadProgress(overlay, {
-                                label: 'Επεξεργασία δικτύου…',
+                                label: info.phase === 'expand' ? 'Ανάκτηση πλήρων ονομάτων…' : 'Επεξεργασία δικτύου…',
                                 ratio: 0.93,
                                 indeterminate: false,
                                 etaMs: 800,
-                                meta: 'Ανάλυση αποθεμάτων…',
+                                meta: info.phase === 'expand' && info.total
+                                    ? `${info.done || 0}/${info.total}`
+                                    : 'Ανάλυση αποθεμάτων…',
                             });
                         }
                     });
@@ -1487,11 +1776,11 @@
                         });
                         progress.finishPhase('storeResolve', progress.getPhaseElapsed());
                     }
-                } else if (!otherStoreLoaded) {
+                } else if (!isNetworkPoolLoaded()) {
                     await ensureOtherStores();
                 }
 
-                if (typeof window.syncPhoneColorCatalog === 'function') {
+                if (catalogCategory !== 'laptops' && typeof window.syncPhoneColorCatalog === 'function') {
                     window.syncPhoneColorCatalog(allPhones);
                 }
                 lastUpdated = new Date();
@@ -1579,6 +1868,35 @@
         });
 
         bodyEl.innerHTML = UI.buildSkeletonGrid(8);
+        syncCatalogHeaders();
+
+        if (catalogCategory === 'laptops') {
+            const laptopCached = typeof window.loadLaptopListCache === 'function'
+                ? window.loadLaptopListCache()
+                : null;
+            const laptopOtherCached = typeof window.getOtherStoreLaptopCache === 'function'
+                ? window.getOtherStoreLaptopCache()
+                : null;
+            if (laptopOtherCached?.length) {
+                otherStoreLaptops = laptopOtherCached;
+                otherStoreLaptopsLoaded = true;
+            }
+            if (laptopCached?.length) {
+                allLaptops = laptopCached;
+                const ts = Number(GM_getValue('tm_laptop_list_cache_timestamp_v1', Date.now())) || Date.now();
+                lastUpdated = new Date(ts);
+                syncFreshness();
+                renderModelsStep();
+                requestAnimationFrame(() => {
+                    setTimeout(() => refreshData({ quiet: true }), 0);
+                });
+            } else {
+                setStatus('Φόρτωση φορητών…');
+                refreshData();
+            }
+            return;
+        }
+
         const cached = typeof window.loadPhoneListCache === 'function' ? window.loadPhoneListCache() : null;
         const cacheStale = typeof window.isPhoneListCacheStale === 'function'
             ? window.isPhoneListCacheStale()
@@ -1640,6 +1958,7 @@
     window.showStoreLocatorModal = showStoreLocatorModal;
 
     const PHONE_CATALOG_MENU_ID = 'tm-phone-catalog-menu-item';
+    const LAPTOP_CATALOG_MENU_ID = 'tm-laptop-catalog-menu-item';
 
     function removeLegacyPhoneCatalogButton() {
         document.getElementById('tm-phone-catalog-btn')?.remove();
@@ -1653,9 +1972,13 @@
         return 'Κατάλογος Συσκευών';
     }
 
-    function cloneNativeMenuItem(templateLi, label) {
+    function getLaptopCatalogMenuLabel() {
+        return 'Κατάλογος Laptop';
+    }
+
+    function cloneNativeMenuItem(templateLi, label, iconKind) {
         if (typeof window.createSuiteMenuItem === 'function') {
-            return window.createSuiteMenuItem(templateLi, label, 'phone-catalog');
+            return window.createSuiteMenuItem(templateLi, label, iconKind);
         }
         const li = templateLi.cloneNode(true);
         li.classList.remove('current', 'expanded');
@@ -1669,9 +1992,9 @@
         return li;
     }
 
-    function createFallbackMenuItem(label) {
+    function createFallbackMenuItem(label, iconKind) {
         if (typeof window.createSuiteMenuItem === 'function') {
-            return window.createSuiteMenuItem(null, label, 'phone-catalog');
+            return window.createSuiteMenuItem(null, label, iconKind);
         }
         const li = document.createElement('li');
         li.innerHTML = `<div><div><a href="#">${label}</a></div></div>`;
@@ -1688,55 +2011,68 @@
         return null;
     }
 
+    function findLaptopMenuInsertPoint(menu) {
+        const phoneItem = document.getElementById(PHONE_CATALOG_MENU_ID);
+        if (phoneItem?.parentElement === menu) {
+            return phoneItem.nextElementSibling;
+        }
+        return findMenuInsertPoint(menu);
+    }
+
     function openPhoneCatalogFromMenu() {
         if (typeof window.showPhoneListModal === 'function') {
-            window.showPhoneListModal();
+            window.showPhoneListModal({ category: 'phones' });
         }
     }
 
-    function ensurePhoneCatalogMenuItem(config) {
-        removeLegacyPhoneCatalogButton();
+    function openLaptopCatalogFromMenu() {
+        if (typeof window.showLaptopCatalogModal === 'function') {
+            window.showLaptopCatalogModal();
+        } else if (typeof window.showPhoneListModal === 'function') {
+            window.showPhoneListModal({ category: 'laptops' });
+        } else if (typeof window.showStoreLocatorModal === 'function') {
+            window.showStoreLocatorModal({ category: 'laptops' });
+        }
+    }
 
+    function ensureSuiteCatalogMenuItem({
+        menuId,
+        suiteKey,
+        menuDataId,
+        label,
+        iconKind,
+        onOpen,
+        insertBefore,
+    }) {
         const menu = document.querySelector('.rnr-b-vmenu.simple.main');
         if (!menu) return false;
 
-        const enabled = config?.phoneCatalogEnabled !== false;
-        let item = document.getElementById(PHONE_CATALOG_MENU_ID);
-
-        if (!enabled) {
-            if (item) item.style.display = 'none';
-            return true;
-        }
-
-        const label = getPhoneCatalogMenuLabel();
-
+        let item = document.getElementById(menuId);
         if (!item) {
             const template = menu.querySelector(':scope > li:not(.menuGroup):not([data-tm-special]):not([data-tm-suite-item])')
                 || menu.querySelector('li:not([data-tm-special]):not([data-tm-suite-item])');
             item = template
-                ? cloneNativeMenuItem(template, label)
-                : createFallbackMenuItem(label);
+                ? cloneNativeMenuItem(template, label, iconKind)
+                : createFallbackMenuItem(label, iconKind);
 
-            item.id = PHONE_CATALOG_MENU_ID;
-            item.setAttribute('data-tm-suite-item', 'phone-catalog');
-            item.setAttribute('data-menu-id', 'suite-phone-catalog');
+            item.id = menuId;
+            item.setAttribute('data-tm-suite-item', suiteKey);
+            item.setAttribute('data-menu-id', menuDataId);
             item.addEventListener('click', (e) => {
                 e.preventDefault();
-                openPhoneCatalogFromMenu();
+                onOpen();
             });
 
-            const insertBefore = findMenuInsertPoint(menu);
             if (insertBefore) menu.insertBefore(item, insertBefore);
             else menu.appendChild(item);
         } else {
             const link = item.querySelector('a[href]');
             if (link && typeof window.populateSuiteMenuLink === 'function') {
-                window.populateSuiteMenuLink(link, label, 'phone-catalog');
+                window.populateSuiteMenuLink(link, label, iconKind);
             } else if (link) {
                 link.textContent = label;
             }
             if (!item.parentElement) {
-                const insertBefore = findMenuInsertPoint(menu);
                 if (insertBefore) menu.insertBefore(item, insertBefore);
                 else menu.appendChild(item);
             }
@@ -1746,12 +2082,61 @@
         return true;
     }
 
+    function ensurePhoneCatalogMenuItem(config) {
+        removeLegacyPhoneCatalogButton();
+
+        const menu = document.querySelector('.rnr-b-vmenu.simple.main');
+        if (!menu) return false;
+
+        const phoneEnabled = config?.phoneCatalogEnabled !== false;
+        const laptopEnabled = config?.laptopCatalogEnabled !== false;
+        const phoneItem = document.getElementById(PHONE_CATALOG_MENU_ID);
+        const laptopItem = document.getElementById(LAPTOP_CATALOG_MENU_ID);
+
+        if (!phoneEnabled) {
+            if (phoneItem) phoneItem.style.display = 'none';
+            if (laptopItem) laptopItem.style.display = 'none';
+            return true;
+        }
+
+        const phoneOk = ensureSuiteCatalogMenuItem({
+            menuId: PHONE_CATALOG_MENU_ID,
+            suiteKey: 'phone-catalog',
+            menuDataId: 'suite-phone-catalog',
+            label: getPhoneCatalogMenuLabel(),
+            iconKind: 'phone-catalog',
+            onOpen: openPhoneCatalogFromMenu,
+            insertBefore: findMenuInsertPoint(menu),
+        });
+
+        if (!laptopEnabled) {
+            if (laptopItem) laptopItem.style.display = 'none';
+            return phoneOk;
+        }
+
+        const laptopOk = ensureSuiteCatalogMenuItem({
+            menuId: LAPTOP_CATALOG_MENU_ID,
+            suiteKey: 'laptop-catalog',
+            menuDataId: 'suite-laptop-catalog',
+            label: getLaptopCatalogMenuLabel(),
+            iconKind: 'laptop-catalog',
+            onOpen: openLaptopCatalogFromMenu,
+            insertBefore: findLaptopMenuInsertPoint(menu),
+        });
+
+        return phoneOk && laptopOk;
+    }
+
     function initPhoneCatalogMenuItem(config) {
         removeLegacyPhoneCatalogButton();
 
         if (config?.phoneCatalogEnabled === false) {
             document.getElementById(PHONE_CATALOG_MENU_ID)?.remove();
+            document.getElementById(LAPTOP_CATALOG_MENU_ID)?.remove();
             return;
+        }
+        if (config?.laptopCatalogEnabled === false) {
+            document.getElementById(LAPTOP_CATALOG_MENU_ID)?.remove();
         }
 
         let attempts = 0;
