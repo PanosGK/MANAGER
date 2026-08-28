@@ -1,11 +1,11 @@
 {
-  "version": "436",
+  "version": "437",
   "loaderVersion": "42",
-  "silentVersion": "20",
-  "displayVersion": "42.20",
+  "silentVersion": "21",
+  "displayVersion": "42.21",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Move laptop catalog toggle to debug Experimental section",
+  "releaseNotes": "Phone catalog opens from database/cache; scrape only on refresh",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

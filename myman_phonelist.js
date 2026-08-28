@@ -2254,6 +2254,7 @@ function savePhoneListCache(phones) {
     GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(phones));
     GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, at);
     savePhoneListRefreshMeta({ at, by: getPhoneCatalogActorName() });
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('phone_list');
     console.log('[MMS Phone List] Cache saved');
 }
 
@@ -2264,6 +2265,7 @@ function saveOtherStoreCache(phones) {
     }
     GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(phones));
     GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, Date.now());
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('other_store_phones');
     console.log('[MMS Phone List] Other-store cache saved');
 }
 
@@ -2744,6 +2746,13 @@ async function resolvePhonesStoreDetails(phones, options = {}) {
  */
 async function fetchPhoneList(options = {}) {
     const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
+    if (!options.force) {
+        const cached = loadPhoneListCache();
+        if (cached?.length) {
+            onProgress({ phase: 'done', ratio: 1, fromCache: true });
+            return cached;
+        }
+    }
     return new Promise((resolve, reject) => {
         onProgress({ phase: 'init', ratio: 0.04 });
         // Step 1: Load initial page with qs=55.&recordspp=-1
@@ -3683,10 +3692,12 @@ async function fetchOtherStoreLaptops(options = {}) {
  */
 async function fetchOtherStorePhones(options = {}) {
     const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
-    const cached = getOtherStoreCache();
-    if (cached) {
-        onProgress({ phase: 'done', ratio: 1, fromCache: true });
-        return cached;
+    if (!options.force) {
+        const cached = getOtherStoreCache();
+        if (cached?.length) {
+            onProgress({ phase: 'done', ratio: 1, fromCache: true });
+            return cached;
+        }
     }
     
     return new Promise((resolve, reject) => {
@@ -4417,6 +4428,14 @@ function pcReadLocalConfigPayload(kind) {
             return loadStoreAddresses();
         case 'list_refresh':
             return loadPhoneListRefreshMeta() || { at: getPhoneListCacheTimestamp() || 0, by: '' };
+        case 'phone_list': {
+            const list = loadPhoneListCache();
+            return Array.isArray(list) && list.length ? list : null;
+        }
+        case 'other_store_phones': {
+            const list = getOtherStoreCache();
+            return Array.isArray(list) && list.length ? list : null;
+        }
         default:
             return null;
     }
@@ -4447,6 +4466,13 @@ function pcApplyConfigPayload(kind, payload) {
             const at = Number(payload.at) || 0;
             const by = String(payload.by || '').trim().slice(0, 64);
             GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify({ at, by }));
+        } else if (kind === 'phone_list' && Array.isArray(payload) && payload.length) {
+            GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(payload));
+            const ts = getPhoneListCacheTimestamp() || Date.now();
+            GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, ts);
+        } else if (kind === 'other_store_phones' && Array.isArray(payload) && payload.length) {
+            GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(payload));
+            GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, Date.now());
         }
     } finally {
         pcApplyingServer = false;
@@ -4706,7 +4732,7 @@ async function migratePhoneCatalogToServerOnce({ force = false } = {}) {
         const kinds = [
             'colors', 'color_aliases', 'colors_removed',
             'tag_definitions', 'store_rules', 'canonical_models', 'store_addresses',
-            'list_refresh',
+            'list_refresh', 'phone_list', 'other_store_phones',
         ];
         let uploaded = 0;
         for (const kind of kinds) {
@@ -4754,7 +4780,37 @@ async function initPhoneCatalogServerSync() {
     }
 }
 
+/**
+ * Open the phone catalog from stored data (PocketBase when enabled, else local cache).
+ * Does not scrape MyManager — use refresh in the panel for a live fetch.
+ */
+async function loadPhoneCatalogFromDatabase() {
+    if (pcUseDatabase() && !pcServerUnsupported) {
+        try {
+            if (!pcInitStarted) {
+                await initPhoneCatalogServerSync();
+            } else {
+                const token = await pcEnsureAuthToken();
+                await pcPullConfigs(token);
+                await pcPullTags(token);
+            }
+        } catch (err) {
+            console.warn('[MMS Phone Catalog] database pull failed — using local cache', err);
+        }
+    }
+
+    const meta = loadPhoneListRefreshMeta();
+    const ts = Number(meta?.at) || getPhoneListCacheTimestamp() || 0;
+    return {
+        phones: loadPhoneListCache() || [],
+        otherStorePhones: getOtherStoreCache() || [],
+        lastUpdated: ts > 0 ? new Date(ts) : null,
+        refreshedBy: String(meta?.by || '').trim(),
+    };
+}
+
 window.initPhoneCatalogServerSync = initPhoneCatalogServerSync;
+window.loadPhoneCatalogFromDatabase = loadPhoneCatalogFromDatabase;
 window.migratePhoneCatalogToServer = (opts) => migratePhoneCatalogToServerOnce({ force: true, ...(opts || {}) });
 window.pcNotifyConfigChanged = pcNotifyConfigChanged;
 window.pcNotifyTagsChanged = pcNotifyTagsChanged;

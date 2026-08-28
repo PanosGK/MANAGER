@@ -1534,18 +1534,33 @@
             wireStoreBoard();
         }
 
-        async function ensureOtherStores(onProgress) {
+        async function ensureOtherStores(onProgress, opts = {}) {
             if (catalogCategory === 'laptops') {
                 if (otherStoreLaptopsLoaded) return;
+                if (!opts.force) {
+                    const cached = typeof window.getOtherStoreLaptopCache === 'function'
+                        ? window.getOtherStoreLaptopCache()
+                        : null;
+                    if (!cached?.length) return;
+                }
                 if (typeof window.fetchOtherStoreLaptops !== 'function') return;
-                otherStoreLaptops = await window.fetchOtherStoreLaptops({ onProgress });
+                otherStoreLaptops = await window.fetchOtherStoreLaptops({
+                    force: !!opts.force,
+                    onProgress,
+                });
                 otherStoreLaptopsLoaded = true;
                 return;
             }
             if (otherStoreLoaded) return;
+            if (!opts.force) {
+                const cached = typeof window.getOtherStoreCache === 'function'
+                    ? window.getOtherStoreCache()
+                    : null;
+                if (!cached?.length) return;
+            }
             if (typeof window.fetchOtherStorePhones !== 'function') return;
             otherStorePhones = helpers.filterIphoneTitlePhones(
-                await window.fetchOtherStorePhones({ onProgress })
+                await window.fetchOtherStorePhones({ force: !!opts.force, onProgress })
             );
             otherStoreLoaded = true;
             mergeNetworkStoreHints();
@@ -1716,12 +1731,13 @@
                 if (catalogCategory === 'laptops') {
                     if (typeof window.fetchLaptopList === 'function') {
                         allLaptops = await window.fetchLaptopList({
-                            force: !quiet,
+                            force: true,
                             onProgress: onListProgress,
                         });
                     }
                 } else if (typeof window.fetchPhoneList === 'function') {
                     allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList({
+                        force: true,
                         onProgress: onListProgress,
                     }));
                 }
@@ -1765,7 +1781,7 @@
                                     : 'Ανάλυση αποθεμάτων…',
                             });
                         }
-                    });
+                    }, { force: true });
                     progress.finishPhase('otherStoresMs', progress.getPhaseElapsed());
 
                     if (catalogView === 'network') {
@@ -1870,89 +1886,80 @@
         bodyEl.innerHTML = UI.buildSkeletonGrid(8);
         syncCatalogHeaders();
 
-        if (catalogCategory === 'laptops') {
-            const laptopCached = typeof window.loadLaptopListCache === 'function'
-                ? window.loadLaptopListCache()
-                : null;
-            const laptopOtherCached = typeof window.getOtherStoreLaptopCache === 'function'
-                ? window.getOtherStoreLaptopCache()
-                : null;
-            if (laptopOtherCached?.length) {
-                otherStoreLaptops = laptopOtherCached;
-                otherStoreLaptopsLoaded = true;
+        async function paintStoredCatalogData() {
+            if (catalogCategory === 'laptops') {
+                const laptopCached = typeof window.loadLaptopListCache === 'function'
+                    ? window.loadLaptopListCache()
+                    : null;
+                const laptopOtherCached = typeof window.getOtherStoreLaptopCache === 'function'
+                    ? window.getOtherStoreLaptopCache()
+                    : null;
+                if (laptopOtherCached?.length) {
+                    otherStoreLaptops = laptopOtherCached;
+                    otherStoreLaptopsLoaded = true;
+                }
+                if (laptopCached?.length) {
+                    allLaptops = laptopCached;
+                    const ts = Number(GM_getValue('tm_laptop_list_cache_timestamp_v1', Date.now())) || Date.now();
+                    lastUpdated = new Date(ts);
+                    syncFreshness();
+                    renderModelsStep();
+                    setStatus(`${allLaptops.length} φορητοί · πατήστε Ανανέωση για νέα λήψη`);
+                    return;
+                }
+                bodyEl.innerHTML = UI.buildEmptyState(
+                    UI.ICON.emptyPhone,
+                    'Δεν υπάρχουν αποθηκευμένα δεδομένα',
+                    'Πατήστε Ανανέωση για λήψη φορητών από MyManager.',
+                    { actionId: 'refresh', actionLabel: 'Ανανέωση δεδομένων' }
+                );
+                wireUnitActions();
+                setStatus('Χωρίς αποθηκευμένα δεδομένα — πατήστε Ανανέωση');
+                return;
             }
-            if (laptopCached?.length) {
-                allLaptops = laptopCached;
-                const ts = Number(GM_getValue('tm_laptop_list_cache_timestamp_v1', Date.now())) || Date.now();
-                lastUpdated = new Date(ts);
+
+            setStatus('Φόρτωση από βάση…');
+            let snap = { phones: [], otherStorePhones: [], lastUpdated: null, refreshedBy: '' };
+            try {
+                if (typeof window.loadPhoneCatalogFromDatabase === 'function') {
+                    snap = await window.loadPhoneCatalogFromDatabase();
+                } else if (typeof window.loadPhoneListCache === 'function') {
+                    snap.phones = window.loadPhoneListCache() || [];
+                    snap.otherStorePhones = typeof window.getOtherStoreCache === 'function'
+                        ? (window.getOtherStoreCache() || [])
+                        : [];
+                }
+            } catch (err) {
+                console.warn('[MMS Store Locator] stored catalog load failed', err);
+            }
+
+            if (snap.otherStorePhones?.length) {
+                otherStorePhones = helpers.filterIphoneTitlePhones(snap.otherStorePhones);
+                otherStoreLoaded = true;
+                mergeNetworkStoreHints();
+            }
+
+            if (snap.phones?.length) {
+                allPhones = helpers.filterIphoneTitlePhones(snap.phones);
+                if (snap.lastUpdated) lastUpdated = snap.lastUpdated;
                 syncFreshness();
                 renderModelsStep();
-                requestAnimationFrame(() => {
-                    setTimeout(() => refreshData({ quiet: true }), 0);
-                });
-            } else {
-                setStatus('Φόρτωση φορητών…');
-                refreshData();
+                const who = snap.refreshedBy ? ` · ${snap.refreshedBy}` : '';
+                setStatus(`${allPhones.length} συσκευές${who} · πατήστε Ανανέωση για νέα λήψη`);
+                return;
             }
-            return;
+
+            bodyEl.innerHTML = UI.buildEmptyState(
+                UI.ICON.emptyPhone,
+                'Δεν υπάρχουν αποθηκευμένα δεδομένα',
+                'Πατήστε Ανανέωση για λήψη καταλόγου από MyManager.',
+                { actionId: 'refresh', actionLabel: 'Ανανέωση δεδομένων' }
+            );
+            wireUnitActions();
+            setStatus('Χωρίς αποθηκευμένα δεδομένα — πατήστε Ανανέωση');
         }
 
-        const cached = typeof window.loadPhoneListCache === 'function' ? window.loadPhoneListCache() : null;
-        const cacheStale = typeof window.isPhoneListCacheStale === 'function'
-            ? window.isPhoneListCacheStale()
-            : true;
-        const otherCached = typeof window.getOtherStoreCache === 'function'
-            ? window.getOtherStoreCache()
-            : null;
-
-        // Hydrate network cache synchronously so UI can paint without waiting on network.
-        if (otherCached && otherCached.length) {
-            otherStorePhones = helpers.filterIphoneTitlePhones(otherCached);
-            otherStoreLoaded = true;
-            mergeNetworkStoreHints();
-        }
-
-        if (cached && cached.length) {
-            allPhones = helpers.filterIphoneTitlePhones(cached);
-            const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
-            lastUpdated = new Date(ts);
-            syncFreshness();
-
-            // Paint immediately from cache — never block first paint on network fetches.
-            renderModelsStep();
-
-            const warmNetworkInBackground = () => {
-                if (otherStoreLoaded) return Promise.resolve();
-                return ensureOtherStores().then(async () => {
-                    if (catalogView === 'network' && step === 'models') {
-                        await resolveNetworkStoreDetails();
-                        renderModelsStep();
-                    }
-                }).catch(() => {});
-            };
-
-            if (cacheStale) {
-                setStatus('Ενημέρωση στο παρασκήνιο…');
-                // Keep cached UI on screen; refresh quietly without wiping network cache.
-                requestAnimationFrame(() => {
-                    setTimeout(() => {
-                        refreshData({ quiet: true });
-                    }, 0);
-                });
-            } else if (catalogView === 'network' && !otherStoreLoaded) {
-                setStatus('Φόρτωση δικτύου…');
-                warmNetworkInBackground();
-            } else {
-                // Warm other-store cache quietly for faster tab switch later.
-                requestAnimationFrame(() => {
-                    setTimeout(() => { warmNetworkInBackground(); }, 0);
-                });
-            }
-        } else {
-            // No usable cache — fetch live instead of waiting for a manual refresh click.
-            setStatus('Φόρτωση καταλόγου…');
-            refreshData();
-        }
+        paintStoredCatalogData();
     }
 
     window.showStoreLocatorModal = showStoreLocatorModal;

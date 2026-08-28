@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v436 / Custom Ver. 42.20 — generated, do not edit */
+/* MyManager Suite bundle v437 / Custom Ver. 42.21 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '436',
+        version: '437',
         loaderVersion: '42',
-        silentVersion: '20',
-        displayVersion: '42.20',
+        silentVersion: '21',
+        displayVersion: '42.21',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -56968,7 +56968,7 @@ window.initOrderTracking = initOrderTracking;
                         <p class="tm-sl-subtitle" id="tm-sl-subtitle">Τι έχετε σε stock τώρα</p>
                     </div>
                     <div class="tm-sl-header-actions">
-                        <button type="button" id="tm-sl-refresh" class="tm-sl-btn tm-sl-btn--icon" title="Ανανέωση" aria-label="Ανανέωση">${ICON.refresh}</button>
+                        <button type="button" id="tm-sl-refresh" class="tm-sl-btn tm-sl-btn--icon" title="Λήψη νέων δεδομένων από MyManager" aria-label="Λήψη νέων δεδομένων από MyManager">${ICON.refresh}</button>
                         <div class="tm-sl-settings-wrap">
                             <button type="button" id="tm-sl-settings" class="tm-sl-btn tm-sl-btn--icon" title="Ρυθμίσεις" aria-haspopup="true">${ICON.settings}</button>
                             <div id="tm-sl-settings-menu" class="tm-sl-settings-menu" hidden>
@@ -58018,8 +58018,8 @@ window.initOrderTracking = initOrderTracking;
         } else {
             btn.removeAttribute('disabled');
             btn.innerHTML = ICON.refresh;
-            btn.setAttribute('aria-label', 'Ανανέωση');
-            btn.title = 'Ανανέωση';
+            btn.setAttribute('aria-label', 'Λήψη νέων δεδομένων από MyManager');
+            btn.title = 'Λήψη νέων δεδομένων από MyManager';
         }
     }
 
@@ -60447,6 +60447,7 @@ function savePhoneListCache(phones) {
     GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(phones));
     GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, at);
     savePhoneListRefreshMeta({ at, by: getPhoneCatalogActorName() });
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('phone_list');
     console.log('[MMS Phone List] Cache saved');
 }
 
@@ -60457,6 +60458,7 @@ function saveOtherStoreCache(phones) {
     }
     GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(phones));
     GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, Date.now());
+    if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('other_store_phones');
     console.log('[MMS Phone List] Other-store cache saved');
 }
 
@@ -60937,6 +60939,13 @@ async function resolvePhonesStoreDetails(phones, options = {}) {
  */
 async function fetchPhoneList(options = {}) {
     const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
+    if (!options.force) {
+        const cached = loadPhoneListCache();
+        if (cached?.length) {
+            onProgress({ phase: 'done', ratio: 1, fromCache: true });
+            return cached;
+        }
+    }
     return new Promise((resolve, reject) => {
         onProgress({ phase: 'init', ratio: 0.04 });
         // Step 1: Load initial page with qs=55.&recordspp=-1
@@ -61876,10 +61885,12 @@ async function fetchOtherStoreLaptops(options = {}) {
  */
 async function fetchOtherStorePhones(options = {}) {
     const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
-    const cached = getOtherStoreCache();
-    if (cached) {
-        onProgress({ phase: 'done', ratio: 1, fromCache: true });
-        return cached;
+    if (!options.force) {
+        const cached = getOtherStoreCache();
+        if (cached?.length) {
+            onProgress({ phase: 'done', ratio: 1, fromCache: true });
+            return cached;
+        }
     }
     
     return new Promise((resolve, reject) => {
@@ -62610,6 +62621,14 @@ function pcReadLocalConfigPayload(kind) {
             return loadStoreAddresses();
         case 'list_refresh':
             return loadPhoneListRefreshMeta() || { at: getPhoneListCacheTimestamp() || 0, by: '' };
+        case 'phone_list': {
+            const list = loadPhoneListCache();
+            return Array.isArray(list) && list.length ? list : null;
+        }
+        case 'other_store_phones': {
+            const list = getOtherStoreCache();
+            return Array.isArray(list) && list.length ? list : null;
+        }
         default:
             return null;
     }
@@ -62640,6 +62659,13 @@ function pcApplyConfigPayload(kind, payload) {
             const at = Number(payload.at) || 0;
             const by = String(payload.by || '').trim().slice(0, 64);
             GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify({ at, by }));
+        } else if (kind === 'phone_list' && Array.isArray(payload) && payload.length) {
+            GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(payload));
+            const ts = getPhoneListCacheTimestamp() || Date.now();
+            GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, ts);
+        } else if (kind === 'other_store_phones' && Array.isArray(payload) && payload.length) {
+            GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(payload));
+            GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, Date.now());
         }
     } finally {
         pcApplyingServer = false;
@@ -62899,7 +62925,7 @@ async function migratePhoneCatalogToServerOnce({ force = false } = {}) {
         const kinds = [
             'colors', 'color_aliases', 'colors_removed',
             'tag_definitions', 'store_rules', 'canonical_models', 'store_addresses',
-            'list_refresh',
+            'list_refresh', 'phone_list', 'other_store_phones',
         ];
         let uploaded = 0;
         for (const kind of kinds) {
@@ -62947,7 +62973,37 @@ async function initPhoneCatalogServerSync() {
     }
 }
 
+/**
+ * Open the phone catalog from stored data (PocketBase when enabled, else local cache).
+ * Does not scrape MyManager — use refresh in the panel for a live fetch.
+ */
+async function loadPhoneCatalogFromDatabase() {
+    if (pcUseDatabase() && !pcServerUnsupported) {
+        try {
+            if (!pcInitStarted) {
+                await initPhoneCatalogServerSync();
+            } else {
+                const token = await pcEnsureAuthToken();
+                await pcPullConfigs(token);
+                await pcPullTags(token);
+            }
+        } catch (err) {
+            console.warn('[MMS Phone Catalog] database pull failed — using local cache', err);
+        }
+    }
+
+    const meta = loadPhoneListRefreshMeta();
+    const ts = Number(meta?.at) || getPhoneListCacheTimestamp() || 0;
+    return {
+        phones: loadPhoneListCache() || [],
+        otherStorePhones: getOtherStoreCache() || [],
+        lastUpdated: ts > 0 ? new Date(ts) : null,
+        refreshedBy: String(meta?.by || '').trim(),
+    };
+}
+
 window.initPhoneCatalogServerSync = initPhoneCatalogServerSync;
+window.loadPhoneCatalogFromDatabase = loadPhoneCatalogFromDatabase;
 window.migratePhoneCatalogToServer = (opts) => migratePhoneCatalogToServerOnce({ force: true, ...(opts || {}) });
 window.pcNotifyConfigChanged = pcNotifyConfigChanged;
 window.pcNotifyTagsChanged = pcNotifyTagsChanged;
@@ -65725,18 +65781,33 @@ try {
             wireStoreBoard();
         }
 
-        async function ensureOtherStores(onProgress) {
+        async function ensureOtherStores(onProgress, opts = {}) {
             if (catalogCategory === 'laptops') {
                 if (otherStoreLaptopsLoaded) return;
+                if (!opts.force) {
+                    const cached = typeof window.getOtherStoreLaptopCache === 'function'
+                        ? window.getOtherStoreLaptopCache()
+                        : null;
+                    if (!cached?.length) return;
+                }
                 if (typeof window.fetchOtherStoreLaptops !== 'function') return;
-                otherStoreLaptops = await window.fetchOtherStoreLaptops({ onProgress });
+                otherStoreLaptops = await window.fetchOtherStoreLaptops({
+                    force: !!opts.force,
+                    onProgress,
+                });
                 otherStoreLaptopsLoaded = true;
                 return;
             }
             if (otherStoreLoaded) return;
+            if (!opts.force) {
+                const cached = typeof window.getOtherStoreCache === 'function'
+                    ? window.getOtherStoreCache()
+                    : null;
+                if (!cached?.length) return;
+            }
             if (typeof window.fetchOtherStorePhones !== 'function') return;
             otherStorePhones = helpers.filterIphoneTitlePhones(
-                await window.fetchOtherStorePhones({ onProgress })
+                await window.fetchOtherStorePhones({ force: !!opts.force, onProgress })
             );
             otherStoreLoaded = true;
             mergeNetworkStoreHints();
@@ -65907,12 +65978,13 @@ try {
                 if (catalogCategory === 'laptops') {
                     if (typeof window.fetchLaptopList === 'function') {
                         allLaptops = await window.fetchLaptopList({
-                            force: !quiet,
+                            force: true,
                             onProgress: onListProgress,
                         });
                     }
                 } else if (typeof window.fetchPhoneList === 'function') {
                     allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList({
+                        force: true,
                         onProgress: onListProgress,
                     }));
                 }
@@ -65956,7 +66028,7 @@ try {
                                     : 'Ανάλυση αποθεμάτων…',
                             });
                         }
-                    });
+                    }, { force: true });
                     progress.finishPhase('otherStoresMs', progress.getPhaseElapsed());
 
                     if (catalogView === 'network') {
@@ -66061,89 +66133,80 @@ try {
         bodyEl.innerHTML = UI.buildSkeletonGrid(8);
         syncCatalogHeaders();
 
-        if (catalogCategory === 'laptops') {
-            const laptopCached = typeof window.loadLaptopListCache === 'function'
-                ? window.loadLaptopListCache()
-                : null;
-            const laptopOtherCached = typeof window.getOtherStoreLaptopCache === 'function'
-                ? window.getOtherStoreLaptopCache()
-                : null;
-            if (laptopOtherCached?.length) {
-                otherStoreLaptops = laptopOtherCached;
-                otherStoreLaptopsLoaded = true;
+        async function paintStoredCatalogData() {
+            if (catalogCategory === 'laptops') {
+                const laptopCached = typeof window.loadLaptopListCache === 'function'
+                    ? window.loadLaptopListCache()
+                    : null;
+                const laptopOtherCached = typeof window.getOtherStoreLaptopCache === 'function'
+                    ? window.getOtherStoreLaptopCache()
+                    : null;
+                if (laptopOtherCached?.length) {
+                    otherStoreLaptops = laptopOtherCached;
+                    otherStoreLaptopsLoaded = true;
+                }
+                if (laptopCached?.length) {
+                    allLaptops = laptopCached;
+                    const ts = Number(GM_getValue('tm_laptop_list_cache_timestamp_v1', Date.now())) || Date.now();
+                    lastUpdated = new Date(ts);
+                    syncFreshness();
+                    renderModelsStep();
+                    setStatus(`${allLaptops.length} φορητοί · πατήστε Ανανέωση για νέα λήψη`);
+                    return;
+                }
+                bodyEl.innerHTML = UI.buildEmptyState(
+                    UI.ICON.emptyPhone,
+                    'Δεν υπάρχουν αποθηκευμένα δεδομένα',
+                    'Πατήστε Ανανέωση για λήψη φορητών από MyManager.',
+                    { actionId: 'refresh', actionLabel: 'Ανανέωση δεδομένων' }
+                );
+                wireUnitActions();
+                setStatus('Χωρίς αποθηκευμένα δεδομένα — πατήστε Ανανέωση');
+                return;
             }
-            if (laptopCached?.length) {
-                allLaptops = laptopCached;
-                const ts = Number(GM_getValue('tm_laptop_list_cache_timestamp_v1', Date.now())) || Date.now();
-                lastUpdated = new Date(ts);
+
+            setStatus('Φόρτωση από βάση…');
+            let snap = { phones: [], otherStorePhones: [], lastUpdated: null, refreshedBy: '' };
+            try {
+                if (typeof window.loadPhoneCatalogFromDatabase === 'function') {
+                    snap = await window.loadPhoneCatalogFromDatabase();
+                } else if (typeof window.loadPhoneListCache === 'function') {
+                    snap.phones = window.loadPhoneListCache() || [];
+                    snap.otherStorePhones = typeof window.getOtherStoreCache === 'function'
+                        ? (window.getOtherStoreCache() || [])
+                        : [];
+                }
+            } catch (err) {
+                console.warn('[MMS Store Locator] stored catalog load failed', err);
+            }
+
+            if (snap.otherStorePhones?.length) {
+                otherStorePhones = helpers.filterIphoneTitlePhones(snap.otherStorePhones);
+                otherStoreLoaded = true;
+                mergeNetworkStoreHints();
+            }
+
+            if (snap.phones?.length) {
+                allPhones = helpers.filterIphoneTitlePhones(snap.phones);
+                if (snap.lastUpdated) lastUpdated = snap.lastUpdated;
                 syncFreshness();
                 renderModelsStep();
-                requestAnimationFrame(() => {
-                    setTimeout(() => refreshData({ quiet: true }), 0);
-                });
-            } else {
-                setStatus('Φόρτωση φορητών…');
-                refreshData();
+                const who = snap.refreshedBy ? ` · ${snap.refreshedBy}` : '';
+                setStatus(`${allPhones.length} συσκευές${who} · πατήστε Ανανέωση για νέα λήψη`);
+                return;
             }
-            return;
+
+            bodyEl.innerHTML = UI.buildEmptyState(
+                UI.ICON.emptyPhone,
+                'Δεν υπάρχουν αποθηκευμένα δεδομένα',
+                'Πατήστε Ανανέωση για λήψη καταλόγου από MyManager.',
+                { actionId: 'refresh', actionLabel: 'Ανανέωση δεδομένων' }
+            );
+            wireUnitActions();
+            setStatus('Χωρίς αποθηκευμένα δεδομένα — πατήστε Ανανέωση');
         }
 
-        const cached = typeof window.loadPhoneListCache === 'function' ? window.loadPhoneListCache() : null;
-        const cacheStale = typeof window.isPhoneListCacheStale === 'function'
-            ? window.isPhoneListCacheStale()
-            : true;
-        const otherCached = typeof window.getOtherStoreCache === 'function'
-            ? window.getOtherStoreCache()
-            : null;
-
-        // Hydrate network cache synchronously so UI can paint without waiting on network.
-        if (otherCached && otherCached.length) {
-            otherStorePhones = helpers.filterIphoneTitlePhones(otherCached);
-            otherStoreLoaded = true;
-            mergeNetworkStoreHints();
-        }
-
-        if (cached && cached.length) {
-            allPhones = helpers.filterIphoneTitlePhones(cached);
-            const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
-            lastUpdated = new Date(ts);
-            syncFreshness();
-
-            // Paint immediately from cache — never block first paint on network fetches.
-            renderModelsStep();
-
-            const warmNetworkInBackground = () => {
-                if (otherStoreLoaded) return Promise.resolve();
-                return ensureOtherStores().then(async () => {
-                    if (catalogView === 'network' && step === 'models') {
-                        await resolveNetworkStoreDetails();
-                        renderModelsStep();
-                    }
-                }).catch(() => {});
-            };
-
-            if (cacheStale) {
-                setStatus('Ενημέρωση στο παρασκήνιο…');
-                // Keep cached UI on screen; refresh quietly without wiping network cache.
-                requestAnimationFrame(() => {
-                    setTimeout(() => {
-                        refreshData({ quiet: true });
-                    }, 0);
-                });
-            } else if (catalogView === 'network' && !otherStoreLoaded) {
-                setStatus('Φόρτωση δικτύου…');
-                warmNetworkInBackground();
-            } else {
-                // Warm other-store cache quietly for faster tab switch later.
-                requestAnimationFrame(() => {
-                    setTimeout(() => { warmNetworkInBackground(); }, 0);
-                });
-            }
-        } else {
-            // No usable cache — fetch live instead of waiting for a manual refresh click.
-            setStatus('Φόρτωση καταλόγου…');
-            refreshData();
-        }
+        paintStoredCatalogData();
     }
 
     window.showStoreLocatorModal = showStoreLocatorModal;

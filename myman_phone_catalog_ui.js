@@ -2719,7 +2719,7 @@
                         <p class="tm-sl-subtitle" id="tm-sl-subtitle">Τι έχετε σε stock τώρα</p>
                     </div>
                     <div class="tm-sl-header-actions">
-                        <button type="button" id="tm-sl-refresh" class="tm-sl-btn tm-sl-btn--icon" title="Ανανέωση" aria-label="Ανανέωση">${ICON.refresh}</button>
+                        <button type="button" id="tm-sl-refresh" class="tm-sl-btn tm-sl-btn--icon" title="Λήψη νέων δεδομένων από MyManager" aria-label="Λήψη νέων δεδομένων από MyManager">${ICON.refresh}</button>
                         <div class="tm-sl-settings-wrap">
                             <button type="button" id="tm-sl-settings" class="tm-sl-btn tm-sl-btn--icon" title="Ρυθμίσεις" aria-haspopup="true">${ICON.settings}</button>
                             <div id="tm-sl-settings-menu" class="tm-sl-settings-menu" hidden>
@@ -3769,8 +3769,8 @@
         } else {
             btn.removeAttribute('disabled');
             btn.innerHTML = ICON.refresh;
-            btn.setAttribute('aria-label', 'Ανανέωση');
-            btn.title = 'Ανανέωση';
+            btn.setAttribute('aria-label', 'Λήψη νέων δεδομένων από MyManager');
+            btn.title = 'Λήψη νέων δεδομένων από MyManager';
         }
     }
 
