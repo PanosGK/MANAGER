@@ -193,8 +193,9 @@
         filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
             const model = extractBaseModel(phone.model);
             if (!model) return;
-            const stores = getStores(phone);
-            if (!stores.length) return;
+            let stores = getStores(phone);
+            const otherCount = parseInt(phone.otherStoreCount, 10) || 0;
+            if (!stores.length && otherCount <= 0) return;
             if (!map.has(model)) {
                 map.set(model, { grades: {}, storeNames: new Set(), totalUnits: 0, myCount: 0 });
             }
@@ -202,10 +203,14 @@
             entry.totalUnits += 1;
             const g = normalizePhoneGrade(phone.grade);
             if (g) entry.grades[g] = (entry.grades[g] || 0) + 1;
-            stores.forEach((store) => {
-                const name = cleanStoreName(store.name);
-                if (name) entry.storeNames.add(name);
-            });
+            if (stores.length) {
+                stores.forEach((store) => {
+                    const name = cleanStoreName(store.name);
+                    if (name) entry.storeNames.add(name);
+                });
+            } else {
+                entry.storeNames.add('Άλλα καταστήματα');
+            }
         });
 
         return [...map.entries()]
@@ -1028,6 +1033,8 @@
                         renderModelsStep();
                     } else if (action === 'refresh') {
                         refreshData();
+                    } else if (action === 'refresh-server') {
+                        reloadFromServer();
                     }
                 });
             });
@@ -1823,8 +1830,36 @@
             }
         }
 
+        async function reloadFromServer() {
+            UI.setServerRefreshing(overlay, true);
+            try {
+                allPhones = [];
+                otherStorePhones = [];
+                otherStoreLoaded = false;
+                otherStoreLaptops = [];
+                otherStoreLaptopsLoaded = false;
+                allLaptops = [];
+                await paintStoredCatalogData();
+                const hasData = allPhones.length || otherStorePhones.length || allLaptops.length || otherStoreLaptops.length;
+                if (hasData) UI.showToast(overlay, 'Φορτώθηκε από server');
+            } catch (err) {
+                console.warn('[MMS Store Locator] server reload failed', err);
+                UI.showToast(overlay, 'Αποτυχία φόρτωσης από server');
+                setStatus('Αποτυχία φόρτωσης από server');
+            } finally {
+                UI.setServerRefreshing(overlay, false);
+            }
+        }
+
         overlay.querySelector('#tm-sl-close')?.addEventListener('click', closeModal);
         overlay.querySelector('#tm-sl-refresh')?.addEventListener('click', refreshData);
+
+        const serverRefreshBtn = overlay.querySelector('#tm-sl-refresh-server');
+        if (typeof window.suiteUseDatabase === 'function' && !window.suiteUseDatabase()) {
+            serverRefreshBtn?.remove();
+        } else {
+            serverRefreshBtn?.addEventListener('click', reloadFromServer);
+        }
         overlay.querySelector('#tm-sl-density')?.addEventListener('click', () => {
             densityCompact = !densityCompact;
             GM_setValue(DENSITY_KEY, densityCompact);
@@ -1936,27 +1971,53 @@
             if (snap.otherStorePhones?.length) {
                 otherStorePhones = helpers.filterIphoneTitlePhones(snap.otherStorePhones);
                 otherStoreLoaded = true;
-                mergeNetworkStoreHints();
             }
 
             if (snap.phones?.length) {
                 allPhones = helpers.filterIphoneTitlePhones(snap.phones);
                 if (snap.lastUpdated) lastUpdated = snap.lastUpdated;
-                syncFreshness();
-                renderModelsStep();
-                const who = snap.refreshedBy ? ` · ${snap.refreshedBy}` : '';
-                setStatus(`${allPhones.length} συσκευές${who} · πατήστε Ανανέωση για νέα λήψη`);
+            }
+
+            mergeNetworkStoreHints();
+
+            const hasMine = buildMyStoreModelIndex(allPhones, helpers).length > 0;
+            const hasNetwork = buildNetworkModelIndex(otherStorePhones, helpers).length > 0;
+
+            if (!hasMine && !hasNetwork) {
+                bodyEl.innerHTML = UI.buildEmptyState(
+                    UI.ICON.emptyPhone,
+                    'Δεν υπάρχουν αποθηκευμένα δεδομένα',
+                    'Πατήστε Ανανέωση για λήψη καταλόγου από MyManager.',
+                    { actionId: 'refresh', actionLabel: 'Ανανέωση δεδομένων' }
+                );
+                wireUnitActions();
+                setStatus('Χωρίς αποθηκευμένα δεδομένα — πατήστε Ανανέωση');
                 return;
             }
 
-            bodyEl.innerHTML = UI.buildEmptyState(
-                UI.ICON.emptyPhone,
-                'Δεν υπάρχουν αποθηκευμένα δεδομένα',
-                'Πατήστε Ανανέωση για λήψη καταλόγου από MyManager.',
-                { actionId: 'refresh', actionLabel: 'Ανανέωση δεδομένων' }
-            );
-            wireUnitActions();
-            setStatus('Χωρίς αποθηκευμένα δεδομένα — πατήστε Ανανέωση');
+            if (catalogView === 'network' && !hasNetwork && hasMine) {
+                catalogView = 'mine';
+                GM_setValue(CATALOG_VIEW_KEY, catalogView);
+                UI.updateViewTabs(overlay, catalogView);
+                syncCatalogHeaders();
+            } else if (catalogView === 'mine' && !hasMine && hasNetwork) {
+                catalogView = 'network';
+                GM_setValue(CATALOG_VIEW_KEY, catalogView);
+                UI.updateViewTabs(overlay, catalogView);
+                syncCatalogHeaders();
+            }
+
+            syncFreshness();
+            renderModelsStep();
+            const who = snap.refreshedBy ? ` · ${snap.refreshedBy}` : '';
+            const mineUnits = allPhones.filter((p) => (p.unitsRemaining || 0) > 0).length;
+            const netUnits = otherStorePhones.length;
+            if (catalogView === 'network') {
+                setStatus(`${netUnits} συσκευές δικτύου${who} · πατήστε Ανανέωση για νέα λήψη`);
+            } else {
+                setStatus(`${mineUnits} συσκευές${who} · πατήστε Ανανέωση για νέα λήψη`);
+            }
+            return;
         }
 
         paintStoredCatalogData();

@@ -14,6 +14,7 @@
     const ICON = {
         search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>',
         refresh: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>',
+        server: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/></svg>',
         store: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
         back: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>',
         chevron: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>',
@@ -2719,6 +2720,7 @@
                         <p class="tm-sl-subtitle" id="tm-sl-subtitle">Τι έχετε σε stock τώρα</p>
                     </div>
                     <div class="tm-sl-header-actions">
+                        <button type="button" id="tm-sl-refresh-server" class="tm-sl-btn tm-sl-btn--icon" title="Φόρτωση cache από server" aria-label="Φόρτωση cache από server">${ICON.server}</button>
                         <button type="button" id="tm-sl-refresh" class="tm-sl-btn tm-sl-btn--icon" title="Λήψη νέων δεδομένων από MyManager" aria-label="Λήψη νέων δεδομένων από MyManager">${ICON.refresh}</button>
                         <div class="tm-sl-settings-wrap">
                             <button type="button" id="tm-sl-settings" class="tm-sl-btn tm-sl-btn--icon" title="Ρυθμίσεις" aria-haspopup="true">${ICON.settings}</button>
@@ -3758,7 +3760,13 @@
     function setRefreshing(overlay, refreshing) {
         const body = overlay?.querySelector('#tm-sl-body');
         const btn = overlay?.querySelector('#tm-sl-refresh');
+        const serverBtn = overlay?.querySelector('#tm-sl-refresh-server');
         body?.classList.toggle('is-refreshing', !!refreshing);
+        if (serverBtn) {
+            serverBtn.classList.toggle('is-busy', !!refreshing);
+            if (refreshing) serverBtn.setAttribute('disabled', 'true');
+            else serverBtn.removeAttribute('disabled');
+        }
         if (!btn) return;
         btn.classList.toggle('is-busy', !!refreshing);
         if (refreshing) {
@@ -3771,6 +3779,31 @@
             btn.innerHTML = ICON.refresh;
             btn.setAttribute('aria-label', 'Λήψη νέων δεδομένων από MyManager');
             btn.title = 'Λήψη νέων δεδομένων από MyManager';
+        }
+    }
+
+    function setServerRefreshing(overlay, refreshing) {
+        const body = overlay?.querySelector('#tm-sl-body');
+        const btn = overlay?.querySelector('#tm-sl-refresh-server');
+        const scrapeBtn = overlay?.querySelector('#tm-sl-refresh');
+        body?.classList.toggle('is-refreshing', !!refreshing);
+        if (scrapeBtn) {
+            scrapeBtn.classList.toggle('is-busy', !!refreshing);
+            if (refreshing) scrapeBtn.setAttribute('disabled', 'true');
+            else scrapeBtn.removeAttribute('disabled');
+        }
+        if (!btn) return;
+        btn.classList.toggle('is-busy', !!refreshing);
+        if (refreshing) {
+            btn.setAttribute('disabled', 'true');
+            btn.innerHTML = `<span class="tm-sl-btn-spin">${ICON.server}</span>`;
+            btn.setAttribute('aria-label', 'Φόρτωση από server…');
+            btn.title = 'Φόρτωση από server…';
+        } else {
+            btn.removeAttribute('disabled');
+            btn.innerHTML = ICON.server;
+            btn.setAttribute('aria-label', 'Φόρτωση cache από server');
+            btn.title = 'Φόρτωση cache από server';
         }
     }
 
@@ -3924,6 +3957,7 @@
         showToast,
         updateFreshness,
         setRefreshing,
+        setServerRefreshing,
         showLoadProgress,
         updateLoadProgress,
         hideLoadProgress,

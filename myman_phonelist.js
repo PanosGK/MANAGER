@@ -14,7 +14,7 @@ const PHONE_LIST_SOFT_REFRESH_MS = 4 * 60 * 60 * 1000; // 4 hours
 // v2: price parsing (div/input IDs) + UI shows retailPrice on other-store cards
 const OTHER_STORE_CACHE_KEY = 'tm_phone_other_store_cache_v3';
 const OTHER_STORE_CACHE_TIMESTAMP_KEY = 'tm_phone_other_store_cache_timestamp';
-const OTHER_STORE_CACHE_EXPIRATION_DAYS = 1;
+const OTHER_STORE_CACHE_EXPIRATION_DAYS = 3;
 
 // Greek translations (using Unicode escape sequences to avoid encoding issues)
 const PHONE_CATALOG_TRANSLATIONS = {
@@ -2238,17 +2238,95 @@ function loadPhoneListRefreshMeta() {
 
 function savePhoneListRefreshMeta(meta) {
     const at = Number(meta?.at) || Date.now();
-    const by = String(meta?.by || getPhoneCatalogActorName() || '').trim().slice(0, 64);
+    const by = meta && Object.prototype.hasOwnProperty.call(meta, 'by')
+        ? String(meta.by || '').trim().slice(0, 64)
+        : String(getPhoneCatalogActorName() || '').trim().slice(0, 64);
     const next = { at, by };
     GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify(next));
     if (typeof pcNotifyConfigChanged === 'function') pcNotifyConfigChanged('list_refresh');
     return next;
 }
 
+function buildPhoneListSnapshot(phones) {
+    const meta = loadPhoneListRefreshMeta();
+    return {
+        v: 1,
+        phones,
+        refreshedAt: Number(meta?.at) || getPhoneListCacheTimestamp() || Date.now(),
+        refreshedBy: String(meta?.by || '').trim().slice(0, 64),
+    };
+}
+
+function parsePhoneListSnapshot(payload, recordHint) {
+    if (Array.isArray(payload)) {
+        return {
+            phones: payload,
+            refreshedAt: recordHint?.updatedAt ? Date.parse(recordHint.updatedAt) : 0,
+            refreshedBy: String(recordHint?.updatedBy || '').trim(),
+        };
+    }
+    if (payload && typeof payload === 'object' && Array.isArray(payload.phones)) {
+        return {
+            phones: payload.phones,
+            refreshedAt: Number(payload.refreshedAt)
+                || (recordHint?.updatedAt ? Date.parse(recordHint.updatedAt) : 0),
+            refreshedBy: String(payload.refreshedBy || recordHint?.updatedBy || '').trim(),
+        };
+    }
+    return null;
+}
+
+function applyPhoneListSnapshot(snapshot) {
+    if (!snapshot?.phones?.length) return;
+    const ts = Number(snapshot.refreshedAt) || Date.now();
+    const by = String(snapshot.refreshedBy || '').trim().slice(0, 64);
+    GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(snapshot.phones));
+    GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, ts);
+    GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify({ at: ts, by }));
+}
+
+function readStoredPhoneListCount() {
+    try {
+        const cached = GM_getValue(PHONE_LIST_CACHE_KEY, null);
+        if (!cached) return 0;
+        const parsed = JSON.parse(cached);
+        return Array.isArray(parsed) ? parsed.length : 0;
+    } catch (_) {
+        return 0;
+    }
+}
+
+function finalizePhoneListFetch(phones, onProgress, resolve) {
+    const result = Array.isArray(phones) ? phones : [];
+    if (!result.length) {
+        const cached = loadPhoneListCache();
+        if (cached?.length) {
+            console.warn('[MMS Phone List] Scrape returned no phones — keeping cached snapshot');
+            onProgress({ phase: 'done', ratio: 1, fromCache: true });
+            resolve(cached);
+            return;
+        }
+    } else {
+        savePhoneListCache(result);
+    }
+    onProgress({ phase: 'done', ratio: 1 });
+    resolve(result);
+}
+
 function savePhoneListCache(phones) {
     if (!Array.isArray(phones) || !phones.length) {
         console.warn('[MMS Phone List] Skipping cache save — empty list (keeping previous snapshot)');
         return;
+    }
+    const prevCount = readStoredPhoneListCount();
+    if (prevCount > 0) {
+        const minKeep = Math.max(5, Math.floor(prevCount * 0.5));
+        if (phones.length < minKeep) {
+            console.warn(
+                `[MMS Phone List] Skipping cache save — scraped ${phones.length} phones vs ${prevCount} cached (likely bad/filtered scrape)`
+            );
+            return;
+        }
     }
     const at = Date.now();
     GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(phones));
@@ -2332,14 +2410,15 @@ function getCacheAgeDays() {
     return Math.floor(ageMs / (1000 * 60 * 60 * 24));
 }
 
-function getOtherStoreCache() {
+function getOtherStoreCache(options = {}) {
     try {
         const cached = GM_getValue(OTHER_STORE_CACHE_KEY, null);
         const ts = GM_getValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0);
         if (!cached || !ts) return null;
         const ageDays = Math.floor((Date.now() - ts) / (1000 * 60 * 60 * 24));
-        if (ageDays > OTHER_STORE_CACHE_EXPIRATION_DAYS) return null;
-        return JSON.parse(cached);
+        if (!options.ignoreExpiry && ageDays > OTHER_STORE_CACHE_EXPIRATION_DAYS) return null;
+        const parsed = JSON.parse(cached);
+        return Array.isArray(parsed) && parsed.length ? parsed : null;
     } catch (e) {
         return null;
     }
@@ -2755,18 +2834,11 @@ async function fetchPhoneList(options = {}) {
     }
     return new Promise((resolve, reject) => {
         onProgress({ phase: 'init', ratio: 0.04 });
-        // Step 1: Load initial page with qs=55.&recordspp=-1
+        onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
+        // Full local-stock list — do not seed with qs=55. (other-store filter poisons PHPRunner session).
         GM_xmlhttpRequest({
             method: 'GET',
-            url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&recordspp=-1',
-            onload: function(firstResponse) {
-                console.log('[MMS Phone List] First page loaded, now loading with pagesize=500');
-                onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
-
-                // Step 2: Load with pagesize=500
-                GM_xmlhttpRequest({
-                    method: 'GET',
-                    url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|',
+            url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|',
                     onprogress: function(e) {
                         if (e.lengthComputable && e.total > 0) {
                             onProgress({
@@ -2812,7 +2884,7 @@ async function fetchPhoneList(options = {}) {
                         allTables.forEach((t, i) => {
                             console.log(`[MMS Phone List] Table ${i}: classes =`, t.className);
                         });
-                        resolve([]);
+                        finalizePhoneListFetch([], onProgress, resolve);
                         return;
                     }
                     
@@ -2966,25 +3038,16 @@ async function fetchPhoneList(options = {}) {
                     });
                     
                         console.log(`[MMS Phone List] Successfully parsed ${phones.length} phones`);
-                        // Save to cache
-                        savePhoneListCache(phones);
-                        onProgress({ phase: 'done', ratio: 1 });
-                        resolve(phones);
+                        finalizePhoneListFetch(phones, onProgress, resolve);
                     } catch (error) {
                         console.error('[MMS Phone List] Error parsing phone list:', error);
                         reject(error);
                     }
                 },
                 onerror: function(error) {
-                    console.error('[MMS Phone List] Failed to fetch phone list (second request):', error);
+                    console.error('[MMS Phone List] Failed to fetch phone list:', error);
                     reject(error);
                 }
-            });
-            },
-            onerror: function(error) {
-                console.error('[MMS Phone List] Failed to fetch phone list (first request):', error);
-                reject(error);
-            }
         });
     });
 }
@@ -3815,6 +3878,7 @@ async function fetchOtherStorePhones(options = {}) {
                         });
                         
                         saveOtherStoreCache(result);
+                        window.restoreRunnerSessionSearch?.(url);
                         onProgress({ phase: 'done', ratio: 1 });
                         resolve(result);
                     } catch (err) {
@@ -4274,7 +4338,7 @@ let pcFlushTimer = null;
 let pcBusy = false;
 let pcPendingKinds = new Set();
 let pcPendingBarcodes = new Set();
-let pcInitStarted = false;
+let pcInitPromise = null;
 
 function pcUseDatabase() {
     try {
@@ -4430,7 +4494,7 @@ function pcReadLocalConfigPayload(kind) {
             return loadPhoneListRefreshMeta() || { at: getPhoneListCacheTimestamp() || 0, by: '' };
         case 'phone_list': {
             const list = loadPhoneListCache();
-            return Array.isArray(list) && list.length ? list : null;
+            return Array.isArray(list) && list.length ? buildPhoneListSnapshot(list) : null;
         }
         case 'other_store_phones': {
             const list = getOtherStoreCache();
@@ -4441,7 +4505,7 @@ function pcReadLocalConfigPayload(kind) {
     }
 }
 
-function pcApplyConfigPayload(kind, payload) {
+function pcApplyConfigPayload(kind, payload, recordHint) {
     pcApplyingServer = true;
     try {
         if (kind === 'colors' && payload && typeof payload === 'object') {
@@ -4465,11 +4529,12 @@ function pcApplyConfigPayload(kind, payload) {
         } else if (kind === 'list_refresh' && payload && typeof payload === 'object') {
             const at = Number(payload.at) || 0;
             const by = String(payload.by || '').trim().slice(0, 64);
-            GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify({ at, by }));
-        } else if (kind === 'phone_list' && Array.isArray(payload) && payload.length) {
-            GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(payload));
-            const ts = getPhoneListCacheTimestamp() || Date.now();
-            GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, ts);
+            if (at || by) {
+                GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify({ at, by }));
+            }
+        } else if (kind === 'phone_list') {
+            const snapshot = parsePhoneListSnapshot(payload, recordHint);
+            if (snapshot) applyPhoneListSnapshot(snapshot);
         } else if (kind === 'other_store_phones' && Array.isArray(payload) && payload.length) {
             GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(payload));
             GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, Date.now());
@@ -4655,10 +4720,17 @@ async function pcPullConfigs(token) {
         return { ok: false, status: listed.status };
     }
     const items = Array.isArray(listed.body?.items) ? listed.body.items : [];
-    items.forEach((rec) => {
+    const sorted = [...items].sort((a, b) => {
+        const ak = String(a.kind || '').trim();
+        const bk = String(b.kind || '').trim();
+        if (ak === 'phone_list') return 1;
+        if (bk === 'phone_list') return -1;
+        return 0;
+    });
+    sorted.forEach((rec) => {
         const kind = String(rec.kind || '').trim();
         const payload = pcParsePayload(rec.payload);
-        if (kind && payload != null) pcApplyConfigPayload(kind, payload);
+        if (kind && payload != null) pcApplyConfigPayload(kind, payload, rec);
     });
     return { ok: true, count: items.length };
 }
@@ -4758,26 +4830,28 @@ async function migratePhoneCatalogToServerOnce({ force = false } = {}) {
 }
 
 async function initPhoneCatalogServerSync() {
-    if (pcInitStarted) return;
-    pcInitStarted = true;
-    if (!pcUseDatabase()) {
-        console.log('[MMS Phone Catalog] server sync off (local mode)');
-        return;
-    }
-    pcRestorePendingQueues();
-    try {
-        await migratePhoneCatalogToServerOnce();
-        if (pcServerUnsupported) return;
-        const token = await pcEnsureAuthToken();
-        await pcPullConfigs(token);
-        await pcPullTags(token);
-        if (pcPendingKinds.size || pcPendingBarcodes.size) {
-            pcScheduleFlush(600);
+    if (pcInitPromise) return pcInitPromise;
+    pcInitPromise = (async () => {
+        if (!pcUseDatabase()) {
+            console.log('[MMS Phone Catalog] server sync off (local mode)');
+            return;
         }
-        console.log('[MMS Phone Catalog] server sync ready');
-    } catch (err) {
-        console.warn('[MMS Phone Catalog] init sync failed — staying local cache', err);
-    }
+        pcRestorePendingQueues();
+        try {
+            await migratePhoneCatalogToServerOnce();
+            if (pcServerUnsupported) return;
+            const token = await pcEnsureAuthToken();
+            await pcPullConfigs(token);
+            await pcPullTags(token);
+            if (pcPendingKinds.size || pcPendingBarcodes.size) {
+                pcScheduleFlush(600);
+            }
+            console.log('[MMS Phone Catalog] server sync ready');
+        } catch (err) {
+            console.warn('[MMS Phone Catalog] init sync failed — staying local cache', err);
+        }
+    })();
+    return pcInitPromise;
 }
 
 /**
@@ -4787,13 +4861,10 @@ async function initPhoneCatalogServerSync() {
 async function loadPhoneCatalogFromDatabase() {
     if (pcUseDatabase() && !pcServerUnsupported) {
         try {
-            if (!pcInitStarted) {
-                await initPhoneCatalogServerSync();
-            } else {
-                const token = await pcEnsureAuthToken();
-                await pcPullConfigs(token);
-                await pcPullTags(token);
-            }
+            await initPhoneCatalogServerSync();
+            const token = await pcEnsureAuthToken();
+            await pcPullConfigs(token);
+            await pcPullTags(token);
         } catch (err) {
             console.warn('[MMS Phone Catalog] database pull failed — using local cache', err);
         }
@@ -4801,9 +4872,14 @@ async function loadPhoneCatalogFromDatabase() {
 
     const meta = loadPhoneListRefreshMeta();
     const ts = Number(meta?.at) || getPhoneListCacheTimestamp() || 0;
+    const phones = loadPhoneListCache();
+    let otherStorePhones = getOtherStoreCache();
+    if (!otherStorePhones?.length) {
+        otherStorePhones = getOtherStoreCache({ ignoreExpiry: true });
+    }
     return {
-        phones: loadPhoneListCache() || [],
-        otherStorePhones: getOtherStoreCache() || [],
+        phones: Array.isArray(phones) && phones.length ? phones : [],
+        otherStorePhones: Array.isArray(otherStorePhones) && otherStorePhones.length ? otherStorePhones : [],
         lastUpdated: ts > 0 ? new Date(ts) : null,
         refreshedBy: String(meta?.by || '').trim(),
     };
