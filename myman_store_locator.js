@@ -2088,11 +2088,12 @@
         const menu = document.querySelector('.rnr-b-vmenu.simple.main');
         if (!menu) return false;
 
-        const enabled = config?.phoneCatalogEnabled !== false;
+        const phoneEnabled = config?.phoneCatalogEnabled !== false;
+        const laptopEnabled = config?.laptopCatalogEnabled !== false;
         const phoneItem = document.getElementById(PHONE_CATALOG_MENU_ID);
         const laptopItem = document.getElementById(LAPTOP_CATALOG_MENU_ID);
 
-        if (!enabled) {
+        if (!phoneEnabled) {
             if (phoneItem) phoneItem.style.display = 'none';
             if (laptopItem) laptopItem.style.display = 'none';
             return true;
@@ -2107,6 +2108,11 @@
             onOpen: openPhoneCatalogFromMenu,
             insertBefore: findMenuInsertPoint(menu),
         });
+
+        if (!laptopEnabled) {
+            if (laptopItem) laptopItem.style.display = 'none';
+            return phoneOk;
+        }
 
         const laptopOk = ensureSuiteCatalogMenuItem({
             menuId: LAPTOP_CATALOG_MENU_ID,
@@ -2128,6 +2134,9 @@
             document.getElementById(PHONE_CATALOG_MENU_ID)?.remove();
             document.getElementById(LAPTOP_CATALOG_MENU_ID)?.remove();
             return;
+        }
+        if (config?.laptopCatalogEnabled === false) {
+            document.getElementById(LAPTOP_CATALOG_MENU_ID)?.remove();
         }
 
         let attempts = 0;

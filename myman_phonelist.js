@@ -4238,6 +4238,7 @@ async function showPhoneListModal(options = {}) {
 }
 
 async function showLaptopCatalogModal() {
+    if (window.config?.laptopCatalogEnabled === false) return;
     return showPhoneListModal({ category: 'laptops' });
 }
 

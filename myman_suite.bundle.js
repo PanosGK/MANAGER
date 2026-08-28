@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v434 / Custom Ver. 42.18 — generated, do not edit */
+/* MyManager Suite bundle v435 / Custom Ver. 42.19 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '434',
+        version: '435',
         loaderVersion: '42',
-        silentVersion: '18',
-        displayVersion: '42.18',
+        silentVersion: '19',
+        displayVersion: '42.19',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
@@ -16725,6 +16725,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             saveNumber('tm-setting-recent-repairs-max', 'recentRepairsMaxItems');
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             saveCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
+            saveCheckbox('tm-setting-laptop-catalog-enabled', 'laptopCatalogEnabled');
             saveCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             saveCheckbox('tm-setting-suite-use-database', 'suiteUseDatabase');
             {
@@ -17332,6 +17333,15 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <p class="tm-setting-description">Μεταχειρισμένες συσκευές με αναζήτηση και CSV.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-phone-catalog-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-laptop-catalog-enabled">Κατάλογος Laptop</label>
+                            </div>
+                            <p class="tm-setting-description">Μεταχειρισμένα laptop — αναζήτηση, φίλτρα CPU/RAM/SSD.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-laptop-catalog-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -18162,6 +18172,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             populateCheckbox('tm-setting-repair-collab-enabled', 'repairCollabEnabled');
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
+            populateCheckbox('tm-setting-laptop-catalog-enabled', 'laptopCatalogEnabled');
             populateCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             {
                 const dbBox = document.getElementById('tm-setting-suite-use-database');
@@ -18280,6 +18291,18 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     config.phoneCatalogEnabled = value;
                     
                     // Update phone catalog button visibility
+                    if (typeof window.updatePhoneCatalogButtonVisibility === 'function') {
+                        window.updatePhoneCatalogButtonVisibility(config);
+                    }
+                });
+            }
+
+            const laptopCatalogCheckbox = document.getElementById('tm-setting-laptop-catalog-enabled');
+            if (laptopCatalogCheckbox) {
+                laptopCatalogCheckbox.addEventListener('change', () => {
+                    const value = laptopCatalogCheckbox.checked;
+                    GM_setValue('laptopCatalogEnabled', value);
+                    config.laptopCatalogEnabled = value;
                     if (typeof window.updatePhoneCatalogButtonVisibility === 'function') {
                         window.updatePhoneCatalogButtonVisibility(config);
                     }
@@ -62402,6 +62425,7 @@ async function showPhoneListModal(options = {}) {
 }
 
 async function showLaptopCatalogModal() {
+    if (window.config?.laptopCatalogEnabled === false) return;
     return showPhoneListModal({ category: 'laptops' });
 }
 
@@ -66249,11 +66273,12 @@ try {
         const menu = document.querySelector('.rnr-b-vmenu.simple.main');
         if (!menu) return false;
 
-        const enabled = config?.phoneCatalogEnabled !== false;
+        const phoneEnabled = config?.phoneCatalogEnabled !== false;
+        const laptopEnabled = config?.laptopCatalogEnabled !== false;
         const phoneItem = document.getElementById(PHONE_CATALOG_MENU_ID);
         const laptopItem = document.getElementById(LAPTOP_CATALOG_MENU_ID);
 
-        if (!enabled) {
+        if (!phoneEnabled) {
             if (phoneItem) phoneItem.style.display = 'none';
             if (laptopItem) laptopItem.style.display = 'none';
             return true;
@@ -66268,6 +66293,11 @@ try {
             onOpen: openPhoneCatalogFromMenu,
             insertBefore: findMenuInsertPoint(menu),
         });
+
+        if (!laptopEnabled) {
+            if (laptopItem) laptopItem.style.display = 'none';
+            return phoneOk;
+        }
 
         const laptopOk = ensureSuiteCatalogMenuItem({
             menuId: LAPTOP_CATALOG_MENU_ID,
@@ -66289,6 +66319,9 @@ try {
             document.getElementById(PHONE_CATALOG_MENU_ID)?.remove();
             document.getElementById(LAPTOP_CATALOG_MENU_ID)?.remove();
             return;
+        }
+        if (config?.laptopCatalogEnabled === false) {
+            document.getElementById(LAPTOP_CATALOG_MENU_ID)?.remove();
         }
 
         let attempts = 0;
@@ -74914,6 +74947,7 @@ if (typeof window !== 'undefined') {
         // Weather Widget
         weatherWidgetEnabled: true,
         phoneCatalogEnabled: true,
+        laptopCatalogEnabled: false,
         orderHistoryEnabled: true,
         suiteUseDatabase: true, // PocketBase: chat, whisper, shared order history, phone catalog annotations
         orderHistoryUseDatabase: true, // legacy mirror of suiteUseDatabase
