@@ -1,11 +1,11 @@
 {
-  "version": "438",
+  "version": "439",
   "loaderVersion": "42",
-  "silentVersion": "22",
-  "displayVersion": "42.22",
+  "silentVersion": "23",
+  "displayVersion": "42.23",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Phone catalog: keep own-store server cache on scrape, load PocketBase on open, add refresh-from-server button.",
+  "releaseNotes": "Fix phone catalog scrape hang: filter to used phones before pagesize, add timeouts, keep cache on failure.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

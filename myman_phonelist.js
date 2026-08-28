@@ -15,6 +15,9 @@ const PHONE_LIST_SOFT_REFRESH_MS = 4 * 60 * 60 * 1000; // 4 hours
 const OTHER_STORE_CACHE_KEY = 'tm_phone_other_store_cache_v3';
 const OTHER_STORE_CACHE_TIMESTAMP_KEY = 'tm_phone_other_store_cache_timestamp';
 const OTHER_STORE_CACHE_EXPIRATION_DAYS = 3;
+const PRODUCT_LIST_BASE = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php';
+const USED_PHONE_SEARCH_QS = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ';
+const PRODUCT_LIST_SCRAPE_TIMEOUT_MS = 90000;
 
 // Greek translations (using Unicode escape sequences to avoid encoding issues)
 const PHONE_CATALOG_TRANSLATIONS = {
@@ -2681,15 +2684,21 @@ function fetchStorehousesViaHttp(productCode) {
             resolve([]);
             return;
         }
+        const url = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(code)}`;
         GM_xmlhttpRequest({
             method: 'GET',
-            url: `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`,
+            url,
+            timeout: 20000,
             onload(response) {
-                window.restoreRunnerSessionSearch?.(response.finalUrl || `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`);
+                window.restoreRunnerSessionSearch?.(response.finalUrl || url);
                 resolve(parseStorehousesFromProductHtml(response.responseText || '', code));
             },
             onerror() {
-                window.restoreRunnerSessionSearch?.(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`);
+                window.restoreRunnerSessionSearch?.(url);
+                resolve([]);
+            },
+            ontimeout() {
+                window.restoreRunnerSessionSearch?.(url);
                 resolve([]);
             },
         });
@@ -2832,13 +2841,40 @@ async function fetchPhoneList(options = {}) {
             return cached;
         }
     }
-    return new Promise((resolve, reject) => {
+    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(USED_PHONE_SEARCH_QS)}&recordspp=-1`;
+    const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
+    const restoreSession = () => {
+        try { window.restoreRunnerSessionSearch?.(seedUrl); } catch (_) { /* ignore */ }
+    };
+
+    return new Promise((resolve) => {
+        const fail = (error, msg) => {
+            console.warn(msg, error || '');
+            restoreSession();
+            finalizePhoneListFetch([], onProgress, resolve);
+        };
+
         onProgress({ phase: 'init', ratio: 0.04 });
-        onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
-        // Full local-stock list — do not seed with qs=55. (other-store filter poisons PHPRunner session).
+        // Seed with the used-phone title so pagesize=1000000 does not dump the entire products table.
         GM_xmlhttpRequest({
             method: 'GET',
-            url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|',
+            url: seedUrl,
+            timeout: 30000,
+            onload: function(firstResponse) {
+                const seedOk = firstResponse
+                    && firstResponse.status >= 200
+                    && firstResponse.status < 300
+                    && String(firstResponse.responseText || '').length > 200;
+                if (!seedOk) {
+                    fail(null, '[MMS Phone List] Seed request returned empty/invalid page');
+                    return;
+                }
+                console.log('[MMS Phone List] Seed page loaded, fetching full phone list');
+                onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: pageUrl,
+                    timeout: PRODUCT_LIST_SCRAPE_TIMEOUT_MS,
                     onprogress: function(e) {
                         if (e.lengthComputable && e.total > 0) {
                             onProgress({
@@ -2884,6 +2920,7 @@ async function fetchPhoneList(options = {}) {
                         allTables.forEach((t, i) => {
                             console.log(`[MMS Phone List] Table ${i}: classes =`, t.className);
                         });
+                        restoreSession();
                         finalizePhoneListFetch([], onProgress, resolve);
                         return;
                     }
@@ -3038,16 +3075,26 @@ async function fetchPhoneList(options = {}) {
                     });
                     
                         console.log(`[MMS Phone List] Successfully parsed ${phones.length} phones`);
+                        restoreSession();
                         finalizePhoneListFetch(phones, onProgress, resolve);
                     } catch (error) {
-                        console.error('[MMS Phone List] Error parsing phone list:', error);
-                        reject(error);
+                        fail(error, '[MMS Phone List] Error parsing phone list:');
                     }
                 },
                 onerror: function(error) {
-                    console.error('[MMS Phone List] Failed to fetch phone list:', error);
-                    reject(error);
+                    fail(error, '[MMS Phone List] Failed to fetch phone list:');
+                },
+                ontimeout: function() {
+                    fail(null, '[MMS Phone List] List request timed out');
                 }
+                });
+            },
+            onerror: function(error) {
+                fail(error, '[MMS Phone List] Seed request failed:');
+            },
+            ontimeout: function() {
+                fail(null, '[MMS Phone List] Seed request timed out');
+            }
         });
     });
 }
@@ -3453,7 +3500,7 @@ function getOtherStoreLaptopCache() {
     }
 }
 
-function pcRequestHtml(url) {
+function pcRequestHtml(url, timeoutMs) {
     return new Promise((resolve) => {
         const xhr = typeof GM_xmlhttpRequest === 'function' ? GM_xmlhttpRequest : null;
         if (!xhr) {
@@ -3463,7 +3510,7 @@ function pcRequestHtml(url) {
         xhr({
             method: 'GET',
             url,
-            timeout: 20000,
+            timeout: Number(timeoutMs) > 0 ? Number(timeoutMs) : 20000,
             onload(res) {
                 resolve({
                     ok: res.status >= 200 && res.status < 300,
@@ -3649,14 +3696,12 @@ function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherSto
 }
 
 async function fetchProductListHtml(qsPrefix, onProgress) {
-    const first = await pcRequestHtml(
-        `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(qsPrefix)}&recordspp=-1`
-    );
+    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(qsPrefix)}&recordspp=-1`;
+    const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
+    const first = await pcRequestHtml(seedUrl, 30000);
     if (!first.ok) throw new Error(`Laptop list seed failed (${qsPrefix})`);
     if (typeof onProgress === 'function') onProgress({ phase: 'download', ratio: 0.15, qs: qsPrefix });
-    const second = await pcRequestHtml(
-        'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|'
-    );
+    const second = await pcRequestHtml(pageUrl, PRODUCT_LIST_SCRAPE_TIMEOUT_MS);
     if (!second.ok) throw new Error(`Laptop list page failed (${qsPrefix})`);
     if (typeof onProgress === 'function') onProgress({ phase: 'parse', ratio: 0.55, qs: qsPrefix });
     const parser = new DOMParser();
@@ -3706,6 +3751,7 @@ async function fetchLaptopList(options = {}) {
     saveLaptopListCache(laptops);
     onProgress({ phase: 'done', ratio: 1 });
     console.log(`[MMS Phone List] Parsed ${laptops.length} used laptops`);
+    try { window.restoreRunnerSessionSearch?.(`${PRODUCT_LIST_BASE}?qs=${encodeURIComponent('56.')}`); } catch (_) { /* ignore */ }
     return laptops;
 }
 
@@ -3747,6 +3793,7 @@ async function fetchOtherStoreLaptops(options = {}) {
         .map((item) => hydrateLaptopItem(item));
     saveOtherStoreLaptopCache(laptops);
     onProgress({ phase: 'done', ratio: 1 });
+    try { window.restoreRunnerSessionSearch?.(`${PRODUCT_LIST_BASE}?qs=${encodeURIComponent('56.')}`); } catch (_) { /* ignore */ }
     return laptops;
 }
 
@@ -3763,13 +3810,54 @@ async function fetchOtherStorePhones(options = {}) {
         }
     }
     
-    return new Promise((resolve, reject) => {
-        const fetchWithUrl = (url, fallbackUrl) => {
-            onProgress({ phase: 'init', ratio: 0.05 });
-            GM_xmlhttpRequest({
-                method: 'GET',
-                url,
-                onprogress: function(e) {
+    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(USED_PHONE_SEARCH_QS)}&recordspp=-1`;
+    const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
+    const restoreSession = () => {
+        try { window.restoreRunnerSessionSearch?.(seedUrl); } catch (_) { /* ignore */ }
+    };
+
+    return new Promise((resolve) => {
+        const finish = (result) => {
+            restoreSession();
+            const list = Array.isArray(result) ? result : [];
+            if (list.length) {
+                saveOtherStoreCache(list);
+                onProgress({ phase: 'done', ratio: 1 });
+                resolve(list);
+                return;
+            }
+            const cached = getOtherStoreCache({ ignoreExpiry: true });
+            if (cached?.length) {
+                console.warn('[MMS Other Stores] Scrape empty — keeping cached snapshot');
+                onProgress({ phase: 'done', ratio: 1, fromCache: true });
+                resolve(cached);
+                return;
+            }
+            onProgress({ phase: 'done', ratio: 1 });
+            resolve([]);
+        };
+
+        onProgress({ phase: 'init', ratio: 0.05 });
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: seedUrl,
+            timeout: 30000,
+            onload: function(firstResponse) {
+                const seedOk = firstResponse
+                    && firstResponse.status >= 200
+                    && firstResponse.status < 300
+                    && String(firstResponse.responseText || '').length > 200;
+                if (!seedOk) {
+                    console.warn('[MMS Other Stores] Seed request returned empty/invalid page');
+                    finish([]);
+                    return;
+                }
+                onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: pageUrl,
+                    timeout: PRODUCT_LIST_SCRAPE_TIMEOUT_MS,
+                    onprogress: function(e) {
                     if (e.lengthComputable && e.total > 0) {
                         onProgress({
                             phase: 'download',
@@ -3798,12 +3886,8 @@ async function fetchOtherStorePhones(options = {}) {
                         if (!table) table = doc.querySelector('.rnr-c-grid table, table.rnr-gridtable');
                         
                         if (!table) {
-                            if (fallbackUrl) {
-                                fetchWithUrl(fallbackUrl, null);
-                            } else {
-                                console.error('[MMS Other Stores] Table not found');
-                                resolve([]);
-                            }
+                            console.error('[MMS Other Stores] Table not found');
+                            finish([]);
                             return;
                         }
                         
@@ -3856,11 +3940,9 @@ async function fetchOtherStorePhones(options = {}) {
                             if (!stores.length) stores = parseOtherStorehousesFromRow(row);
                             const isBuyback = isBuybackTitle(name);
                             
-                            // Only include items with "ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ" in the title
                             const nameUpper = name.toUpperCase();
-                            const greekPhonePrefix = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ';
-                            if (!nameUpper.includes(greekPhonePrefix)) {
-                                return; // Skip this item
+                            if (!nameUpper.includes(USED_PHONE_SEARCH_QS)) {
+                                return;
                             }
                             
                             result.push({
@@ -3877,34 +3959,31 @@ async function fetchOtherStorePhones(options = {}) {
                             });
                         });
                         
-                        saveOtherStoreCache(result);
-                        window.restoreRunnerSessionSearch?.(url);
-                        onProgress({ phase: 'done', ratio: 1 });
-                        resolve(result);
+                        finish(result);
                     } catch (err) {
-                        if (fallbackUrl) {
-                            fetchWithUrl(fallbackUrl, null);
-                        } else {
-                            console.error('[MMS Other Stores] Parse error:', err);
-                            reject(err);
-                        }
+                        console.error('[MMS Other Stores] Parse error:', err);
+                        finish([]);
                     }
                 },
                 onerror: function(error) {
-                    if (fallbackUrl) {
-                        fetchWithUrl(fallbackUrl, null);
-                    } else {
-                        console.error('[MMS Other Stores] Request failed:', error);
-                        reject(error);
-                    }
+                    console.warn('[MMS Other Stores] Request failed:', error);
+                    finish([]);
+                },
+                ontimeout: function() {
+                    console.warn('[MMS Other Stores] Request timed out');
+                    finish([]);
                 }
-            });
-        };
-        
-        // First try with the query string that surfaces other-store availability (qs=55.)
-        const primaryUrl = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&pagesize=1000000|';
-        const fallbackUrl = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|';
-        fetchWithUrl(primaryUrl, fallbackUrl);
+                });
+            },
+            onerror: function(error) {
+                console.warn('[MMS Other Stores] Seed request failed:', error);
+                finish([]);
+            },
+            ontimeout: function() {
+                console.warn('[MMS Other Stores] Seed request timed out');
+                finish([]);
+            }
+        });
     });
 }
 
