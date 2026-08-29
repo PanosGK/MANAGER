@@ -22,6 +22,7 @@
     "myman_menu_icons.js",
     "myman_search.js",
     "myman_chat.js",
+    "myman_suite_access.js",
     "myman_mascot.js",
     "myman_mascot_play.js",
     "myman_gamification.js",

@@ -21,6 +21,12 @@
             where: 'Ισχύει σε όλες τις σελίδες του MyManager όπου φορτώνει το script.',
             when: 'Όταν είναι off, το suite δεν τρέχει. Εναλλαγή με Ctrl+Shift+. (ή το κουμπί Enable MyManager).',
         },
+        suite_access: {
+            title: 'Χρήστες suite',
+            what: 'Δείχνει ποιοι λογαριασμοί τρέχουν το script και επιτρέπει απομακρυσμένο on/off ανά χρήστη.',
+            where: 'Ρυθμίσεις → Ανάπτυξη. Απαιτεί PocketBase collection suite_access.',
+            when: 'Για να δείτε δραστηριότητα και να κλείσετε το suite σε συγκεκριμένο τεχνικό χωρίς να πειράξετε τους άλλους.',
+        },
         notifications: {
             title: 'Ειδοποιήσεις',
             what: 'Εμφανίζει το κουμπί ειδοποιήσεων και όλα τα popups (επιτεύγματα, υπενθυμίσεις, μηνύματα συστήματος).',
@@ -894,7 +900,11 @@
             const info = tmSettingsInfoBtn;
             const status40AdminUser = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_USERNAME, '');
             const status40AdminPass = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_PASSWORD, '');
+            const suiteAccessHtml = typeof window.getSuiteAccessSettingsHTML === 'function'
+                ? window.getSuiteAccessSettingsHTML()
+                : '';
             return `
+                ${suiteAccessHtml}
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
                         <div class="tm-setting-label-row">
@@ -1870,6 +1880,9 @@
             overlay.querySelector('#tm-import-data-btn')?.addEventListener('click', handleImportData);
             initUpdatesSettingsPage();
             initDataManagementControls();
+            if (typeof window.mountSuiteAccessSettings === 'function') {
+                window.mountSuiteAccessSettings(overlay.querySelector('#tm-suite-access-root'));
+            }
 
             // --- Populate Checkboxes ---
             const populateCheckbox = (id, key) => {
@@ -1905,9 +1918,11 @@
                     // Save the value
                     GM_setValue('debugEnabled', e.target.checked);
                     config.debugEnabled = e.target.checked;
-                    const debugTabNav = overlay.querySelector('[data-debug-only="true"]');
-                    if (debugTabNav) {
-                        debugTabNav.style.display = e.target.checked ? 'block' : 'none';
+                    overlay.querySelectorAll('[data-debug-only="true"]').forEach((el) => {
+                        el.style.display = e.target.checked ? 'block' : 'none';
+                    });
+                    if (typeof window.mountSuiteAccessSettings === 'function') {
+                        window.mountSuiteAccessSettings(overlay.querySelector('#tm-suite-access-root'));
                     }
                 });
             }

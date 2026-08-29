@@ -27,6 +27,7 @@
 
     const STORAGE_KEYS = {
         SCRIPT_ENABLED: 'tm_script_enabled', // Master toggle
+        SUITE_REMOTE_DISABLED: 'tm_suite_remote_disabled',
         USER_XP: 'tm_user_xp',
         USER_LEVEL: 'tm_user_level',
         ACHIEVEMENTS: 'tm_achievements_unlocked',
