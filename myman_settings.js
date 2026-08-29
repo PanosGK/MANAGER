@@ -21,6 +21,12 @@
             where: 'Ισχύει σε όλες τις σελίδες του MyManager όπου φορτώνει το script.',
             when: 'Όταν είναι off, το suite δεν τρέχει. Εναλλαγή με Ctrl+Shift+. (ή το κουμπί Enable MyManager).',
         },
+        suite_access: {
+            title: 'Χρήστες suite',
+            what: 'Δείχνει ποιοι λογαριασμοί τρέχουν το script και επιτρέπει απομακρυσμένο on/off ανά χρήστη.',
+            where: 'Ρυθμίσεις → Χρήστες. Απαιτεί PocketBase collection suite_access.',
+            when: 'Για να δείτε δραστηριότητα και να κλείσετε το suite σε συγκεκριμένο τεχνικό χωρίς να πειράξετε τους άλλους.',
+        },
         notifications: {
             title: 'Ειδοποιήσεις',
             what: 'Εμφανίζει το κουμπί ειδοποιήσεων και όλα τα popups (επιτεύγματα, υπενθυμίσεις, μηνύματα συστήματος).',
@@ -1769,6 +1775,7 @@
                                 <li><a href="#sec-gamification"><span class="tm-nav-icon" aria-hidden="true">🎮</span><span class="tm-nav-label">Παιχνίδι</span></a></li>
                                 <li><a href="#sec-updates"><span class="tm-nav-icon" aria-hidden="true">↻</span><span class="tm-nav-label">Ενημερώσεις</span></a></li>
                                 <li><a href="#sec-data"><span class="tm-nav-icon" aria-hidden="true">💾</span><span class="tm-nav-label">Δεδομένα</span></a></li>
+                                <li><a href="#sec-access"><span class="tm-nav-icon" aria-hidden="true">👥</span><span class="tm-nav-label">Χρήστες</span></a></li>
                                 <li class="tm-nav-debug" style="display: none;" data-debug-only="true"><a href="#sec-debug"><span class="tm-nav-icon" aria-hidden="true">🔧</span><span class="tm-nav-label">Ανάπτυξη</span></a></li>
                             </ul>
                         </aside>
@@ -1780,6 +1787,7 @@
                             <section id="sec-debug">${getDebugSettingsHTML()}</section>
                             <section id="sec-updates">${getUpdatesSettingsHTML()}</section>
                             <section id="sec-data">${getDataManagementHTML()}</section>
+                            <section id="sec-access">${typeof window.getSuiteAccessSettingsHTML === 'function' ? window.getSuiteAccessSettingsHTML() : ''}</section>
                         </main>
                     </div>
                     <div class="tm-modal-footer tm-settings-footer">
@@ -1870,6 +1878,9 @@
             overlay.querySelector('#tm-import-data-btn')?.addEventListener('click', handleImportData);
             initUpdatesSettingsPage();
             initDataManagementControls();
+            if (typeof window.mountSuiteAccessSettings === 'function') {
+                window.mountSuiteAccessSettings(overlay.querySelector('#tm-suite-access-root'));
+            }
 
             // --- Populate Checkboxes ---
             const populateCheckbox = (id, key) => {
@@ -1905,9 +1916,11 @@
                     // Save the value
                     GM_setValue('debugEnabled', e.target.checked);
                     config.debugEnabled = e.target.checked;
-                    const debugTabNav = overlay.querySelector('[data-debug-only="true"]');
-                    if (debugTabNav) {
-                        debugTabNav.style.display = e.target.checked ? 'block' : 'none';
+                    overlay.querySelectorAll('[data-debug-only="true"]').forEach((el) => {
+                        el.style.display = e.target.checked ? 'block' : 'none';
+                    });
+                    if (typeof window.mountSuiteAccessSettings === 'function') {
+                        window.mountSuiteAccessSettings(overlay.querySelector('#tm-suite-access-root'));
                     }
                 });
             }

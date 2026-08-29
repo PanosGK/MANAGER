@@ -5194,6 +5194,17 @@
         console.log('[MMS] Repair Age Indicator Enabled:', config.repairAgeIndicatorEnabled);
         }
 
+        // Check remote disable first (admin kill switch)
+        if (typeof window.isSuiteRemoteDisabled === 'function' && window.isSuiteRemoteDisabled()) {
+            if (typeof window.showSuiteRemoteDisabledUi === 'function') {
+                window.showSuiteRemoteDisabledUi();
+            }
+            if (typeof window.initSuiteAccessFeature === 'function') {
+                window.initSuiteAccessFeature();
+            }
+            return;
+        }
+
         // Check if script is enabled - if not, show minimal recovery UI and exit
         if (!config.scriptEnabled) {
             // Stealth mode — suite features off. Recovery lives here too for local @require loader.
@@ -5338,6 +5349,9 @@
         }
         if (typeof window.initOfficeChatFeature === 'function') {
             window.initOfficeChatFeature(config, STORAGE_KEYS);
+        }
+        if (typeof window.initSuiteAccessFeature === 'function') {
+            window.initSuiteAccessFeature();
         }
         
         if (typeof window.initPhoneCatalogMenuItem === 'function') {

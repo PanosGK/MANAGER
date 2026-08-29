@@ -13,6 +13,8 @@
     'use strict';
 
     const MENU_ID = 'tm-adb-backup-menu-item';
+    const ORDER_BTN_ID = 'tm-adb-backup-order-btn';
+    const ORDER_WRAP_ID = 'tm-adb-backup-order-wrap';
     const OVERLAY_ID = 'tm-adb-backup-overlay';
     const DEFAULT_URL = 'http://127.0.0.1:8765';
     const HELPER_HINT = 'adb-backup\\Start-WebBackup.bat';
@@ -1334,9 +1336,53 @@
         return true;
     }
 
+    function isOrderOrRepairEditPage() {
+        const p = String(window.location.pathname || '').toLowerCase();
+        return p.includes('service_edit.php')
+            || p.includes('sparepartstoorder_edit.php')
+            || p.includes('srvorders_edit.php');
+    }
+
+    function ensureAdbBackupOrderButton(config) {
+        if (!isOrderOrRepairEditPage()) return true;
+        if (!isFeatureEnabled(config)) {
+            document.getElementById(ORDER_WRAP_ID)?.remove();
+            return true;
+        }
+        if (document.getElementById(ORDER_BTN_ID)) return true;
+
+        const anchor =
+            document.querySelector('.rnr-b-editbuttons .rnr-buttons-right') ||
+            document.querySelector('.rnr-b-editbuttons .rnr-buttons-left') ||
+            document.querySelector('.rnr-brickcontents.rnr-b-editbuttons') ||
+            document.querySelector('.rnr-b-editbuttons');
+        if (!anchor) return false;
+
+        const wrap = document.createElement('div');
+        wrap.id = ORDER_WRAP_ID;
+        wrap.style.cssText = 'display:inline-flex;align-items:stretch;margin-left:4px;vertical-align:middle;';
+        wrap.innerHTML = `<a href="#" id="${ORDER_BTN_ID}" class="rnr-button" role="button" title="Αντίγραφο συσκευής από USB">⎘&nbsp;Αντίγραφο</a>`;
+        wrap.querySelector('a')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showAdbBackupModal();
+        });
+
+        const backToListBtn = Array.from(anchor.querySelectorAll('a, button, input[type="button"], input[type="submit"]'))
+            .find((el) => {
+                const text = String(el.textContent || el.value || el.title || '').toLowerCase();
+                const href = String(el.getAttribute?.('href') || '').toLowerCase();
+                return /back\s*to\s*list|επιστροφή|λιστα|λίστα/.test(text) || /_list\.php/.test(href);
+            });
+        if (backToListBtn) anchor.insertBefore(wrap, backToListBtn);
+        else anchor.appendChild(wrap);
+        return true;
+    }
+
     function initAdbBackupFeature(config) {
         if (!isFeatureEnabled(config)) {
             document.getElementById(MENU_ID)?.remove();
+            document.getElementById(ORDER_WRAP_ID)?.remove();
             closeAdbBackupModal();
             return;
         }
@@ -1345,26 +1391,26 @@
         let observer = null;
         const tryInject = () => {
             attempts += 1;
-            if (ensureAdbBackupMenuItem(config)) {
-                observer?.disconnect();
-                return;
-            }
-            if (attempts >= maxAttempts) observer?.disconnect();
+            const menuOk = ensureAdbBackupMenuItem(config);
+            const btnOk = ensureAdbBackupOrderButton(config);
+            if ((menuOk && btnOk) || attempts >= maxAttempts) observer?.disconnect();
         };
         tryInject();
         observer = new MutationObserver(tryInject);
-        const leftPanel = document.querySelector('.rnr-left') || document.body;
-        observer.observe(leftPanel, { childList: true, subtree: true });
+        const watchRoot = document.querySelector('.rnr-pagewrapper') || document.body;
+        observer.observe(watchRoot, { childList: true, subtree: true });
         setTimeout(() => observer?.disconnect(), 10000);
     }
 
     function updateAdbBackupMenuVisibility(config) {
         if (!isFeatureEnabled(config)) {
             document.getElementById(MENU_ID)?.remove();
+            document.getElementById(ORDER_WRAP_ID)?.remove();
             closeAdbBackupModal();
             return;
         }
         ensureAdbBackupMenuItem(config);
+        ensureAdbBackupOrderButton(config);
     }
 
     window.initAdbBackupFeature = initAdbBackupFeature;
