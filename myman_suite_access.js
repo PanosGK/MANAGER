@@ -352,35 +352,27 @@
     }
 
     function mergeAccessRows(accessItems, presenceItems) {
-        const map = new Map();
+        const presenceByUser = new Map();
         for (const p of presenceItems) {
             const uid = String(p.userId || '');
             if (!uid) continue;
-            map.set(uid, {
-                userId: uid,
-                displayName: p.displayName || 'Τεχνικός',
-                lastSeen: p.lastSeen || '',
-                store: p.store || '',
-                bundleVersion: '',
-                enabled: true,
-                accessId: '',
-            });
+            presenceByUser.set(uid, p);
         }
-        for (const a of accessItems) {
+        // Only suite_access rows — presence enriches lastSeen/store, never adds extra names.
+        return (accessItems || []).map((a) => {
             const uid = String(a.userId || '');
-            if (!uid) continue;
-            const prev = map.get(uid) || {};
-            map.set(uid, {
+            const p = presenceByUser.get(uid) || {};
+            return {
                 userId: uid,
-                displayName: a.displayName || prev.displayName || 'Τεχνικός',
-                lastSeen: newerIso(a.lastSeen, prev.lastSeen),
-                store: a.store || prev.store || '',
+                displayName: a.displayName || p.displayName || 'Τεχνικός',
+                lastSeen: newerIso(a.lastSeen, p.lastSeen),
+                store: a.store || p.store || '',
                 bundleVersion: a.bundleVersion || '',
                 enabled: a.enabled !== false,
                 accessId: a.id || '',
-            });
-        }
-        return [...map.values()].sort((a, b) => (new Date(b.lastSeen || 0).getTime() || 0) - (new Date(a.lastSeen || 0).getTime() || 0));
+            };
+        }).filter((row) => row.userId)
+            .sort((a, b) => (new Date(b.lastSeen || 0).getTime() || 0) - (new Date(a.lastSeen || 0).getTime() || 0));
     }
 
     async function setUserEnabled(row, enabled) {
