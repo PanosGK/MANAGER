@@ -16162,7 +16162,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         suite_access: {
             title: 'Χρήστες suite',
             what: 'Δείχνει ποιοι λογαριασμοί τρέχουν το script και επιτρέπει απομακρυσμένο on/off ανά χρήστη.',
-            where: 'Ρυθμίσεις → Χρήστες. Απαιτεί PocketBase collection suite_access.',
+            where: 'Ρυθμίσεις → Ανάπτυξη. Απαιτεί PocketBase collection suite_access.',
             when: 'Για να δείτε δραστηριότητα και να κλείσετε το suite σε συγκεκριμένο τεχνικό χωρίς να πειράξετε τους άλλους.',
         },
         notifications: {
@@ -17038,7 +17038,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const info = tmSettingsInfoBtn;
             const status40AdminUser = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_USERNAME, '');
             const status40AdminPass = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_PASSWORD, '');
+            const suiteAccessHtml = typeof window.getSuiteAccessSettingsHTML === 'function'
+                ? window.getSuiteAccessSettingsHTML()
+                : '';
             return `
+                ${suiteAccessHtml}
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
                         <div class="tm-setting-label-row">
@@ -17913,7 +17917,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                                 <li><a href="#sec-gamification"><span class="tm-nav-icon" aria-hidden="true">🎮</span><span class="tm-nav-label">Παιχνίδι</span></a></li>
                                 <li><a href="#sec-updates"><span class="tm-nav-icon" aria-hidden="true">↻</span><span class="tm-nav-label">Ενημερώσεις</span></a></li>
                                 <li><a href="#sec-data"><span class="tm-nav-icon" aria-hidden="true">💾</span><span class="tm-nav-label">Δεδομένα</span></a></li>
-                                <li><a href="#sec-access"><span class="tm-nav-icon" aria-hidden="true">👥</span><span class="tm-nav-label">Χρήστες</span></a></li>
                                 <li class="tm-nav-debug" style="display: none;" data-debug-only="true"><a href="#sec-debug"><span class="tm-nav-icon" aria-hidden="true">🔧</span><span class="tm-nav-label">Ανάπτυξη</span></a></li>
                             </ul>
                         </aside>
@@ -17925,7 +17928,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <section id="sec-debug">${getDebugSettingsHTML()}</section>
                             <section id="sec-updates">${getUpdatesSettingsHTML()}</section>
                             <section id="sec-data">${getDataManagementHTML()}</section>
-                            <section id="sec-access">${typeof window.getSuiteAccessSettingsHTML === 'function' ? window.getSuiteAccessSettingsHTML() : ''}</section>
                         </main>
                     </div>
                     <div class="tm-modal-footer tm-settings-footer">
@@ -27670,19 +27672,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     function mountSuiteAccessSettings(root) {
         if (!root) return;
         const wrap = root.parentElement;
-        const unlockBtn = wrap?.querySelector('#tm-suite-access-unlock');
-        if (unlockBtn) {
-            unlockBtn.style.display = canManageAccess() ? 'none' : '';
-            if (!unlockBtn.dataset.tmBound) {
-                unlockBtn.dataset.tmBound = '1';
-                unlockBtn.addEventListener('click', () => {
-                    if (unlockManageAccess()) {
-                        unlockBtn.style.display = 'none';
-                        refreshAccessPanel(root);
-                    }
-                });
-            }
-        }
         const btn = wrap?.querySelector('#tm-suite-access-refresh');
         if (btn && !btn.dataset.tmBound) {
             btn.dataset.tmBound = '1';
@@ -27703,7 +27692,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     <div class="tm-setting-label" style="flex:1;min-width:0">
                         <div style="display:flex;gap:8px;flex-wrap:wrap">
                             <button type="button" class="tm-settings-input" id="tm-suite-access-refresh" style="width:auto;cursor:pointer">Ανανέωση λίστας</button>
-                            <button type="button" class="tm-settings-input" id="tm-suite-access-unlock" style="width:auto;cursor:pointer">Ξεκλείδωμα on/off</button>
                         </div>
                         <div id="tm-suite-access-root" style="margin-top:10px"></div>
                     </div>

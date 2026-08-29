@@ -521,19 +521,6 @@
     function mountSuiteAccessSettings(root) {
         if (!root) return;
         const wrap = root.parentElement;
-        const unlockBtn = wrap?.querySelector('#tm-suite-access-unlock');
-        if (unlockBtn) {
-            unlockBtn.style.display = canManageAccess() ? 'none' : '';
-            if (!unlockBtn.dataset.tmBound) {
-                unlockBtn.dataset.tmBound = '1';
-                unlockBtn.addEventListener('click', () => {
-                    if (unlockManageAccess()) {
-                        unlockBtn.style.display = 'none';
-                        refreshAccessPanel(root);
-                    }
-                });
-            }
-        }
         const btn = wrap?.querySelector('#tm-suite-access-refresh');
         if (btn && !btn.dataset.tmBound) {
             btn.dataset.tmBound = '1';
@@ -554,7 +541,6 @@
                     <div class="tm-setting-label" style="flex:1;min-width:0">
                         <div style="display:flex;gap:8px;flex-wrap:wrap">
                             <button type="button" class="tm-settings-input" id="tm-suite-access-refresh" style="width:auto;cursor:pointer">Ανανέωση λίστας</button>
-                            <button type="button" class="tm-settings-input" id="tm-suite-access-unlock" style="width:auto;cursor:pointer">Ξεκλείδωμα on/off</button>
                         </div>
                         <div id="tm-suite-access-root" style="margin-top:10px"></div>
                     </div>
