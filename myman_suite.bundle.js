@@ -27306,7 +27306,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function bundleLabel() {
-        return String(window.SCRIPT_META?.displayVersion || window.TMMS_REMOTE_DISPLAY_VERSION || '').slice(0, 32);
+        return String(
+            window.SCRIPT_META?.displayVersion
+            || window.TMMS_REMOTE_DISPLAY_VERSION
+            || window.SCRIPT_META?.version
+            || ''
+        ).slice(0, 32);
     }
 
     function isCollectionMissing(status, raw) {
@@ -27616,8 +27621,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 : `<span style="font-size:12px;font-weight:700;opacity:.8">${on ? 'Ενεργό' : 'Off'}</span>`;
             return `<div class="tm-suite-access-row" data-user-id="${escapeHtml(row.userId)}" data-access-id="${escapeHtml(row.accessId || '')}" data-display="${escapeHtml(row.displayName || '')}" data-store="${escapeHtml(row.store || '')}" data-seen="${escapeHtml(row.lastSeen || '')}" style="display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--tm-shop-item-border,#333);">
                 <div style="min-width:0">
-                    <div style="font-weight:750">${escapeHtml(row.displayName || 'Τεχνικός')}${mine ? ' <span style="opacity:.6">(εσείς)</span>' : ''}</div>
-                    <div style="font-size:12px;opacity:.72"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${online ? '#22c55e' : '#64748b'};margin-right:5px;vertical-align:middle"></span>${online ? 'Online' : 'Τελευταία εμφάνιση'} · ${escapeHtml(formatAgo(row.lastSeen))}${row.store ? ` · ${escapeHtml(row.store)}` : ''}${row.bundleVersion ? ` · v${escapeHtml(row.bundleVersion)}` : ''}</div>
+                    <div style="font-weight:750">${escapeHtml(row.displayName || 'Τεχνικός')}${row.bundleVersion ? ` <span style="font-weight:650;opacity:.65;font-size:12px">v${escapeHtml(row.bundleVersion)}</span>` : ''}${mine ? ' <span style="opacity:.6">(εσείς)</span>' : ''}</div>
+                    <div style="font-size:12px;opacity:.72"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${online ? '#22c55e' : '#64748b'};margin-right:5px;vertical-align:middle"></span>${online ? 'Online' : 'Τελευταία εμφάνιση'} · ${escapeHtml(formatAgo(row.lastSeen))}${row.store ? ` · ${escapeHtml(row.store)}` : ''}</div>
                 </div>
                 ${toggle}
             </div>`;
