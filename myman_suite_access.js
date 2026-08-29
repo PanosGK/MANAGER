@@ -441,45 +441,225 @@
         else document.addEventListener('DOMContentLoaded', mount);
     }
 
+    function ensureAccessStyles() {
+        if (document.getElementById('tm-suite-access-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'tm-suite-access-styles';
+        style.textContent = `
+            .tm-sa-panel { display: grid; gap: 12px; }
+            .tm-sa-toolbar {
+                display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+            }
+            .tm-sa-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+            .tm-sa-stat {
+                display: inline-flex; align-items: center; gap: 6px;
+                padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+                background: color-mix(in srgb, var(--tm-shop-item-text, #333) 8%, transparent);
+                color: var(--tm-shop-item-text, var(--tm-primary-color, #eee));
+                border: 1px solid var(--tm-shop-item-border, #333);
+            }
+            .tm-sa-stat-dot {
+                width: 7px; height: 7px; border-radius: 50%; background: #64748b; flex-shrink: 0;
+            }
+            .tm-sa-stat-dot.is-online { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
+            .tm-sa-refresh {
+                width: auto !important; cursor: pointer; padding: 6px 12px !important;
+                font-size: 12px !important; font-weight: 700 !important;
+            }
+            .tm-sa-note {
+                padding: 10px 12px; border-radius: 10px;
+                border: 1px solid var(--tm-shop-item-border, #333);
+                background: color-mix(in srgb, var(--tm-shop-item-hover-bg, #222) 70%, transparent);
+            }
+            .tm-sa-note .tm-setting-description { margin: 0; }
+            .tm-sa-note .tm-setting-description + .tm-setting-description,
+            .tm-sa-note ul { margin-top: 8px; }
+            .tm-sa-list {
+                display: grid; gap: 8px;
+                max-height: min(52vh, 420px); overflow: auto; padding-right: 2px;
+            }
+            .tm-sa-row {
+                display: grid;
+                grid-template-columns: 40px minmax(0, 1fr) auto;
+                gap: 12px; align-items: center;
+                padding: 10px 12px; border-radius: 12px;
+                border: 1px solid var(--tm-shop-item-border, #333);
+                background: var(--tm-shop-item-bg, transparent);
+                transition: border-color .15s ease, background .15s ease;
+            }
+            .tm-sa-row:hover {
+                background: var(--tm-shop-item-hover-bg, color-mix(in srgb, var(--tm-shop-item-bg, #222) 80%, #fff 6%));
+            }
+            .tm-sa-row.is-off { opacity: .72; }
+            .tm-sa-row.is-mine {
+                border-color: color-mix(in srgb, var(--tm-accent-color, #3b82f6) 45%, var(--tm-shop-item-border, #333));
+            }
+            .tm-sa-avatar {
+                width: 40px; height: 40px; border-radius: 11px;
+                display: grid; place-items: center;
+                font-weight: 800; font-size: 14px; letter-spacing: .02em;
+                color: var(--tm-shop-item-text, #eee);
+                background: color-mix(in srgb, var(--tm-accent-color, #3b82f6) 22%, var(--tm-shop-item-bg, #1a1a1a));
+                border: 1px solid color-mix(in srgb, var(--tm-accent-color, #3b82f6) 28%, var(--tm-shop-item-border, #333));
+                position: relative;
+            }
+            .tm-sa-presence {
+                position: absolute; right: -2px; bottom: -2px;
+                width: 10px; height: 10px; border-radius: 50%;
+                background: #64748b;
+                border: 2px solid var(--tm-shop-item-bg, #161616);
+            }
+            .tm-sa-presence.is-online { background: #22c55e; }
+            .tm-sa-main { min-width: 0; display: grid; gap: 4px; }
+            .tm-sa-name-row {
+                display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; min-width: 0;
+            }
+            .tm-sa-name {
+                font-weight: 750; font-size: 13.5px; line-height: 1.2;
+                color: var(--tm-shop-item-text, var(--tm-primary-color, #eee));
+                overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+            }
+            .tm-sa-ver {
+                font-size: 11px; font-weight: 700; letter-spacing: .02em;
+                padding: 2px 7px; border-radius: 999px;
+                color: var(--tm-subtle-text, #94a3b8);
+                background: color-mix(in srgb, var(--tm-shop-item-text, #333) 10%, transparent);
+                border: 1px solid var(--tm-shop-item-border, #333);
+                flex-shrink: 0;
+            }
+            .tm-sa-you {
+                font-size: 11px; font-weight: 700; opacity: .65; flex-shrink: 0;
+            }
+            .tm-sa-meta {
+                display: flex; flex-wrap: wrap; gap: 6px 10px;
+                font-size: 12px; opacity: .74; line-height: 1.3;
+            }
+            .tm-sa-meta-item { white-space: nowrap; }
+            .tm-sa-side { display: grid; justify-items: end; gap: 4px; }
+            .tm-sa-switch {
+                display: inline-flex; align-items: center; gap: 8px;
+                font-size: 11px; font-weight: 750; cursor: pointer; user-select: none;
+                color: var(--tm-shop-item-text, var(--tm-primary-color, #eee));
+            }
+            .tm-sa-switch input {
+                appearance: none; -webkit-appearance: none;
+                width: 36px; height: 20px; margin: 0; border-radius: 999px;
+                background: #475569; border: 0; position: relative; cursor: pointer;
+                transition: background .15s ease;
+            }
+            .tm-sa-switch input::after {
+                content: ''; position: absolute; top: 2px; left: 2px;
+                width: 16px; height: 16px; border-radius: 50%; background: #fff;
+                transition: transform .15s ease;
+            }
+            .tm-sa-switch input:checked { background: #22c55e; }
+            .tm-sa-switch input:checked::after { transform: translateX(16px); }
+            .tm-sa-switch input:disabled { opacity: .55; cursor: wait; }
+            .tm-sa-badge {
+                font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+                padding: 2px 7px; border-radius: 999px;
+            }
+            .tm-sa-badge.is-on {
+                color: #166534;
+                background: color-mix(in srgb, #22c55e 18%, transparent);
+                border: 1px solid color-mix(in srgb, #22c55e 35%, transparent);
+            }
+            .tm-sa-badge.is-off {
+                color: #991b1b;
+                background: color-mix(in srgb, #ef4444 16%, transparent);
+                border: 1px solid color-mix(in srgb, #ef4444 30%, transparent);
+            }
+            .tm-sa-empty, .tm-sa-loading {
+                padding: 18px 14px; text-align: center; border-radius: 12px;
+                border: 1px dashed var(--tm-shop-item-border, #333);
+                color: var(--tm-subtle-text, #94a3b8); font-size: 13px;
+            }
+            .tm-sa-error { color: var(--tm-danger-color, #dc3545); }
+        `;
+        (document.head || document.documentElement).appendChild(style);
+    }
+
+    function initialLetter(name) {
+        const s = String(name || 'Τ').trim();
+        return (s.charAt(0) || 'Τ').toUpperCase();
+    }
+
     function renderAccessList(root, items, error) {
         if (!root) return;
+        ensureAccessStyles();
         const manage = canManageAccess();
         if (error) {
-            root.innerHTML = `<p class="tm-setting-description" style="color:var(--tm-danger-color,#dc3545)">${escapeHtml(error)}</p>${collectionSetupHtml()}`;
+            root.innerHTML = `<div class="tm-sa-panel"><div class="tm-sa-note"><p class="tm-setting-description tm-sa-error">${escapeHtml(error)}</p>${collectionSetupHtml()}</div></div>`;
             return;
         }
         if (!items.length) {
             root.innerHTML = collectionMissing
-                ? `<p class="tm-setting-description">Δεν υπάρχουν εγγραφές ακόμα (ούτε στο Chat presence).</p>${collectionSetupHtml()}`
-                : '<p class="tm-setting-description">Κανένας χρήστης ακόμα — ανοίξτε το MyManager με το suite για να εμφανιστείτε εδώ.</p>';
+                ? `<div class="tm-sa-panel"><div class="tm-sa-note">${collectionSetupHtml()}</div><div class="tm-sa-empty">Δεν υπάρχουν εγγραφές ακόμα (ούτε στο Chat presence).</div></div>`
+                : `<div class="tm-sa-panel"><div class="tm-sa-empty">Κανένας χρήστης ακόμα — ανοίξτε το MyManager με το suite για να εμφανιστείτε εδώ.</div></div>`;
             return;
         }
-        const onlineCount = items.filter((row) => (Date.now() - new Date(row.lastSeen || 0).getTime()) < ONLINE_MS).length;
+
+        const sorted = [...items].sort((a, b) => {
+            const ao = (Date.now() - new Date(a.lastSeen || 0).getTime()) < ONLINE_MS ? 1 : 0;
+            const bo = (Date.now() - new Date(b.lastSeen || 0).getTime()) < ONLINE_MS ? 1 : 0;
+            if (ao !== bo) return bo - ao;
+            return (new Date(b.lastSeen || 0).getTime() || 0) - (new Date(a.lastSeen || 0).getTime() || 0);
+        });
+        const onlineCount = sorted.filter((row) => (Date.now() - new Date(row.lastSeen || 0).getTime()) < ONLINE_MS).length;
         const setupNote = collectionMissing
-            ? `<div style="margin-bottom:10px;padding:8px 10px;border-radius:8px;border:1px solid var(--tm-shop-item-border,#333);">${collectionSetupHtml()}<p class="tm-setting-description">Η λίστα παρακάτω είναι από το Chat (ποιος είναι online). Το on/off ανά χρήστη χρειάζεται το collection.</p></div>`
+            ? `<div class="tm-sa-note">${collectionSetupHtml()}<p class="tm-setting-description">Η λίστα είναι από το Chat. Το on/off χρειάζεται το collection <code>suite_access</code>.</p></div>`
             : '';
-        const rows = items.map((row) => {
+
+        const rows = sorted.map((row) => {
             const online = (Date.now() - new Date(row.lastSeen || 0).getTime()) < ONLINE_MS;
             const on = row.enabled !== false;
             const mine = ownUserId && String(row.userId || '') === String(ownUserId);
-            const toggle = manage && !collectionMissing
-                ? `<label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;white-space:nowrap">
-                    <input type="checkbox" class="tm-suite-access-toggle" ${on ? 'checked' : ''}>
-                    ${on ? 'Ενεργό' : 'Off'}
-                </label>`
-                : `<span style="font-size:12px;font-weight:700;opacity:.8">${on ? 'Ενεργό' : 'Off'}</span>`;
-            return `<div class="tm-suite-access-row" data-user-id="${escapeHtml(row.userId)}" data-access-id="${escapeHtml(row.accessId || '')}" data-display="${escapeHtml(row.displayName || '')}" data-store="${escapeHtml(row.store || '')}" data-seen="${escapeHtml(row.lastSeen || '')}" style="display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--tm-shop-item-border,#333);">
-                <div style="min-width:0">
-                    <div style="font-weight:750">${escapeHtml(row.displayName || 'Τεχνικός')}${row.bundleVersion ? ` <span style="font-weight:650;opacity:.65;font-size:12px">v${escapeHtml(row.bundleVersion)}</span>` : ''}${mine ? ' <span style="opacity:.6">(εσείς)</span>' : ''}</div>
-                    <div style="font-size:12px;opacity:.72"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${online ? '#22c55e' : '#64748b'};margin-right:5px;vertical-align:middle"></span>${online ? 'Online' : 'Τελευταία εμφάνιση'} · ${escapeHtml(formatAgo(row.lastSeen))}${row.store ? ` · ${escapeHtml(row.store)}` : ''}</div>
+            const name = row.displayName || 'Τεχνικός';
+            const side = manage && !collectionMissing
+                ? `<label class="tm-sa-switch" title="${on ? 'Απενεργοποίηση' : 'Ενεργοποίηση'}">
+                        <input type="checkbox" class="tm-suite-access-toggle" ${on ? 'checked' : ''}>
+                        <span>${on ? 'ON' : 'OFF'}</span>
+                   </label>`
+                : `<span class="tm-sa-badge ${on ? 'is-on' : 'is-off'}">${on ? 'ON' : 'OFF'}</span>`;
+            return `<article class="tm-sa-row${mine ? ' is-mine' : ''}${on ? '' : ' is-off'}"
+                    data-user-id="${escapeHtml(row.userId)}"
+                    data-access-id="${escapeHtml(row.accessId || '')}"
+                    data-display="${escapeHtml(name)}"
+                    data-store="${escapeHtml(row.store || '')}"
+                    data-seen="${escapeHtml(row.lastSeen || '')}">
+                <div class="tm-sa-avatar" aria-hidden="true">${escapeHtml(initialLetter(name))}
+                    <span class="tm-sa-presence${online ? ' is-online' : ''}"></span>
                 </div>
-                ${toggle}
-            </div>`;
+                <div class="tm-sa-main">
+                    <div class="tm-sa-name-row">
+                        <span class="tm-sa-name">${escapeHtml(name)}</span>
+                        ${row.bundleVersion ? `<span class="tm-sa-ver">v${escapeHtml(row.bundleVersion)}</span>` : ''}
+                        ${mine ? '<span class="tm-sa-you">εσείς</span>' : ''}
+                    </div>
+                    <div class="tm-sa-meta">
+                        <span class="tm-sa-meta-item">${online ? 'Online' : 'Τελευταία'} · ${escapeHtml(formatAgo(row.lastSeen))}</span>
+                        ${row.store ? `<span class="tm-sa-meta-item">${escapeHtml(row.store)}</span>` : ''}
+                    </div>
+                </div>
+                <div class="tm-sa-side">${side}</div>
+            </article>`;
         }).join('');
-        root.innerHTML = `${setupNote}<p class="tm-setting-description" style="margin-bottom:6px">${items.length} χρήστες · ${onlineCount} online</p>${rows}`;
+
+        root.innerHTML = `<div class="tm-sa-panel">
+            <div class="tm-sa-toolbar">
+                <div class="tm-sa-stats">
+                    <span class="tm-sa-stat"><span class="tm-sa-stat-dot"></span>${sorted.length} χρήστες</span>
+                    <span class="tm-sa-stat"><span class="tm-sa-stat-dot is-online"></span>${onlineCount} online</span>
+                </div>
+            </div>
+            ${setupNote}
+            <div class="tm-sa-list">${rows}</div>
+        </div>`;
+
         if (!manage || collectionMissing) return;
-        root.querySelectorAll('.tm-suite-access-row').forEach((el) => {
+        root.querySelectorAll('.tm-sa-row').forEach((el) => {
             const box = el.querySelector('.tm-suite-access-toggle');
+            const label = el.querySelector('.tm-sa-switch span');
             box?.addEventListener('change', async () => {
                 const row = {
                     userId: el.getAttribute('data-user-id'),
@@ -494,11 +674,15 @@
                     return;
                 }
                 box.disabled = true;
+                if (label) label.textContent = box.checked ? 'ON' : 'OFF';
+                el.classList.toggle('is-off', !box.checked);
                 try {
                     await setUserEnabled(row, box.checked);
                     refreshAccessPanel(root);
                 } catch (err) {
                     box.checked = !box.checked;
+                    if (label) label.textContent = box.checked ? 'ON' : 'OFF';
+                    el.classList.toggle('is-off', !box.checked);
                     alert(err.message || 'Αποτυχία ενημέρωσης');
                 } finally {
                     box.disabled = false;
@@ -509,8 +693,9 @@
 
     async function refreshAccessPanel(root) {
         if (!root) return;
+        ensureAccessStyles();
         collectionMissing = false;
-        root.innerHTML = '<p class="tm-setting-description">Φόρτωση…</p>';
+        root.innerHTML = '<div class="tm-sa-panel"><div class="tm-sa-loading">Φόρτωση χρηστών…</div></div>';
         try {
             await heartbeat();
             const [access, presence] = await Promise.all([
@@ -525,8 +710,9 @@
 
     function mountSuiteAccessSettings(root) {
         if (!root) return;
-        const wrap = root.parentElement;
-        const btn = wrap?.querySelector('#tm-suite-access-refresh');
+        ensureAccessStyles();
+        const section = root.closest('.tm-settings-section') || root.parentElement;
+        const btn = section?.querySelector('#tm-suite-access-refresh');
         if (btn && !btn.dataset.tmBound) {
             btn.dataset.tmBound = '1';
             btn.addEventListener('click', () => refreshAccessPanel(root));
@@ -539,17 +725,16 @@
         return `
             <div class="tm-settings-section">
                 <header class="tm-settings-section-head">
-                    <h3>Χρήστες suite ${info}</h3>
-                    <p class="tm-settings-section-desc">Ποιος τρέχει το script · ενεργοποίηση / απενεργοποίηση ανά λογαριασμό.</p>
-                </header>
-                <div class="tm-setting-row" style="align-items:flex-start">
-                    <div class="tm-setting-label" style="flex:1;min-width:0">
-                        <div style="display:flex;gap:8px;flex-wrap:wrap">
-                            <button type="button" class="tm-settings-input" id="tm-suite-access-refresh" style="width:auto;cursor:pointer">Ανανέωση λίστας</button>
-                        </div>
-                        <div id="tm-suite-access-root" style="margin-top:10px"></div>
+                    <div class="tm-setting-label-row">
+                        <h3>Χρήστες suite</h3>
+                        ${info}
                     </div>
+                    <p class="tm-settings-section-desc">Ποιος τρέχει το script · on/off ανά λογαριασμό.</p>
+                </header>
+                <div class="tm-sa-toolbar" style="margin-bottom:10px">
+                    <button type="button" class="tm-settings-input tm-sa-refresh" id="tm-suite-access-refresh">Ανανέωση</button>
                 </div>
+                <div id="tm-suite-access-root"></div>
             </div>`;
     }
 
