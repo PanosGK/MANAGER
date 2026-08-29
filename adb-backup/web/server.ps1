@@ -680,7 +680,8 @@ function Get-ReadyApiPayload {
         -DeviceSerial $DeviceSerial `
         -BackupBaseDir $BackupBaseDir `
         -SelectedFolders @($settings.BackupFolders) `
-        -BackupBusy:$Script:WebState.Running
+        -BackupBusy:$Script:WebState.Running `
+        -Quick
 
     $devicePayload = $null
     if ($readiness.device) {
@@ -727,7 +728,12 @@ function Handle-ApiRequest {
                 return
             }
             $devices = @(Get-ConnectedDevices)
-            Write-JsonResponse -Response $response -Data @{ devices = $devices }
+            $flat = @()
+            foreach ($item in $devices) {
+                if ($item -is [System.Array]) { $flat += @($item) }
+                elseif ($item) { $flat += $item }
+            }
+            Write-JsonResponse -Response $response -Data @{ devices = @($flat) }
             return
         }
 

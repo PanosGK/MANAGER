@@ -128,6 +128,46 @@ function Test-AdbAvailable {
     return (Get-Command adb -ErrorAction SilentlyContinue) -ne $null
 }
 
+function Invoke-AdbCapture {
+    param(
+        [string[]]$ArgumentList,
+        [int]$TimeoutMs = 12000
+    )
+    $processInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $processInfo.FileName = "adb"
+    $processInfo.Arguments = ($ArgumentList | ForEach-Object {
+        if ($_ -match '\s') { '"' + ($_ -replace '"', '\"') + '"' } else { $_ }
+    }) -join " "
+    $processInfo.RedirectStandardOutput = $true
+    $processInfo.RedirectStandardError = $true
+    $processInfo.UseShellExecute = $false
+    $processInfo.CreateNoWindow = $true
+    $processInfo.StandardOutputEncoding = [System.Text.Encoding]::UTF8
+    $processInfo.StandardErrorEncoding = [System.Text.Encoding]::UTF8
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $processInfo
+    try {
+        $process.Start() | Out-Null
+        $outTask = $process.StandardOutput.ReadToEndAsync()
+        $errTask = $process.StandardError.ReadToEndAsync()
+        if (-not $process.WaitForExit($TimeoutMs)) {
+            try { $process.Kill() } catch { }
+            try { $process.WaitForExit(2000) } catch { }
+            return @{ Output = ""; Errors = "timeout"; ExitCode = -1; TimedOut = $true }
+        }
+        return @{
+            Output = $outTask.Result
+            Errors = $errTask.Result
+            ExitCode = $process.ExitCode
+            TimedOut = $false
+        }
+    } catch {
+        return @{ Output = ""; Errors = $_.Exception.Message; ExitCode = -1; TimedOut = $false }
+    } finally {
+        try { $process.Dispose() } catch { }
+    }
+}
+
 function Get-AdbDeviceEntries {
     $entries = @()
     if (-not (Test-AdbAvailable)) { return $entries }
@@ -172,11 +212,13 @@ function Get-DeviceBatteryStatus {
     param([string]$DeviceSerial)
     if (-not (Test-DeviceAdbReady -DeviceSerial $DeviceSerial)) { return $null }
     try {
-        $raw = (adb -s $DeviceSerial shell dumpsys battery 2>&1 | Out-String)
+        $raw = Invoke-AdbCapture -ArgumentList @('-s', $DeviceSerial, 'shell', 'dumpsys', 'battery') -TimeoutMs 4000
+        if ($raw.TimedOut -or $raw.ExitCode -ne 0) { return $null }
+        $out = [string]$raw.Output
         $level = 100
         $charging = $false
-        if ($raw -match 'level:\s*(\d+)') { $level = [int]$Matches[1] }
-        if ($raw -match 'status:\s*(\d+)') {
+        if ($out -match 'level:\s*(\d+)') { $level = [int]$Matches[1] }
+        if ($out -match 'status:\s*(\d+)') {
             $statusCode = [int]$Matches[1]
             $charging = ($statusCode -eq 2 -or $statusCode -eq 5)
         }
@@ -399,8 +441,8 @@ function Find-VcfFilesOnDevice {
     foreach ($folder in $uniqueFolders) {
         $remote = "/$folder"
         $escaped = $remote.Replace("'", "'\''")
-        $cmd = "find '$escaped' -type f -iname '*.vcf' 2>/dev/null | head -50"
-        $result = Invoke-AdbShellFind -DeviceID $DeviceID -FindCommandString $cmd
+        $cmd = "find '$escaped' -maxdepth 3 -type f -iname '*.vcf' 2>/dev/null | head -20"
+        $result = Invoke-AdbShellFind -DeviceID $DeviceID -FindCommandString $cmd -TimeoutMs 6000
         if ([string]::IsNullOrWhiteSpace($result.Output)) { continue }
         foreach ($line in ($result.Output -split "`n")) {
             $trimmed = $line.Trim()
@@ -658,7 +700,8 @@ function Get-ConnectedDevices {
         if ($line -match "^([a-zA-Z0-9]+)\s+device.*$") {
             $DeviceSerial = $Matches[1]
             try {
-                $DeviceModel = ((adb -s $DeviceSerial shell getprop ro.product.model) -replace "[\r\n]+", "").Trim()
+                $prop = Invoke-AdbCapture -ArgumentList @('-s', $DeviceSerial, 'shell', 'getprop', 'ro.product.model') -TimeoutMs 4000
+                $DeviceModel = (([string]$prop.Output) -replace "[\r\n]+", "").Trim()
                 if (-not $DeviceModel) { $DeviceModel = $DeviceSerial }
             } catch {
                 $DeviceModel = $DeviceSerial
@@ -670,35 +713,16 @@ function Get-ConnectedDevices {
             }
         }
     }
-    return ,$ConnectedDevices
+    return @($ConnectedDevices)
 }
 
 function Invoke-AdbShellFind {
     param(
         [string]$DeviceID,
-        [string]$FindCommandString
+        [string]$FindCommandString,
+        [int]$TimeoutMs = 20000
     )
-    $AdbFindArgs = @('-s', $DeviceID, 'shell', $FindCommandString)
-    $processInfo = New-Object System.Diagnostics.ProcessStartInfo
-    $processInfo.FileName = "adb"
-    $processInfo.Arguments = ($AdbFindArgs[0..2] + ('"' + $AdbFindArgs[3] + '"')) -join " "
-    $processInfo.RedirectStandardOutput = $true
-    $processInfo.RedirectStandardError = $true
-    $processInfo.UseShellExecute = $false
-    $processInfo.CreateNoWindow = $true
-    $processInfo.StandardOutputEncoding = [System.Text.Encoding]::UTF8
-    $processInfo.StandardErrorEncoding = [System.Text.Encoding]::UTF8
-    $process = New-Object System.Diagnostics.Process
-    $process.StartInfo = $processInfo
-    $process.Start() | Out-Null
-    $output = $process.StandardOutput.ReadToEnd()
-    $errors = $process.StandardError.ReadToEnd()
-    $process.WaitForExit()
-    return @{
-        Output   = $output
-        Errors   = $errors
-        ExitCode = $process.ExitCode
-    }
+    return Invoke-AdbCapture -ArgumentList @('-s', $DeviceID, 'shell', $FindCommandString) -TimeoutMs $TimeoutMs
 }
 
 function Get-DeviceSubfolders {
@@ -835,7 +859,8 @@ function Get-BackupReadiness {
         [string]$DeviceSerial = "",
         [string]$BackupBaseDir = "",
         [string[]]$SelectedFolders = @(),
-        [switch]$BackupBusy
+        [switch]$BackupBusy,
+        [switch]$Quick
     )
 
     $checks = New-Object System.Collections.ArrayList
@@ -909,7 +934,7 @@ function Get-BackupReadiness {
     }
 
     $batteryWarn = $null
-    if ($device) {
+    if ($device -and -not $Quick) {
         $battery = Get-DeviceBatteryStatus -DeviceSerial $device.SerialNumber
         if ($battery -and $battery.Level -lt $Script:LowBatteryPercent -and -not $battery.Charging) {
             $batteryWarn = "Phone battery is $($battery.Level)% and not charging — connect a charger for long backups."
