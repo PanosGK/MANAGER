@@ -27737,8 +27737,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
         if (!items.length) {
             root.innerHTML = collectionMissing
-                ? `<div class="tm-sa-panel"><div class="tm-sa-note">${collectionSetupHtml()}</div><div class="tm-sa-empty">Δεν υπάρχουν εγγραφές ακόμα (ούτε στο Chat presence).</div></div>`
-                : `<div class="tm-sa-panel"><div class="tm-sa-empty">Κανένας χρήστης ακόμα — ανοίξτε το MyManager με το suite για να εμφανιστείτε εδώ.</div></div>`;
+                ? `<div class="tm-sa-panel"><div class="tm-sa-note">${collectionSetupHtml()}</div><div class="tm-sa-empty">Λείπει το collection — δεν εμφανίζονται χρήστες.</div></div>`
+                : `<div class="tm-sa-panel"><div class="tm-sa-empty">Κανένας χρήστης στο suite_access ακόμα — θα εμφανιστούν μετά το πρώτο heartbeat.</div></div>`;
             return;
         }
 
@@ -27750,7 +27750,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         });
         const onlineCount = sorted.filter((row) => (Date.now() - new Date(row.lastSeen || 0).getTime()) < ONLINE_MS).length;
         const setupNote = collectionMissing
-            ? `<div class="tm-sa-note">${collectionSetupHtml()}<p class="tm-setting-description">Η λίστα είναι από το Chat. Το on/off χρειάζεται το collection <code>suite_access</code>.</p></div>`
+            ? `<div class="tm-sa-note">${collectionSetupHtml()}</div>`
             : '';
 
         const rows = sorted.map((row) => {
