@@ -179,7 +179,7 @@ function renderReadiness(data) {
   } else if (data.ready) {
     list.innerHTML = `<div class="status-pill ready"><span class="dot"></span>all systems ready</div>`;
     setOrbState("ready");
-    setOrbLabel("INITIATE");
+    setOrbLabel("START");
     for (const check of (data.checks || []).filter((c) => c.level === "warn")) {
       const item = document.createElement("div");
       item.className = "status-item warn";
@@ -195,7 +195,7 @@ function renderReadiness(data) {
     }
   } else {
     setOrbState("waiting");
-    setOrbLabel("INITIATE");
+    setOrbLabel("START");
     const issues = (data.checks || []).filter((c) => c.level === "error" || c.level === "warn");
     for (const check of issues) {
       const item = document.createElement("div");
@@ -572,53 +572,7 @@ function connectEvents() {
 }
 
 async function backupNow() {
-  hideBanner();
-  state.lastResultShown = false;
-  $("logBox").textContent = "";
-  $("progressBar").style.width = "0%";
-
-  applyActivity({
-    running: true,
-    activityStep: "preparing",
-    activityTitle: "initializing",
-    activityDetail: "starting sync sequence",
-  });
-
-  try {
-    const device = selectedDevice();
-    const body = {};
-    if (device) body.deviceSerial = deviceSerial(device);
-    const path = $("backupPath").value.trim();
-    if (path) body.backupBaseDir = path;
-
-    const data = await api("/api/backup/auto", {
-      method: "POST",
-      timeoutMs: 30000,
-      body: JSON.stringify(body),
-    });
-
-    if (data.ok === false || data.ready === false) {
-      renderReadiness(data);
-      showBanner((data.checks || []).find((c) => c.level === "error")?.message || "Not ready to backup.");
-      return;
-    }
-
-    setUiRunning(true);
-    hideBanner();
-  } catch (err) {
-    if (err.status === 409 && err.data) {
-      renderReadiness(err.data);
-      showBanner((err.data.checks || []).find((c) => c.level === "error")?.message || "Not ready to backup.");
-    } else {
-      showBanner(err.message);
-    }
-    applyActivity({
-      running: false,
-      activityStep: "idle",
-      activityTitle: "aborted",
-      activityDetail: err.message.toLowerCase(),
-    });
-  }
+  return startBackupAdvanced();
 }
 
 async function startBackupAdvanced() {
@@ -626,7 +580,7 @@ async function startBackupAdvanced() {
   if (!device) return showBanner("Connect a device first.");
 
   const selected = getSelectedFolders();
-  if (selected.length === 0) return showBanner("Select at least one folder.");
+  if (selected.length === 0) return showBanner("Select at least one folder, then click Start backup.");
 
   const backupBaseDir = $("backupPath").value.trim();
   if (!backupBaseDir) return showBanner("Enter a backup destination.");
@@ -634,6 +588,7 @@ async function startBackupAdvanced() {
   hideBanner();
   state.lastResultShown = false;
   $("logBox").textContent = "";
+  setUiRunning(true);
 
   try {
     await api("/api/backup/start", {
@@ -648,8 +603,8 @@ async function startBackupAdvanced() {
         skipSizeCalculation: true,
       }),
     });
-    setUiRunning(true);
   } catch (err) {
+    setUiRunning(false);
     showBanner(err.message);
   }
 }

@@ -1229,7 +1229,7 @@ function Start-BackupWebServer {
     Write-Host ""
     Write-Host "  Android Backup Web UI" -ForegroundColor Cyan
     Write-Host "  Open in browser: $url" -ForegroundColor Green
-    Write-Host "  One-click backup — connect phone and open the page" -ForegroundColor DarkGray
+    Write-Host "  Manual start — connect the phone, then click Start backup" -ForegroundColor DarkGray
     Write-Host ""
 
     try {

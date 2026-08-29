@@ -71176,8 +71176,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         const leaf = folderName(path).toLowerCase();
         const map = {
             dcim: 'Κάμερα',
+            camera: 'Κάμερα',
             pictures: 'Εικόνες',
             movies: 'Βίντεο',
+            video: 'Βίντεο',
+            videos: 'Βίντεο',
             download: 'Λήψεις',
             downloads: 'Λήψεις',
             documents: 'Έγγραφα',
@@ -71185,8 +71188,21 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
             viber: 'Viber',
             music: 'Μουσική',
             screenshots: 'Στιγμιότυπα',
+            screenshot: 'Στιγμιότυπα',
         };
         return map[leaf] || folderName(path);
+    }
+
+    function folderIcon(path) {
+        const leaf = folderName(path).toLowerCase();
+        if (leaf === 'dcim' || leaf === 'camera' || leaf === 'screenshots' || leaf === 'screenshot') return '📷';
+        if (leaf === 'pictures') return '🖼️';
+        if (leaf === 'movies' || leaf === 'video' || leaf === 'videos') return '🎬';
+        if (leaf === 'download' || leaf === 'downloads') return '📥';
+        if (leaf === 'documents') return '📄';
+        if (leaf === 'whatsapp' || leaf === 'viber') return '💬';
+        if (leaf === 'music') return '🎵';
+        return '📁';
     }
 
     function formatBytes(bytes) {
@@ -71295,160 +71311,163 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
             #${OVERLAY_ID} {
                 position: fixed; inset: 0; z-index: 100060;
                 display: flex; align-items: center; justify-content: center;
-                padding: 12px;
-                background: var(--tm-overlay-dim, rgba(0,0,0,0.72));
+                padding: 10px;
+                background: var(--tm-overlay-dim, rgba(0,0,0,0.78));
             }
             .tm-adb-shell {
-                width: min(980px, 100%);
-                max-height: min(94vh, 900px);
-                overflow: auto;
+                width: min(720px, 100%);
+                max-height: min(96vh, 920px);
+                display: flex; flex-direction: column;
+                overflow: hidden;
                 background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg, #161616)));
                 color: var(--tm-primary-color, #eee);
                 border: 1px solid var(--tm-shop-item-border, #333);
-                border-radius: 16px;
-                box-shadow: 0 24px 64px rgba(0,0,0,0.42);
+                border-radius: 18px;
+                box-shadow: 0 28px 70px rgba(0,0,0,0.5);
             }
             .tm-adb-header {
                 display: flex; align-items: center; justify-content: space-between;
-                gap: 12px; padding: 16px 20px 14px;
+                gap: 12px; padding: 14px 18px;
                 border-bottom: 1px solid var(--tm-shop-item-border, #333);
-                position: sticky; top: 0; z-index: 2;
-                background: inherit;
+                flex: 0 0 auto;
             }
-            .tm-adb-brand { display: flex; align-items: center; gap: 12px; }
+            .tm-adb-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
             .tm-adb-mark {
-                width: 40px; height: 40px; border-radius: 12px;
+                width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
                 display: grid; place-items: center;
-                background: color-mix(in srgb, var(--tm-success-color, #198754) 18%, transparent);
+                background: color-mix(in srgb, var(--tm-success-color, #198754) 22%, transparent);
                 color: var(--tm-success-color, #198754);
-                font-size: 1.2rem;
+                font-size: 1.25rem;
             }
-            .tm-adb-title { margin: 0; font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; }
-            .tm-adb-sub { margin: 3px 0 0; font-size: 0.86rem; opacity: 0.72; }
+            .tm-adb-title { margin: 0; font-size: 1.18rem; font-weight: 800; letter-spacing: -0.03em; }
+            .tm-adb-sub { margin: 2px 0 0; font-size: 0.84rem; opacity: 0.7; }
             .tm-adb-close {
-                width: 36px; height: 36px; border-radius: 10px;
+                width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
                 border: 1px solid var(--tm-shop-item-border, #444);
                 background: transparent; color: inherit;
-                font-size: 1.35rem; line-height: 1; cursor: pointer;
+                font-size: 1.5rem; line-height: 1; cursor: pointer;
             }
-            .tm-adb-close:hover { background: rgba(255,255,255,0.06); }
-            .tm-adb-body { padding: 16px 20px 20px; display: grid; gap: 14px; }
+            .tm-adb-close:hover { background: rgba(255,255,255,0.07); }
+            .tm-adb-body {
+                padding: 14px 18px 16px; display: grid; gap: 12px;
+                overflow: auto; flex: 1 1 auto;
+            }
             .tm-adb-banner {
-                padding: 10px 14px; border-radius: 10px; font-size: 0.92rem;
-                background: rgba(220,53,69,0.14); border: 1px solid rgba(220,53,69,0.35);
+                padding: 11px 14px; border-radius: 12px; font-size: 0.92rem; font-weight: 650;
+                background: rgba(220,53,69,0.16); border: 1px solid rgba(220,53,69,0.4);
             }
-            .tm-adb-banner.ok { background: rgba(25,135,84,0.14); border-color: rgba(25,135,84,0.35); }
-            .tm-adb-banner.warn { background: rgba(255,193,7,0.14); border-color: rgba(255,193,7,0.4); }
+            .tm-adb-banner.ok { background: rgba(25,135,84,0.16); border-color: rgba(25,135,84,0.4); }
+            .tm-adb-banner.warn { background: rgba(255,193,7,0.16); border-color: rgba(255,193,7,0.45); }
             .tm-adb-banner.hidden { display: none; }
             .tm-adb-offline {
-                padding: 18px; border-radius: 14px;
-                background: var(--tm-surface-alt-bg, rgba(255,255,255,0.04));
-                border: 1px solid var(--tm-shop-item-border, #444);
+                padding: 8px 2px 12px;
             }
-            .tm-adb-offline h3 { margin: 0 0 8px; font-size: 1.05rem; }
-            .tm-adb-steps { margin: 0 0 14px; padding-left: 20px; line-height: 1.55; }
-            .tm-adb-steps li { margin: 6px 0; }
+            .tm-adb-offline h3 { margin: 0 0 6px; font-size: 1.15rem; }
             .tm-adb-offline code {
                 display: inline-block; margin: 0 2px; padding: 2px 7px; border-radius: 6px;
-                background: rgba(0,0,0,0.28); font-size: 0.82rem;
+                background: rgba(0,0,0,0.32); font-size: 0.8rem;
             }
-            .tm-adb-layout {
-                display: grid; gap: 16px;
-                grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.2fr);
-            }
-            @media (max-width: 760px) { .tm-adb-layout { grid-template-columns: 1fr; } }
-            .tm-adb-hero {
-                display: flex; flex-direction: column; align-items: center; text-align: center;
-                gap: 12px; padding: 20px 16px;
+            .tm-adb-guide { display: grid; gap: 10px; margin: 14px 0; }
+            .tm-adb-guide-item {
+                display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: center;
+                padding: 14px 14px; border-radius: 14px;
+                background: var(--tm-surface-alt-bg, rgba(255,255,255,0.04));
                 border: 1px solid var(--tm-shop-item-border, #333);
-                border-radius: 16px;
-                background: var(--tm-surface-alt-bg, rgba(255,255,255,0.03));
+                font-size: 0.95rem; line-height: 1.45;
             }
-            .tm-adb-ring {
-                width: 148px; height: 148px; border-radius: 50%;
-                display: grid; place-items: center;
-                border: 3px solid rgba(255,255,255,0.12);
-                box-shadow: inset 0 0 0 10px rgba(255,255,255,0.03);
+            .tm-adb-guide-n {
+                width: 36px; height: 36px; border-radius: 50%;
+                display: grid; place-items: center; font-weight: 800; font-size: 1rem;
+                background: var(--tm-success-color, #198754); color: #fff;
             }
-            .tm-adb-hero[data-mode="waiting"] .tm-adb-ring { border-color: rgba(255,255,255,0.18); }
-            .tm-adb-hero[data-mode="ready"] .tm-adb-ring { border-color: var(--tm-success-color, #198754); }
-            .tm-adb-hero[data-mode="active"] .tm-adb-ring {
-                border-color: var(--tm-info-color, #0dcaf0);
-                animation: tm-adb-pulse 1.4s ease-in-out infinite;
+            .tm-adb-chips {
+                display: flex; flex-wrap: wrap; gap: 8px;
             }
-            .tm-adb-hero[data-mode="done"] .tm-adb-ring { border-color: var(--tm-success-color, #198754); }
-            .tm-adb-hero[data-mode="issue"] .tm-adb-ring { border-color: var(--tm-danger-color, #dc3545); }
-            @keyframes tm-adb-pulse {
-                0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--tm-info-color, #0dcaf0) 35%, transparent); }
-                50% { box-shadow: 0 0 0 12px transparent; }
+            .tm-adb-chip {
+                display: inline-flex; align-items: center; gap: 6px;
+                padding: 6px 11px; border-radius: 999px; font-size: 0.8rem; font-weight: 700;
+                border: 1px solid var(--tm-shop-item-border, #444);
+                background: rgba(255,255,255,0.04);
             }
-            .tm-adb-start {
-                width: 112px; height: 112px; border-radius: 50%;
-                border: 0; cursor: pointer; font-weight: 800; font-size: 0.92rem;
-                color: #fff; background: var(--tm-success-color, #198754);
-                line-height: 1.25; padding: 8px;
-            }
-            .tm-adb-start:disabled { opacity: 0.45; cursor: not-allowed; background: #666; }
-            .tm-adb-start-caption { font-size: 0.88rem; opacity: 0.8; margin: 0; max-width: 230px; }
-            .tm-adb-controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-            .tm-adb-panel {
-                display: grid; gap: 12px;
-            }
+            .tm-adb-chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #888; }
+            .tm-adb-chip.ok { border-color: rgba(25,135,84,0.45); color: var(--tm-success-color, #3ddc84); }
+            .tm-adb-chip.ok::before { background: var(--tm-success-color, #198754); }
+            .tm-adb-chip.bad { border-color: rgba(220,53,69,0.45); color: var(--tm-danger-color, #ff6b7a); }
+            .tm-adb-chip.bad::before { background: var(--tm-danger-color, #dc3545); }
+            .tm-adb-chip.warn { border-color: rgba(255,193,7,0.45); }
+            .tm-adb-chip.warn::before { background: #ffc107; }
+            .tm-adb-hero[data-mode="ready"] .tm-adb-chip-state { color: var(--tm-success-color, #3ddc84); }
+            .tm-adb-hero[data-mode="issue"] .tm-adb-chip-state { color: var(--tm-danger-color, #ff6b7a); }
+            .tm-adb-hero[data-mode="active"] .tm-adb-chip-state { color: var(--tm-info-color, #0dcaf0); }
+            .tm-adb-setup { display: grid; gap: 10px; }
             .tm-adb-card {
                 border: 1px solid var(--tm-shop-item-border, #333);
                 border-radius: 14px; padding: 12px 14px;
-                background: var(--tm-shop-item-bg, rgba(255,255,255,0.02));
+                background: var(--tm-shop-item-bg, rgba(255,255,255,0.025));
             }
             .tm-adb-card h3 {
-                margin: 0 0 8px; font-size: 0.78rem; letter-spacing: 0.04em;
-                text-transform: uppercase; opacity: 0.7;
+                margin: 0 0 10px; font-size: 0.72rem; letter-spacing: 0.06em;
+                text-transform: uppercase; opacity: 0.62; font-weight: 800;
             }
             .tm-adb-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-            .tm-adb-field { display: grid; gap: 4px; flex: 1; min-width: 180px; }
-            .tm-adb-field label { font-size: 0.78rem; opacity: 0.8; font-weight: 600; }
+            .tm-adb-field { display: grid; gap: 5px; flex: 1; min-width: 160px; }
+            .tm-adb-field label { font-size: 0.78rem; opacity: 0.8; font-weight: 700; }
             .tm-adb-field select, .tm-adb-field input[type="text"] {
-                width: 100%; padding: 9px 11px; border-radius: 10px;
+                width: 100%; padding: 10px 12px; border-radius: 11px;
                 border: 1px solid var(--tm-input-border, var(--tm-shop-item-border, #444));
                 background: var(--tm-input-bg, var(--tm-shop-item-bg, #222));
-                color: var(--tm-input-text, inherit);
+                color: var(--tm-input-text, inherit); font-size: 0.95rem;
             }
             .tm-adb-btn {
-                padding: 8px 12px; border-radius: 10px; cursor: pointer;
+                padding: 9px 13px; border-radius: 11px; cursor: pointer;
                 border: 1px solid var(--tm-shop-item-border, #555);
-                background: var(--tm-surface-hover-bg, rgba(255,255,255,0.06));
-                color: inherit; font-weight: 650; font-size: 0.86rem;
+                background: var(--tm-surface-hover-bg, rgba(255,255,255,0.07));
+                color: inherit; font-weight: 700; font-size: 0.88rem;
             }
-            .tm-adb-btn:hover { filter: brightness(1.08); }
-            .tm-adb-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+            .tm-adb-btn:hover { filter: brightness(1.1); }
+            .tm-adb-btn:disabled { opacity: 0.4; cursor: not-allowed; }
             .tm-adb-btn-primary { background: var(--tm-success-color, #198754); border-color: transparent; color: #fff; }
-            .tm-adb-btn-danger { background: rgba(220,53,69,0.16); border-color: rgba(220,53,69,0.4); }
-            .tm-adb-hint { font-size: 0.84rem; opacity: 0.8; margin: 0; }
+            .tm-adb-btn-danger { background: rgba(220,53,69,0.18); border-color: rgba(220,53,69,0.45); }
+            .tm-adb-hint { font-size: 0.84rem; opacity: 0.82; margin: 6px 0 0; }
             .tm-adb-hint.error { color: var(--tm-danger-color, #dc3545); opacity: 1; }
             .tm-adb-hint.ok { color: var(--tm-success-color, #198754); opacity: 1; }
-            .tm-adb-folder-list {
-                display: grid; gap: 8px;
-                grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-                max-height: 280px; overflow: auto; padding: 2px;
-            }
+            .tm-adb-folder-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+            .tm-adb-folder-list { display: grid; gap: 8px; }
             .tm-adb-folder-card {
-                display: flex; align-items: flex-start; gap: 8px;
-                padding: 10px; border-radius: 12px; cursor: pointer;
+                display: grid; grid-template-columns: auto 32px 1fr auto; align-items: center; gap: 10px;
+                padding: 12px 12px; border-radius: 14px; cursor: pointer;
                 border: 1px solid var(--tm-shop-item-border, #333);
                 background: var(--tm-surface-alt-bg, rgba(255,255,255,0.03));
             }
-            .tm-adb-folder-card.is-selected { outline: 2px solid var(--tm-success-color, #198754); }
-            .tm-adb-folder-card.is-off { opacity: 0.55; }
-            .tm-adb-folder-card input { margin-top: 3px; }
+            .tm-adb-folder-card:hover { border-color: rgba(255,255,255,0.22); }
+            .tm-adb-folder-card.is-off { opacity: 0.45; }
+            .tm-adb-folder-card input { width: 18px; height: 18px; accent-color: var(--tm-success-color, #198754); }
+            .tm-adb-folder-ico { font-size: 1.25rem; line-height: 1; }
             .tm-adb-folder-copy { display: grid; gap: 2px; min-width: 0; }
-            .tm-adb-folder-copy strong { font-size: 0.92rem; }
-            .tm-adb-folder-copy span { font-size: 0.75rem; opacity: 0.7; }
+            .tm-adb-folder-copy strong { font-size: 0.98rem; }
+            .tm-adb-folder-copy span { font-size: 0.78rem; opacity: 0.68; }
+            .tm-adb-folder-x {
+                width: 32px; height: 32px; border-radius: 9px; border: 0; cursor: pointer;
+                background: transparent; color: inherit; opacity: 0.45; font-size: 1.2rem;
+            }
+            .tm-adb-folder-x:hover { opacity: 1; background: rgba(220,53,69,0.2); }
+            .tm-adb-folder-empty { opacity: 0.7; padding: 18px; text-align: center; margin: 0; }
+            .tm-adb-progress {
+                border: 1px solid var(--tm-shop-item-border, #333);
+                border-radius: 14px; padding: 12px 14px;
+                background: rgba(255,255,255,0.02);
+            }
+            .tm-adb-live.is-busy .tm-adb-progress {
+                border-color: color-mix(in srgb, var(--tm-info-color, #0dcaf0) 45%, #333);
+                background: color-mix(in srgb, var(--tm-info-color, #0dcaf0) 8%, transparent);
+            }
             .tm-adb-meter {
-                height: 10px; border-radius: 99px; overflow: hidden;
-                background: rgba(255,255,255,0.08);
+                height: 12px; border-radius: 99px; overflow: hidden; margin: 10px 0 8px;
+                background: rgba(255,255,255,0.1);
             }
             .tm-adb-meter-fill {
                 height: 100%; width: 0%;
-                background: var(--tm-success-color, #198754);
+                background: linear-gradient(90deg, var(--tm-success-color, #198754), #3ddc84);
                 transition: width 0.2s ease;
             }
             .tm-adb-meter.indeterminate .tm-adb-meter-fill {
@@ -71459,43 +71478,47 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
                 0% { transform: translateX(-100%); }
                 100% { transform: translateX(280%); }
             }
-            .tm-adb-stats { display: flex; justify-content: space-between; gap: 8px; font-size: 0.84rem; opacity: 0.9; }
-            .tm-adb-file { font-size: 0.8rem; opacity: 0.75; min-height: 1.1em; word-break: break-all; }
+            .tm-adb-stats { display: flex; justify-content: space-between; gap: 8px; font-size: 0.86rem; font-weight: 650; }
+            .tm-adb-file { font-size: 0.8rem; opacity: 0.72; min-height: 1.15em; word-break: break-all; margin: 4px 0 0; }
+            .tm-adb-hero-pct { font-size: 0.95rem; font-weight: 800; margin: 0 0 4px; min-height: 1.2em; }
+            .tm-adb-footer {
+                position: sticky; bottom: -16px; margin: 4px -18px -16px;
+                padding: 12px 18px 16px;
+                background: linear-gradient(180deg, transparent, var(--tm-modal-bg, #161616) 18%);
+                display: grid; gap: 10px;
+            }
+            .tm-adb-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+            .tm-adb-start {
+                width: 100%; min-height: 52px; border-radius: 14px; border: 0; cursor: pointer;
+                font-weight: 800; font-size: 1.08rem; letter-spacing: -0.02em;
+                color: #fff; background: var(--tm-success-color, #198754);
+            }
+            .tm-adb-start:hover:not(:disabled) { filter: brightness(1.08); }
+            .tm-adb-start:disabled { opacity: 0.45; cursor: not-allowed; background: #555; }
+            .tm-adb-start-caption { font-size: 0.84rem; opacity: 0.78; margin: 0; text-align: center; }
             .tm-adb-log {
-                margin: 0; max-height: 140px; overflow: auto; padding: 8px;
+                margin: 8px 0 0; max-height: 140px; overflow: auto; padding: 8px;
                 font-size: 0.75rem; white-space: pre-wrap;
                 background: rgba(0,0,0,0.22); border-radius: 8px;
             }
             .tm-adb-recovery { display: grid; gap: 8px; }
             .tm-adb-recovery-item {
                 display: flex; justify-content: space-between; gap: 8px; align-items: center;
-                padding: 10px 12px; border-radius: 12px;
-                background: rgba(255,193,7,0.1); border: 1px solid rgba(255,193,7,0.35);
+                padding: 12px 14px; border-radius: 14px;
+                background: rgba(255,193,7,0.12); border: 1px solid rgba(255,193,7,0.4);
             }
             .tm-adb-browse {
                 border: 1px solid var(--tm-shop-item-border, #333); border-radius: 12px; padding: 10px;
-                background: var(--tm-surface-alt-bg, rgba(255,255,255,0.03));
+                background: var(--tm-surface-alt-bg, rgba(255,255,255,0.03)); margin-top: 8px;
             }
             .tm-adb-browse-list { display: grid; gap: 4px; max-height: 180px; overflow: auto; margin: 8px 0; }
             .tm-adb-browse-item {
-                padding: 6px 8px; border-radius: 6px; cursor: pointer;
+                padding: 8px 10px; border-radius: 8px; cursor: pointer;
                 display: flex; align-items: center; gap: 8px;
             }
             .tm-adb-browse-item:hover, .tm-adb-browse-item.selected { background: rgba(255,255,255,0.08); }
-            details.tm-adb-fold > summary { cursor: pointer; font-weight: 650; margin-bottom: 8px; }
-            .tm-adb-guide { display: grid; gap: 8px; margin: 12px 0; }
-            .tm-adb-guide-item {
-                display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start;
-                padding: 10px 12px; border-radius: 12px;
-                background: rgba(255,255,255,0.04);
-            }
-            .tm-adb-guide-n {
-                width: 28px; height: 28px; border-radius: 50%;
-                display: grid; place-items: center; font-weight: 800; font-size: 0.85rem;
-                background: var(--tm-success-color, #198754); color: #fff;
-            }
-            .tm-adb-folder-empty { opacity: 0.7; padding: 16px; text-align: center; margin: 0; }
-            .tm-adb-hero-pct { font-size: 0.82rem; font-weight: 700; opacity: 0.85; min-height: 1.2em; }
+            details.tm-adb-fold { margin-top: 4px; }
+            details.tm-adb-fold > summary { cursor: pointer; font-weight: 700; margin-bottom: 8px; opacity: 0.8; }
         `;
     }
 
@@ -71543,18 +71566,30 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
             const size = state.sizes[path];
             const checked = checkedState[path] !== undefined ? checkedState[path] : true;
             const card = document.createElement('div');
-            card.className = `tm-adb-folder-card${state.selectedRows.has(index) ? ' is-selected' : ''}${checked ? '' : ' is-off'}`;
+            card.className = `tm-adb-folder-card${checked ? '' : ' is-off'}`;
+            card.title = path;
             card.innerHTML = `
                 <input type="checkbox" data-index="${index}" ${checked ? 'checked' : ''} ${state.running ? 'disabled' : ''}>
+                <span class="tm-adb-folder-ico" aria-hidden="true">${folderIcon(path)}</span>
                 <span class="tm-adb-folder-copy">
                     <strong>${esc(friendlyFolderName(path))}</strong>
                     <span>${esc(size?.status || 'Έτοιμο')}${size?.text ? ` · ${esc(size.text)}` : ''}</span>
-                    <span>${esc(path)}</span>
-                </span>`;
+                </span>
+                <button type="button" class="tm-adb-folder-x" data-remove="${index}" title="Αφαίρεση από τη λίστα" ${state.running ? 'disabled' : ''}>×</button>`;
             card.addEventListener('click', (e) => {
-                if (e.target.closest('input')) return;
-                if (state.selectedRows.has(index)) state.selectedRows.delete(index);
-                else state.selectedRows.add(index);
+                if (e.target.closest('input, .tm-adb-folder-x')) return;
+                const box = card.querySelector('input[type="checkbox"]');
+                if (box && !box.disabled) {
+                    box.checked = !box.checked;
+                    renderFolders();
+                }
+            });
+            card.querySelector('.tm-adb-folder-x')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (state.running) return;
+                state.folders.splice(index, 1);
+                state.selectedRows.clear();
                 renderFolders();
             });
             list.appendChild(card);
@@ -71601,19 +71636,43 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
             const hint = $('tm-adb-offline-msg');
             if (hint) hint.textContent = message;
         }
+        updateChips();
+    }
+
+    function updateChips() {
+        const helper = $('tm-adb-chip-helper');
+        const phone = $('tm-adb-chip-phone');
+        const dest = $('tm-adb-chip-dest');
+        if (helper) {
+            helper.className = `tm-adb-chip${state.connected ? ' ok' : ' bad'}`;
+            helper.textContent = state.connected ? 'Βοηθός OK' : 'Βοηθός off';
+        }
+        if (phone) {
+            const d = selectedDevice();
+            phone.className = `tm-adb-chip${d ? ' ok' : ' bad'}`;
+            phone.textContent = d ? (deviceModel(d) || 'Τηλέφωνο') : 'Χωρίς τηλέφωνο';
+        }
+        if (dest) {
+            const p = $('tm-adb-path')?.value.trim();
+            dest.className = `tm-adb-chip${p ? ' ok' : ' warn'}`;
+            dest.textContent = p ? 'Προορισμός OK' : 'Χωρίς φάκελο';
+        }
     }
 
     function setHeroMode(mode) {
         const hero = $('tm-adb-hero');
         if (hero) hero.setAttribute('data-mode', mode);
+        const live = $('tm-adb-live');
+        if (live) live.classList.toggle('is-busy', mode === 'active');
+        updateChips();
         const cap = $('tm-adb-start-caption');
         if (!cap) return;
         const captions = {
             waiting: 'Συνδέστε το τηλέφωνο με USB και πατήστε Ανανέωση.',
-            ready: 'Όλα έτοιμα. Πατήστε Έναρξη για να αντιγραφούν τα αρχεία.',
+            ready: 'Τσεκάρετε τι θα αντιγραφεί και πατήστε Έναρξη αντιγράφου.',
             active: 'Η αντιγραφή τρέχει. Μην αποσυνδέσετε το καλώδιο.',
-            done: 'Το αντίγραφο ολοκληρώθηκε. Μπορείτε να ανοίξετε τον φάκελο.',
-            issue: 'Κάτι λείπει — δείτε το μήνυμα δίπλα στο τηλέφωνο.',
+            done: 'Ολοκληρώθηκε. Πατήστε Άνοιγμα φακέλου για να δείτε τα αρχεία.',
+            issue: 'Κάτι λείπει — διορθώστε το κόκκινο μήνυμα και ξαναδοκιμάστε.',
         };
         cap.textContent = captions[mode] || captions.waiting;
     }
@@ -71623,7 +71682,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         const start = $('tm-adb-start');
         if (start) {
             start.disabled = running || !state.ready;
-            start.textContent = running ? 'Αντιγραφή…' : 'Έναρξη';
+            if (!running) start.textContent = 'Έναρξη αντιγράφου';
+            else if (!/%$/.test(start.textContent)) start.textContent = 'Αντιγραφή…';
         }
         ['tm-adb-pause', 'tm-adb-cancel'].forEach((id) => {
             const el = $(id);
@@ -71639,8 +71699,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         $('tm-adb-folder-list')?.querySelectorAll('input').forEach((el) => {
             el.disabled = running;
         });
+        $('tm-adb-live')?.classList.toggle('is-busy', running);
         if (running) setHeroMode('active');
         else if (!state.lastResultShown) setHeroMode(state.ready ? 'ready' : 'waiting');
+        updateChips();
     }
 
     function applyActivity(status) {
@@ -71805,6 +71867,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         state.folders = (settings.BackupFolders || settings.backupFolders || []).map(String);
         state.sizes = {};
         renderFolders();
+        updateChips();
     }
 
     async function refreshDevices() {
@@ -71941,6 +72004,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
 
     async function backupNow() {
+        const device = selectedDevice();
+        if (!device) return showBanner('Συνδέστε συσκευή πρώτα.');
+        const selected = getSelectedFolders();
+        if (selected.length === 0) return showBanner('Επιλέξτε τουλάχιστον έναν φάκελο και πατήστε Έναρξη αντιγράφου.');
+        const backupBaseDir = $('tm-adb-path')?.value.trim();
+        if (!backupBaseDir) return showBanner('Ορίστε φάκελο προορισμού.');
         hideBanner();
         state.lastResultShown = false;
         const log = $('tm-adb-log');
@@ -71948,41 +72017,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         const fill = $('tm-adb-meter-fill');
         if (fill) fill.style.width = '0%';
         setUiRunning(true);
-        try {
-            const device = selectedDevice();
-            const body = {};
-            if (device) body.deviceSerial = deviceSerial(device);
-            const path = $('tm-adb-path')?.value.trim();
-            if (path) body.backupBaseDir = path;
-            const data = await api('/api/backup/auto', {
-                method: 'POST',
-                timeoutMs: 20000,
-                body: JSON.stringify(body),
-            });
-            if (data.ok === false || data.ready === false) {
-                setUiRunning(false);
-                showBanner((data.checks || []).find((c) => c.level === 'error')?.message || 'Δεν είναι έτοιμο.');
-                return;
-            }
-        } catch (err) {
-            setUiRunning(false);
-            if (err.status === 409 && err.data) {
-                showBanner((err.data.checks || []).find((c) => c.level === 'error')?.message || 'Δεν είναι έτοιμο.');
-            } else {
-                showBanner(err.message);
-            }
-        }
-    }
-
-    async function startSelected() {
-        const device = selectedDevice();
-        if (!device) return showBanner('Συνδέστε συσκευή πρώτα.');
-        const selected = getSelectedFolders();
-        if (selected.length === 0) return showBanner('Επιλέξτε τουλάχιστον έναν φάκελο.');
-        const backupBaseDir = $('tm-adb-path')?.value.trim();
-        if (!backupBaseDir) return showBanner('Ορίστε φάκελο προορισμού.');
-        hideBanner();
-        state.lastResultShown = false;
         try {
             await api('/api/backup/start', {
                 method: 'POST',
@@ -71996,10 +72030,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
                     skipSizeCalculation: true,
                 }),
             });
-            setUiRunning(true);
         } catch (err) {
+            setUiRunning(false);
             showBanner(err.message);
         }
+    }
+
+    async function startSelected() {
+        return backupNow();
     }
 
     function stopPolling() {
@@ -72057,8 +72095,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
             if (path) addFolderPath(path);
         });
         $('tm-adb-remove-folder')?.addEventListener('click', () => {
-            if (state.selectedRows.size === 0) return showBanner('Πατήστε μια κάρτα φακέλου (όχι το κουτάκι) και μετά Αφαίρεση.');
-            state.folders = state.folders.filter((_, i) => !state.selectedRows.has(i));
+            if (state.selectedRows.size === 0) {
+                const keep = getSelectedFolders();
+                if (keep.length === state.folders.length) {
+                    return showBanner('Αποεπιλέξτε έναν φάκελο ή πατήστε × στην κάρτα για αφαίρεση.');
+                }
+                state.folders = keep;
+            } else {
+                state.folders = state.folders.filter((_, i) => !state.selectedRows.has(i));
+            }
             state.selectedRows.clear();
             renderFolders();
         });
@@ -72216,91 +72261,93 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
                         </div>
                     </div>
                     <div id="tm-adb-live">
-                        <div class="tm-adb-layout">
-                            <aside class="tm-adb-hero" id="tm-adb-hero" data-mode="waiting">
-                                <div class="tm-adb-ring">
-                                    <button type="button" class="tm-adb-start" id="tm-adb-start" disabled>Έναρξη</button>
-                                </div>
-                                <p class="tm-adb-hero-pct" id="tm-adb-hero-pct"></p>
-                                <p class="tm-adb-start-caption" id="tm-adb-start-caption">Συνδέστε το τηλέφωνο με USB και πατήστε Ανανέωση.</p>
-                                <div class="tm-adb-controls">
-                                    <button type="button" class="tm-adb-btn" id="tm-adb-pause" disabled>Παύση</button>
-                                    <button type="button" class="tm-adb-btn tm-adb-btn-danger" id="tm-adb-cancel" disabled>Ακύρωση</button>
-                                    <button type="button" class="tm-adb-btn" id="tm-adb-retry" disabled>Επανάληψη</button>
-                                    <button type="button" class="tm-adb-btn" id="tm-adb-open" disabled>Άνοιγμα φακέλου</button>
-                                </div>
-                            </aside>
-                            <div class="tm-adb-panel">
-                                <section class="tm-adb-card">
-                                    <h3>Τηλέφωνο</h3>
-                                    <div class="tm-adb-row">
-                                        <div class="tm-adb-field">
-                                            <label for="tm-adb-device">Συνδεδεμένη συσκευή</label>
-                                            <select id="tm-adb-device"></select>
-                                        </div>
-                                        <button type="button" class="tm-adb-btn" id="tm-adb-refresh">Ανανέωση</button>
-                                    </div>
-                                    <p id="tm-adb-device-status" class="tm-adb-hint">Συνδέστε USB και ενεργοποιήστε debugging</p>
-                                    <p id="tm-adb-hint" class="tm-adb-hint">Αρχικοποίηση…</p>
-                                </section>
-                                <section class="tm-adb-card">
-                                    <h3>Πού θα αποθηκευτεί</h3>
-                                    <div class="tm-adb-field">
-                                        <label for="tm-adb-path">Φάκελος στον υπολογιστή</label>
-                                        <div class="tm-adb-row">
-                                            <input id="tm-adb-path" type="text" placeholder="F:\\SMARTPHONES\\ADB_SCRIPT">
-                                            <button type="button" class="tm-adb-btn" id="tm-adb-save">Αποθήκευση</button>
-                                        </div>
-                                    </div>
-                                </section>
-                                <div id="tm-adb-recovery" class="tm-adb-recovery" style="display:none"></div>
-                                <section class="tm-adb-card">
-                                    <h3>Πρόοδος</h3>
-                                    <p id="tm-adb-activity-title" class="tm-adb-hint" style="font-weight:700">Αναμονή</p>
-                                    <p id="tm-adb-activity-detail" class="tm-adb-hint"></p>
-                                    <p id="tm-adb-current-file" class="tm-adb-file"></p>
-                                    <p id="tm-adb-counts" class="tm-adb-hint"></p>
-                                    <div id="tm-adb-meter" class="tm-adb-meter"><div id="tm-adb-meter-fill" class="tm-adb-meter-fill"></div></div>
-                                    <div class="tm-adb-stats">
-                                        <span id="tm-adb-progress-detail">0.00 GB</span>
-                                        <span id="tm-adb-eta"></span>
-                                    </div>
-                                </section>
-                                <section class="tm-adb-card">
-                                    <h3>Τι θα αντιγραφεί</h3>
-                                    <div class="tm-adb-row" style="margin-bottom:8px">
-                                        <button type="button" class="tm-adb-btn" id="tm-adb-select-all">Όλα</button>
-                                        <button type="button" class="tm-adb-btn" id="tm-adb-clear-all">Κανένα</button>
-                                        <button type="button" class="tm-adb-btn" id="tm-adb-start-selected">Μόνο επιλεγμένα</button>
-                                        <button type="button" class="tm-adb-btn" id="tm-adb-sizes">Μέγεθος</button>
-                                    </div>
-                                    <div id="tm-adb-folder-list" class="tm-adb-folder-list"></div>
-                                    <p id="tm-adb-folder-total" class="tm-adb-hint"></p>
-                                </section>
-                                <details class="tm-adb-fold">
-                                    <summary>Για προχωρημένους</summary>
-                                    <div class="tm-adb-row" style="margin-bottom:8px">
-                                        <button type="button" class="tm-adb-btn" id="tm-adb-add-folder">Προσθήκη φακέλου</button>
-                                        <button type="button" class="tm-adb-btn" id="tm-adb-remove-folder">Αφαίρεση</button>
-                                        <button type="button" class="tm-adb-btn" id="tm-adb-browse-btn">Περιήγηση στο τηλέφωνο</button>
-                                    </div>
-                                    <div id="tm-adb-browse" class="tm-adb-browse" style="display:none">
-                                        <div class="tm-adb-row">
-                                            <strong>Περιήγηση συσκευής</strong>
-                                            <button type="button" class="tm-adb-btn" id="tm-adb-browse-close">Κλείσιμο</button>
-                                        </div>
-                                        <p id="tm-adb-browse-path" class="tm-adb-hint">/sdcard</p>
-                                        <div id="tm-adb-browse-list" class="tm-adb-browse-list"></div>
-                                        <div class="tm-adb-row">
-                                            <button type="button" class="tm-adb-btn" id="tm-adb-browse-up">Πάνω</button>
-                                            <button type="button" class="tm-adb-btn" id="tm-adb-browse-refresh">Ανανέωση</button>
-                                            <button type="button" class="tm-adb-btn" id="tm-adb-browse-add-here">Προσθήκη εδώ</button>
-                                            <button type="button" class="tm-adb-btn" id="tm-adb-browse-add-sel">Προσθήκη επιλογής</button>
-                                        </div>
-                                    </div>
-                                    <pre id="tm-adb-log" class="tm-adb-log"></pre>
-                                </details>
+                        <div class="tm-adb-hero" id="tm-adb-hero" data-mode="waiting">
+                            <div class="tm-adb-chips">
+                                <span class="tm-adb-chip bad" id="tm-adb-chip-helper">Βοηθός off</span>
+                                <span class="tm-adb-chip bad" id="tm-adb-chip-phone">Χωρίς τηλέφωνο</span>
+                                <span class="tm-adb-chip warn" id="tm-adb-chip-dest">Χωρίς φάκελο</span>
                             </div>
+                        </div>
+                        <div class="tm-adb-setup">
+                            <section class="tm-adb-card">
+                                <h3>1. Τηλέφωνο</h3>
+                                <div class="tm-adb-row">
+                                    <div class="tm-adb-field">
+                                        <label for="tm-adb-device">Συνδεδεμένη συσκευή</label>
+                                        <select id="tm-adb-device"></select>
+                                    </div>
+                                    <button type="button" class="tm-adb-btn" id="tm-adb-refresh">Ανανέωση</button>
+                                </div>
+                                <p id="tm-adb-device-status" class="tm-adb-hint">Συνδέστε USB και ενεργοποιήστε debugging</p>
+                                <p id="tm-adb-hint" class="tm-adb-hint">Αρχικοποίηση…</p>
+                            </section>
+                            <section class="tm-adb-card">
+                                <h3>2. Πού θα αποθηκευτεί</h3>
+                                <div class="tm-adb-field">
+                                    <label for="tm-adb-path">Φάκελος στον υπολογιστή</label>
+                                    <div class="tm-adb-row">
+                                        <input id="tm-adb-path" type="text" placeholder="F:\\SMARTPHONES\\ADB_SCRIPT">
+                                        <button type="button" class="tm-adb-btn" id="tm-adb-save">Αποθήκευση</button>
+                                    </div>
+                                </div>
+                            </section>
+                            <div id="tm-adb-recovery" class="tm-adb-recovery" style="display:none"></div>
+                            <section class="tm-adb-card">
+                                <h3>3. Τι θα αντιγραφεί</h3>
+                                <div class="tm-adb-folder-toolbar">
+                                    <button type="button" class="tm-adb-btn" id="tm-adb-select-all">Όλα</button>
+                                    <button type="button" class="tm-adb-btn" id="tm-adb-clear-all">Κανένα</button>
+                                    <button type="button" class="tm-adb-btn" id="tm-adb-sizes">Εκτίμηση μεγέθους</button>
+                                    <button type="button" class="tm-adb-btn" id="tm-adb-start-selected" hidden>Μόνο επιλεγμένα</button>
+                                </div>
+                                <div id="tm-adb-folder-list" class="tm-adb-folder-list"></div>
+                                <p id="tm-adb-folder-total" class="tm-adb-hint"></p>
+                            </section>
+                            <section class="tm-adb-progress" id="tm-adb-progress">
+                                <p class="tm-adb-hero-pct" id="tm-adb-hero-pct"></p>
+                                <p id="tm-adb-activity-title" class="tm-adb-hint" style="font-weight:800;margin:0">Αναμονή</p>
+                                <p id="tm-adb-activity-detail" class="tm-adb-hint"></p>
+                                <p id="tm-adb-current-file" class="tm-adb-file"></p>
+                                <p id="tm-adb-counts" class="tm-adb-hint"></p>
+                                <div id="tm-adb-meter" class="tm-adb-meter"><div id="tm-adb-meter-fill" class="tm-adb-meter-fill"></div></div>
+                                <div class="tm-adb-stats">
+                                    <span id="tm-adb-progress-detail">0.00 GB</span>
+                                    <span id="tm-adb-eta"></span>
+                                </div>
+                            </section>
+                            <details class="tm-adb-fold">
+                                <summary>Για προχωρημένους</summary>
+                                <div class="tm-adb-row" style="margin-bottom:8px">
+                                    <button type="button" class="tm-adb-btn" id="tm-adb-add-folder">Προσθήκη φακέλου</button>
+                                    <button type="button" class="tm-adb-btn" id="tm-adb-remove-folder">Αφαίρεση αποεπιλεγμένων</button>
+                                    <button type="button" class="tm-adb-btn" id="tm-adb-browse-btn">Περιήγηση στο τηλέφωνο</button>
+                                </div>
+                                <div id="tm-adb-browse" class="tm-adb-browse" style="display:none">
+                                    <div class="tm-adb-row">
+                                        <strong>Περιήγηση συσκευής</strong>
+                                        <button type="button" class="tm-adb-btn" id="tm-adb-browse-close">Κλείσιμο</button>
+                                    </div>
+                                    <p id="tm-adb-browse-path" class="tm-adb-hint">/sdcard</p>
+                                    <div id="tm-adb-browse-list" class="tm-adb-browse-list"></div>
+                                    <div class="tm-adb-row">
+                                        <button type="button" class="tm-adb-btn" id="tm-adb-browse-up">Πάνω</button>
+                                        <button type="button" class="tm-adb-btn" id="tm-adb-browse-refresh">Ανανέωση</button>
+                                        <button type="button" class="tm-adb-btn" id="tm-adb-browse-add-here">Προσθήκη εδώ</button>
+                                        <button type="button" class="tm-adb-btn" id="tm-adb-browse-add-sel">Προσθήκη επιλογής</button>
+                                    </div>
+                                </div>
+                                <pre id="tm-adb-log" class="tm-adb-log"></pre>
+                            </details>
+                        </div>
+                        <div class="tm-adb-footer">
+                            <div class="tm-adb-controls">
+                                <button type="button" class="tm-adb-btn" id="tm-adb-pause" disabled>Παύση</button>
+                                <button type="button" class="tm-adb-btn tm-adb-btn-danger" id="tm-adb-cancel" disabled>Ακύρωση</button>
+                                <button type="button" class="tm-adb-btn" id="tm-adb-retry" disabled>Επανάληψη</button>
+                                <button type="button" class="tm-adb-btn" id="tm-adb-open" disabled>Άνοιγμα φακέλου</button>
+                            </div>
+                            <p class="tm-adb-start-caption" id="tm-adb-start-caption">Η αντιγραφή ξεκινά μόνο όταν πατήσετε το κουμπί.</p>
+                            <button type="button" class="tm-adb-start" id="tm-adb-start" disabled>Έναρξη αντιγράφου</button>
                         </div>
                     </div>
                 </div>
