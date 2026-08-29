@@ -355,13 +355,33 @@ function Write-BackupReport {
     )
     if ([string]::IsNullOrWhiteSpace($BackupDir)) { return }
     $reportPath = Join-Path $BackupDir $Script:BackupReportName
-    ($Report | ConvertTo-Json -Depth 6) | Set-Content -Path $reportPath -Encoding UTF8 -Force
+    try {
+        ($Report | ConvertTo-Json -Depth 4 -Compress) | Set-Content -Path $reportPath -Encoding UTF8 -Force
+    } catch { }
 }
 
 function Find-VcfFilesInPath {
     param([string]$Path)
     if (-not (Test-Path $Path -PathType Container)) { return @() }
-    return @(Get-ChildItem -Path $Path -Filter '*.vcf' -Recurse -File -ErrorAction SilentlyContinue)
+    $found = New-Object System.Collections.Generic.List[System.IO.FileInfo]
+    $stack = New-Object System.Collections.Stack
+    $stack.Push($Path)
+    while ($stack.Count -gt 0) {
+        $dir = [string]$stack.Pop()
+        try {
+            foreach ($file in [System.IO.Directory]::EnumerateFiles($dir, '*.vcf')) {
+                try { [void]$found.Add((New-Object System.IO.FileInfo $file)) } catch { }
+            }
+            foreach ($sub in [System.IO.Directory]::EnumerateDirectories($dir)) {
+                try {
+                    $attr = [System.IO.File]::GetAttributes($sub)
+                    if ($attr -band [System.IO.FileAttributes]::ReparsePoint) { continue }
+                    $stack.Push($sub)
+                } catch { }
+            }
+        } catch { }
+    }
+    return @($found)
 }
 
 function Find-VcfFilesOnDevice {
@@ -723,9 +743,25 @@ function Get-FolderSizeBytesOnDevice {
 function Get-LocalBackupSizeBytes {
     param([string]$Path)
     if (-not (Test-Path $Path -PathType Container)) { return [decimal]0 }
-    $stats = Get-ChildItem $Path -Recurse -File -Force -ErrorAction SilentlyContinue | Measure-Object Length -Sum -ErrorAction SilentlyContinue
-    if ($stats.Count -gt 0) { return [decimal]$stats.Sum }
-    return [decimal]0
+    $sum = [decimal]0
+    $stack = New-Object System.Collections.Stack
+    $stack.Push($Path)
+    while ($stack.Count -gt 0) {
+        $dir = [string]$stack.Pop()
+        try {
+            foreach ($file in [System.IO.Directory]::EnumerateFiles($dir)) {
+                try { $sum += [decimal](New-Object System.IO.FileInfo $file).Length } catch { }
+            }
+            foreach ($sub in [System.IO.Directory]::EnumerateDirectories($dir)) {
+                try {
+                    $attr = [System.IO.File]::GetAttributes($sub)
+                    if ($attr -band [System.IO.FileAttributes]::ReparsePoint) { continue }
+                    $stack.Push($sub)
+                } catch { }
+            }
+        } catch { }
+    }
+    return $sum
 }
 
 function Normalize-DeviceFolderPath {
@@ -1221,9 +1257,10 @@ function Invoke-BackupEngine {
         [switch]$RetryFailedOnly
     )
 
+    $EngineOnProgress = $OnProgress
     function Publish-Progress {
-        param($Data)
-        if ($OnProgress) { & $OnProgress $Data }
+        param($ProgressData)
+        if ($EngineOnProgress) { & $EngineOnProgress $ProgressData }
     }
 
     function New-CancelledResult {
@@ -1342,7 +1379,7 @@ function Invoke-BackupEngine {
             -DeviceSerial $DeviceSerial `
             -BackupDir $BackupDir `
             -SearchFolders $SelectedFolders `
-            -OnProgress { param($Data) Publish-Progress $Data }
+            -OnProgress $EngineOnProgress
         $summaryMessage = if ($TotalFailed -eq 0) {
             "Retry completed — all failed files recovered."
         } else {
@@ -1574,7 +1611,7 @@ function Invoke-BackupEngine {
         -DeviceSerial $DeviceSerial `
         -BackupDir $BackupDir `
         -SearchFolders $SelectedFolders `
-        -OnProgress { param($Data) Publish-Progress $Data }
+        -OnProgress $EngineOnProgress
 
     $summaryMessage = if ($OverallSuccess -and $TotalFailed -eq 0) {
         "Backup completed successfully."
