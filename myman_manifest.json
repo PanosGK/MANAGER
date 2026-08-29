@@ -1,11 +1,11 @@
 {
-  "version": "439",
+  "version": "440",
   "loaderVersion": "42",
-  "silentVersion": "23",
-  "displayVersion": "42.23",
+  "silentVersion": "24",
+  "displayVersion": "42.24",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix phone catalog scrape hang: filter to used phones before pagesize, add timeouts, keep cache on failure.",
+  "releaseNotes": "Add ADB device backup overlay; keep phone catalog scrape fix",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
@@ -34,6 +34,7 @@
     "myman_status40.js",
     "myman_qrcode_lib.js",
     "myman_wifi_qr.js",
+    "myman_adb_backup.js",
     "myman_pricetransfer.js",
     "myman_statushover.js",
     "myman_orderlink.js",

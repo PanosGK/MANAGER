@@ -147,6 +147,12 @@
             where: 'Ρυθμίσεις → Εργαλεία · footer logo στη λίστα επισκευών (service_list) — όχι στη σελίδα επεξεργασίας.',
             when: 'Όταν ο πελάτης χρειάζεται να συνδεθεί στο WiFi του καταστήματος.',
         },
+        adb_backup: {
+            title: 'Αντίγραφο συσκευής (ADB)',
+            what: 'Αντίγραφο φωτογραφιών και αρχείων από το τηλέφωνο μέσω USB. Χρειάζεται τον τοπικό βοηθό (adb-backup\\Start-WebBackup.bat).',
+            where: 'Αριστερό μενού · Ρυθμίσεις → Εργαλεία.',
+            when: 'Όταν παραλαμβάνετε συσκευή και θέλετε backup πριν την επισκευή.',
+        },
         autorefresh: {
             title: 'Αυτόματη ανανέωση',
             what: 'Ανανεώνει αυτόματα τις σελίδες λίστας ώστε να βλέπετε νέες εγγραφές χωρίς F5.',
@@ -606,6 +612,13 @@
             saveCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
             saveCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
             saveCheckbox('tm-setting-wifi-qr-enabled', 'wifiQrEnabled');
+            saveCheckbox('tm-setting-adb-backup-enabled', 'adbBackupEnabled');
+            const adbUrlEl = document.getElementById('tm-setting-adb-backup-url');
+            if (adbUrlEl) {
+                const url = adbUrlEl.value.trim() || 'http://127.0.0.1:8765';
+                GM_setValue('adbBackupUrl', url);
+                config.adbBackupUrl = url;
+            }
             saveCheckbox('tm-setting-auto-update-check-enabled', 'autoUpdateCheckEnabled');
 
             // --- Save Auto-Refresh settings ---
@@ -1233,6 +1246,26 @@
                             <p class="tm-setting-description">Κλικ στο badge για αναζήτηση παραγγελιών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-link-enabled"></div>
+                    </div>
+
+                    <h4 class="tm-settings-subgroup">Αντίγραφο συσκευής (ADB)</h4>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-adb-backup-enabled">Ενεργοποίηση ADB backup</label>
+                                ${info('adb_backup')}
+                            </div>
+                            <p class="tm-setting-description">Μενού «Αντίγραφο συσκευής» για backup μέσω USB.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-adb-backup-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row tm-setting-row--stack">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-adb-backup-url">Διεύθυνση τοπικού βοηθού</label>
+                        </div>
+                        <div class="tm-setting-control" style="flex:1;min-width:180px;">
+                            <input type="text" id="tm-setting-adb-backup-url" class="tm-settings-input" autocomplete="off" spellcheck="false" placeholder="http://127.0.0.1:8765">
+                        </div>
                     </div>
 
                     <h4 class="tm-settings-subgroup">WiFi QR</h4>
@@ -2058,6 +2091,11 @@
             populateCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
             populateCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
             populateCheckbox('tm-setting-wifi-qr-enabled', 'wifiQrEnabled');
+            populateCheckbox('tm-setting-adb-backup-enabled', 'adbBackupEnabled');
+            const adbUrlInput = document.getElementById('tm-setting-adb-backup-url');
+            if (adbUrlInput) {
+                adbUrlInput.value = GM_getValue('adbBackupUrl', (window.DEFAULTS && window.DEFAULTS.adbBackupUrl) || 'http://127.0.0.1:8765') || 'http://127.0.0.1:8765';
+            }
             populateCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
             populateCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
             populateCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
@@ -2164,6 +2202,18 @@
                     // Update phone catalog button visibility
                     if (typeof window.updatePhoneCatalogButtonVisibility === 'function') {
                         window.updatePhoneCatalogButtonVisibility(config);
+                    }
+                });
+            }
+
+            const adbBackupCheckbox = document.getElementById('tm-setting-adb-backup-enabled');
+            if (adbBackupCheckbox) {
+                adbBackupCheckbox.addEventListener('change', () => {
+                    const value = adbBackupCheckbox.checked;
+                    GM_setValue('adbBackupEnabled', value);
+                    config.adbBackupEnabled = value;
+                    if (typeof window.updateAdbBackupMenuVisibility === 'function') {
+                        window.updateAdbBackupMenuVisibility(config);
                     }
                 });
             }
