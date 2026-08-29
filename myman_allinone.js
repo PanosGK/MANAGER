@@ -151,6 +151,8 @@
         orderLinkEnabled: true,
         returnTo40ButtonEnabled: true,
         wifiQrEnabled: true,
+        adbBackupEnabled: true,
+        adbBackupUrl: 'http://127.0.0.1:8765',
         eodChecklistEnabled: true,
         autoUpdateCheckEnabled: true,
         notificationsEnabled: true,
@@ -5340,6 +5342,9 @@
         
         if (typeof window.initPhoneCatalogMenuItem === 'function') {
             window.initPhoneCatalogMenuItem(config);
+        }
+        if (typeof window.initAdbBackupFeature === 'function') {
+            window.initAdbBackupFeature(config);
         }
         
         if (typeof window.initRepairReminderFeature === 'function') {

@@ -1,11 +1,11 @@
 {
-  "version": "436",
+  "version": "437",
   "loaderVersion": "42",
-  "silentVersion": "20",
-  "displayVersion": "42.20",
+  "silentVersion": "21",
+  "displayVersion": "42.21",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test",
-  "releaseNotes": "Move laptop catalog toggle to debug Experimental section",
+  "releaseNotes": "Add ADB device backup menu that talks to the local helper",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
@@ -34,6 +34,7 @@
     "myman_status40.js",
     "myman_qrcode_lib.js",
     "myman_wifi_qr.js",
+    "myman_adb_backup.js",
     "myman_pricetransfer.js",
     "myman_statushover.js",
     "myman_orderlink.js",

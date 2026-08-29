@@ -1,0 +1,13 @@
+﻿{
+    "BackupBaseDir":  "F:\\SMARTPHONES\\ADB_SCRIPT",
+    "BackupFolders":  [
+                          "sdcard/DCIM",
+                          "sdcard/Pictures",
+                          "sdcard/Movies",
+                          "sdcard/Viber",
+                          "sdcard/whatsapp",
+                          "sdcard/Download",
+                          "sdcard/Downloads",
+                          "sdcard/Documents"
+                      ]
+}

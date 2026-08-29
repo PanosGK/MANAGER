@@ -27,6 +27,11 @@
                 <rect x="2.5" y="3.25" width="11" height="7.5" rx="1" fill="none" stroke="#000" stroke-width="1.6"/>
                 <path d="M1.75 12.25h12.5" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round"/>
                 <path d="M5.5 12.25h5" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>`,
+        'adb-backup': `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" aria-hidden="true">
+                <rect x="4.5" y="1.75" width="7" height="12.5" rx="1.1" fill="none" stroke="#000" stroke-width="1.6"/>
+                <path d="M8 6.25v4.5M6.25 9.25L8 11l1.75-1.75" fill="none" stroke="#000" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>`
     };
 

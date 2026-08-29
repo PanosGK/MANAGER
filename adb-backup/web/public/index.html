@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYNC · Device Backup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <main class="shell">
+    <header class="brand">
+      <span class="brand-glyph">◈</span>
+      <div class="brand-text">
+        <span class="brand-name">SYNC</span>
+        <span class="brand-sub">adb backup</span>
+      </div>
+    </header>
+
+    <div id="banner" class="toast hidden" role="alert"></div>
+    <div id="recoveryPanel" class="recovery-panel hidden"></div>
+
+    <section class="core">
+      <div class="orb-wrap">
+        <div id="orbRing" class="orb-ring waiting"></div>
+        <div class="orb-glow"></div>
+        <button id="backupNow" class="orb-btn" type="button" disabled>
+          <span class="orb-label">INITIATE</span>
+        </button>
+      </div>
+      <div id="readinessList" class="status-strip"></div>
+      <p id="heroHint" class="mono-hint">initializing...</p>
+    </section>
+
+    <section class="telemetry">
+      <div id="activityPanel" class="readout idle">
+        <div class="readout-top">
+          <span id="activityBadge" class="tag">STANDBY</span>
+          <span id="activitySpinner" class="pulse-dot hidden" aria-hidden="true"></span>
+        </div>
+        <p id="activityTitle" class="readout-title">awaiting device</p>
+        <p id="activityDetail" class="readout-detail">connect usb · enable debugging · tap allow</p>
+        <p id="currentFile" class="readout-file"></p>
+        <p id="progressCounts" class="readout-counts"></p>
+      </div>
+
+      <div class="meter">
+        <div id="progressBar" class="meter-fill"></div>
+      </div>
+      <div class="stats">
+        <span id="progressDetail" class="stat">0.00 GB</span>
+        <span id="eta" class="stat dim"></span>
+      </div>
+
+      <nav class="controls">
+        <button id="retryFailed" type="button" disabled title="Retry failed files">↻</button>
+        <button id="pauseBackup" type="button" disabled title="Pause">⏸</button>
+        <button id="cancelBackup" type="button" disabled title="Cancel">✕</button>
+        <button id="openFolder" type="button" disabled title="Open folder">↗</button>
+      </nav>
+
+      <details class="log-fold">
+        <summary>log</summary>
+        <pre id="logBox" class="log"></pre>
+      </details>
+    </section>
+
+    <details class="config">
+      <summary>config</summary>
+      <div class="config-body">
+        <label class="field-label">device</label>
+        <div class="field-row">
+          <select id="deviceSelect"></select>
+          <button id="refreshDevices" type="button">↻</button>
+        </div>
+        <p id="deviceStatus" class="field-hint"></p>
+
+        <label class="field-label">destination</label>
+        <div class="field-row">
+          <input id="backupPath" type="text" placeholder="F:\SMARTPHONES\ADB_SCRIPT">
+          <button id="saveSettings" type="button">save</button>
+        </div>
+        <div class="field-row compact">
+          <button id="exportSettings" type="button">export</button>
+          <label class="ghost-btn">
+            import
+            <input id="importSettings" type="file" accept=".json,application/json" hidden>
+          </label>
+        </div>
+
+        <label class="field-label">folders</label>
+        <div class="table-wrap">
+          <table id="folderTable">
+            <thead>
+              <tr><th></th><th>name</th><th>size</th><th>status</th><th>path</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="field-row compact wrap">
+          <button id="selectAll" type="button">all</button>
+          <button id="clearAll" type="button">none</button>
+          <button id="addFolder" type="button">+</button>
+          <button id="removeFolder" type="button">−</button>
+          <button id="scanDevice" type="button">browse</button>
+          <button id="previewSizes" type="button">size</button>
+        </div>
+        <p id="folderTotal" class="field-hint"></p>
+        <button id="startBackupAdvanced" type="button" class="ghost-wide">sync selected only</button>
+      </div>
+    </details>
+  </main>
+
+  <dialog id="browseDialog">
+    <form method="dialog" class="dialog-form">
+      <div class="dialog-head">
+        <h3>browse</h3>
+        <button value="cancel" type="submit" class="dialog-close">✕</button>
+      </div>
+      <p id="browsePath" class="field-hint"></p>
+      <div class="browse-list" id="browseList"></div>
+      <div class="field-row compact wrap">
+        <button id="browseUp" type="button">↑</button>
+        <button id="browseRefresh" type="button">↻</button>
+        <button id="browseAddCurrent" type="button">add here</button>
+        <button id="browseAddSelected" type="button">add sel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/app.js"></script>
+</body>
+</html>

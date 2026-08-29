@@ -16,10 +16,10 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '436',
+        version: '437',
         loaderVersion: '42',
-        silentVersion: '20',
-        displayVersion: '42.20',
+        silentVersion: '21',
+        displayVersion: '42.21',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/test/myman_loader.user.js'
@@ -142,6 +142,8 @@
         WIFI_SSID: 'tm_wifi_ssid',
         WIFI_PASSWORD: 'tm_wifi_password',
         WIFI_SECURITY: 'tm_wifi_security',
+
+        ADB_BACKUP_URL: 'tm_adb_backup_url',
 
         // Add other keys here as needed
         EOD_CHECKLIST_DISMISSED: 'tm_eod_checklist_dismissed',
