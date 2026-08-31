@@ -1,11 +1,11 @@
 {
-  "version": "440",
+  "version": "441",
   "loaderVersion": "42",
-  "silentVersion": "24",
-  "displayVersion": "42.24",
+  "silentVersion": "25",
+  "displayVersion": "42.25",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Add ADB device backup overlay; keep phone catalog scrape fix",
+  "releaseNotes": "Remove injected ADB backup buttons from repair and order pages",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
