@@ -324,6 +324,7 @@
             'tm_phone_other_store_cache_v2', 'tm_phone_other_store_cache_v3',
             'tm_phone_other_store_cache_timestamp', 'tm_phone_store_details_cache_v2',
             'tm_phone_store_rules_v1', 'tm_phone_tags', 'tm_phone_tag_definitions',
+            'tm_phone_unit_notes',
             'tm_phone_my_store_name_v1', 'tm_phone_my_store_pick_v1', 'tm_phone_store_addresses_v1',
             'tm_phone_canonical_models_v1',
             'tm_phone_favorites', 'phone_favorites',

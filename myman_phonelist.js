@@ -421,6 +421,59 @@ function removePhoneTagFromAllPhones(tagKey) {
     if (changed) savePhoneTags(allTags);
 }
 
+const PHONE_UNIT_NOTES_STORAGE_KEY = 'tm_phone_unit_notes';
+const PHONE_UNIT_NOTE_MAX = 280;
+
+function loadPhoneUnitNotes() {
+    try {
+        const stored = GM_getValue(PHONE_UNIT_NOTES_STORAGE_KEY, '{}');
+        const parsed = typeof stored === 'string' ? JSON.parse(stored) : stored;
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (_) {
+        return {};
+    }
+}
+
+function savePhoneUnitNotes(notes) {
+    GM_setValue(PHONE_UNIT_NOTES_STORAGE_KEY, JSON.stringify(notes && typeof notes === 'object' ? notes : {}));
+}
+
+function normalizeUnitNoteText(text) {
+    return String(text || '').replace(/\s+/g, ' ').trim().slice(0, PHONE_UNIT_NOTE_MAX);
+}
+
+function getPhoneUnitNote(barcode) {
+    const code = String(barcode || '').trim();
+    if (!code) return null;
+    const rec = loadPhoneUnitNotes()[code];
+    if (rec == null) return null;
+    const text = normalizeUnitNoteText(typeof rec === 'string' ? rec : rec.text);
+    if (!text) return null;
+    return {
+        text,
+        by: String(rec?.by || '').trim().slice(0, 64),
+        at: Number(rec?.at) || 0,
+    };
+}
+
+function setPhoneUnitNote(barcode, text) {
+    const code = String(barcode || '').trim();
+    if (!code) return false;
+    const all = loadPhoneUnitNotes();
+    const nextText = normalizeUnitNoteText(text);
+    if (!nextText) delete all[code];
+    else {
+        all[code] = {
+            text: nextText,
+            by: (typeof getPhoneCatalogActorName === 'function' ? getPhoneCatalogActorName() : pcDisplayName()),
+            at: Date.now(),
+        };
+    }
+    savePhoneUnitNotes(all);
+    if (typeof pcNotifyNoteChanged === 'function') pcNotifyNoteChanged(code);
+    return true;
+}
+
 const DEFAULT_TITANIUM_LIST_HEX = '#8E8E93';
 
 function normalizeColorEntry(value, colorName = '') {
@@ -2258,6 +2311,39 @@ function buildPhoneListSnapshot(phones) {
         refreshedAt: Number(meta?.at) || getPhoneListCacheTimestamp() || Date.now(),
         refreshedBy: String(meta?.by || '').trim().slice(0, 64),
     };
+}
+
+function compactStoreEntry(store) {
+    if (!store) return null;
+    if (typeof store === 'string') {
+        const name = store.trim();
+        return name ? { name, qty: '1' } : null;
+    }
+    const name = String(store.name || '').trim();
+    if (!name) return null;
+    return { name, qty: String(store.qty != null ? store.qty : '1') };
+}
+
+function compactPhoneForSnapshot(phone) {
+    if (!phone || typeof phone !== 'object') return null;
+    const barcode = String(phone.barcode || '').trim();
+    if (!barcode) return null;
+    const row = {
+        barcode,
+        name: String(phone.name || '').trim(),
+        model: String(phone.model || '').trim(),
+        grade: String(phone.grade || '').trim(),
+        imei: String(phone.imei || '').trim(),
+        unitsRemaining: Number(phone.unitsRemaining) || 0,
+        isBuyback: !!phone.isBuyback,
+        retailPrice: String(phone.retailPrice || '').trim(),
+        otherStoreCount: Number(phone.otherStoreCount) || 0,
+    };
+    const otherStores = (phone.otherStores || []).map(compactStoreEntry).filter(Boolean);
+    if (otherStores.length) row.otherStores = otherStores;
+    const stores = (phone.stores || []).map(compactStoreEntry).filter(Boolean);
+    if (stores.length) row.stores = stores;
+    return row;
 }
 
 function parsePhoneListSnapshot(payload, recordHint) {
@@ -4397,8 +4483,9 @@ async function showLaptopCatalogModal() {
 }
 
 // ===================================================================
-// === PHONE CATALOG SERVER SYNC (tags/colors/rules/models — not stock)
+// === PHONE CATALOG SERVER SYNC (annotations + shared stock snapshots)
 // Collections: phone_catalog_config, phone_tags (PocketBase)
+// Stock snapshots share phone_list / other_store_phones (chunked). Notes use kind unit_note.
 // ===================================================================
 const PC_PB_BASE = 'https://mngerchat.littlejol.mywire.org';
 const PC_CONFIG_COLL = 'phone_catalog_config';
@@ -4406,9 +4493,12 @@ const PC_TAGS_COLL = 'phone_tags';
 const PC_MIGRATED_KEY = 'tm_pc_migrated_v1';
 const PC_PENDING_CONFIG_KEY = 'tm_pc_pending_config_v1';
 const PC_PENDING_TAGS_KEY = 'tm_pc_pending_tags_v1';
-/** Shared network-wide catalog annotations (not per-store stock). */
+const PC_PENDING_NOTES_KEY = 'tm_pc_pending_notes_v1';
+/** Shared network-wide catalog annotations + stock snapshots. */
 const PC_NETWORK_STORE_KEY = '*';
 const PC_FLUSH_MS = 1800;
+const PC_STOCK_CHUNK_CHARS = 320000;
+const PC_STOCK_KINDS = new Set(['phone_list', 'other_store_phones']);
 
 let pcApplyingServer = false;
 let pcServerUnsupported = false;
@@ -4417,6 +4507,7 @@ let pcFlushTimer = null;
 let pcBusy = false;
 let pcPendingKinds = new Set();
 let pcPendingBarcodes = new Set();
+let pcPendingNotes = new Set();
 let pcInitPromise = null;
 
 function pcUseDatabase() {
@@ -4514,11 +4605,13 @@ function pcSavePendingSet(key, set) {
 function pcRestorePendingQueues() {
     pcLoadPendingSet(PC_PENDING_CONFIG_KEY).forEach((k) => pcPendingKinds.add(k));
     pcLoadPendingSet(PC_PENDING_TAGS_KEY).forEach((b) => pcPendingBarcodes.add(b));
+    pcLoadPendingSet(PC_PENDING_NOTES_KEY).forEach((b) => pcPendingNotes.add(b));
 }
 
 function pcPersistPendingQueues() {
     pcSavePendingSet(PC_PENDING_CONFIG_KEY, pcPendingKinds);
     pcSavePendingSet(PC_PENDING_TAGS_KEY, pcPendingBarcodes);
+    pcSavePendingSet(PC_PENDING_NOTES_KEY, pcPendingNotes);
 }
 
 function pcScheduleFlush(delayMs) {
@@ -4535,7 +4628,8 @@ function pcNotifyConfigChanged(kind) {
     if (!kind) return;
     pcPendingKinds.add(String(kind));
     pcPersistPendingQueues();
-    pcScheduleFlush();
+    const urgent = PC_STOCK_KINDS.has(String(kind)) || kind === 'list_refresh';
+    pcScheduleFlush(urgent ? 0 : undefined);
 }
 
 function pcNotifyTagsChanged(tagsMap) {
@@ -4548,6 +4642,15 @@ function pcNotifyTagsChanged(tagsMap) {
     // Always flush full map barcodes that exist; also re-queue known pending ones
     pcPersistPendingQueues();
     pcScheduleFlush();
+}
+
+function pcNotifyNoteChanged(barcode) {
+    if (pcApplyingServer || !pcUseDatabase() || pcServerUnsupported) return;
+    const code = String(barcode || '').trim();
+    if (!code) return;
+    pcPendingNotes.add(code);
+    pcPersistPendingQueues();
+    pcScheduleFlush(0);
 }
 
 function pcReadLocalConfigPayload(kind) {
@@ -4576,8 +4679,16 @@ function pcReadLocalConfigPayload(kind) {
             return Array.isArray(list) && list.length ? buildPhoneListSnapshot(list) : null;
         }
         case 'other_store_phones': {
-            const list = getOtherStoreCache();
-            return Array.isArray(list) && list.length ? list : null;
+            const list = getOtherStoreCache({ ignoreExpiry: true });
+            if (!Array.isArray(list) || !list.length) return null;
+            const ts = Number(GM_getValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0)) || Date.now();
+            const meta = loadPhoneListRefreshMeta();
+            return {
+                v: 2,
+                phones: list,
+                refreshedAt: ts,
+                refreshedBy: String(meta?.by || '').trim().slice(0, 64),
+            };
         }
         default:
             return null;
@@ -4614,9 +4725,15 @@ function pcApplyConfigPayload(kind, payload, recordHint) {
         } else if (kind === 'phone_list') {
             const snapshot = parsePhoneListSnapshot(payload, recordHint);
             if (snapshot) applyPhoneListSnapshot(snapshot);
-        } else if (kind === 'other_store_phones' && Array.isArray(payload) && payload.length) {
-            GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(payload));
-            GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, Date.now());
+        } else if (kind === 'other_store_phones') {
+            const snapshot = parsePhoneListSnapshot(payload, recordHint);
+            if (snapshot?.phones?.length) {
+                GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(snapshot.phones));
+                GM_setValue(
+                    OTHER_STORE_CACHE_TIMESTAMP_KEY,
+                    Number(snapshot.refreshedAt) || Date.now()
+                );
+            }
         }
     } finally {
         pcApplyingServer = false;
@@ -4629,10 +4746,13 @@ function pcParsePayload(raw) {
     try { return JSON.parse(String(raw)); } catch (_) { return null; }
 }
 
-async function pcUpsertConfig(token, kind, payload) {
+async function pcUpsertConfig(token, kind, payload, extraKey) {
     const base = PC_PB_BASE.replace(/\/$/, '');
     const storeKey = PC_NETWORK_STORE_KEY;
-    const dedupeKey = `${storeKey}|${kind}`.slice(0, 128);
+    const extra = String(extraKey || '').trim();
+    const dedupeKey = (extra
+        ? `${storeKey}|${kind}|${extra}`
+        : `${storeKey}|${kind}`).slice(0, 128);
     const headers = { Authorization: token, 'Content-Type': 'application/json' };
     const filter = encodeURIComponent(`dedupeKey="${dedupeKey}"`);
     const listed = await pcRequestJson({
@@ -4666,7 +4786,7 @@ async function pcUpsertConfig(token, kind, payload) {
             url: `${base}/api/collections/${PC_CONFIG_COLL}/records/${encodeURIComponent(existingId)}`,
             headers,
             data: JSON.stringify(record),
-            timeout: 15000,
+            timeout: 30000,
         });
         return { ok: updated.status >= 200 && updated.status < 300, id: existingId, status: updated.status };
     }
@@ -4675,13 +4795,104 @@ async function pcUpsertConfig(token, kind, payload) {
         url: `${base}/api/collections/${PC_CONFIG_COLL}/records`,
         headers,
         data: JSON.stringify(record),
-        timeout: 15000,
+        timeout: 30000,
     });
     if (created.status >= 200 && created.status < 300) return { ok: true, id: created.body?.id };
     if (/unique|duplicate/i.test(JSON.stringify(created.body || {}))) {
-        return pcUpsertConfig(token, kind, payload);
+        return pcUpsertConfig(token, kind, payload, extraKey);
     }
     return { ok: false, status: created.status, body: created.body };
+}
+
+function pcStockKindBase(kind) {
+    const k = String(kind || '').trim();
+    if (k === 'phone_list' || k.startsWith('phone_list_')) return 'phone_list';
+    if (k === 'other_store_phones' || k.startsWith('other_store_phones_')) return 'other_store_phones';
+    return '';
+}
+
+function pcStockChunkIndex(kind, base) {
+    if (kind === base) return 0;
+    if (!kind.startsWith(`${base}_`)) return -1;
+    const n = Number(kind.slice(base.length + 1));
+    return Number.isFinite(n) ? n : -1;
+}
+
+function pcAssembleStockRecords(recs) {
+    if (!Array.isArray(recs) || !recs.length) return null;
+    const chunks = [];
+    let totalHint = 0;
+    let refreshedAt = 0;
+    let refreshedBy = '';
+    recs.forEach((rec) => {
+        const kind = String(rec.kind || '').trim();
+        const base = pcStockKindBase(kind);
+        if (!base) return;
+        const payload = pcParsePayload(rec.payload);
+        if (payload == null) return;
+        if (kind === base && Array.isArray(payload)) {
+            chunks[0] = payload;
+            totalHint = 1;
+            refreshedBy = String(rec.updatedBy || refreshedBy).trim();
+            return;
+        }
+        const phones = Array.isArray(payload.phones) ? payload.phones : [];
+        const isLegacyBlob = kind === base && payload.chunk == null && payload.v !== 2;
+        const idx = isLegacyBlob
+            ? 0
+            : (payload.chunk != null ? Number(payload.chunk) : pcStockChunkIndex(kind, base));
+        if (!Number.isFinite(idx) || idx < 0) return;
+        chunks[idx] = phones;
+        if (payload.total != null) totalHint = Number(payload.total) || totalHint;
+        if (isLegacyBlob) totalHint = 1;
+        refreshedAt = Number(payload.refreshedAt) || refreshedAt;
+        refreshedBy = String(payload.refreshedBy || rec.updatedBy || refreshedBy).trim();
+        if (rec.updatedAt && !refreshedAt) {
+            const parsed = Date.parse(rec.updatedAt);
+            if (!Number.isNaN(parsed)) refreshedAt = parsed;
+        }
+    });
+    const total = totalHint || chunks.filter(Boolean).length;
+    const phones = [];
+    for (let i = 0; i < total; i += 1) {
+        if (Array.isArray(chunks[i])) phones.push(...chunks[i]);
+    }
+    if (!phones.length) return null;
+    return { v: 2, phones, refreshedAt, refreshedBy };
+}
+
+async function pcUpsertChunkedStock(token, kind, payload) {
+    const rawPhones = Array.isArray(payload) ? payload : (payload?.phones || []);
+    const phones = rawPhones.map(compactPhoneForSnapshot).filter(Boolean);
+    const refreshedAt = Number(payload?.refreshedAt) || Date.now();
+    const refreshedBy = String(payload?.refreshedBy || '').trim().slice(0, 64);
+    const buckets = [];
+    let bucket = [];
+    phones.forEach((phone) => {
+        bucket.push(phone);
+        if (JSON.stringify(bucket).length >= PC_STOCK_CHUNK_CHARS) {
+            const extra = bucket.pop();
+            if (bucket.length) buckets.push(bucket);
+            bucket = extra ? [extra] : [];
+        }
+    });
+    if (bucket.length) buckets.push(bucket);
+    if (!buckets.length) buckets.push([]);
+    const total = buckets.length;
+    let last = { ok: true };
+    for (let i = 0; i < total; i += 1) {
+        const chunkKind = i === 0 ? kind : `${kind}_${i}`;
+        last = await pcUpsertConfig(token, chunkKind, {
+            v: 2,
+            chunk: i,
+            total,
+            refreshedAt,
+            refreshedBy,
+            phones: buckets[i],
+        });
+        if (!last.ok) return last;
+    }
+    return { ok: true, chunks: total };
 }
 
 async function pcUpsertTag(token, barcode, tags) {
@@ -4745,18 +4956,26 @@ async function pcUpsertTag(token, barcode, tags) {
 async function pcFlushPending() {
     if (!pcUseDatabase() || pcServerUnsupported || pcBusy) return { ok: false, busy: true };
     pcRestorePendingQueues();
-    if (!pcPendingKinds.size && !pcPendingBarcodes.size) return { ok: true, empty: true };
+    if (!pcPendingKinds.size && !pcPendingBarcodes.size && !pcPendingNotes.size) {
+        return { ok: true, empty: true };
+    }
     pcBusy = true;
     try {
         const token = await pcEnsureAuthToken();
         const kinds = [...pcPendingKinds];
         for (const kind of kinds) {
+            if (String(kind).startsWith('phone_list_') || String(kind).startsWith('other_store_phones_')) {
+                pcPendingKinds.delete(kind);
+                continue;
+            }
             const payload = pcReadLocalConfigPayload(kind);
             if (payload == null) {
                 pcPendingKinds.delete(kind);
                 continue;
             }
-            const res = await pcUpsertConfig(token, kind, payload);
+            const res = PC_STOCK_KINDS.has(kind)
+                ? await pcUpsertChunkedStock(token, kind, payload)
+                : await pcUpsertConfig(token, kind, payload);
             if (res.unsupported) break;
             if (res.ok) pcPendingKinds.delete(kind);
         }
@@ -4768,6 +4987,22 @@ async function pcFlushPending() {
                 const res = await pcUpsertTag(token, barcode, tags);
                 if (res.unsupported) break;
                 if (res.ok) pcPendingBarcodes.delete(barcode);
+            }
+        }
+        if (!pcServerUnsupported) {
+            const allNotes = loadPhoneUnitNotes();
+            const barcodes = [...pcPendingNotes];
+            for (const barcode of barcodes) {
+                const rec = allNotes[barcode];
+                const payload = {
+                    barcode,
+                    text: normalizeUnitNoteText(rec?.text || ''),
+                    by: String(rec?.by || '').trim().slice(0, 64),
+                    at: Number(rec?.at) || Date.now(),
+                };
+                const res = await pcUpsertConfig(token, 'unit_note', payload, barcode);
+                if (res.unsupported) break;
+                if (res.ok) pcPendingNotes.delete(barcode);
             }
         }
         pcPersistPendingQueues();
@@ -4783,34 +5018,76 @@ async function pcFlushPending() {
 async function pcPullConfigs(token) {
     const base = PC_PB_BASE.replace(/\/$/, '');
     const filter = encodeURIComponent(`storeKey="${PC_NETWORK_STORE_KEY}"`);
-    const listed = await pcRequestJson({
-        method: 'GET',
-        url: `${base}/api/collections/${PC_CONFIG_COLL}/records?page=1&perPage=50&filter=${filter}`,
-        headers: { Authorization: token },
-        timeout: 20000,
-    });
-    const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
-    if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
-        pcServerUnsupported = true;
-        pcHint('Phone catalog: δημιούργησε collection phone_catalog_config στο PocketBase');
-        return { ok: false, unsupported: true };
+    const items = [];
+    let page = 1;
+    for (;;) {
+        const listed = await pcRequestJson({
+            method: 'GET',
+            url: `${base}/api/collections/${PC_CONFIG_COLL}/records?page=${page}&perPage=200&filter=${filter}`,
+            headers: { Authorization: token },
+            timeout: 20000,
+        });
+        const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
+        if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
+            pcServerUnsupported = true;
+            pcHint('Phone catalog: δημιούργησε collection phone_catalog_config στο PocketBase');
+            return { ok: false, unsupported: true };
+        }
+        if (listed.status < 200 || listed.status >= 300) {
+            return { ok: false, status: listed.status };
+        }
+        const pageItems = Array.isArray(listed.body?.items) ? listed.body.items : [];
+        items.push(...pageItems);
+        const totalPages = Number(listed.body?.totalPages || 1);
+        if (page >= totalPages || !pageItems.length) break;
+        page += 1;
+        if (page > 80) break;
     }
-    if (listed.status < 200 || listed.status >= 300) {
-        return { ok: false, status: listed.status };
-    }
-    const items = Array.isArray(listed.body?.items) ? listed.body.items : [];
-    const sorted = [...items].sort((a, b) => {
-        const ak = String(a.kind || '').trim();
-        const bk = String(b.kind || '').trim();
-        if (ak === 'phone_list') return 1;
-        if (bk === 'phone_list') return -1;
-        return 0;
-    });
-    sorted.forEach((rec) => {
+
+    const stockByBase = { phone_list: [], other_store_phones: [] };
+    const noteMap = {};
+    let notesFound = false;
+    items.forEach((rec) => {
         const kind = String(rec.kind || '').trim();
         const payload = pcParsePayload(rec.payload);
+        if (kind === 'unit_note') {
+            notesFound = true;
+            const code = String(payload?.barcode || rec.dedupeKey || '').replace(/^\*\|unit_note\|/, '').trim();
+            if (!code) return;
+            const text = normalizeUnitNoteText(payload?.text || '');
+            if (!text) return;
+            noteMap[code] = {
+                text,
+                by: String(payload?.by || rec.updatedBy || '').trim().slice(0, 64),
+                at: Number(payload?.at) || (rec.updatedAt ? Date.parse(rec.updatedAt) : 0) || 0,
+            };
+            return;
+        }
+        const stockBase = pcStockKindBase(kind);
+        if (stockBase) {
+            stockByBase[stockBase].push(rec);
+            return;
+        }
         if (kind && payload != null) pcApplyConfigPayload(kind, payload, rec);
     });
+    Object.keys(stockByBase).forEach((base) => {
+        const snapshot = pcAssembleStockRecords(stockByBase[base]);
+        if (snapshot) pcApplyConfigPayload(base, snapshot, stockByBase[base][0]);
+    });
+    if (notesFound) {
+        const next = { ...noteMap };
+        const local = loadPhoneUnitNotes();
+        pcPendingNotes.forEach((code) => {
+            if (local[code] && normalizeUnitNoteText(local[code].text)) next[code] = local[code];
+            else delete next[code];
+        });
+        pcApplyingServer = true;
+        try {
+            savePhoneUnitNotes(next);
+        } finally {
+            pcApplyingServer = false;
+        }
+    }
     return { ok: true, count: items.length };
 }
 
@@ -4888,7 +5165,10 @@ async function migratePhoneCatalogToServerOnce({ force = false } = {}) {
         let uploaded = 0;
         for (const kind of kinds) {
             const payload = pcReadLocalConfigPayload(kind);
-            const res = await pcUpsertConfig(token, kind, payload);
+            if (payload == null) continue;
+            const res = PC_STOCK_KINDS.has(kind)
+                ? await pcUpsertChunkedStock(token, kind, payload)
+                : await pcUpsertConfig(token, kind, payload);
             if (res.unsupported) return { ok: false, unsupported: true };
             if (res.ok) uploaded += 1;
         }
@@ -4896,6 +5176,20 @@ async function migratePhoneCatalogToServerOnce({ force = false } = {}) {
         const barcodes = Object.keys(allTags);
         for (const barcode of barcodes) {
             const res = await pcUpsertTag(token, barcode, allTags[barcode]);
+            if (res.unsupported) return { ok: false, unsupported: true };
+            if (res.ok) uploaded += 1;
+        }
+        const allNotes = loadPhoneUnitNotes();
+        for (const barcode of Object.keys(allNotes)) {
+            const rec = allNotes[barcode];
+            const text = normalizeUnitNoteText(rec?.text || '');
+            if (!text) continue;
+            const res = await pcUpsertConfig(token, 'unit_note', {
+                barcode,
+                text,
+                by: String(rec?.by || '').trim().slice(0, 64),
+                at: Number(rec?.at) || Date.now(),
+            }, barcode);
             if (res.unsupported) return { ok: false, unsupported: true };
             if (res.ok) uploaded += 1;
         }
@@ -4922,7 +5216,7 @@ async function initPhoneCatalogServerSync() {
             const token = await pcEnsureAuthToken();
             await pcPullConfigs(token);
             await pcPullTags(token);
-            if (pcPendingKinds.size || pcPendingBarcodes.size) {
+            if (pcPendingKinds.size || pcPendingBarcodes.size || pcPendingNotes.size) {
                 pcScheduleFlush(600);
             }
             console.log('[MMS Phone Catalog] server sync ready');
@@ -4969,6 +5263,7 @@ window.loadPhoneCatalogFromDatabase = loadPhoneCatalogFromDatabase;
 window.migratePhoneCatalogToServer = (opts) => migratePhoneCatalogToServerOnce({ force: true, ...(opts || {}) });
 window.pcNotifyConfigChanged = pcNotifyConfigChanged;
 window.pcNotifyTagsChanged = pcNotifyTagsChanged;
+window.pcNotifyNoteChanged = pcNotifyNoteChanged;
 
 window.showPhoneListModal = showPhoneListModal;
 window.showLaptopCatalogModal = showLaptopCatalogModal;
@@ -5064,6 +5359,8 @@ window.getPhoneTags = getPhoneTags;
 window.addPhoneTag = addPhoneTag;
 window.removePhoneTag = removePhoneTag;
 window.togglePhoneTag = togglePhoneTag;
+window.getPhoneUnitNote = getPhoneUnitNote;
+window.setPhoneUnitNote = setPhoneUnitNote;
 window.getAllUsedTags = getAllUsedTags;
 window.getSelectableTagKeys = getSelectableTagKeys;
 window.renamePhoneTagKeyOnAllPhones = renamePhoneTagKeyOnAllPhones;

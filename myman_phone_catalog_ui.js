@@ -2161,7 +2161,22 @@
         }
         .tm-sl-phone-tag-add:hover {
             background: color-mix(in srgb, var(--tm-primary-color) 16%, var(--tm-shop-item-bg));
-            border-style: solid;
+        }
+        .tm-sl-unit-note {
+            display: block;
+            max-width: 220px;
+            margin-top: 4px;
+            padding: 4px 7px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 650;
+            line-height: 1.35;
+            color: var(--tm-shop-item-text);
+            background: color-mix(in srgb, var(--tm-warning-color, #d97706) 12%, var(--tm-shop-item-bg));
+            border: 1px solid color-mix(in srgb, var(--tm-warning-color, #d97706) 28%, transparent);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .tm-sl-chip-tag-dot {
             width: 8px;
@@ -2175,9 +2190,9 @@
         .tm-sl-tag-picker {
             position: fixed;
             z-index: 100060;
-            min-width: 210px;
-            max-width: 280px;
-            max-height: min(320px, 60vh);
+            min-width: 240px;
+            max-width: 320px;
+            max-height: min(420px, 70vh);
             overflow: auto;
             padding: 6px;
             border-radius: 12px;
@@ -2227,6 +2242,50 @@
             font-weight: 800;
             opacity: 0.85;
             min-width: 12px;
+        }
+        .tm-sl-tag-picker__note {
+            margin-top: 6px;
+            padding: 8px;
+            border-top: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 80%, transparent);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .tm-sl-tag-picker__note-label {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            opacity: 0.72;
+        }
+        .tm-sl-tag-picker__note textarea {
+            width: 100%;
+            min-height: 58px;
+            resize: vertical;
+            box-sizing: border-box;
+            border-radius: 8px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-shop-item-bg);
+            color: var(--tm-shop-item-text);
+            font: inherit;
+            font-size: 12px;
+            padding: 7px 8px;
+        }
+        .tm-sl-tag-picker__note-meta {
+            font-size: 10px;
+            opacity: 0.7;
+            min-height: 12px;
+        }
+        .tm-sl-tag-picker__note-save {
+            appearance: none;
+            border: none;
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-size: 12px;
+            font-weight: 750;
+            cursor: pointer;
+            background: var(--tm-primary-color);
+            color: #fff;
         }
         .tm-sl-unit-table .tm-sl-table-barcode:hover {
             opacity: 0.75;
@@ -2569,13 +2628,21 @@
             style="--tm-sl-tag-color:${esc(color)}">#${esc(name)}</button>`;
     }
 
+    function buildPhoneNoteHTML(barcode) {
+        const note = typeof window.getPhoneUnitNote === 'function' ? window.getPhoneUnitNote(barcode) : null;
+        if (!note?.text) return '';
+        const who = note.by ? ` · ${note.by}` : '';
+        return `<span class="tm-sl-unit-note" title="${esc(note.text)}${esc(who)}">${esc(note.text)}</span>`;
+    }
+
     function buildPhoneTagsHTML(barcode) {
         const tags = typeof window.getPhoneTags === 'function' ? (window.getPhoneTags(barcode) || []) : [];
         const chips = tags.map((key) => phoneTagChipHTML(key, barcode)).join('');
         return `<div class="tm-sl-phone-tags">
             ${chips}
             <button type="button" class="tm-sl-phone-tag-add" data-tm-sl-tag-edit="${esc(barcode)}"
-                title="Διαχείριση ετικετών" aria-label="Ετικέτες">+</button>
+                title="Ετικέτες και σημείωση" aria-label="Ετικέτες">+</button>
+            ${buildPhoneNoteHTML(barcode)}
         </div>`;
     }
 
@@ -2590,15 +2657,15 @@
         const active = new Set(
             typeof window.getPhoneTags === 'function' ? (window.getPhoneTags(code) || []) : []
         );
+        const note = typeof window.getPhoneUnitNote === 'function' ? window.getPhoneUnitNote(code) : null;
 
         const menu = document.createElement('div');
         menu.className = 'tm-sl-tag-picker';
         menu.setAttribute('role', 'menu');
 
-        if (!selectable.length) {
-            menu.innerHTML = `<div class="tm-sl-tag-picker__empty">Δημιουργήστε ετικέτες από Ρυθμίσεις → Διαχείριση Ετικετών</div>`;
-        } else {
-            menu.innerHTML = selectable.map((key) => {
+        const tagsHtml = !selectable.length
+            ? `<div class="tm-sl-tag-picker__empty">Δημιουργήστε ετικέτες από Ρυθμίσεις → Διαχείριση Ετικετών</div>`
+            : selectable.map((key) => {
                 const name = typeof window.getTagDisplayName === 'function' ? window.getTagDisplayName(key) : key;
                 const color = typeof window.getTagColor === 'function' ? window.getTagColor(key) : '#9e9e9e';
                 const isOn = active.has(key);
@@ -2609,11 +2676,22 @@
                     <span class="tm-sl-tag-picker__check" aria-hidden="true">${isOn ? '✓' : ''}</span>
                 </button>`;
             }).join('');
-        }
+
+        const noteMeta = note?.by
+            ? `${esc(note.by)}${note.at ? ` · ${esc(new Date(note.at).toLocaleString('el-GR'))}` : ''}`
+            : '';
+        menu.innerHTML = `${tagsHtml}
+            <div class="tm-sl-tag-picker__note">
+                <label class="tm-sl-tag-picker__note-label" for="tm-sl-unit-note-input">Σημείωση μονάδας</label>
+                <textarea id="tm-sl-unit-note-input" maxlength="280"
+                    placeholder="π.χ. κρατημένο για Παπαδόπουλο · ρώγμη οθόνης">${esc(note?.text || '')}</textarea>
+                <div class="tm-sl-tag-picker__note-meta">${noteMeta}</div>
+                <button type="button" class="tm-sl-tag-picker__note-save">Αποθήκευση σημείωσης</button>
+            </div>`;
 
         document.body.appendChild(menu);
         const rect = anchorEl.getBoundingClientRect();
-        const menuW = Math.min(260, Math.max(200, menu.offsetWidth || 220));
+        const menuW = Math.min(320, Math.max(240, menu.offsetWidth || 260));
         let left = rect.right - menuW;
         let top = rect.bottom + 6;
         if (left < 8) left = 8;
@@ -2648,6 +2726,14 @@
                 close();
                 if (typeof onChange === 'function') onChange();
             });
+        });
+
+        menu.querySelector('.tm-sl-tag-picker__note-save')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const text = menu.querySelector('textarea')?.value || '';
+            if (typeof window.setPhoneUnitNote === 'function') window.setPhoneUnitNote(code, text);
+            close();
+            if (typeof onChange === 'function') onChange();
         });
     }
 

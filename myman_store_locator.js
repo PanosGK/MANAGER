@@ -975,7 +975,7 @@
 
             bodyEl.querySelectorAll('tr.tm-sl-unit-row[data-tm-sl-open-row]').forEach((row) => {
                 row.addEventListener('dblclick', (e) => {
-                    if (e.target.closest('[data-tm-sl-copy], [data-tm-sl-tag-edit], .tm-sl-phone-tag, .tm-sl-tag-picker')) return;
+                    if (e.target.closest('[data-tm-sl-copy], [data-tm-sl-tag-edit], .tm-sl-phone-tag, .tm-sl-tag-picker, .tm-sl-unit-note')) return;
                     openProductByBarcode(row.getAttribute('data-tm-sl-open-row'));
                 });
                 row.addEventListener('contextmenu', (e) => {
@@ -993,6 +993,16 @@
                     const code = btn.getAttribute('data-tm-sl-tag-edit');
                     if (!code || typeof UI.showPhoneTagPicker !== 'function') return;
                     UI.showPhoneTagPicker(btn, code, () => renderStoresStep());
+                });
+            });
+
+            bodyEl.querySelectorAll('.tm-sl-unit-note').forEach((el) => {
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const row = el.closest('[data-barcode]');
+                    const code = row?.getAttribute('data-barcode');
+                    if (!code || typeof UI.showPhoneTagPicker !== 'function') return;
+                    UI.showPhoneTagPicker(el, code, () => renderStoresStep());
                 });
             });
 
