@@ -16,6 +16,7 @@ const OTHER_STORE_CACHE_KEY = 'tm_phone_other_store_cache_v3';
 const OTHER_STORE_CACHE_TIMESTAMP_KEY = 'tm_phone_other_store_cache_timestamp';
 const OTHER_STORE_CACHE_EXPIRATION_DAYS = 3;
 const PRODUCT_LIST_BASE = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php';
+const PRODUCT_LIST_SEED_QS = '55.';
 const USED_PHONE_SEARCH_QS = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ';
 const PRODUCT_LIST_SCRAPE_TIMEOUT_MS = 90000;
 
@@ -2966,7 +2967,7 @@ function fetchProductListPageHtml(options = {}) {
     }
     if (productListHtmlInflight) return productListHtmlInflight;
 
-    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(USED_PHONE_SEARCH_QS)}&recordspp=-1`;
+    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(PRODUCT_LIST_SEED_QS)}&recordspp=-1`;
     const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
 
     productListHtmlInflight = new Promise((resolve) => {
@@ -2976,7 +2977,8 @@ function fetchProductListPageHtml(options = {}) {
             resolve(result);
         };
         onProgress({ phase: 'init', ratio: 0.04 });
-        // Seed with the used-phone title so pagesize=1000000 does not dump the entire products table.
+        // Seed with barcode prefix 55. (same as before laptop catalog). The Greek
+        // used-phone title matches nothing in PHPRunner search and left the grid empty.
         GM_xmlhttpRequest({
             method: 'GET',
             url: seedUrl,
@@ -3045,7 +3047,7 @@ async function fetchPhoneList(options = {}) {
             return cached;
         }
     }
-    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(USED_PHONE_SEARCH_QS)}&recordspp=-1`;
+    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(PRODUCT_LIST_SEED_QS)}&recordspp=-1`;
     const restoreSession = () => {
         try { window.restoreRunnerSessionSearch?.(seedUrl); } catch (_) { /* ignore */ }
     };
@@ -3896,7 +3898,7 @@ async function fetchOtherStorePhones(options = {}) {
         }
     }
     
-    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(USED_PHONE_SEARCH_QS)}&recordspp=-1`;
+    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(PRODUCT_LIST_SEED_QS)}&recordspp=-1`;
     const restoreSession = () => {
         try { window.restoreRunnerSessionSearch?.(seedUrl); } catch (_) { /* ignore */ }
     };
