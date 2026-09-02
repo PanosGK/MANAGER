@@ -1391,6 +1391,9 @@
             if (storesResolving || typeof window.resolvePhonesStoreDetails !== 'function') return;
             mergeNetworkStoreHints();
             const networkPool = getNetworkPool();
+            if (typeof window.hydratePhonesFromStoreDetailsCache === 'function') {
+                window.hydratePhonesFromStoreDetailsCache(networkPool);
+            }
             const phones = modelFilter
                 ? networkPool.filter(modelFilter)
                 : networkPool;
@@ -1406,7 +1409,7 @@
             storesResolving = true;
             try {
                 await window.resolvePhonesStoreDetails(networkPool, {
-                    concurrency: 8,
+                    concurrency: 16,
                     filter: modelFilter || undefined,
                     persistOtherStoreCache: catalogCategory !== 'laptops',
                     onProgress: (done, total) => {
@@ -1800,14 +1803,11 @@
                         }
                     }, { force: true });
                     progress.finishPhase('otherStoresMs', progress.getPhaseElapsed());
-
                     if (catalogView === 'network') {
-                        progress.beginPhaseClock();
-                        progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', 0, 1);
-                        await resolveNetworkStoreDetails(null, (done, total) => {
-                            progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', done, total || 1);
-                        });
-                        progress.finishPhase('storeResolve', progress.getPhaseElapsed());
+                        mergeNetworkStoreHints();
+                        if (typeof window.hydratePhonesFromStoreDetailsCache === 'function') {
+                            window.hydratePhonesFromStoreDetailsCache(getNetworkPool());
+                        }
                     }
                 } else if (!isNetworkPoolLoaded()) {
                     await ensureOtherStores();
