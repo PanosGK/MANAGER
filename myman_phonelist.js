@@ -2672,7 +2672,22 @@ function normalizeStorehouseResponse(response) {
         .filter((s) => s.name);
 }
 
-let storehousePageApiState = 'unknown'; // ok | missing | hung
+// The page helper answers with a small JSON payload, so it stays the preferred
+// source. Repeated silence only pauses it for a while; nothing disables it for
+// the rest of the session, otherwise one slow patch pushes every remaining
+// barcode onto the much heavier HTML fallback.
+const PAGE_API_TIMEOUT_MS = 6000;
+const PAGE_API_MAX_STRIKES = 4;
+const PAGE_API_PAUSE_MS = 20000;
+// Only rows the grid says have other-store stock get here, so a long run of
+// empty answers means the helper is not reporting for them and the HTML page
+// has to take over.
+const PAGE_API_MAX_EMPTY_STREAK = 8;
+let pageApiStrikes = 0;
+let pageApiPausedUntil = 0;
+let pageApiEmptyStreak = 0;
+let pageApiTrusted = true;
+let pageApiBridgeState = 'unknown'; // unknown | ok | missing
 
 function getStorehousePageApiFn() {
     const fn = (typeof unsafeWindow !== 'undefined' ? unsafeWindow.getCheckOtherInventories : null)
@@ -2680,62 +2695,82 @@ function getStorehousePageApiFn() {
     return typeof fn === 'function' ? fn : null;
 }
 
+function isStorehousePageApiUsable() {
+    if (!pageApiTrusted) return false;
+    if (!getStorehousePageApiFn() && pageApiBridgeState === 'missing') return false;
+    if (pageApiStrikes < PAGE_API_MAX_STRIKES) return true;
+    if (Date.now() < pageApiPausedUntil) return false;
+    pageApiStrikes = PAGE_API_MAX_STRIKES - 1;
+    return true;
+}
+
+function notePageApiAnswer(ok) {
+    if (ok) {
+        pageApiStrikes = 0;
+        pageApiPausedUntil = 0;
+        return;
+    }
+    pageApiStrikes += 1;
+    if (pageApiStrikes >= PAGE_API_MAX_STRIKES) {
+        pageApiPausedUntil = Date.now() + PAGE_API_PAUSE_MS;
+    }
+}
+
 function fetchStorehousesViaUnsafeWindow(productCode) {
     return new Promise((resolve) => {
-        if (storehousePageApiState === 'missing' || storehousePageApiState === 'hung') {
-            resolve([]);
-            return;
-        }
         const fn = getStorehousePageApiFn();
         if (!fn) {
-            storehousePageApiState = 'missing';
-            resolve([]);
+            resolve({ stores: [], ok: false });
             return;
         }
         let settled = false;
-        const timer = setTimeout(() => {
-            if (!settled) {
-                settled = true;
-                storehousePageApiState = 'hung';
-                resolve([]);
-            }
-        }, 2500);
+        const finish = (result) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            resolve(result);
+        };
+        const timer = setTimeout(() => finish({ stores: [], ok: false }), PAGE_API_TIMEOUT_MS);
         try {
             fn(productCode, false, {
                 content_type: 'json',
-                onFinish: (response) => {
-                    if (settled) return;
-                    settled = true;
-                    clearTimeout(timer);
-                    resolve(normalizeStorehouseResponse(response));
-                },
+                onFinish: (response) => finish({ stores: normalizeStorehouseResponse(response), ok: true }),
             });
         } catch (e) {
-            clearTimeout(timer);
-                        resolve([]);
+            finish({ stores: [], ok: false });
         }
     });
 }
 
+// Used when the page helper lives outside the script sandbox and is therefore
+// unreachable through unsafeWindow.
 function fetchStorehousesViaPageScript(productCode) {
     return new Promise((resolve) => {
-        if (storehousePageApiState === 'missing' || storehousePageApiState === 'hung') {
-            resolve([]);
+        if (pageApiBridgeState === 'missing') {
+            resolve({ stores: [], ok: false });
             return;
         }
         const requestId = `tmStores${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
-        const timeout = setTimeout(() => {
+        let settled = false;
+        const finish = (result) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeout);
             window.removeEventListener('message', onMessage);
-            storehousePageApiState = 'hung';
-            resolve([]);
-        }, 2500);
+            resolve(result);
+        };
+        const timeout = setTimeout(() => finish({ stores: [], ok: false }), PAGE_API_TIMEOUT_MS);
 
         function onMessage(event) {
             if (event.source !== window || !event.data || event.data.type !== 'tm-mms-storehouses') return;
             if (event.data.id !== requestId) return;
-            clearTimeout(timeout);
-            window.removeEventListener('message', onMessage);
-            resolve(event.data.stores || []);
+            if (event.data.missing) {
+                pageApiBridgeState = 'missing';
+                finish({ stores: [], ok: false });
+                return;
+            }
+            pageApiBridgeState = 'ok';
+            finish({ stores: event.data.stores || [], ok: true });
         }
         window.addEventListener('message', onMessage);
 
@@ -2744,10 +2779,10 @@ function fetchStorehousesViaPageScript(productCode) {
         script.textContent = `(function(){
             var id=${JSON.stringify(requestId)};
             var productCode=${safeCode};
-            function finish(stores){window.postMessage({type:'tm-mms-storehouses',id:id,stores:stores},'*');}
+            function finish(stores,missing){window.postMessage({type:'tm-mms-storehouses',id:id,stores:stores,missing:!!missing},'*');}
             try{
                 var fn=window.getCheckOtherInventories;
-                if(typeof fn!=='function'){finish([]);return;}
+                if(typeof fn!=='function'){finish([],true);return;}
                 fn(productCode,false,{content_type:'json',onFinish:function(r){
                     finish((r||[]).map(function(x){return{name:String(x.storehouse||x.name||'').trim(),qty:String(x.units!=null?x.units:(x.qty!=null?x.qty:'1'))}}).filter(function(x){return x.name;}));
                 }});
@@ -2758,10 +2793,19 @@ function fetchStorehousesViaPageScript(productCode) {
     });
 }
 
+function fetchStorehousesViaPageApi(productCode) {
+    // Only reach for the injected bridge when the helper is not visible from
+    // the sandbox; retrying both paths per barcode would double the wait.
+    if (getStorehousePageApiFn()) return fetchStorehousesViaUnsafeWindow(productCode);
+    if (pageApiBridgeState !== 'missing') return fetchStorehousesViaPageScript(productCode);
+    return Promise.resolve({ stores: [], ok: false });
+}
+
 function parseStorehousesFromProductHtml(html, barcode) {
     try {
         const doc = new DOMParser().parseFromString(html, 'text/html');
         let best = [];
+        let rowFound = false;
         doc.querySelectorAll('tr').forEach((row) => {
             const rowBarcodeEl = row.querySelector('[id*="strProductID"]');
             const rowBarcode = (rowBarcodeEl?.textContent || '').trim();
@@ -2769,6 +2813,7 @@ function parseStorehousesFromProductHtml(html, barcode) {
 
             const otherStoreEl = row.querySelector('[id*="iUnitsRemainingOtherStoreHouses"]');
             if (!otherStoreEl) return;
+            rowFound = true;
             const otherCount = parseInt((otherStoreEl.textContent || '').trim(), 10) || 0;
             if (otherCount <= 0) return;
 
@@ -2776,32 +2821,10 @@ function parseStorehousesFromProductHtml(html, barcode) {
             if (!stores.length) stores = parseOtherStorehousesFromRow(row);
             if (stores.length > best.length) best = stores;
         });
-        return best;
+        return { stores: best, rowFound };
         } catch (e) {
-        return [];
+        return { stores: [], rowFound: false };
     }
-}
-
-function pcWithHardTimeout(task, ms, fallback) {
-    const timeoutMs = Math.max(400, Number(ms) || 8000);
-    return new Promise((resolve) => {
-        let settled = false;
-        const finish = (value) => {
-            if (settled) return;
-            settled = true;
-            resolve(value);
-        };
-        const timer = setTimeout(() => finish(fallback), timeoutMs);
-        Promise.resolve()
-            .then(() => (typeof task === 'function' ? task() : task))
-            .then((value) => {
-                clearTimeout(timer);
-                finish(value);
-            }, () => {
-                clearTimeout(timer);
-                finish(fallback);
-            });
-    });
 }
 
 async function pcMapPool(items, limit, worker) {
@@ -2822,81 +2845,103 @@ async function pcMapPool(items, limit, worker) {
     await Promise.all(Array.from({ length: concurrency }, () => pump()));
 }
 
-function fetchStorehousesViaHttp(productCode) {
+function fetchStorehousesViaHttp(productCode, options = {}) {
     return new Promise((resolve) => {
         const code = String(productCode || '').trim();
         if (!code) {
-            resolve([]);
+            resolve({ stores: [], ok: false });
             return;
         }
         const url = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(code)}`;
+        const timeoutMs = Math.max(4000, Number(options.timeoutMs) || 9000);
         let settled = false;
-        const finish = (stores) => {
+        let handle = null;
+        const finish = (result) => {
             if (settled) return;
             settled = true;
-            try { window.restoreRunnerSessionSearch?.(url); } catch (_) { /* ignore */ }
-            resolve(Array.isArray(stores) ? stores : []);
+            clearTimeout(timer);
+            // Restoring per barcode makes PHPRunner replay a show-all between
+            // fetches, so a batched caller resets the session search once.
+            if (!options.deferSessionRestore) {
+                try { window.restoreRunnerSessionSearch?.(url); } catch (_) { /* ignore */ }
+            }
+            resolve(result);
         };
-        const timer = setTimeout(() => finish([]), 7000);
-        GM_xmlhttpRequest({
+        // An abandoned fetch would keep a connection busy and push real
+        // concurrency past the pool limit, so the timeout aborts the request.
+        const timer = setTimeout(() => {
+            try { handle?.abort?.(); } catch (_) { /* ignore */ }
+            finish({ stores: [], ok: false });
+        }, timeoutMs);
+        handle = GM_xmlhttpRequest({
             method: 'GET',
             url,
-            timeout: 6500,
+            timeout: timeoutMs - 500,
             onload(response) {
-                clearTimeout(timer);
-                finish(parseStorehousesFromProductHtml(response.responseText || '', code));
+                const html = response?.responseText || '';
+                const status = Number(response?.status) || 0;
+                if (status < 200 || status >= 300 || html.length < 200) {
+                    finish({ stores: [], ok: false });
+                    return;
+                }
+                const parsed = parseStorehousesFromProductHtml(html, code);
+                finish({ stores: parsed.stores, ok: parsed.rowFound });
             },
             onerror() {
-                clearTimeout(timer);
-                finish([]);
+                finish({ stores: [], ok: false });
             },
             ontimeout() {
-                clearTimeout(timer);
-                finish([]);
+                finish({ stores: [], ok: false });
             },
         });
     });
 }
 
-async function fetchStorehousesFromPage(productCode, options = {}) {
+/**
+ * @returns {Promise<{stores: Array, answered: boolean}>} `answered` means a
+ * source really reported on this barcode, so an empty list is a genuine "no
+ * other-store stock" and does not deserve another pass.
+ */
+async function fetchStorehouseDetails(productCode, options = {}) {
     const code = String(productCode || '').trim();
-    if (!code) return [];
+    if (!code) return { stores: [], answered: true };
 
     const cached = getCachedPhoneStoreDetails(code);
-    if (cached?.length) return cached;
+    if (cached?.length) return { stores: cached, answered: true };
 
     const attempt = Math.max(1, Number(options.attempt) || 1);
-    const httpMs = Math.min(20000, 7000 + (attempt - 1) * 3000);
-    const tryPageApi = options.httpOnly === false || attempt >= 3;
 
-    if (tryPageApi) {
-        const pageFn = getStorehousePageApiFn();
-        if (pageFn && storehousePageApiState !== 'hung') {
-            const viaPage = await pcWithHardTimeout(
-                () => fetchStorehousesViaUnsafeWindow(code),
-                2000,
-                []
-            );
-            if (viaPage.length) {
-                storehousePageApiState = 'ok';
-                savePhoneStoreDetailsCache(code, viaPage);
-                return viaPage;
+    if (isStorehousePageApiUsable()) {
+        const viaPage = await fetchStorehousesViaPageApi(code);
+        notePageApiAnswer(viaPage.ok);
+        if (viaPage.ok && viaPage.stores.length) {
+            pageApiEmptyStreak = 0;
+            savePhoneStoreDetailsCache(code, viaPage.stores);
+            return { stores: viaPage.stores, answered: true };
+        }
+        if (viaPage.ok) {
+            pageApiEmptyStreak += 1;
+            if (pageApiEmptyStreak < PAGE_API_MAX_EMPTY_STREAK) {
+                return { stores: [], answered: true };
             }
-        } else if (!pageFn) {
-            storehousePageApiState = 'missing';
+            // Those empty answers cannot be trusted either, so let the HTML
+            // page have another go at them.
+            pageApiTrusted = false;
+            storeResolveAnsweredEmpty.clear();
         }
     }
 
-    const viaHttp = await pcWithHardTimeout(
-        () => fetchStorehousesViaHttp(code),
-        httpMs + 500,
-        []
-    );
-    if (viaHttp.length) {
-        savePhoneStoreDetailsCache(code, viaHttp);
-        return viaHttp;
-    }
-    return [];
+    const viaHttp = await fetchStorehousesViaHttp(code, {
+        timeoutMs: Math.min(18000, 9000 + (attempt - 1) * 3000),
+        deferSessionRestore: options.deferSessionRestore,
+    });
+    if (viaHttp.stores.length) savePhoneStoreDetailsCache(code, viaHttp.stores);
+    return { stores: viaHttp.stores, answered: viaHttp.ok };
+}
+
+async function fetchStorehousesFromPage(productCode, options = {}) {
+    const result = await fetchStorehouseDetails(productCode, options);
+    return result.stores;
 }
 
 const PHONE_STORE_DETAILS_CACHE_KEY = 'tm_phone_store_details_cache_v2';
@@ -2975,8 +3020,14 @@ function getEffectivePhoneStores(phone) {
     return withStock(getLoosePhoneStores(phone));
 }
 
+// Barcodes a source already reported on with an empty result: asking again in
+// the same session only burns passes. The catalog still lists these units, just
+// without a store name.
+const storeResolveAnsweredEmpty = new Set();
+
 function phoneNeedsStoreResolve(phone) {
     if (getEffectivePhoneStores(phone).length) return false;
+    if (storeResolveAnsweredEmpty.has(phone?.barcode)) return false;
     const count = parseInt(phone?.otherStoreCount, 10) || 0;
     return count > 0;
 }
@@ -2994,7 +3045,8 @@ function mergeOtherStoresFromAllPhones(allPhones, networkPhones) {
 
 async function resolvePhonesStoreDetails(phones, options = {}) {
     const { concurrency = 6, onProgress, filter } = options;
-    const maxPasses = Math.max(3, Number(options.maxPasses) || 6);
+    const maxPasses = Math.max(1, Math.min(Number(options.maxPasses) || 3, 4));
+    if (options.force) storeResolveAnsweredEmpty.clear();
     hydratePhonesFromStoreDetailsCache(phones);
     const list = (phones || []).filter((p) => (!filter || filter(p)) && phoneNeedsStoreResolve(p));
     const unique = [...new Map(list.map((p) => [p.barcode, p])).values()];
@@ -3005,39 +3057,48 @@ async function resolvePhonesStoreDetails(phones, options = {}) {
     }
 
     let remaining = unique.slice();
-    let resolved = unique.length - remaining.length;
+    let done = 0;
     for (let pass = 1; remaining.length && pass <= maxPasses; pass += 1) {
-        const failed = [];
+        const retry = [];
         await pcMapPool(remaining, concurrency, async (phone) => {
             if (getEffectivePhoneStores(phone).length) {
-                resolved += 1;
-                onProgress?.(resolved, unique.length, { pass, pending: remaining.length });
+                done += 1;
+                onProgress?.(done, unique.length, { pass, pending: retry.length });
                 return;
             }
             try {
-                const stores = await fetchStorehousesFromPage(phone.barcode, {
-                    httpOnly: pass < 3,
+                const result = await fetchStorehouseDetails(phone.barcode, {
                     attempt: pass,
+                    deferSessionRestore: true,
                 });
-                if (stores.length) {
-                    phone.stores = stores;
-                    phone.otherStores = stores;
-                    resolved += 1;
-                    onProgress?.(resolved, unique.length, { pass, pending: 0 });
+                if (result.stores.length) {
+                    phone.stores = result.stores;
+                    phone.otherStores = result.stores;
+                } else if (result.answered) {
+                    storeResolveAnsweredEmpty.add(phone.barcode);
+                } else {
+                    retry.push(phone);
+                    onProgress?.(done, unique.length, { pass, pending: retry.length });
                     return;
                 }
+                done += 1;
+                onProgress?.(done, unique.length, { pass, pending: retry.length });
+                return;
             } catch (e) {
                 console.warn('[MMS Phone List] Could not resolve stores for', phone.barcode, e);
             }
-            failed.push(phone);
-            onProgress?.(resolved, unique.length, { pass, pending: failed.length + 1 });
+            retry.push(phone);
+            onProgress?.(done, unique.length, { pass, pending: retry.length });
         });
-        remaining = failed.filter((p) => phoneNeedsStoreResolve(p));
+        remaining = retry.filter((p) => phoneNeedsStoreResolve(p));
         if (remaining.length && pass < maxPasses) {
-            await new Promise((r) => setTimeout(r, Math.min(400 * pass, 2000)));
+            await new Promise((r) => setTimeout(r, 300));
         }
     }
 
+    try {
+        window.restoreRunnerSessionSearch?.(`${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(USED_PHONE_SEARCH_QS)}`);
+    } catch (_) { /* ignore */ }
     persistPhoneStoreDetailsCache();
     if (options.persistOtherStoreCache) {
         saveOtherStoreCache(phones);
@@ -3732,8 +3793,12 @@ function pcRequestHtml(url, timeoutMs) {
             settled = true;
             resolve(value);
         };
-        const timer = setTimeout(() => finish({ ok: false, text: '' }), ms + 400);
-        xhr({
+        let handle = null;
+        const timer = setTimeout(() => {
+            try { handle?.abort?.(); } catch (_) { /* ignore */ }
+            finish({ ok: false, text: '' });
+        }, ms + 400);
+        handle = xhr({
             method: 'GET',
             url,
             timeout: ms,
@@ -3796,38 +3861,46 @@ function parseFulltextResponse(text) {
     return raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-async function fetchProductFullName(barcode, dataQuery) {
+async function fetchProductFullName(barcode, dataQuery, timeoutMs) {
     const code = String(barcode || '').trim();
     let path = String(dataQuery || '').trim();
     if (!path && code) {
         path = `fulltext.php?pagetype=list&table=products&field=strProductName&key1=${encodeURIComponent(code)}`;
     }
-    if (!path) return '';
-    if (path.startsWith('javascript:')) return '';
+    if (!path) return { name: '', answered: true };
+    if (path.startsWith('javascript:')) return { name: '', answered: true };
     const url = path.startsWith('http')
         ? path
         : `https://thefixers.mymanager.gr/mymanagerservice/${path.replace(/^\//, '')}`;
-    const res = await pcRequestHtml(url, 8000);
-    if (!res.ok) return '';
-    return parseFulltextResponse(res.text);
+    const res = await pcRequestHtml(url, Number(timeoutMs) || 8000);
+    if (!res.ok) return { name: '', answered: false };
+    return { name: parseFulltextResponse(res.text), answered: true };
 }
 
 async function expandLaptopNames(items, onProgress) {
     const needExpand = items.filter((item) => item?._needsFullName && item.barcode);
     if (!needExpand.length) return items;
     const concurrency = 6;
-    const maxPasses = 5;
+    const maxPasses = 3;
     let remaining = needExpand.slice();
     let done = 0;
     for (let pass = 1; remaining.length && pass <= maxPasses; pass += 1) {
         const failed = [];
         await pcMapPool(remaining, concurrency, async (item) => {
             try {
-                const full = await pcWithHardTimeout(
-                    () => fetchProductFullName(item.barcode, item._fulltextQuery),
-                    8000 + pass * 2000,
-                    ''
+                const res = await fetchProductFullName(
+                    item.barcode,
+                    item._fulltextQuery,
+                    8000 + (pass - 1) * 2000
                 );
+                const full = res.name;
+                if (!full && !res.answered) {
+                    failed.push(item);
+                    if (typeof onProgress === 'function') {
+                        onProgress({ phase: 'expand', done, total: needExpand.length, ratio: done / needExpand.length });
+                    }
+                    return;
+                }
                 if (full && full.length > String(item.name || '').length) {
                     const parsed = parseLaptopName(full);
                     item.name = parsed.fullName;
@@ -3847,6 +3920,15 @@ async function expandLaptopNames(items, onProgress) {
                     }
                     return;
                 }
+                // Answered with nothing better than the grid title: the short
+                // name is all there is, so stop asking for it.
+                delete item._needsFullName;
+                delete item._fulltextQuery;
+                done += 1;
+                if (typeof onProgress === 'function') {
+                    onProgress({ phase: 'expand', done, total: needExpand.length, ratio: done / needExpand.length });
+                }
+                return;
             } catch (_) { /* retry */ }
             failed.push(item);
             if (typeof onProgress === 'function') {
@@ -3855,7 +3937,7 @@ async function expandLaptopNames(items, onProgress) {
         });
         remaining = failed;
         if (remaining.length && pass < maxPasses) {
-            await new Promise((r) => setTimeout(r, 400 * pass));
+            await new Promise((r) => setTimeout(r, 300));
         }
     }
     items.forEach((item) => {
@@ -5030,13 +5112,16 @@ async function pcUpsertChunkedStock(token, kind, payload) {
     const refreshedBy = String(payload?.refreshedBy || '').trim().slice(0, 64);
     const buckets = [];
     let bucket = [];
+    let bucketChars = 0;
     phones.forEach((phone) => {
-        bucket.push(phone);
-        if (JSON.stringify(bucket).length >= PC_STOCK_CHUNK_CHARS) {
-            const extra = bucket.pop();
-            if (bucket.length) buckets.push(bucket);
-            bucket = extra ? [extra] : [];
+        const chars = JSON.stringify(phone).length + 1;
+        if (bucket.length && bucketChars + chars >= PC_STOCK_CHUNK_CHARS) {
+            buckets.push(bucket);
+            bucket = [];
+            bucketChars = 0;
         }
+        bucket.push(phone);
+        bucketChars += chars;
     });
     if (bucket.length) buckets.push(bucket);
     if (!buckets.length) buckets.push([]);
@@ -5462,6 +5547,7 @@ window.getPhoneGradeColor = getPhoneGradeColor;
 window.getAllColorHexMap = getAllColorHexMap;
 window.fetchStorehousesFromPage = fetchStorehousesFromPage;
 window.getEffectivePhoneStores = getEffectivePhoneStores;
+window.phoneNeedsStoreResolve = phoneNeedsStoreResolve;
 window.resolvePhonesStoreDetails = resolvePhonesStoreDetails;
 window.hydratePhonesFromStoreDetailsCache = hydratePhonesFromStoreDetailsCache;
 window.mergeOtherStoresFromAllPhones = mergeOtherStoresFromAllPhones;

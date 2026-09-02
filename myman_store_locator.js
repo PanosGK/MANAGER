@@ -1407,10 +1407,10 @@
             const phones = modelFilter
                 ? networkPool.filter(modelFilter)
                 : networkPool;
-            const needsResolve = phones.some((p) => {
-                const stores = helpers.getEffectivePhoneStores(p);
-                return !stores.length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
-            });
+            const stillPending = typeof window.phoneNeedsStoreResolve === 'function'
+                ? window.phoneNeedsStoreResolve
+                : (p) => !helpers.getEffectivePhoneStores(p).length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
+            const needsResolve = phones.some(stillPending);
             if (!needsResolve) {
                 onProgress?.(1, 1);
                 return;
