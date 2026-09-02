@@ -2968,10 +2968,11 @@ async function fetchPhoneList(options = {}) {
                 console.log('[MMS Phone List] First page loaded, now loading with pagesize=500');
                 onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
 
-                // Step 2: Load with pagesize so the 55. session search returns the full grid
+                // Step 2: keep qs=55. on this request. pagesize without qs reuses
+                // whatever search is already in the PHPRunner session (often empty).
                 GM_xmlhttpRequest({
                     method: 'GET',
-                    url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|',
+                    url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&pagesize=1000000|',
                     onprogress: function(e) {
                         if (e.lengthComputable && e.total > 0) {
                             onProgress({
@@ -3970,7 +3971,7 @@ async function fetchOtherStorePhones(options = {}) {
         };
 
         const primaryUrl = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&pagesize=1000000|';
-        const fallbackUrl = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|';
+        const fallbackUrl = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&recordspp=-1&pagesize=1000000|';
         fetchWithUrl(primaryUrl, fallbackUrl);
     });
 }

@@ -3860,6 +3860,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             'tm_phone_other_store_cache_v2', 'tm_phone_other_store_cache_v3',
             'tm_phone_other_store_cache_timestamp', 'tm_phone_store_details_cache_v2',
             'tm_phone_store_rules_v1', 'tm_phone_tags', 'tm_phone_tag_definitions',
+            'tm_phone_unit_notes',
             'tm_phone_my_store_name_v1', 'tm_phone_my_store_pick_v1', 'tm_phone_store_addresses_v1',
             'tm_phone_canonical_models_v1',
             'tm_phone_favorites', 'phone_favorites',
@@ -57225,7 +57226,22 @@ window.initOrderTracking = initOrderTracking;
         }
         .tm-sl-phone-tag-add:hover {
             background: color-mix(in srgb, var(--tm-primary-color) 16%, var(--tm-shop-item-bg));
-            border-style: solid;
+        }
+        .tm-sl-unit-note {
+            display: block;
+            max-width: 220px;
+            margin-top: 4px;
+            padding: 4px 7px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 650;
+            line-height: 1.35;
+            color: var(--tm-shop-item-text);
+            background: color-mix(in srgb, var(--tm-warning-color, #d97706) 12%, var(--tm-shop-item-bg));
+            border: 1px solid color-mix(in srgb, var(--tm-warning-color, #d97706) 28%, transparent);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .tm-sl-chip-tag-dot {
             width: 8px;
@@ -57239,9 +57255,9 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-tag-picker {
             position: fixed;
             z-index: 100060;
-            min-width: 210px;
-            max-width: 280px;
-            max-height: min(320px, 60vh);
+            min-width: 240px;
+            max-width: 320px;
+            max-height: min(420px, 70vh);
             overflow: auto;
             padding: 6px;
             border-radius: 12px;
@@ -57291,6 +57307,50 @@ window.initOrderTracking = initOrderTracking;
             font-weight: 800;
             opacity: 0.85;
             min-width: 12px;
+        }
+        .tm-sl-tag-picker__note {
+            margin-top: 6px;
+            padding: 8px;
+            border-top: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 80%, transparent);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .tm-sl-tag-picker__note-label {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            opacity: 0.72;
+        }
+        .tm-sl-tag-picker__note textarea {
+            width: 100%;
+            min-height: 58px;
+            resize: vertical;
+            box-sizing: border-box;
+            border-radius: 8px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-shop-item-bg);
+            color: var(--tm-shop-item-text);
+            font: inherit;
+            font-size: 12px;
+            padding: 7px 8px;
+        }
+        .tm-sl-tag-picker__note-meta {
+            font-size: 10px;
+            opacity: 0.7;
+            min-height: 12px;
+        }
+        .tm-sl-tag-picker__note-save {
+            appearance: none;
+            border: none;
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-size: 12px;
+            font-weight: 750;
+            cursor: pointer;
+            background: var(--tm-primary-color);
+            color: #fff;
         }
         .tm-sl-unit-table .tm-sl-table-barcode:hover {
             opacity: 0.75;
@@ -57633,13 +57693,21 @@ window.initOrderTracking = initOrderTracking;
             style="--tm-sl-tag-color:${esc(color)}">#${esc(name)}</button>`;
     }
 
+    function buildPhoneNoteHTML(barcode) {
+        const note = typeof window.getPhoneUnitNote === 'function' ? window.getPhoneUnitNote(barcode) : null;
+        if (!note?.text) return '';
+        const who = note.by ? ` · ${note.by}` : '';
+        return `<span class="tm-sl-unit-note" title="${esc(note.text)}${esc(who)}">${esc(note.text)}</span>`;
+    }
+
     function buildPhoneTagsHTML(barcode) {
         const tags = typeof window.getPhoneTags === 'function' ? (window.getPhoneTags(barcode) || []) : [];
         const chips = tags.map((key) => phoneTagChipHTML(key, barcode)).join('');
         return `<div class="tm-sl-phone-tags">
             ${chips}
             <button type="button" class="tm-sl-phone-tag-add" data-tm-sl-tag-edit="${esc(barcode)}"
-                title="Διαχείριση ετικετών" aria-label="Ετικέτες">+</button>
+                title="Ετικέτες και σημείωση" aria-label="Ετικέτες">+</button>
+            ${buildPhoneNoteHTML(barcode)}
         </div>`;
     }
 
@@ -57654,15 +57722,15 @@ window.initOrderTracking = initOrderTracking;
         const active = new Set(
             typeof window.getPhoneTags === 'function' ? (window.getPhoneTags(code) || []) : []
         );
+        const note = typeof window.getPhoneUnitNote === 'function' ? window.getPhoneUnitNote(code) : null;
 
         const menu = document.createElement('div');
         menu.className = 'tm-sl-tag-picker';
         menu.setAttribute('role', 'menu');
 
-        if (!selectable.length) {
-            menu.innerHTML = `<div class="tm-sl-tag-picker__empty">Δημιουργήστε ετικέτες από Ρυθμίσεις → Διαχείριση Ετικετών</div>`;
-        } else {
-            menu.innerHTML = selectable.map((key) => {
+        const tagsHtml = !selectable.length
+            ? `<div class="tm-sl-tag-picker__empty">Δημιουργήστε ετικέτες από Ρυθμίσεις → Διαχείριση Ετικετών</div>`
+            : selectable.map((key) => {
                 const name = typeof window.getTagDisplayName === 'function' ? window.getTagDisplayName(key) : key;
                 const color = typeof window.getTagColor === 'function' ? window.getTagColor(key) : '#9e9e9e';
                 const isOn = active.has(key);
@@ -57673,11 +57741,22 @@ window.initOrderTracking = initOrderTracking;
                     <span class="tm-sl-tag-picker__check" aria-hidden="true">${isOn ? '✓' : ''}</span>
                 </button>`;
             }).join('');
-        }
+
+        const noteMeta = note?.by
+            ? `${esc(note.by)}${note.at ? ` · ${esc(new Date(note.at).toLocaleString('el-GR'))}` : ''}`
+            : '';
+        menu.innerHTML = `${tagsHtml}
+            <div class="tm-sl-tag-picker__note">
+                <label class="tm-sl-tag-picker__note-label" for="tm-sl-unit-note-input">Σημείωση μονάδας</label>
+                <textarea id="tm-sl-unit-note-input" maxlength="280"
+                    placeholder="π.χ. κρατημένο για Παπαδόπουλο · ρώγμη οθόνης">${esc(note?.text || '')}</textarea>
+                <div class="tm-sl-tag-picker__note-meta">${noteMeta}</div>
+                <button type="button" class="tm-sl-tag-picker__note-save">Αποθήκευση σημείωσης</button>
+            </div>`;
 
         document.body.appendChild(menu);
         const rect = anchorEl.getBoundingClientRect();
-        const menuW = Math.min(260, Math.max(200, menu.offsetWidth || 220));
+        const menuW = Math.min(320, Math.max(240, menu.offsetWidth || 260));
         let left = rect.right - menuW;
         let top = rect.bottom + 6;
         if (left < 8) left = 8;
@@ -57712,6 +57791,14 @@ window.initOrderTracking = initOrderTracking;
                 close();
                 if (typeof onChange === 'function') onChange();
             });
+        });
+
+        menu.querySelector('.tm-sl-tag-picker__note-save')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const text = menu.querySelector('textarea')?.value || '';
+            if (typeof window.setPhoneUnitNote === 'function') window.setPhoneUnitNote(code, text);
+            close();
+            if (typeof onChange === 'function') onChange();
         });
     }
 
@@ -59058,7 +59145,6 @@ const OTHER_STORE_CACHE_KEY = 'tm_phone_other_store_cache_v3';
 const OTHER_STORE_CACHE_TIMESTAMP_KEY = 'tm_phone_other_store_cache_timestamp';
 const OTHER_STORE_CACHE_EXPIRATION_DAYS = 3;
 const PRODUCT_LIST_BASE = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php';
-const USED_PHONE_SEARCH_QS = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ';
 const PRODUCT_LIST_SCRAPE_TIMEOUT_MS = 90000;
 
 // Greek translations (using Unicode escape sequences to avoid encoding issues)
@@ -59461,6 +59547,59 @@ function removePhoneTagFromAllPhones(tagKey) {
         if (before !== (allTags[barcode]?.length || 0)) changed = true;
     });
     if (changed) savePhoneTags(allTags);
+}
+
+const PHONE_UNIT_NOTES_STORAGE_KEY = 'tm_phone_unit_notes';
+const PHONE_UNIT_NOTE_MAX = 280;
+
+function loadPhoneUnitNotes() {
+    try {
+        const stored = GM_getValue(PHONE_UNIT_NOTES_STORAGE_KEY, '{}');
+        const parsed = typeof stored === 'string' ? JSON.parse(stored) : stored;
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (_) {
+        return {};
+    }
+}
+
+function savePhoneUnitNotes(notes) {
+    GM_setValue(PHONE_UNIT_NOTES_STORAGE_KEY, JSON.stringify(notes && typeof notes === 'object' ? notes : {}));
+}
+
+function normalizeUnitNoteText(text) {
+    return String(text || '').replace(/\s+/g, ' ').trim().slice(0, PHONE_UNIT_NOTE_MAX);
+}
+
+function getPhoneUnitNote(barcode) {
+    const code = String(barcode || '').trim();
+    if (!code) return null;
+    const rec = loadPhoneUnitNotes()[code];
+    if (rec == null) return null;
+    const text = normalizeUnitNoteText(typeof rec === 'string' ? rec : rec.text);
+    if (!text) return null;
+    return {
+        text,
+        by: String(rec?.by || '').trim().slice(0, 64),
+        at: Number(rec?.at) || 0,
+    };
+}
+
+function setPhoneUnitNote(barcode, text) {
+    const code = String(barcode || '').trim();
+    if (!code) return false;
+    const all = loadPhoneUnitNotes();
+    const nextText = normalizeUnitNoteText(text);
+    if (!nextText) delete all[code];
+    else {
+        all[code] = {
+            text: nextText,
+            by: (typeof getPhoneCatalogActorName === 'function' ? getPhoneCatalogActorName() : pcDisplayName()),
+            at: Date.now(),
+        };
+    }
+    savePhoneUnitNotes(all);
+    if (typeof pcNotifyNoteChanged === 'function') pcNotifyNoteChanged(code);
+    return true;
 }
 
 const DEFAULT_TITANIUM_LIST_HEX = '#8E8E93';
@@ -61302,6 +61441,39 @@ function buildPhoneListSnapshot(phones) {
     };
 }
 
+function compactStoreEntry(store) {
+    if (!store) return null;
+    if (typeof store === 'string') {
+        const name = store.trim();
+        return name ? { name, qty: '1' } : null;
+    }
+    const name = String(store.name || '').trim();
+    if (!name) return null;
+    return { name, qty: String(store.qty != null ? store.qty : '1') };
+}
+
+function compactPhoneForSnapshot(phone) {
+    if (!phone || typeof phone !== 'object') return null;
+    const barcode = String(phone.barcode || '').trim();
+    if (!barcode) return null;
+    const row = {
+        barcode,
+        name: String(phone.name || '').trim(),
+        model: String(phone.model || '').trim(),
+        grade: String(phone.grade || '').trim(),
+        imei: String(phone.imei || '').trim(),
+        unitsRemaining: Number(phone.unitsRemaining) || 0,
+        isBuyback: !!phone.isBuyback,
+        retailPrice: String(phone.retailPrice || '').trim(),
+        otherStoreCount: Number(phone.otherStoreCount) || 0,
+    };
+    const otherStores = (phone.otherStores || []).map(compactStoreEntry).filter(Boolean);
+    if (otherStores.length) row.otherStores = otherStores;
+    const stores = (phone.stores || []).map(compactStoreEntry).filter(Boolean);
+    if (stores.length) row.stores = stores;
+    return row;
+}
+
 function parsePhoneListSnapshot(payload, recordHint) {
     if (Array.isArray(payload)) {
         return {
@@ -61323,6 +61495,7 @@ function parsePhoneListSnapshot(payload, recordHint) {
 
 function applyPhoneListSnapshot(snapshot) {
     if (!snapshot?.phones?.length) return;
+    hydratePhonesFromStoreDetailsCache(snapshot.phones);
     const ts = Number(snapshot.refreshedAt) || Date.now();
     const by = String(snapshot.refreshedBy || '').trim().slice(0, 64);
     GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(snapshot.phones));
@@ -61627,52 +61800,105 @@ function normalizeStorehouseResponse(response) {
         .filter((s) => s.name);
 }
 
+// The page helper answers with a small JSON payload, so it stays the preferred
+// source. Repeated silence only pauses it for a while; nothing disables it for
+// the rest of the session, otherwise one slow patch pushes every remaining
+// barcode onto the much heavier HTML fallback.
+const PAGE_API_TIMEOUT_MS = 6000;
+const PAGE_API_MAX_STRIKES = 4;
+const PAGE_API_PAUSE_MS = 20000;
+// Only rows the grid says have other-store stock get here, so a long run of
+// empty answers means the helper is not reporting for them and the HTML page
+// has to take over.
+const PAGE_API_MAX_EMPTY_STREAK = 8;
+let pageApiStrikes = 0;
+let pageApiPausedUntil = 0;
+let pageApiEmptyStreak = 0;
+let pageApiTrusted = true;
+let pageApiBridgeState = 'unknown'; // unknown | ok | missing
+
+function getStorehousePageApiFn() {
+    const fn = (typeof unsafeWindow !== 'undefined' ? unsafeWindow.getCheckOtherInventories : null)
+        || (typeof window !== 'undefined' ? window.getCheckOtherInventories : null);
+    return typeof fn === 'function' ? fn : null;
+}
+
+function isStorehousePageApiUsable() {
+    if (!pageApiTrusted) return false;
+    if (!getStorehousePageApiFn() && pageApiBridgeState === 'missing') return false;
+    if (pageApiStrikes < PAGE_API_MAX_STRIKES) return true;
+    if (Date.now() < pageApiPausedUntil) return false;
+    pageApiStrikes = PAGE_API_MAX_STRIKES - 1;
+    return true;
+}
+
+function notePageApiAnswer(ok) {
+    if (ok) {
+        pageApiStrikes = 0;
+        pageApiPausedUntil = 0;
+        return;
+    }
+    pageApiStrikes += 1;
+    if (pageApiStrikes >= PAGE_API_MAX_STRIKES) {
+        pageApiPausedUntil = Date.now() + PAGE_API_PAUSE_MS;
+    }
+}
+
 function fetchStorehousesViaUnsafeWindow(productCode) {
     return new Promise((resolve) => {
-        const fn = (typeof unsafeWindow !== 'undefined' ? unsafeWindow.getCheckOtherInventories : null)
-            || (typeof window !== 'undefined' ? window.getCheckOtherInventories : null);
-        if (typeof fn !== 'function') {
-            resolve([]);
+        const fn = getStorehousePageApiFn();
+        if (!fn) {
+            resolve({ stores: [], ok: false });
             return;
         }
         let settled = false;
-        const timer = setTimeout(() => {
-            if (!settled) {
-                settled = true;
-                resolve([]);
-            }
-        }, 10000);
+        const finish = (result) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            resolve(result);
+        };
+        const timer = setTimeout(() => finish({ stores: [], ok: false }), PAGE_API_TIMEOUT_MS);
         try {
             fn(productCode, false, {
                 content_type: 'json',
-                onFinish: (response) => {
-                    if (settled) return;
-                    settled = true;
-                    clearTimeout(timer);
-                    resolve(normalizeStorehouseResponse(response));
-                },
+                onFinish: (response) => finish({ stores: normalizeStorehouseResponse(response), ok: true }),
             });
         } catch (e) {
-            clearTimeout(timer);
-                        resolve([]);
+            finish({ stores: [], ok: false });
         }
     });
 }
 
+// Used when the page helper lives outside the script sandbox and is therefore
+// unreachable through unsafeWindow.
 function fetchStorehousesViaPageScript(productCode) {
     return new Promise((resolve) => {
+        if (pageApiBridgeState === 'missing') {
+            resolve({ stores: [], ok: false });
+            return;
+        }
         const requestId = `tmStores${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
-        const timeout = setTimeout(() => {
+        let settled = false;
+        const finish = (result) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeout);
             window.removeEventListener('message', onMessage);
-            resolve([]);
-        }, 12000);
+            resolve(result);
+        };
+        const timeout = setTimeout(() => finish({ stores: [], ok: false }), PAGE_API_TIMEOUT_MS);
 
         function onMessage(event) {
             if (event.source !== window || !event.data || event.data.type !== 'tm-mms-storehouses') return;
             if (event.data.id !== requestId) return;
-            clearTimeout(timeout);
-            window.removeEventListener('message', onMessage);
-            resolve(event.data.stores || []);
+            if (event.data.missing) {
+                pageApiBridgeState = 'missing';
+                finish({ stores: [], ok: false });
+                return;
+            }
+            pageApiBridgeState = 'ok';
+            finish({ stores: event.data.stores || [], ok: true });
         }
         window.addEventListener('message', onMessage);
 
@@ -61681,10 +61907,10 @@ function fetchStorehousesViaPageScript(productCode) {
         script.textContent = `(function(){
             var id=${JSON.stringify(requestId)};
             var productCode=${safeCode};
-            function finish(stores){window.postMessage({type:'tm-mms-storehouses',id:id,stores:stores},'*');}
+            function finish(stores,missing){window.postMessage({type:'tm-mms-storehouses',id:id,stores:stores,missing:!!missing},'*');}
             try{
                 var fn=window.getCheckOtherInventories;
-                if(typeof fn!=='function'){finish([]);return;}
+                if(typeof fn!=='function'){finish([],true);return;}
                 fn(productCode,false,{content_type:'json',onFinish:function(r){
                     finish((r||[]).map(function(x){return{name:String(x.storehouse||x.name||'').trim(),qty:String(x.units!=null?x.units:(x.qty!=null?x.qty:'1'))}}).filter(function(x){return x.name;}));
                 }});
@@ -61695,98 +61921,84 @@ function fetchStorehousesViaPageScript(productCode) {
     });
 }
 
-function parseStorehousesFromProductHtml(html, barcode) {
-    try {
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        let best = [];
-        doc.querySelectorAll('tr').forEach((row) => {
-            const rowBarcodeEl = row.querySelector('[id*="strProductID"]');
-            const rowBarcode = (rowBarcodeEl?.textContent || '').trim();
-            if (barcode && rowBarcode && rowBarcode !== barcode) return;
-
-            const otherStoreEl = row.querySelector('[id*="iUnitsRemainingOtherStoreHouses"]');
-            if (!otherStoreEl) return;
-            const otherCount = parseInt((otherStoreEl.textContent || '').trim(), 10) || 0;
-            if (otherCount <= 0) return;
-
-            let stores = parseOtherStorehouses(otherStoreEl);
-            if (!stores.length) stores = parseOtherStorehousesFromRow(row);
-            if (stores.length > best.length) best = stores;
-        });
-        return best;
-        } catch (e) {
-        return [];
-    }
+function fetchStorehousesViaPageApi(productCode) {
+    // Only reach for the injected bridge when the helper is not visible from
+    // the sandbox; retrying both paths per barcode would double the wait.
+    if (getStorehousePageApiFn()) return fetchStorehousesViaUnsafeWindow(productCode);
+    if (pageApiBridgeState !== 'missing') return fetchStorehousesViaPageScript(productCode);
+    return Promise.resolve({ stores: [], ok: false });
 }
 
-function fetchStorehousesViaHttp(productCode) {
-    return new Promise((resolve) => {
-        const code = String(productCode || '').trim();
-        if (!code) {
-            resolve([]);
-            return;
-        }
-        const url = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(code)}`;
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url,
-            timeout: 20000,
-            onload(response) {
-                window.restoreRunnerSessionSearch?.(response.finalUrl || url);
-                resolve(parseStorehousesFromProductHtml(response.responseText || '', code));
-            },
-            onerror() {
-                window.restoreRunnerSessionSearch?.(url);
-                resolve([]);
-            },
-            ontimeout() {
-                window.restoreRunnerSessionSearch?.(url);
-                resolve([]);
-            },
-        });
-    });
-}
-
-async function fetchStorehousesFromPage(productCode) {
+/**
+ * @returns {Promise<{stores: Array, answered: boolean}>} `answered` means a
+ * source really reported on this barcode, so an empty list is a genuine "no
+ * other-store stock" and does not deserve another pass.
+ */
+async function fetchStorehouseDetails(productCode) {
     const code = String(productCode || '').trim();
-    if (!code) return [];
+    if (!code) return { stores: [], answered: true };
 
     const cached = getCachedPhoneStoreDetails(code);
-    if (cached?.length) return cached;
+    if (cached?.length) return { stores: cached, answered: true };
 
-    const methods = [
-        () => fetchStorehousesViaUnsafeWindow(code),
-        () => fetchStorehousesViaPageScript(code),
-        () => fetchStorehousesViaHttp(code),
-    ];
-
-    for (const method of methods) {
-        const stores = await method();
-        if (stores.length) {
-            savePhoneStoreDetailsCache(code, stores);
-            return stores;
+    if (isStorehousePageApiUsable()) {
+        const viaPage = await fetchStorehousesViaPageApi(code);
+        notePageApiAnswer(viaPage.ok);
+        if (viaPage.ok && viaPage.stores.length) {
+            pageApiEmptyStreak = 0;
+            savePhoneStoreDetailsCache(code, viaPage.stores);
+            return { stores: viaPage.stores, answered: true };
+        }
+        if (viaPage.ok) {
+            pageApiEmptyStreak += 1;
+            return { stores: [], answered: true };
         }
     }
 
-    return [];
+    // Do not open Περισσότερα / product HTML per barcode. Store names already
+    // parsed from the grid stay; the rest list under "Άλλα καταστήματα".
+    return { stores: [], answered: true };
+}
+
+async function fetchStorehousesFromPage(productCode, options = {}) {
+    const result = await fetchStorehouseDetails(productCode, options);
+    return result.stores;
 }
 
 const PHONE_STORE_DETAILS_CACHE_KEY = 'tm_phone_store_details_cache_v2';
 const PHONE_STORE_DETAILS_CACHE_DAYS = 14;
+let phoneStoreDetailsCacheMemo = null;
+let phoneStoreDetailsSaveTimer = null;
 
 function loadPhoneStoreDetailsCache() {
-    try {
-        return JSON.parse(GM_getValue(PHONE_STORE_DETAILS_CACHE_KEY, '{}')) || {};
-    } catch (e) {
-        return {};
+    if (phoneStoreDetailsCacheMemo && typeof phoneStoreDetailsCacheMemo === 'object') {
+        return phoneStoreDetailsCacheMemo;
     }
+    try {
+        phoneStoreDetailsCacheMemo = JSON.parse(GM_getValue(PHONE_STORE_DETAILS_CACHE_KEY, '{}')) || {};
+    } catch (e) {
+        phoneStoreDetailsCacheMemo = {};
+    }
+    return phoneStoreDetailsCacheMemo;
+}
+
+function persistPhoneStoreDetailsCache() {
+    if (phoneStoreDetailsSaveTimer) {
+        clearTimeout(phoneStoreDetailsSaveTimer);
+        phoneStoreDetailsSaveTimer = null;
+    }
+    try {
+        GM_setValue(PHONE_STORE_DETAILS_CACHE_KEY, JSON.stringify(loadPhoneStoreDetailsCache()));
+    } catch (_) { /* ignore */ }
 }
 
 function savePhoneStoreDetailsCache(barcode, stores) {
     if (!barcode || !stores?.length) return;
     const cache = loadPhoneStoreDetailsCache();
     cache[barcode] = { stores: stores || [], ts: Date.now() };
-    GM_setValue(PHONE_STORE_DETAILS_CACHE_KEY, JSON.stringify(cache));
+    phoneStoreDetailsCacheMemo = cache;
+    if (phoneStoreDetailsSaveTimer) clearTimeout(phoneStoreDetailsSaveTimer);
+    phoneStoreDetailsSaveTimer = setTimeout(persistPhoneStoreDetailsCache, 250);
 }
 
 function getCachedPhoneStoreDetails(barcode) {
@@ -61795,6 +62007,16 @@ function getCachedPhoneStoreDetails(barcode) {
     const ageDays = (Date.now() - (entry.ts || 0)) / (1000 * 60 * 60 * 24);
     if (ageDays > PHONE_STORE_DETAILS_CACHE_DAYS) return null;
     return entry.stores;
+}
+
+function hydratePhonesFromStoreDetailsCache(phones) {
+    (phones || []).forEach((phone) => {
+        if (!phone || getEffectivePhoneStores(phone).length) return;
+        const cached = getCachedPhoneStoreDetails(phone.barcode);
+        if (!cached?.length) return;
+        phone.stores = cached;
+        phone.otherStores = cached;
+    });
 }
 
 function getLoosePhoneStores(phone) {
@@ -61811,15 +62033,22 @@ function getLoosePhoneStores(phone) {
 }
 
 function getEffectivePhoneStores(phone) {
-    const strict = filterOneUnitStores(phone?.stores || []);
-    if (strict.length) return strict;
-    const strictOther = filterOneUnitStores(phone?.otherStores || []);
-    if (strictOther.length) return strictOther;
-    return filterOneUnitStores(getLoosePhoneStores(phone));
+    const withStock = (stores) => (stores || []).filter((s) => (parseInt(s.qty, 10) || 0) > 0);
+    const local = withStock(phone?.stores || []);
+    if (local.length) return local;
+    const other = withStock(phone?.otherStores || []);
+    if (other.length) return other;
+    return withStock(getLoosePhoneStores(phone));
 }
+
+// Barcodes a source already reported on with an empty result: asking again in
+// the same session only burns passes. The catalog still lists these units, just
+// without a store name.
+const storeResolveAnsweredEmpty = new Set();
 
 function phoneNeedsStoreResolve(phone) {
     if (getEffectivePhoneStores(phone).length) return false;
+    if (storeResolveAnsweredEmpty.has(phone?.barcode)) return false;
     const count = parseInt(phone?.otherStoreCount, 10) || 0;
     return count > 0;
 }
@@ -61836,36 +62065,11 @@ function mergeOtherStoresFromAllPhones(allPhones, networkPhones) {
 }
 
 async function resolvePhonesStoreDetails(phones, options = {}) {
-    const { concurrency = 6, onProgress, filter } = options;
-    const list = (phones || []).filter((p) => (!filter || filter(p)) && phoneNeedsStoreResolve(p));
-    const unique = [...new Map(list.map((p) => [p.barcode, p])).values()];
-    let done = 0;
-
-    for (let i = 0; i < unique.length; i += concurrency) {
-        const batch = unique.slice(i, i + concurrency);
-        await Promise.all(batch.map(async (phone) => {
-            if (getEffectivePhoneStores(phone).length) {
-                done += 1;
-                onProgress?.(done, unique.length);
-                return;
-            }
-            try {
-                const stores = await fetchStorehousesFromPage(phone.barcode);
-                if (stores.length) {
-                    phone.stores = stores;
-                    phone.otherStores = stores;
-                }
-            } catch (e) {
-                console.warn('[MMS Phone List] Could not resolve stores for', phone.barcode, e);
-            }
-            done += 1;
-            onProgress?.(done, unique.length);
-        }));
-    }
-
-    if (options.persistOtherStoreCache) {
-        saveOtherStoreCache(phones);
-    }
+    const { onProgress } = options;
+    hydratePhonesFromStoreDetailsCache(phones);
+    onProgress?.(1, 1);
+    persistPhoneStoreDetailsCache();
+    if (options.persistOtherStoreCache) saveOtherStoreCache(phones);
     return phones;
 }
 
@@ -61883,40 +62087,21 @@ async function fetchPhoneList(options = {}) {
             return cached;
         }
     }
-    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(USED_PHONE_SEARCH_QS)}&recordspp=-1`;
-    const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
-    const restoreSession = () => {
-        try { window.restoreRunnerSessionSearch?.(seedUrl); } catch (_) { /* ignore */ }
-    };
-
-    return new Promise((resolve) => {
-        const fail = (error, msg) => {
-            console.warn(msg, error || '');
-            restoreSession();
-            finalizePhoneListFetch([], onProgress, resolve);
-        };
-
+    return new Promise((resolve, reject) => {
         onProgress({ phase: 'init', ratio: 0.04 });
-        // Seed with the used-phone title so pagesize=1000000 does not dump the entire products table.
+        // Step 1: Load initial page with qs=55.&recordspp=-1
         GM_xmlhttpRequest({
             method: 'GET',
-            url: seedUrl,
-            timeout: 30000,
+            url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&recordspp=-1',
             onload: function(firstResponse) {
-                const seedOk = firstResponse
-                    && firstResponse.status >= 200
-                    && firstResponse.status < 300
-                    && String(firstResponse.responseText || '').length > 200;
-                if (!seedOk) {
-                    fail(null, '[MMS Phone List] Seed request returned empty/invalid page');
-                    return;
-                }
-                console.log('[MMS Phone List] Seed page loaded, fetching full phone list');
+                console.log('[MMS Phone List] First page loaded, now loading with pagesize=500');
                 onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
+
+                // Step 2: keep qs=55. on this request. pagesize without qs reuses
+                // whatever search is already in the PHPRunner session (often empty).
                 GM_xmlhttpRequest({
                     method: 'GET',
-                    url: pageUrl,
-                    timeout: PRODUCT_LIST_SCRAPE_TIMEOUT_MS,
+                    url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&pagesize=1000000|',
                     onprogress: function(e) {
                         if (e.lengthComputable && e.total > 0) {
                             onProgress({
@@ -61962,8 +62147,7 @@ async function fetchPhoneList(options = {}) {
                         allTables.forEach((t, i) => {
                             console.log(`[MMS Phone List] Table ${i}: classes =`, t.className);
                         });
-                        restoreSession();
-                        finalizePhoneListFetch([], onProgress, resolve);
+                        resolve([]);
                         return;
                     }
                     
@@ -62117,25 +62301,23 @@ async function fetchPhoneList(options = {}) {
                     });
                     
                         console.log(`[MMS Phone List] Successfully parsed ${phones.length} phones`);
-                        restoreSession();
-                        finalizePhoneListFetch(phones, onProgress, resolve);
+                        savePhoneListCache(phones);
+                        onProgress({ phase: 'done', ratio: 1 });
+                        resolve(phones);
                     } catch (error) {
-                        fail(error, '[MMS Phone List] Error parsing phone list:');
+                        console.error('[MMS Phone List] Error parsing phone list:', error);
+                        reject(error);
                     }
                 },
                 onerror: function(error) {
-                    fail(error, '[MMS Phone List] Failed to fetch phone list:');
-                },
-                ontimeout: function() {
-                    fail(null, '[MMS Phone List] List request timed out');
+                    console.error('[MMS Phone List] Failed to fetch phone list (second request):', error);
+                    reject(error);
                 }
-                });
+            });
             },
             onerror: function(error) {
-                fail(error, '[MMS Phone List] Seed request failed:');
-            },
-            ontimeout: function() {
-                fail(null, '[MMS Phone List] Seed request timed out');
+                console.error('[MMS Phone List] Failed to fetch phone list (first request):', error);
+                reject(error);
             }
         });
     });
@@ -62543,120 +62725,46 @@ function getOtherStoreLaptopCache() {
 }
 
 function pcRequestHtml(url, timeoutMs) {
+    const ms = Number(timeoutMs) > 0 ? Number(timeoutMs) : 8000;
     return new Promise((resolve) => {
         const xhr = typeof GM_xmlhttpRequest === 'function' ? GM_xmlhttpRequest : null;
         if (!xhr) {
             resolve({ ok: false, text: '' });
             return;
         }
-        xhr({
+        let settled = false;
+        const finish = (value) => {
+            if (settled) return;
+            settled = true;
+            resolve(value);
+        };
+        let handle = null;
+        const timer = setTimeout(() => {
+            try { handle?.abort?.(); } catch (_) { /* ignore */ }
+            finish({ ok: false, text: '' });
+        }, ms + 400);
+        handle = xhr({
             method: 'GET',
             url,
-            timeout: Number(timeoutMs) > 0 ? Number(timeoutMs) : 20000,
+            timeout: ms,
             onload(res) {
-                resolve({
+                clearTimeout(timer);
+                finish({
                     ok: res.status >= 200 && res.status < 300,
                     text: String(res.responseText || ''),
                     status: res.status,
                 });
             },
-            onerror() { resolve({ ok: false, text: '' }); },
-            ontimeout() { resolve({ ok: false, text: '' }); },
+            onerror() {
+                clearTimeout(timer);
+                finish({ ok: false, text: '' });
+            },
+            ontimeout() {
+                clearTimeout(timer);
+                finish({ ok: false, text: '' });
+            },
         });
     });
-}
-
-function findProductFulltextQuery(nameEl, row) {
-    const roots = [nameEl, row].filter(Boolean);
-    for (const root of roots) {
-        const link = root.querySelector?.('a[data-query*="fulltext.php"]')
-            || root.querySelector?.('a[href*="fulltext.php"]');
-        if (!link) continue;
-        const q = link.getAttribute('data-query') || link.getAttribute('href') || '';
-        if (q.includes('fulltext.php')) return q.replace(/^javascript:void\(0\);?/i, '').trim();
-    }
-    return '';
-}
-
-function parseFulltextResponse(text) {
-    const raw = String(text || '').trim();
-    if (!raw) return '';
-    // API returns JSON: {"success":true,"textCont":"..."}
-    if (raw.startsWith('{') || raw.startsWith('[')) {
-        try {
-            const json = JSON.parse(raw);
-            const fromJson = String(json?.textCont ?? json?.text ?? json?.content ?? '').trim();
-            if (fromJson) return fromJson.replace(/\s+/g, ' ').trim();
-        } catch (_) { /* fall through */ }
-    }
-    try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(raw, 'text/html');
-        const bodyText = (doc.body?.textContent || '').replace(/\s+/g, ' ').trim();
-        if (bodyText && bodyText.startsWith('{')) {
-            try {
-                const json = JSON.parse(bodyText);
-                const fromJson = String(json?.textCont ?? json?.text ?? json?.content ?? '').trim();
-                if (fromJson) return fromJson.replace(/\s+/g, ' ').trim();
-            } catch (_) { /* ignore */ }
-        }
-        if (bodyText && bodyText.length > 8 && !bodyText.includes('"textCont"')) return bodyText;
-    } catch (_) { /* ignore */ }
-    return raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-async function fetchProductFullName(barcode, dataQuery) {
-    const code = String(barcode || '').trim();
-    let path = String(dataQuery || '').trim();
-    if (!path && code) {
-        path = `fulltext.php?pagetype=list&table=products&field=strProductName&key1=${encodeURIComponent(code)}`;
-    }
-    if (!path) return '';
-    if (path.startsWith('javascript:')) return '';
-    const url = path.startsWith('http')
-        ? path
-        : `https://thefixers.mymanager.gr/mymanagerservice/${path.replace(/^\//, '')}`;
-    const res = await pcRequestHtml(url);
-    if (!res.ok) return '';
-    return parseFulltextResponse(res.text);
-}
-
-async function expandLaptopNames(items, onProgress) {
-    const needExpand = items.filter((item) => item?._needsFullName && item.barcode);
-    if (!needExpand.length) return items;
-    const concurrency = 4;
-    let done = 0;
-    for (let i = 0; i < needExpand.length; i += concurrency) {
-        const batch = needExpand.slice(i, i + concurrency);
-        await Promise.all(batch.map(async (item) => {
-            try {
-                const full = await fetchProductFullName(item.barcode, item._fulltextQuery);
-                if (full && full.length > String(item.name || '').length) {
-                    const parsed = parseLaptopName(full);
-                    item.name = parsed.fullName;
-                    item.model = parsed.model;
-                    item.grade = parsed.grade || item.grade;
-                    item.imei = parsed.imei || item.imei;
-                    item.brand = parsed.brand || item.brand;
-                    item.cpu = parsed.cpu || item.cpu;
-                    item.ram = parsed.ram || item.ram;
-                    item.storage = parsed.storage || item.storage;
-                    item.isBuyback = isBuybackTitle(full) || !!item.isBuyback;
-                }
-            } catch (_) { /* keep truncated */ }
-            delete item._needsFullName;
-            delete item._fulltextQuery;
-            done += 1;
-            if (typeof onProgress === 'function') {
-                onProgress({ phase: 'expand', done, total: needExpand.length, ratio: done / needExpand.length });
-            }
-        }));
-    }
-    items.forEach((item) => {
-        delete item._needsFullName;
-        delete item._fulltextQuery;
-    });
-    return items;
 }
 
 function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherStock = false } = {}) {
@@ -62702,7 +62810,6 @@ function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherSto
 
         let barcode = (barcodeEl.textContent || '').replace(/\s+/g, ' ').trim();
         let name = (nameEl.textContent || '').replace(/\s+/g, ' ').trim();
-        const hadMoreLink = /Περισσότερα/i.test(name) || !!findProductFulltextQuery(nameEl, row);
         name = name.replace(/\s*Περισσότερα\s*\.\.\.\s*/i, '').trim();
         if (!barcode || !name) return;
         // 55./56. also cover phones — never keep clear phone titles.
@@ -62711,7 +62818,6 @@ function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherSto
         // Require laptop markers in the visible name (even when truncated).
         if (!isUsedLaptopTitle(name)) return;
 
-        const fulltextQuery = findProductFulltextQuery(nameEl, row);
         const parsed = parseLaptopName(name);
         const retailPrice = extractProductRetailPrice(row);
         laptops.push({
@@ -62730,26 +62836,47 @@ function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherSto
             otherStoreCount,
             otherStores,
             productKind: 'laptop',
-            _needsFullName: !!(hadMoreLink || fulltextQuery || /Περισσότερα/i.test(nameEl?.textContent || '')),
-            _fulltextQuery: fulltextQuery,
         });
     });
     return laptops;
 }
 
+// Own-store and network laptops are parsed from the same two prefix pages, so
+// the parsed documents are shared for a short window.
+const laptopDocCache = new Map();
+const laptopDocInflight = new Map();
+
+function invalidateLaptopDocs() {
+    laptopDocCache.clear();
+}
+
 async function fetchProductListHtml(qsPrefix, onProgress) {
-    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(qsPrefix)}&recordspp=-1`;
-    const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
-    const first = await pcRequestHtml(seedUrl, 30000);
-    if (!first.ok) throw new Error(`Laptop list seed failed (${qsPrefix})`);
-    if (typeof onProgress === 'function') onProgress({ phase: 'download', ratio: 0.15, qs: qsPrefix });
-    const second = await pcRequestHtml(pageUrl, PRODUCT_LIST_SCRAPE_TIMEOUT_MS);
-    if (!second.ok) throw new Error(`Laptop list page failed (${qsPrefix})`);
-    if (typeof onProgress === 'function') onProgress({ phase: 'parse', ratio: 0.55, qs: qsPrefix });
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(second.text, 'text/html');
-    try { detectAndCacheCurrentStoreName(doc); } catch (_) { /* ignore */ }
-    return doc;
+    const key = String(qsPrefix);
+    const cached = laptopDocCache.get(key);
+    if (cached && Date.now() - cached.at < PRODUCT_LIST_HTML_TTL_MS) {
+        if (typeof onProgress === 'function') onProgress({ phase: 'parse', ratio: 1, qs: qsPrefix, fromCache: true });
+        return cached.doc;
+    }
+    if (laptopDocInflight.has(key)) return laptopDocInflight.get(key);
+
+    const job = (async () => {
+        const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(qsPrefix)}&recordspp=-1`;
+        const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
+        const first = await pcRequestHtml(seedUrl, 30000);
+        if (!first.ok) throw new Error(`Laptop list seed failed (${qsPrefix})`);
+        if (typeof onProgress === 'function') onProgress({ phase: 'download', ratio: 0.15, qs: qsPrefix });
+        const second = await pcRequestHtml(pageUrl, PRODUCT_LIST_SCRAPE_TIMEOUT_MS);
+        if (!second.ok) throw new Error(`Laptop list page failed (${qsPrefix})`);
+        if (typeof onProgress === 'function') onProgress({ phase: 'parse', ratio: 0.55, qs: qsPrefix });
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(second.text, 'text/html');
+        try { detectAndCacheCurrentStoreName(doc); } catch (_) { /* ignore */ }
+        laptopDocCache.set(key, { at: Date.now(), doc });
+        return doc;
+    })().finally(() => laptopDocInflight.delete(key));
+
+    laptopDocInflight.set(key, job);
+    return job;
 }
 
 async function fetchLaptopList(options = {}) {
@@ -62762,6 +62889,7 @@ async function fetchLaptopList(options = {}) {
         }
     }
     onProgress({ phase: 'init', ratio: 0.04 });
+    if (options.force) invalidateLaptopDocs();
     const prefixes = ['55.', '56.'];
     const byBarcode = new Map();
     for (let i = 0; i < prefixes.length; i += 1) {
@@ -62777,15 +62905,6 @@ async function fetchLaptopList(options = {}) {
         });
     }
     let laptops = [...byBarcode.values()];
-    onProgress({ phase: 'expand', ratio: 0.7, total: laptops.length });
-    laptops = await expandLaptopNames(laptops, (info) => {
-        onProgress({
-            phase: 'expand',
-            ratio: 0.7 + 0.25 * (info.ratio || 0),
-            done: info.done,
-            total: info.total,
-        });
-    });
     // Title is authoritative — 55./56. barcodes include phones too.
     laptops = laptops
         .filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name))
@@ -62822,14 +62941,6 @@ async function fetchOtherStoreLaptops(options = {}) {
         });
     }
     let laptops = [...byBarcode.values()];
-    laptops = await expandLaptopNames(laptops, (info) => {
-        onProgress({
-            phase: 'expand',
-            ratio: 0.7 + 0.25 * (info.ratio || 0),
-            done: info.done,
-            total: info.total,
-        });
-    });
     laptops = laptops
         .filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name))
         .map((item) => hydrateLaptopItem(item));
@@ -62851,55 +62962,14 @@ async function fetchOtherStorePhones(options = {}) {
             return cached;
         }
     }
-    
-    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(USED_PHONE_SEARCH_QS)}&recordspp=-1`;
-    const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
-    const restoreSession = () => {
-        try { window.restoreRunnerSessionSearch?.(seedUrl); } catch (_) { /* ignore */ }
-    };
 
-    return new Promise((resolve) => {
-        const finish = (result) => {
-            restoreSession();
-            const list = Array.isArray(result) ? result : [];
-            if (list.length) {
-                saveOtherStoreCache(list);
-                onProgress({ phase: 'done', ratio: 1 });
-                resolve(list);
-                return;
-            }
-            const cached = getOtherStoreCache({ ignoreExpiry: true });
-            if (cached?.length) {
-                console.warn('[MMS Other Stores] Scrape empty — keeping cached snapshot');
-                onProgress({ phase: 'done', ratio: 1, fromCache: true });
-                resolve(cached);
-                return;
-            }
-            onProgress({ phase: 'done', ratio: 1 });
-            resolve([]);
-        };
-
-        onProgress({ phase: 'init', ratio: 0.05 });
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: seedUrl,
-            timeout: 30000,
-            onload: function(firstResponse) {
-                const seedOk = firstResponse
-                    && firstResponse.status >= 200
-                    && firstResponse.status < 300
-                    && String(firstResponse.responseText || '').length > 200;
-                if (!seedOk) {
-                    console.warn('[MMS Other Stores] Seed request returned empty/invalid page');
-                    finish([]);
-                    return;
-                }
-                onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
-                GM_xmlhttpRequest({
-                    method: 'GET',
-                    url: pageUrl,
-                    timeout: PRODUCT_LIST_SCRAPE_TIMEOUT_MS,
-                    onprogress: function(e) {
+    return new Promise((resolve, reject) => {
+        const fetchWithUrl = (url, fallbackUrl) => {
+            onProgress({ phase: 'init', ratio: 0.05 });
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url,
+                onprogress: function(e) {
                     if (e.lengthComputable && e.total > 0) {
                         onProgress({
                             phase: 'download',
@@ -62921,33 +62991,37 @@ async function fetchOtherStorePhones(options = {}) {
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(response.responseText, 'text/html');
                         detectAndCacheCurrentStoreName(doc);
-                        
+
                         let table = doc.querySelector('table.rnr-c.rnr-cont.rnr-b-grid.rnr-gridtable.hoverable');
                         if (!table) table = doc.querySelector('table.rnr-b-grid.rnr-gridtable');
                         if (!table) table = doc.querySelector('table.rnr-b-grid');
                         if (!table) table = doc.querySelector('.rnr-c-grid table, table.rnr-gridtable');
-                        
+
                         if (!table) {
-                            console.error('[MMS Other Stores] Table not found');
-                            finish([]);
+                            if (fallbackUrl) {
+                                fetchWithUrl(fallbackUrl, null);
+                            } else {
+                                console.error('[MMS Other Stores] Table not found');
+                                resolve([]);
+                            }
                             return;
                         }
-                        
+
                         let rows = table.querySelectorAll('tbody tr');
                         if (rows.length === 0) rows = table.querySelectorAll('tr');
                         if (rows.length === 0) rows = table.querySelectorAll('tr[id^="gridRow"]');
-                        
+
                         const result = [];
-                        
+
                         rows.forEach((row, idx) => {
                             if (idx === 0 && row.querySelector('th')) return;
-                            
+
                             let barcodeEl = row.querySelector('span[id*="strProductID"]');
                             let nameEl = row.querySelector('span[id*="strProductName"]');
                             let otherStoreEl = row.querySelector('span[id*="iUnitsRemainingOtherStoreHouses"]');
                             let unitsRemainingEl = row.querySelector('span[id*="iUnitsRemaining"]');
                             let priceEl = findProductPriceElement(row);
-                            
+
                             if (!barcodeEl || !nameEl || !otherStoreEl || !unitsRemainingEl || !priceEl) {
                                 row.querySelectorAll('[id]').forEach(node => {
                                     const id = (node.id || '').toLowerCase();
@@ -62962,7 +63036,7 @@ async function fetchOtherStorePhones(options = {}) {
                                     }
                                 });
                             }
-                            
+
                             if (!otherStoreEl) return;
                             const otherCount = parseInt((otherStoreEl.textContent || '').trim(), 10) || 0;
                             if (otherCount <= 0) return;
@@ -62971,22 +63045,23 @@ async function fetchOtherStorePhones(options = {}) {
                                 localUnits = parseInt((unitsRemainingEl.textContent || '').trim(), 10) || 0;
                             }
                             const retailPrice = extractProductRetailPrice(row);
-                            
+
                             const barcode = (barcodeEl?.textContent || '').trim();
                             let name = (nameEl?.textContent || '').trim();
                             if (!barcode || !name) return;
                             name = name.replace(/\s+Περισσότερα\s*\.\.\.\s*/i, '').trim();
-                            
+
                             const parsed = parsePhoneName(name);
                             let stores = parseOtherStorehouses(otherStoreEl);
                             if (!stores.length) stores = parseOtherStorehousesFromRow(row);
                             const isBuyback = isBuybackTitle(name);
-                            
+
                             const nameUpper = name.toUpperCase();
-                            if (!nameUpper.includes(USED_PHONE_SEARCH_QS)) {
+                            const greekPhonePrefix = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ';
+                            if (!nameUpper.includes(greekPhonePrefix)) {
                                 return;
                             }
-                            
+
                             result.push({
                                 barcode,
                                 name: parsed.fullName,
@@ -63000,32 +63075,33 @@ async function fetchOtherStorePhones(options = {}) {
                                 isBuyback
                             });
                         });
-                        
-                        finish(result);
+
+                        saveOtherStoreCache(result);
+                        onProgress({ phase: 'done', ratio: 1 });
+                        resolve(result);
                     } catch (err) {
-                        console.error('[MMS Other Stores] Parse error:', err);
-                        finish([]);
+                        if (fallbackUrl) {
+                            fetchWithUrl(fallbackUrl, null);
+                        } else {
+                            console.error('[MMS Other Stores] Parse error:', err);
+                            reject(err);
+                        }
                     }
                 },
                 onerror: function(error) {
-                    console.warn('[MMS Other Stores] Request failed:', error);
-                    finish([]);
-                },
-                ontimeout: function() {
-                    console.warn('[MMS Other Stores] Request timed out');
-                    finish([]);
+                    if (fallbackUrl) {
+                        fetchWithUrl(fallbackUrl, null);
+                    } else {
+                        console.error('[MMS Other Stores] Request failed:', error);
+                        reject(error);
+                    }
                 }
-                });
-            },
-            onerror: function(error) {
-                console.warn('[MMS Other Stores] Seed request failed:', error);
-                finish([]);
-            },
-            ontimeout: function() {
-                console.warn('[MMS Other Stores] Seed request timed out');
-                finish([]);
-            }
-        });
+            });
+        };
+
+        const primaryUrl = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&pagesize=1000000|';
+        const fallbackUrl = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&recordspp=-1&pagesize=1000000|';
+        fetchWithUrl(primaryUrl, fallbackUrl);
     });
 }
 
@@ -63439,8 +63515,9 @@ async function showLaptopCatalogModal() {
 }
 
 // ===================================================================
-// === PHONE CATALOG SERVER SYNC (tags/colors/rules/models — not stock)
+// === PHONE CATALOG SERVER SYNC (annotations + shared stock snapshots)
 // Collections: phone_catalog_config, phone_tags (PocketBase)
+// Stock snapshots share phone_list / other_store_phones (chunked). Notes use kind unit_note.
 // ===================================================================
 const PC_PB_BASE = 'https://mngerchat.littlejol.mywire.org';
 const PC_CONFIG_COLL = 'phone_catalog_config';
@@ -63448,9 +63525,12 @@ const PC_TAGS_COLL = 'phone_tags';
 const PC_MIGRATED_KEY = 'tm_pc_migrated_v1';
 const PC_PENDING_CONFIG_KEY = 'tm_pc_pending_config_v1';
 const PC_PENDING_TAGS_KEY = 'tm_pc_pending_tags_v1';
-/** Shared network-wide catalog annotations (not per-store stock). */
+const PC_PENDING_NOTES_KEY = 'tm_pc_pending_notes_v1';
+/** Shared network-wide catalog annotations + stock snapshots. */
 const PC_NETWORK_STORE_KEY = '*';
 const PC_FLUSH_MS = 1800;
+const PC_STOCK_CHUNK_CHARS = 320000;
+const PC_STOCK_KINDS = new Set(['phone_list', 'other_store_phones']);
 
 let pcApplyingServer = false;
 let pcServerUnsupported = false;
@@ -63459,6 +63539,7 @@ let pcFlushTimer = null;
 let pcBusy = false;
 let pcPendingKinds = new Set();
 let pcPendingBarcodes = new Set();
+let pcPendingNotes = new Set();
 let pcInitPromise = null;
 
 function pcUseDatabase() {
@@ -63556,11 +63637,13 @@ function pcSavePendingSet(key, set) {
 function pcRestorePendingQueues() {
     pcLoadPendingSet(PC_PENDING_CONFIG_KEY).forEach((k) => pcPendingKinds.add(k));
     pcLoadPendingSet(PC_PENDING_TAGS_KEY).forEach((b) => pcPendingBarcodes.add(b));
+    pcLoadPendingSet(PC_PENDING_NOTES_KEY).forEach((b) => pcPendingNotes.add(b));
 }
 
 function pcPersistPendingQueues() {
     pcSavePendingSet(PC_PENDING_CONFIG_KEY, pcPendingKinds);
     pcSavePendingSet(PC_PENDING_TAGS_KEY, pcPendingBarcodes);
+    pcSavePendingSet(PC_PENDING_NOTES_KEY, pcPendingNotes);
 }
 
 function pcScheduleFlush(delayMs) {
@@ -63577,7 +63660,8 @@ function pcNotifyConfigChanged(kind) {
     if (!kind) return;
     pcPendingKinds.add(String(kind));
     pcPersistPendingQueues();
-    pcScheduleFlush();
+    const urgent = PC_STOCK_KINDS.has(String(kind)) || kind === 'list_refresh';
+    pcScheduleFlush(urgent ? 0 : undefined);
 }
 
 function pcNotifyTagsChanged(tagsMap) {
@@ -63590,6 +63674,15 @@ function pcNotifyTagsChanged(tagsMap) {
     // Always flush full map barcodes that exist; also re-queue known pending ones
     pcPersistPendingQueues();
     pcScheduleFlush();
+}
+
+function pcNotifyNoteChanged(barcode) {
+    if (pcApplyingServer || !pcUseDatabase() || pcServerUnsupported) return;
+    const code = String(barcode || '').trim();
+    if (!code) return;
+    pcPendingNotes.add(code);
+    pcPersistPendingQueues();
+    pcScheduleFlush(0);
 }
 
 function pcReadLocalConfigPayload(kind) {
@@ -63618,8 +63711,16 @@ function pcReadLocalConfigPayload(kind) {
             return Array.isArray(list) && list.length ? buildPhoneListSnapshot(list) : null;
         }
         case 'other_store_phones': {
-            const list = getOtherStoreCache();
-            return Array.isArray(list) && list.length ? list : null;
+            const list = getOtherStoreCache({ ignoreExpiry: true });
+            if (!Array.isArray(list) || !list.length) return null;
+            const ts = Number(GM_getValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0)) || Date.now();
+            const meta = loadPhoneListRefreshMeta();
+            return {
+                v: 2,
+                phones: list,
+                refreshedAt: ts,
+                refreshedBy: String(meta?.by || '').trim().slice(0, 64),
+            };
         }
         default:
             return null;
@@ -63656,9 +63757,15 @@ function pcApplyConfigPayload(kind, payload, recordHint) {
         } else if (kind === 'phone_list') {
             const snapshot = parsePhoneListSnapshot(payload, recordHint);
             if (snapshot) applyPhoneListSnapshot(snapshot);
-        } else if (kind === 'other_store_phones' && Array.isArray(payload) && payload.length) {
-            GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(payload));
-            GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, Date.now());
+        } else if (kind === 'other_store_phones') {
+            const snapshot = parsePhoneListSnapshot(payload, recordHint);
+            if (snapshot?.phones?.length) {
+                GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(snapshot.phones));
+                GM_setValue(
+                    OTHER_STORE_CACHE_TIMESTAMP_KEY,
+                    Number(snapshot.refreshedAt) || Date.now()
+                );
+            }
         }
     } finally {
         pcApplyingServer = false;
@@ -63671,10 +63778,13 @@ function pcParsePayload(raw) {
     try { return JSON.parse(String(raw)); } catch (_) { return null; }
 }
 
-async function pcUpsertConfig(token, kind, payload) {
+async function pcUpsertConfig(token, kind, payload, extraKey) {
     const base = PC_PB_BASE.replace(/\/$/, '');
     const storeKey = PC_NETWORK_STORE_KEY;
-    const dedupeKey = `${storeKey}|${kind}`.slice(0, 128);
+    const extra = String(extraKey || '').trim();
+    const dedupeKey = (extra
+        ? `${storeKey}|${kind}|${extra}`
+        : `${storeKey}|${kind}`).slice(0, 128);
     const headers = { Authorization: token, 'Content-Type': 'application/json' };
     const filter = encodeURIComponent(`dedupeKey="${dedupeKey}"`);
     const listed = await pcRequestJson({
@@ -63708,7 +63818,7 @@ async function pcUpsertConfig(token, kind, payload) {
             url: `${base}/api/collections/${PC_CONFIG_COLL}/records/${encodeURIComponent(existingId)}`,
             headers,
             data: JSON.stringify(record),
-            timeout: 15000,
+            timeout: 30000,
         });
         return { ok: updated.status >= 200 && updated.status < 300, id: existingId, status: updated.status };
     }
@@ -63717,13 +63827,107 @@ async function pcUpsertConfig(token, kind, payload) {
         url: `${base}/api/collections/${PC_CONFIG_COLL}/records`,
         headers,
         data: JSON.stringify(record),
-        timeout: 15000,
+        timeout: 30000,
     });
     if (created.status >= 200 && created.status < 300) return { ok: true, id: created.body?.id };
     if (/unique|duplicate/i.test(JSON.stringify(created.body || {}))) {
-        return pcUpsertConfig(token, kind, payload);
+        return pcUpsertConfig(token, kind, payload, extraKey);
     }
     return { ok: false, status: created.status, body: created.body };
+}
+
+function pcStockKindBase(kind) {
+    const k = String(kind || '').trim();
+    if (k === 'phone_list' || k.startsWith('phone_list_')) return 'phone_list';
+    if (k === 'other_store_phones' || k.startsWith('other_store_phones_')) return 'other_store_phones';
+    return '';
+}
+
+function pcStockChunkIndex(kind, base) {
+    if (kind === base) return 0;
+    if (!kind.startsWith(`${base}_`)) return -1;
+    const n = Number(kind.slice(base.length + 1));
+    return Number.isFinite(n) ? n : -1;
+}
+
+function pcAssembleStockRecords(recs) {
+    if (!Array.isArray(recs) || !recs.length) return null;
+    const chunks = [];
+    let totalHint = 0;
+    let refreshedAt = 0;
+    let refreshedBy = '';
+    recs.forEach((rec) => {
+        const kind = String(rec.kind || '').trim();
+        const base = pcStockKindBase(kind);
+        if (!base) return;
+        const payload = pcParsePayload(rec.payload);
+        if (payload == null) return;
+        if (kind === base && Array.isArray(payload)) {
+            chunks[0] = payload;
+            totalHint = 1;
+            refreshedBy = String(rec.updatedBy || refreshedBy).trim();
+            return;
+        }
+        const phones = Array.isArray(payload.phones) ? payload.phones : [];
+        const isLegacyBlob = kind === base && payload.chunk == null && payload.v !== 2;
+        const idx = isLegacyBlob
+            ? 0
+            : (payload.chunk != null ? Number(payload.chunk) : pcStockChunkIndex(kind, base));
+        if (!Number.isFinite(idx) || idx < 0) return;
+        chunks[idx] = phones;
+        if (payload.total != null) totalHint = Number(payload.total) || totalHint;
+        if (isLegacyBlob) totalHint = 1;
+        refreshedAt = Number(payload.refreshedAt) || refreshedAt;
+        refreshedBy = String(payload.refreshedBy || rec.updatedBy || refreshedBy).trim();
+        if (rec.updatedAt && !refreshedAt) {
+            const parsed = Date.parse(rec.updatedAt);
+            if (!Number.isNaN(parsed)) refreshedAt = parsed;
+        }
+    });
+    const total = totalHint || chunks.filter(Boolean).length;
+    const phones = [];
+    for (let i = 0; i < total; i += 1) {
+        if (Array.isArray(chunks[i])) phones.push(...chunks[i]);
+    }
+    if (!phones.length) return null;
+    return { v: 2, phones, refreshedAt, refreshedBy };
+}
+
+async function pcUpsertChunkedStock(token, kind, payload) {
+    const rawPhones = Array.isArray(payload) ? payload : (payload?.phones || []);
+    const phones = rawPhones.map(compactPhoneForSnapshot).filter(Boolean);
+    const refreshedAt = Number(payload?.refreshedAt) || Date.now();
+    const refreshedBy = String(payload?.refreshedBy || '').trim().slice(0, 64);
+    const buckets = [];
+    let bucket = [];
+    let bucketChars = 0;
+    phones.forEach((phone) => {
+        const chars = JSON.stringify(phone).length + 1;
+        if (bucket.length && bucketChars + chars >= PC_STOCK_CHUNK_CHARS) {
+            buckets.push(bucket);
+            bucket = [];
+            bucketChars = 0;
+        }
+        bucket.push(phone);
+        bucketChars += chars;
+    });
+    if (bucket.length) buckets.push(bucket);
+    if (!buckets.length) buckets.push([]);
+    const total = buckets.length;
+    let last = { ok: true };
+    for (let i = 0; i < total; i += 1) {
+        const chunkKind = i === 0 ? kind : `${kind}_${i}`;
+        last = await pcUpsertConfig(token, chunkKind, {
+            v: 2,
+            chunk: i,
+            total,
+            refreshedAt,
+            refreshedBy,
+            phones: buckets[i],
+        });
+        if (!last.ok) return last;
+    }
+    return { ok: true, chunks: total };
 }
 
 async function pcUpsertTag(token, barcode, tags) {
@@ -63787,18 +63991,26 @@ async function pcUpsertTag(token, barcode, tags) {
 async function pcFlushPending() {
     if (!pcUseDatabase() || pcServerUnsupported || pcBusy) return { ok: false, busy: true };
     pcRestorePendingQueues();
-    if (!pcPendingKinds.size && !pcPendingBarcodes.size) return { ok: true, empty: true };
+    if (!pcPendingKinds.size && !pcPendingBarcodes.size && !pcPendingNotes.size) {
+        return { ok: true, empty: true };
+    }
     pcBusy = true;
     try {
         const token = await pcEnsureAuthToken();
         const kinds = [...pcPendingKinds];
         for (const kind of kinds) {
+            if (String(kind).startsWith('phone_list_') || String(kind).startsWith('other_store_phones_')) {
+                pcPendingKinds.delete(kind);
+                continue;
+            }
             const payload = pcReadLocalConfigPayload(kind);
             if (payload == null) {
                 pcPendingKinds.delete(kind);
                 continue;
             }
-            const res = await pcUpsertConfig(token, kind, payload);
+            const res = PC_STOCK_KINDS.has(kind)
+                ? await pcUpsertChunkedStock(token, kind, payload)
+                : await pcUpsertConfig(token, kind, payload);
             if (res.unsupported) break;
             if (res.ok) pcPendingKinds.delete(kind);
         }
@@ -63810,6 +64022,22 @@ async function pcFlushPending() {
                 const res = await pcUpsertTag(token, barcode, tags);
                 if (res.unsupported) break;
                 if (res.ok) pcPendingBarcodes.delete(barcode);
+            }
+        }
+        if (!pcServerUnsupported) {
+            const allNotes = loadPhoneUnitNotes();
+            const barcodes = [...pcPendingNotes];
+            for (const barcode of barcodes) {
+                const rec = allNotes[barcode];
+                const payload = {
+                    barcode,
+                    text: normalizeUnitNoteText(rec?.text || ''),
+                    by: String(rec?.by || '').trim().slice(0, 64),
+                    at: Number(rec?.at) || Date.now(),
+                };
+                const res = await pcUpsertConfig(token, 'unit_note', payload, barcode);
+                if (res.unsupported) break;
+                if (res.ok) pcPendingNotes.delete(barcode);
             }
         }
         pcPersistPendingQueues();
@@ -63825,34 +64053,76 @@ async function pcFlushPending() {
 async function pcPullConfigs(token) {
     const base = PC_PB_BASE.replace(/\/$/, '');
     const filter = encodeURIComponent(`storeKey="${PC_NETWORK_STORE_KEY}"`);
-    const listed = await pcRequestJson({
-        method: 'GET',
-        url: `${base}/api/collections/${PC_CONFIG_COLL}/records?page=1&perPage=50&filter=${filter}`,
-        headers: { Authorization: token },
-        timeout: 20000,
-    });
-    const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
-    if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
-        pcServerUnsupported = true;
-        pcHint('Phone catalog: δημιούργησε collection phone_catalog_config στο PocketBase');
-        return { ok: false, unsupported: true };
+    const items = [];
+    let page = 1;
+    for (;;) {
+        const listed = await pcRequestJson({
+            method: 'GET',
+            url: `${base}/api/collections/${PC_CONFIG_COLL}/records?page=${page}&perPage=200&filter=${filter}`,
+            headers: { Authorization: token },
+            timeout: 20000,
+        });
+        const blob = `${JSON.stringify(listed.body || {})}\n${listed.raw || ''}`;
+        if (listed.status === 404 || /missing collection|unknown collection|didn't find the collection/i.test(blob)) {
+            pcServerUnsupported = true;
+            pcHint('Phone catalog: δημιούργησε collection phone_catalog_config στο PocketBase');
+            return { ok: false, unsupported: true };
+        }
+        if (listed.status < 200 || listed.status >= 300) {
+            return { ok: false, status: listed.status };
+        }
+        const pageItems = Array.isArray(listed.body?.items) ? listed.body.items : [];
+        items.push(...pageItems);
+        const totalPages = Number(listed.body?.totalPages || 1);
+        if (page >= totalPages || !pageItems.length) break;
+        page += 1;
+        if (page > 80) break;
     }
-    if (listed.status < 200 || listed.status >= 300) {
-        return { ok: false, status: listed.status };
-    }
-    const items = Array.isArray(listed.body?.items) ? listed.body.items : [];
-    const sorted = [...items].sort((a, b) => {
-        const ak = String(a.kind || '').trim();
-        const bk = String(b.kind || '').trim();
-        if (ak === 'phone_list') return 1;
-        if (bk === 'phone_list') return -1;
-        return 0;
-    });
-    sorted.forEach((rec) => {
+
+    const stockByBase = { phone_list: [], other_store_phones: [] };
+    const noteMap = {};
+    let notesFound = false;
+    items.forEach((rec) => {
         const kind = String(rec.kind || '').trim();
         const payload = pcParsePayload(rec.payload);
+        if (kind === 'unit_note') {
+            notesFound = true;
+            const code = String(payload?.barcode || rec.dedupeKey || '').replace(/^\*\|unit_note\|/, '').trim();
+            if (!code) return;
+            const text = normalizeUnitNoteText(payload?.text || '');
+            if (!text) return;
+            noteMap[code] = {
+                text,
+                by: String(payload?.by || rec.updatedBy || '').trim().slice(0, 64),
+                at: Number(payload?.at) || (rec.updatedAt ? Date.parse(rec.updatedAt) : 0) || 0,
+            };
+            return;
+        }
+        const stockBase = pcStockKindBase(kind);
+        if (stockBase) {
+            stockByBase[stockBase].push(rec);
+            return;
+        }
         if (kind && payload != null) pcApplyConfigPayload(kind, payload, rec);
     });
+    Object.keys(stockByBase).forEach((base) => {
+        const snapshot = pcAssembleStockRecords(stockByBase[base]);
+        if (snapshot) pcApplyConfigPayload(base, snapshot, stockByBase[base][0]);
+    });
+    if (notesFound) {
+        const next = { ...noteMap };
+        const local = loadPhoneUnitNotes();
+        pcPendingNotes.forEach((code) => {
+            if (local[code] && normalizeUnitNoteText(local[code].text)) next[code] = local[code];
+            else delete next[code];
+        });
+        pcApplyingServer = true;
+        try {
+            savePhoneUnitNotes(next);
+        } finally {
+            pcApplyingServer = false;
+        }
+    }
     return { ok: true, count: items.length };
 }
 
@@ -63930,7 +64200,10 @@ async function migratePhoneCatalogToServerOnce({ force = false } = {}) {
         let uploaded = 0;
         for (const kind of kinds) {
             const payload = pcReadLocalConfigPayload(kind);
-            const res = await pcUpsertConfig(token, kind, payload);
+            if (payload == null) continue;
+            const res = PC_STOCK_KINDS.has(kind)
+                ? await pcUpsertChunkedStock(token, kind, payload)
+                : await pcUpsertConfig(token, kind, payload);
             if (res.unsupported) return { ok: false, unsupported: true };
             if (res.ok) uploaded += 1;
         }
@@ -63938,6 +64211,20 @@ async function migratePhoneCatalogToServerOnce({ force = false } = {}) {
         const barcodes = Object.keys(allTags);
         for (const barcode of barcodes) {
             const res = await pcUpsertTag(token, barcode, allTags[barcode]);
+            if (res.unsupported) return { ok: false, unsupported: true };
+            if (res.ok) uploaded += 1;
+        }
+        const allNotes = loadPhoneUnitNotes();
+        for (const barcode of Object.keys(allNotes)) {
+            const rec = allNotes[barcode];
+            const text = normalizeUnitNoteText(rec?.text || '');
+            if (!text) continue;
+            const res = await pcUpsertConfig(token, 'unit_note', {
+                barcode,
+                text,
+                by: String(rec?.by || '').trim().slice(0, 64),
+                at: Number(rec?.at) || Date.now(),
+            }, barcode);
             if (res.unsupported) return { ok: false, unsupported: true };
             if (res.ok) uploaded += 1;
         }
@@ -63964,7 +64251,7 @@ async function initPhoneCatalogServerSync() {
             const token = await pcEnsureAuthToken();
             await pcPullConfigs(token);
             await pcPullTags(token);
-            if (pcPendingKinds.size || pcPendingBarcodes.size) {
+            if (pcPendingKinds.size || pcPendingBarcodes.size || pcPendingNotes.size) {
                 pcScheduleFlush(600);
             }
             console.log('[MMS Phone Catalog] server sync ready');
@@ -63998,6 +64285,8 @@ async function loadPhoneCatalogFromDatabase() {
     if (!otherStorePhones?.length) {
         otherStorePhones = getOtherStoreCache({ ignoreExpiry: true });
     }
+    hydratePhonesFromStoreDetailsCache(phones);
+    hydratePhonesFromStoreDetailsCache(otherStorePhones);
     return {
         phones: Array.isArray(phones) && phones.length ? phones : [],
         otherStorePhones: Array.isArray(otherStorePhones) && otherStorePhones.length ? otherStorePhones : [],
@@ -64011,6 +64300,7 @@ window.loadPhoneCatalogFromDatabase = loadPhoneCatalogFromDatabase;
 window.migratePhoneCatalogToServer = (opts) => migratePhoneCatalogToServerOnce({ force: true, ...(opts || {}) });
 window.pcNotifyConfigChanged = pcNotifyConfigChanged;
 window.pcNotifyTagsChanged = pcNotifyTagsChanged;
+window.pcNotifyNoteChanged = pcNotifyNoteChanged;
 
 window.showPhoneListModal = showPhoneListModal;
 window.showLaptopCatalogModal = showLaptopCatalogModal;
@@ -64045,7 +64335,9 @@ window.getPhoneGradeColor = getPhoneGradeColor;
 window.getAllColorHexMap = getAllColorHexMap;
 window.fetchStorehousesFromPage = fetchStorehousesFromPage;
 window.getEffectivePhoneStores = getEffectivePhoneStores;
+window.phoneNeedsStoreResolve = phoneNeedsStoreResolve;
 window.resolvePhonesStoreDetails = resolvePhonesStoreDetails;
+window.hydratePhonesFromStoreDetailsCache = hydratePhonesFromStoreDetailsCache;
 window.mergeOtherStoresFromAllPhones = mergeOtherStoresFromAllPhones;
 window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
 window.phoneCatalogT = t;
@@ -64074,6 +64366,7 @@ window.clearPhoneCatalogCaches = function clearPhoneCatalogCaches(opts = {}) {
         GM_setValue(OTHER_STORE_CACHE_KEY, null);
         GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0);
         GM_setValue(PHONE_STORE_DETAILS_CACHE_KEY, '{}');
+        phoneStoreDetailsCacheMemo = null;
         GM_setValue('tm_phone_other_store_cache_v2', null);
     } catch (e) {
         console.warn('[MMS Phone List] Failed to clear GM phone caches:', e);
@@ -64106,6 +64399,8 @@ window.getPhoneTags = getPhoneTags;
 window.addPhoneTag = addPhoneTag;
 window.removePhoneTag = removePhoneTag;
 window.togglePhoneTag = togglePhoneTag;
+window.getPhoneUnitNote = getPhoneUnitNote;
+window.setPhoneUnitNote = setPhoneUnitNote;
 window.getAllUsedTags = getAllUsedTags;
 window.getSelectableTagKeys = getSelectableTagKeys;
 window.renamePhoneTagKeyOnAllPhones = renamePhoneTagKeyOnAllPhones;
@@ -65797,7 +66092,12 @@ try {
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             const variant = phoneToVariant(phone, helpers);
             const stores = getStores(phone);
-            if (!stores.length) return;
+            if (!stores.length) {
+                const otherCount = parseInt(phone.otherStoreCount, 10) || 0;
+                if (otherCount <= 0) return;
+                addVariant('__unresolved__', 'Άλλα καταστήματα', variant);
+                return;
+            }
             stores.forEach((store) => {
                 const name = cleanStoreName(store.name);
                 if (!name) return;
@@ -65844,7 +66144,12 @@ try {
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             const variant = phoneToVariant(phone, helpers);
             const stores = getStores(phone);
-            if (!stores.length) return;
+            if (!stores.length) {
+                const otherCount = parseInt(phone.otherStoreCount, 10) || 0;
+                if (otherCount <= 0) return;
+                addVariant('__unresolved__', 'Άλλα καταστήματα', false, variant);
+                return;
+            }
             stores.forEach((store) => {
                 const name = cleanStoreName(store.name);
                 if (!name) return;
@@ -66226,7 +66531,7 @@ try {
 
             bodyEl.querySelectorAll('tr.tm-sl-unit-row[data-tm-sl-open-row]').forEach((row) => {
                 row.addEventListener('dblclick', (e) => {
-                    if (e.target.closest('[data-tm-sl-copy], [data-tm-sl-tag-edit], .tm-sl-phone-tag, .tm-sl-tag-picker')) return;
+                    if (e.target.closest('[data-tm-sl-copy], [data-tm-sl-tag-edit], .tm-sl-phone-tag, .tm-sl-tag-picker, .tm-sl-unit-note')) return;
                     openProductByBarcode(row.getAttribute('data-tm-sl-open-row'));
                 });
                 row.addEventListener('contextmenu', (e) => {
@@ -66244,6 +66549,16 @@ try {
                     const code = btn.getAttribute('data-tm-sl-tag-edit');
                     if (!code || typeof UI.showPhoneTagPicker !== 'function') return;
                     UI.showPhoneTagPicker(btn, code, () => renderStoresStep());
+                });
+            });
+
+            bodyEl.querySelectorAll('.tm-sl-unit-note').forEach((el) => {
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const row = el.closest('[data-barcode]');
+                    const code = row?.getAttribute('data-barcode');
+                    if (!code || typeof UI.showPhoneTagPicker !== 'function') return;
+                    UI.showPhoneTagPicker(el, code, () => renderStoresStep());
                 });
             });
 
@@ -66632,13 +66947,16 @@ try {
             if (storesResolving || typeof window.resolvePhonesStoreDetails !== 'function') return;
             mergeNetworkStoreHints();
             const networkPool = getNetworkPool();
+            if (typeof window.hydratePhonesFromStoreDetailsCache === 'function') {
+                window.hydratePhonesFromStoreDetailsCache(networkPool);
+            }
             const phones = modelFilter
                 ? networkPool.filter(modelFilter)
                 : networkPool;
-            const needsResolve = phones.some((p) => {
-                const stores = helpers.getEffectivePhoneStores(p);
-                return !stores.length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
-            });
+            const stillPending = typeof window.phoneNeedsStoreResolve === 'function'
+                ? window.phoneNeedsStoreResolve
+                : (p) => !helpers.getEffectivePhoneStores(p).length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
+            const needsResolve = phones.some(stillPending);
             if (!needsResolve) {
                 onProgress?.(1, 1);
                 return;
@@ -66650,8 +66968,11 @@ try {
                     concurrency: 8,
                     filter: modelFilter || undefined,
                     persistOtherStoreCache: catalogCategory !== 'laptops',
-                    onProgress: (done, total) => {
-                        setStatus(`Φόρτωση καταστημάτων ${done}/${total}…`);
+                    onProgress: (done, total, meta) => {
+                        const pending = Number(meta?.pending) || Math.max(0, total - done);
+                        const pass = Number(meta?.pass) || 1;
+                        const extra = pending && pass > 1 ? ` · επανάληψη ${pass}` : '';
+                        setStatus(`Φόρτωση καταστημάτων ${done}/${total}${extra}…`);
                         onProgress?.(done, total);
                     },
                 });
@@ -67041,14 +67362,11 @@ try {
                         }
                     }, { force: true });
                     progress.finishPhase('otherStoresMs', progress.getPhaseElapsed());
-
                     if (catalogView === 'network') {
-                        progress.beginPhaseClock();
-                        progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', 0, 1);
-                        await resolveNetworkStoreDetails(null, (done, total) => {
-                            progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', done, total || 1);
-                        });
-                        progress.finishPhase('storeResolve', progress.getPhaseElapsed());
+                        mergeNetworkStoreHints();
+                        if (typeof window.hydratePhonesFromStoreDetailsCache === 'function') {
+                            window.hydratePhonesFromStoreDetailsCache(getNetworkPool());
+                        }
                     }
                 } else if (!isNetworkPoolLoaded()) {
                     await ensureOtherStores();
