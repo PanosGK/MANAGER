@@ -546,7 +546,12 @@
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             const variant = phoneToVariant(phone, helpers);
             const stores = getStores(phone);
-            if (!stores.length) return;
+            if (!stores.length) {
+                const otherCount = parseInt(phone.otherStoreCount, 10) || 0;
+                if (otherCount <= 0) return;
+                addVariant('__unresolved__', 'Άλλα καταστήματα', variant);
+                return;
+            }
             stores.forEach((store) => {
                 const name = cleanStoreName(store.name);
                 if (!name) return;
@@ -593,7 +598,12 @@
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             const variant = phoneToVariant(phone, helpers);
             const stores = getStores(phone);
-            if (!stores.length) return;
+            if (!stores.length) {
+                const otherCount = parseInt(phone.otherStoreCount, 10) || 0;
+                if (otherCount <= 0) return;
+                addVariant('__unresolved__', 'Άλλα καταστήματα', false, variant);
+                return;
+            }
             stores.forEach((store) => {
                 const name = cleanStoreName(store.name);
                 if (!name) return;
@@ -1409,11 +1419,14 @@
             storesResolving = true;
             try {
                 await window.resolvePhonesStoreDetails(networkPool, {
-                    concurrency: 16,
+                    concurrency: 8,
                     filter: modelFilter || undefined,
                     persistOtherStoreCache: catalogCategory !== 'laptops',
-                    onProgress: (done, total) => {
-                        setStatus(`Φόρτωση καταστημάτων ${done}/${total}…`);
+                    onProgress: (done, total, meta) => {
+                        const pending = Number(meta?.pending) || Math.max(0, total - done);
+                        const pass = Number(meta?.pass) || 1;
+                        const extra = pending && pass > 1 ? ` · επανάληψη ${pass}` : '';
+                        setStatus(`Φόρτωση καταστημάτων ${done}/${total}${extra}…`);
                         onProgress?.(done, total);
                     },
                 });

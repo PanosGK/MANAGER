@@ -2782,6 +2782,46 @@ function parseStorehousesFromProductHtml(html, barcode) {
     }
 }
 
+function pcWithHardTimeout(task, ms, fallback) {
+    const timeoutMs = Math.max(400, Number(ms) || 8000);
+    return new Promise((resolve) => {
+        let settled = false;
+        const finish = (value) => {
+            if (settled) return;
+            settled = true;
+            resolve(value);
+        };
+        const timer = setTimeout(() => finish(fallback), timeoutMs);
+        Promise.resolve()
+            .then(() => (typeof task === 'function' ? task() : task))
+            .then((value) => {
+                clearTimeout(timer);
+                finish(value);
+            }, () => {
+                clearTimeout(timer);
+                finish(fallback);
+            });
+    });
+}
+
+async function pcMapPool(items, limit, worker) {
+    const list = Array.isArray(items) ? items : [];
+    if (!list.length) return;
+    const concurrency = Math.max(1, Math.min(Number(limit) || 8, list.length));
+    let cursor = 0;
+    async function pump() {
+        for (;;) {
+            const i = cursor;
+            cursor += 1;
+            if (i >= list.length) return;
+            try {
+                await worker(list[i], i);
+            } catch (_) { /* keep going */ }
+        }
+    }
+    await Promise.all(Array.from({ length: concurrency }, () => pump()));
+}
+
 function fetchStorehousesViaHttp(productCode) {
     return new Promise((resolve) => {
         const code = String(productCode || '').trim();
@@ -2790,54 +2830,68 @@ function fetchStorehousesViaHttp(productCode) {
             return;
         }
         const url = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(code)}`;
+        let settled = false;
+        const finish = (stores) => {
+            if (settled) return;
+            settled = true;
+            try { window.restoreRunnerSessionSearch?.(url); } catch (_) { /* ignore */ }
+            resolve(Array.isArray(stores) ? stores : []);
+        };
+        const timer = setTimeout(() => finish([]), 7000);
         GM_xmlhttpRequest({
             method: 'GET',
             url,
-            timeout: 12000,
+            timeout: 6500,
             onload(response) {
-                window.restoreRunnerSessionSearch?.(response.finalUrl || url);
-                resolve(parseStorehousesFromProductHtml(response.responseText || '', code));
+                clearTimeout(timer);
+                finish(parseStorehousesFromProductHtml(response.responseText || '', code));
             },
             onerror() {
-                window.restoreRunnerSessionSearch?.(url);
-                resolve([]);
+                clearTimeout(timer);
+                finish([]);
             },
             ontimeout() {
-                window.restoreRunnerSessionSearch?.(url);
-                resolve([]);
+                clearTimeout(timer);
+                finish([]);
             },
         });
     });
 }
 
-async function fetchStorehousesFromPage(productCode) {
+async function fetchStorehousesFromPage(productCode, options = {}) {
     const code = String(productCode || '').trim();
     if (!code) return [];
 
     const cached = getCachedPhoneStoreDetails(code);
     if (cached?.length) return cached;
 
-    const pageFn = getStorehousePageApiFn();
-    if (pageFn && storehousePageApiState !== 'hung') {
-        const viaPage = await fetchStorehousesViaUnsafeWindow(code);
-        if (viaPage.length) {
-            storehousePageApiState = 'ok';
-            savePhoneStoreDetailsCache(code, viaPage);
-            return viaPage;
-        }
-        if (storehousePageApiState !== 'missing' && storehousePageApiState !== 'hung') {
-            const viaScript = await fetchStorehousesViaPageScript(code);
-            if (viaScript.length) {
+    const attempt = Math.max(1, Number(options.attempt) || 1);
+    const httpMs = Math.min(20000, 7000 + (attempt - 1) * 3000);
+    const tryPageApi = options.httpOnly === false || attempt >= 3;
+
+    if (tryPageApi) {
+        const pageFn = getStorehousePageApiFn();
+        if (pageFn && storehousePageApiState !== 'hung') {
+            const viaPage = await pcWithHardTimeout(
+                () => fetchStorehousesViaUnsafeWindow(code),
+                2000,
+                []
+            );
+            if (viaPage.length) {
                 storehousePageApiState = 'ok';
-                savePhoneStoreDetailsCache(code, viaScript);
-                return viaScript;
+                savePhoneStoreDetailsCache(code, viaPage);
+                return viaPage;
             }
+        } else if (!pageFn) {
+            storehousePageApiState = 'missing';
         }
-    } else if (!pageFn) {
-        storehousePageApiState = 'missing';
     }
 
-    const viaHttp = await fetchStorehousesViaHttp(code);
+    const viaHttp = await pcWithHardTimeout(
+        () => fetchStorehousesViaHttp(code),
+        httpMs + 500,
+        []
+    );
     if (viaHttp.length) {
         savePhoneStoreDetailsCache(code, viaHttp);
         return viaHttp;
@@ -2939,37 +2993,49 @@ function mergeOtherStoresFromAllPhones(allPhones, networkPhones) {
 }
 
 async function resolvePhonesStoreDetails(phones, options = {}) {
-    const { concurrency = 12, onProgress, filter } = options;
+    const { concurrency = 6, onProgress, filter } = options;
+    const maxPasses = Math.max(3, Number(options.maxPasses) || 6);
     hydratePhonesFromStoreDetailsCache(phones);
     const list = (phones || []).filter((p) => (!filter || filter(p)) && phoneNeedsStoreResolve(p));
     const unique = [...new Map(list.map((p) => [p.barcode, p])).values()];
-    let done = 0;
     if (!unique.length) {
         onProgress?.(1, 1);
         if (options.persistOtherStoreCache) saveOtherStoreCache(phones);
         return phones;
     }
 
-    for (let i = 0; i < unique.length; i += concurrency) {
-        const batch = unique.slice(i, i + concurrency);
-        await Promise.all(batch.map(async (phone) => {
+    let remaining = unique.slice();
+    let resolved = unique.length - remaining.length;
+    for (let pass = 1; remaining.length && pass <= maxPasses; pass += 1) {
+        const failed = [];
+        await pcMapPool(remaining, concurrency, async (phone) => {
             if (getEffectivePhoneStores(phone).length) {
-                done += 1;
-                onProgress?.(done, unique.length);
+                resolved += 1;
+                onProgress?.(resolved, unique.length, { pass, pending: remaining.length });
                 return;
             }
             try {
-                const stores = await fetchStorehousesFromPage(phone.barcode);
+                const stores = await fetchStorehousesFromPage(phone.barcode, {
+                    httpOnly: pass < 3,
+                    attempt: pass,
+                });
                 if (stores.length) {
                     phone.stores = stores;
                     phone.otherStores = stores;
+                    resolved += 1;
+                    onProgress?.(resolved, unique.length, { pass, pending: 0 });
+                    return;
                 }
             } catch (e) {
                 console.warn('[MMS Phone List] Could not resolve stores for', phone.barcode, e);
             }
-            done += 1;
-            onProgress?.(done, unique.length);
-        }));
+            failed.push(phone);
+            onProgress?.(resolved, unique.length, { pass, pending: failed.length + 1 });
+        });
+        remaining = failed.filter((p) => phoneNeedsStoreResolve(p));
+        if (remaining.length && pass < maxPasses) {
+            await new Promise((r) => setTimeout(r, Math.min(400 * pass, 2000)));
+        }
     }
 
     persistPhoneStoreDetailsCache();
@@ -3653,25 +3719,40 @@ function getOtherStoreLaptopCache() {
 }
 
 function pcRequestHtml(url, timeoutMs) {
+    const ms = Number(timeoutMs) > 0 ? Number(timeoutMs) : 8000;
     return new Promise((resolve) => {
         const xhr = typeof GM_xmlhttpRequest === 'function' ? GM_xmlhttpRequest : null;
         if (!xhr) {
             resolve({ ok: false, text: '' });
             return;
         }
+        let settled = false;
+        const finish = (value) => {
+            if (settled) return;
+            settled = true;
+            resolve(value);
+        };
+        const timer = setTimeout(() => finish({ ok: false, text: '' }), ms + 400);
         xhr({
             method: 'GET',
             url,
-            timeout: Number(timeoutMs) > 0 ? Number(timeoutMs) : 20000,
+            timeout: ms,
             onload(res) {
-                resolve({
+                clearTimeout(timer);
+                finish({
                     ok: res.status >= 200 && res.status < 300,
                     text: String(res.responseText || ''),
                     status: res.status,
                 });
             },
-            onerror() { resolve({ ok: false, text: '' }); },
-            ontimeout() { resolve({ ok: false, text: '' }); },
+            onerror() {
+                clearTimeout(timer);
+                finish({ ok: false, text: '' });
+            },
+            ontimeout() {
+                clearTimeout(timer);
+                finish({ ok: false, text: '' });
+            },
         });
     });
 }
@@ -3726,7 +3807,7 @@ async function fetchProductFullName(barcode, dataQuery) {
     const url = path.startsWith('http')
         ? path
         : `https://thefixers.mymanager.gr/mymanagerservice/${path.replace(/^\//, '')}`;
-    const res = await pcRequestHtml(url);
+    const res = await pcRequestHtml(url, 8000);
     if (!res.ok) return '';
     return parseFulltextResponse(res.text);
 }
@@ -3734,13 +3815,19 @@ async function fetchProductFullName(barcode, dataQuery) {
 async function expandLaptopNames(items, onProgress) {
     const needExpand = items.filter((item) => item?._needsFullName && item.barcode);
     if (!needExpand.length) return items;
-    const concurrency = 4;
+    const concurrency = 6;
+    const maxPasses = 5;
+    let remaining = needExpand.slice();
     let done = 0;
-    for (let i = 0; i < needExpand.length; i += concurrency) {
-        const batch = needExpand.slice(i, i + concurrency);
-        await Promise.all(batch.map(async (item) => {
+    for (let pass = 1; remaining.length && pass <= maxPasses; pass += 1) {
+        const failed = [];
+        await pcMapPool(remaining, concurrency, async (item) => {
             try {
-                const full = await fetchProductFullName(item.barcode, item._fulltextQuery);
+                const full = await pcWithHardTimeout(
+                    () => fetchProductFullName(item.barcode, item._fulltextQuery),
+                    8000 + pass * 2000,
+                    ''
+                );
                 if (full && full.length > String(item.name || '').length) {
                     const parsed = parseLaptopName(full);
                     item.name = parsed.fullName;
@@ -3752,15 +3839,24 @@ async function expandLaptopNames(items, onProgress) {
                     item.ram = parsed.ram || item.ram;
                     item.storage = parsed.storage || item.storage;
                     item.isBuyback = isBuybackTitle(full) || !!item.isBuyback;
+                    delete item._needsFullName;
+                    delete item._fulltextQuery;
+                    done += 1;
+                    if (typeof onProgress === 'function') {
+                        onProgress({ phase: 'expand', done, total: needExpand.length, ratio: done / needExpand.length });
+                    }
+                    return;
                 }
-            } catch (_) { /* keep truncated */ }
-            delete item._needsFullName;
-            delete item._fulltextQuery;
-            done += 1;
+            } catch (_) { /* retry */ }
+            failed.push(item);
             if (typeof onProgress === 'function') {
                 onProgress({ phase: 'expand', done, total: needExpand.length, ratio: done / needExpand.length });
             }
-        }));
+        });
+        remaining = failed;
+        if (remaining.length && pass < maxPasses) {
+            await new Promise((r) => setTimeout(r, 400 * pass));
+        }
     }
     items.forEach((item) => {
         delete item._needsFullName;
