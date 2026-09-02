@@ -16,8 +16,6 @@ const OTHER_STORE_CACHE_KEY = 'tm_phone_other_store_cache_v3';
 const OTHER_STORE_CACHE_TIMESTAMP_KEY = 'tm_phone_other_store_cache_timestamp';
 const OTHER_STORE_CACHE_EXPIRATION_DAYS = 3;
 const PRODUCT_LIST_BASE = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php';
-const PRODUCT_LIST_SEED_QS = '55.';
-const USED_PHONE_SEARCH_QS = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ';
 const PRODUCT_LIST_SCRAPE_TIMEOUT_MS = 90000;
 
 // Greek translations (using Unicode escape sequences to avoid encoding issues)
@@ -2946,59 +2944,35 @@ async function resolvePhonesStoreDetails(phones, options = {}) {
     return phones;
 }
 
-const PRODUCT_LIST_HTML_TTL_MS = 120000;
-let productListHtmlCache = null;
-let productListHtmlInflight = null;
-
-function invalidateProductListPageHtml() {
-    productListHtmlCache = null;
-}
-
 /**
- * The own-store list and the other-store list are both parsed out of the same
- * multi-megabyte grid, so it is downloaded once and shared: scraping it per
- * caller doubled every refresh.
+ * Fetches and parses the phone list from the products page
+ * First loads the initial page, then loads with pagesize parameter, then parses
+ * @returns {Promise<Array<{barcode: string, name: string, model: string, grade: string, imei: string, unitsRemaining: number}>>}
  */
-function fetchProductListPageHtml(options = {}) {
-    const onProgress = typeof options.onProgress === 'function' ? options.onProgress : () => {};
-    if (productListHtmlCache && Date.now() - productListHtmlCache.at < PRODUCT_LIST_HTML_TTL_MS) {
-        onProgress({ phase: 'download', ratio: 1, fromCache: true });
-        return Promise.resolve({ ok: true, html: productListHtmlCache.html, fromCache: true });
+async function fetchPhoneList(options = {}) {
+    const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
+    if (!options.force) {
+        const cached = loadPhoneListCache();
+        if (cached?.length) {
+            onProgress({ phase: 'done', ratio: 1, fromCache: true });
+            return cached;
+        }
     }
-    if (productListHtmlInflight) return productListHtmlInflight;
-
-    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(PRODUCT_LIST_SEED_QS)}&recordspp=-1`;
-    const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
-
-    productListHtmlInflight = new Promise((resolve) => {
-        const finish = (result) => {
-            productListHtmlInflight = null;
-            if (result.ok) productListHtmlCache = { at: Date.now(), html: result.html };
-            resolve(result);
-        };
+    return new Promise((resolve, reject) => {
         onProgress({ phase: 'init', ratio: 0.04 });
-        // Seed with barcode prefix 55. (same as before laptop catalog). The Greek
-        // used-phone title matches nothing in PHPRunner search and left the grid empty.
+        // Step 1: Load initial page with qs=55.&recordspp=-1
         GM_xmlhttpRequest({
             method: 'GET',
-            url: seedUrl,
-            timeout: 30000,
-            onload(seed) {
-                const seedOk = seed
-                    && seed.status >= 200
-                    && seed.status < 300
-                    && String(seed.responseText || '').length > 200;
-                if (!seedOk) {
-                    finish({ ok: false, html: '', reason: 'seed returned an empty/invalid page' });
-                    return;
-                }
-                console.log('[MMS Phone List] Seed page loaded, fetching full product grid');
+            url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&recordspp=-1',
+            onload: function(firstResponse) {
+                console.log('[MMS Phone List] First page loaded, now loading with pagesize=500');
                 onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
+
+                // Step 2: Load with pagesize so the 55. session search returns the full grid
                 GM_xmlhttpRequest({
                     method: 'GET',
-                    url: pageUrl,
-                    timeout: PRODUCT_LIST_SCRAPE_TIMEOUT_MS,
-                    onprogress(e) {
+                    url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|',
+                    onprogress: function(e) {
                         if (e.lengthComputable && e.total > 0) {
                             onProgress({
                                 phase: 'download',
@@ -3014,62 +2988,11 @@ function fetchProductListPageHtml(options = {}) {
                             });
                         }
                     },
-                    onload(res) {
-                        const html = String(res?.responseText || '');
-                        finish({
-                            ok: html.length > 200,
-                            html,
-                            reason: html.length > 200 ? '' : 'list page came back empty',
-                        });
-                    },
-                    onerror() { finish({ ok: false, html: '', reason: 'list request failed' }); },
-                    ontimeout() { finish({ ok: false, html: '', reason: 'list request timed out' }); },
-                });
-            },
-            onerror() { finish({ ok: false, html: '', reason: 'seed request failed' }); },
-            ontimeout() { finish({ ok: false, html: '', reason: 'seed request timed out' }); },
-        });
-    });
-    return productListHtmlInflight;
-}
-
-/**
- * Fetches and parses the phone list from the products page
- * First loads the initial page, then loads with pagesize parameter, then parses
- * @returns {Promise<Array<{barcode: string, name: string, model: string, grade: string, imei: string, unitsRemaining: number}>>}
- */
-async function fetchPhoneList(options = {}) {
-    const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
-    if (!options.force) {
-        const cached = loadPhoneListCache();
-        if (cached?.length) {
-            onProgress({ phase: 'done', ratio: 1, fromCache: true });
-            return cached;
-        }
-    }
-    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(PRODUCT_LIST_SEED_QS)}&recordspp=-1`;
-    const restoreSession = () => {
-        try { window.restoreRunnerSessionSearch?.(seedUrl); } catch (_) { /* ignore */ }
-    };
-    // A manual refresh must see today's grid, not the shared copy.
-    if (options.force) invalidateProductListPageHtml();
-
-    return new Promise((resolve) => {
-        const fail = (error, msg) => {
-            console.warn(msg, error || '');
-            restoreSession();
-            finalizePhoneListFetch([], onProgress, resolve);
-        };
-
-        fetchProductListPageHtml({ onProgress }).then((page) => {
-            if (!page.ok) {
-                fail(null, `[MMS Phone List] Could not load product grid: ${page.reason || 'unknown'}`);
-                return;
-            }
+                    onload: function(response) {
                 try {
                     onProgress({ phase: 'parse', ratio: 0.9 });
                     const parser = new DOMParser();
-                    const doc = parser.parseFromString(page.html, 'text/html');
+                    const doc = parser.parseFromString(response.responseText, 'text/html');
                     detectAndCacheCurrentStoreName(doc);
                     
                     // Try multiple table selectors - be more flexible
@@ -3094,8 +3017,7 @@ async function fetchPhoneList(options = {}) {
                         allTables.forEach((t, i) => {
                             console.log(`[MMS Phone List] Table ${i}: classes =`, t.className);
                         });
-                        restoreSession();
-                        finalizePhoneListFetch([], onProgress, resolve);
+                        resolve([]);
                         return;
                     }
                     
@@ -3249,12 +3171,25 @@ async function fetchPhoneList(options = {}) {
                     });
                     
                         console.log(`[MMS Phone List] Successfully parsed ${phones.length} phones`);
-                        restoreSession();
-                        finalizePhoneListFetch(phones, onProgress, resolve);
+                        savePhoneListCache(phones);
+                        onProgress({ phase: 'done', ratio: 1 });
+                        resolve(phones);
                     } catch (error) {
-                        fail(error, '[MMS Phone List] Error parsing phone list:');
+                        console.error('[MMS Phone List] Error parsing phone list:', error);
+                        reject(error);
                     }
-        }, (error) => fail(error, '[MMS Phone List] Product grid request failed:'));
+                },
+                onerror: function(error) {
+                    console.error('[MMS Phone List] Failed to fetch phone list (second request):', error);
+                    reject(error);
+                }
+            });
+            },
+            onerror: function(error) {
+                console.error('[MMS Phone List] Failed to fetch phone list (first request):', error);
+                reject(error);
+            }
+        });
     });
 }
 
@@ -3897,71 +3832,66 @@ async function fetchOtherStorePhones(options = {}) {
             return cached;
         }
     }
-    
-    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(PRODUCT_LIST_SEED_QS)}&recordspp=-1`;
-    const restoreSession = () => {
-        try { window.restoreRunnerSessionSearch?.(seedUrl); } catch (_) { /* ignore */ }
-    };
 
-    return new Promise((resolve) => {
-        const finish = (result) => {
-            restoreSession();
-            const list = Array.isArray(result) ? result : [];
-            if (list.length) {
-                saveOtherStoreCache(list);
-                onProgress({ phase: 'done', ratio: 1 });
-                resolve(list);
-                return;
-            }
-            const cached = getOtherStoreCache({ ignoreExpiry: true });
-            if (cached?.length) {
-                console.warn('[MMS Other Stores] Scrape empty — keeping cached snapshot');
-                onProgress({ phase: 'done', ratio: 1, fromCache: true });
-                resolve(cached);
-                return;
-            }
-            onProgress({ phase: 'done', ratio: 1 });
-            resolve([]);
-        };
-
-        fetchProductListPageHtml({ onProgress }).then((page) => {
-            if (!page.ok) {
-                console.warn(`[MMS Other Stores] Could not load product grid: ${page.reason || 'unknown'}`);
-                finish([]);
-                return;
-            }
+    return new Promise((resolve, reject) => {
+        const fetchWithUrl = (url, fallbackUrl) => {
+            onProgress({ phase: 'init', ratio: 0.05 });
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url,
+                onprogress: function(e) {
+                    if (e.lengthComputable && e.total > 0) {
+                        onProgress({
+                            phase: 'download',
+                            ratio: e.loaded / e.total,
+                            loaded: e.loaded,
+                            total: e.total,
+                        });
+                    } else if (e.loaded > 0) {
+                        onProgress({
+                            phase: 'download',
+                            indeterminate: true,
+                            loaded: e.loaded,
+                        });
+                    }
+                },
+                onload: function(response) {
                     try {
                         onProgress({ phase: 'parse', ratio: 0.9 });
                         const parser = new DOMParser();
-                        const doc = parser.parseFromString(page.html, 'text/html');
+                        const doc = parser.parseFromString(response.responseText, 'text/html');
                         detectAndCacheCurrentStoreName(doc);
-                        
+
                         let table = doc.querySelector('table.rnr-c.rnr-cont.rnr-b-grid.rnr-gridtable.hoverable');
                         if (!table) table = doc.querySelector('table.rnr-b-grid.rnr-gridtable');
                         if (!table) table = doc.querySelector('table.rnr-b-grid');
                         if (!table) table = doc.querySelector('.rnr-c-grid table, table.rnr-gridtable');
-                        
+
                         if (!table) {
-                            console.error('[MMS Other Stores] Table not found');
-                            finish([]);
+                            if (fallbackUrl) {
+                                fetchWithUrl(fallbackUrl, null);
+                            } else {
+                                console.error('[MMS Other Stores] Table not found');
+                                resolve([]);
+                            }
                             return;
                         }
-                        
+
                         let rows = table.querySelectorAll('tbody tr');
                         if (rows.length === 0) rows = table.querySelectorAll('tr');
                         if (rows.length === 0) rows = table.querySelectorAll('tr[id^="gridRow"]');
-                        
+
                         const result = [];
-                        
+
                         rows.forEach((row, idx) => {
                             if (idx === 0 && row.querySelector('th')) return;
-                            
+
                             let barcodeEl = row.querySelector('span[id*="strProductID"]');
                             let nameEl = row.querySelector('span[id*="strProductName"]');
                             let otherStoreEl = row.querySelector('span[id*="iUnitsRemainingOtherStoreHouses"]');
                             let unitsRemainingEl = row.querySelector('span[id*="iUnitsRemaining"]');
                             let priceEl = findProductPriceElement(row);
-                            
+
                             if (!barcodeEl || !nameEl || !otherStoreEl || !unitsRemainingEl || !priceEl) {
                                 row.querySelectorAll('[id]').forEach(node => {
                                     const id = (node.id || '').toLowerCase();
@@ -3976,7 +3906,7 @@ async function fetchOtherStorePhones(options = {}) {
                                     }
                                 });
                             }
-                            
+
                             if (!otherStoreEl) return;
                             const otherCount = parseInt((otherStoreEl.textContent || '').trim(), 10) || 0;
                             if (otherCount <= 0) return;
@@ -3985,22 +3915,23 @@ async function fetchOtherStorePhones(options = {}) {
                                 localUnits = parseInt((unitsRemainingEl.textContent || '').trim(), 10) || 0;
                             }
                             const retailPrice = extractProductRetailPrice(row);
-                            
+
                             const barcode = (barcodeEl?.textContent || '').trim();
                             let name = (nameEl?.textContent || '').trim();
                             if (!barcode || !name) return;
                             name = name.replace(/\s+Περισσότερα\s*\.\.\.\s*/i, '').trim();
-                            
+
                             const parsed = parsePhoneName(name);
                             let stores = parseOtherStorehouses(otherStoreEl);
                             if (!stores.length) stores = parseOtherStorehousesFromRow(row);
                             const isBuyback = isBuybackTitle(name);
-                            
+
                             const nameUpper = name.toUpperCase();
-                            if (!nameUpper.includes(USED_PHONE_SEARCH_QS)) {
+                            const greekPhonePrefix = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ';
+                            if (!nameUpper.includes(greekPhonePrefix)) {
                                 return;
                             }
-                            
+
                             result.push({
                                 barcode,
                                 name: parsed.fullName,
@@ -4014,16 +3945,33 @@ async function fetchOtherStorePhones(options = {}) {
                                 isBuyback
                             });
                         });
-                        
-                        finish(result);
+
+                        saveOtherStoreCache(result);
+                        onProgress({ phase: 'done', ratio: 1 });
+                        resolve(result);
                     } catch (err) {
-                        console.error('[MMS Other Stores] Parse error:', err);
-                        finish([]);
+                        if (fallbackUrl) {
+                            fetchWithUrl(fallbackUrl, null);
+                        } else {
+                            console.error('[MMS Other Stores] Parse error:', err);
+                            reject(err);
+                        }
                     }
-        }, (err) => {
-            console.warn('[MMS Other Stores] Product grid request failed:', err);
-            finish([]);
-        });
+                },
+                onerror: function(error) {
+                    if (fallbackUrl) {
+                        fetchWithUrl(fallbackUrl, null);
+                    } else {
+                        console.error('[MMS Other Stores] Request failed:', error);
+                        reject(error);
+                    }
+                }
+            });
+        };
+
+        const primaryUrl = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&pagesize=1000000|';
+        const fallbackUrl = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|';
+        fetchWithUrl(primaryUrl, fallbackUrl);
     });
 }
 
