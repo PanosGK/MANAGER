@@ -1358,6 +1358,34 @@ function isDeprecatedStoreName(name) {
     return /^\(OLD\)/i.test(String(name || '').trim());
 }
 
+/** Reject product titles mistaken for storehouse names during grid scrape. */
+function isPlausibleStorehouseName(name) {
+    const clean = normalizeStoreDisplayName(name);
+    if (!clean || clean.length < 2 || clean.length > 72) return false;
+    const upper = clean.toUpperCase();
+    if (/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ|METAXEI/i.test(upper)) return false;
+    if (/ΚΙΝΗΤΟ\s*ΤΗΛΕΦΩΝΟ|ΦΟΡΗΤΟΣ\s*ΥΠΟΛΟΓΙΣΤ/i.test(upper)) return false;
+    if (/\bIPHONE\b|\bSAMSUNG\b|\bXIAOMI\b|\bREDMI\b|\bPOCO\b|\bHUAWEI\b|\bOPPO\b/i.test(upper)) return false;
+    if (/\d+\s*GB\b/i.test(clean)) return false;
+    if (/\bBB\s*:/i.test(clean)) return false;
+    if (/\([ABC][+-]?\s*[-–]?\d/i.test(clean) || /\([ABC][+-]?\s*$/i.test(clean)) return false;
+    if (/\((?:IKE|ΙΚΕ|ΕΕ|EE)\)/i.test(clean)) return true;
+    if (matchStoreNameInText(clean, DEFAULT_PROFILE_STORES)) return true;
+    if (/\d+\s*GB\b/i.test(clean) || /\bMINI\b|\bPRO\b|\bMAX\b|\bPLUS\b/i.test(upper)) return false;
+    return clean.length <= 48;
+}
+
+function sanitizeStorehouseList(stores) {
+    const seen = new Map();
+    (stores || []).forEach((store) => {
+        const name = normalizeStoreDisplayName(store?.name);
+        if (!isPlausibleStorehouseName(name)) return;
+        const qty = String(store?.qty != null ? store.qty : '1');
+        seen.set(name, { name, qty });
+    });
+    return [...seen.values()];
+}
+
 function normalizeStoreLookupKey(name) {
     return normalizeStoreDisplayName(name)
         .toUpperCase()
@@ -2315,11 +2343,11 @@ function buildPhoneListSnapshot(phones) {
 function compactStoreEntry(store) {
     if (!store) return null;
     if (typeof store === 'string') {
-        const name = store.trim();
-        return name ? { name, qty: '1' } : null;
+        const name = normalizeStoreDisplayName(store);
+        return isPlausibleStorehouseName(name) ? { name, qty: '1' } : null;
     }
-    const name = String(store.name || '').trim();
-    if (!name) return null;
+    const name = normalizeStoreDisplayName(store.name);
+    if (!isPlausibleStorehouseName(name)) return null;
     return { name, qty: String(store.qty != null ? store.qty : '1') };
 }
 
@@ -2531,7 +2559,7 @@ function parseStorehouseSnippets(rawSnippet, stores) {
         if (cols.length >= 2) {
             const name = (cols[0].textContent || '').trim();
             const qty = (cols[1].textContent || '').trim();
-            if (name) stores.push({ name, qty });
+            if (name && isPlausibleStorehouseName(name)) stores.push({ name, qty });
         }
     });
 
@@ -2539,7 +2567,12 @@ function parseStorehouseSnippets(rawSnippet, stores) {
 
     decoded.split('\n').map((l) => l.trim()).filter(Boolean).forEach((line) => {
         const match = line.match(/(.+?)\s+(\d+)\s*$/);
-        if (match) stores.push({ name: match[1].trim(), qty: match[2].trim() });
+        if (match) {
+            const name = match[1].trim();
+            if (isPlausibleStorehouseName(name)) {
+                stores.push({ name, qty: match[2].trim() });
+            }
+        }
     });
 }
 
@@ -2548,27 +2581,24 @@ function parseOtherStorehousesFromRow(row) {
     const seen = new Map();
 
     function addList(list) {
-        (list || []).forEach((store) => {
-            const name = String(store.name || '').trim();
-            if (!name) return;
-            seen.set(name, { name, qty: String(store.qty != null ? store.qty : '1') });
+        sanitizeStorehouseList(list).forEach((store) => {
+            seen.set(store.name, store);
         });
     }
 
-    addList(parseOtherStorehouses(row.querySelector('[id*="iUnitsRemainingOtherStoreHouses"]')));
+    const otherStoreEl = row.querySelector('[id*="iUnitsRemainingOtherStoreHouses"]');
+    addList(parseOtherStorehouses(otherStoreEl));
 
-    if (!seen.size) {
-        row.querySelectorAll('a, span, div, td, button').forEach((el) => {
-            addList(parseOtherStorehouses(el));
-        });
-    }
-
-    if (!seen.size && row.innerHTML) {
+    if (!seen.size && otherStoreEl) {
+        const scope = otherStoreEl.closest('td') || otherStoreEl.parentElement || row;
         const snippets = new Set();
-        row.querySelectorAll('[data-content],[data-bs-content],[data-original-title],[title]').forEach((el) => {
-            ['data-content', 'data-bs-content', 'data-original-title', 'title'].forEach((attr) => {
-                const val = el.getAttribute(attr);
-                if (val) snippets.add(val);
+        [otherStoreEl, scope].forEach((el) => {
+            if (!el) return;
+            el.querySelectorAll('[data-content],[data-bs-content],[data-original-title],[title]').forEach((node) => {
+                ['data-content', 'data-bs-content', 'data-original-title', 'title'].forEach((attr) => {
+                    const val = node.getAttribute(attr);
+                    if (val) snippets.add(val);
+                });
             });
         });
         const stores = [];
@@ -2605,18 +2635,13 @@ function parseOtherStorehouses(cell) {
     
     collect(cell);
     cell.querySelectorAll('*').forEach(collect);
-    
-    if (snippets.size === 0) {
-        if (cell.innerHTML) snippets.add(cell.innerHTML);
-        else if (cell.textContent) snippets.add(cell.textContent);
-    }
-    
+
     for (const rawSnippet of snippets) {
         parseStorehouseSnippets(rawSnippet, stores);
         if (stores.length > 0) break;
     }
-    
-    return stores;
+
+    return sanitizeStorehouseList(stores);
 }
 
 /** Read retail price text from a grid cell (Runner redesign may use div or input). */
@@ -2663,12 +2688,10 @@ function extractProductRetailPrice(row) {
 // Try to fetch storehouse availability using the page's own helper (getCheckOtherInventories)
 function normalizeStorehouseResponse(response) {
     if (!response || !response.length) return [];
-    return response
-        .map((r) => ({
-            name: String(r.storehouse || r.name || r.store || '').trim(),
-            qty: String(r.units != null ? r.units : (r.qty != null ? r.qty : '1')),
-        }))
-        .filter((s) => s.name);
+    return sanitizeStorehouseList(response.map((r) => ({
+        name: String(r.storehouse || r.name || r.store || '').trim(),
+        qty: String(r.units != null ? r.units : (r.qty != null ? r.qty : '1')),
+    })));
 }
 
 // The page helper answers with a small JSON payload, so it stays the preferred
@@ -2805,30 +2828,31 @@ function fetchStorehousesViaPageApi(productCode) {
  * source really reported on this barcode, so an empty list is a genuine "no
  * other-store stock" and does not deserve another pass.
  */
-async function fetchStorehouseDetails(productCode) {
+async function fetchStorehouseDetails(productCode, options = {}) {
     const code = String(productCode || '').trim();
     if (!code) return { stores: [], answered: true };
 
     const cached = getCachedPhoneStoreDetails(code);
     if (cached?.length) return { stores: cached, answered: true };
 
-    if (isStorehousePageApiUsable()) {
-        const viaPage = await fetchStorehousesViaPageApi(code);
-        notePageApiAnswer(viaPage.ok);
-        if (viaPage.ok && viaPage.stores.length) {
-            pageApiEmptyStreak = 0;
-            savePhoneStoreDetailsCache(code, viaPage.stores);
-            return { stores: viaPage.stores, answered: true };
-        }
-        if (viaPage.ok) {
-            pageApiEmptyStreak += 1;
-            return { stores: [], answered: true };
-        }
+    if (!isStorehousePageApiUsable()) {
+        return { stores: [], answered: true };
     }
 
-    // Do not open Περισσότερα / product HTML per barcode. Store names already
-    // parsed from the grid stay; the rest list under "Άλλα καταστήματα".
-    return { stores: [], answered: true };
+    const viaPage = await fetchStorehousesViaPageApi(code);
+    notePageApiAnswer(viaPage.ok);
+    if (viaPage.ok && viaPage.stores.length) {
+        pageApiEmptyStreak = 0;
+        savePhoneStoreDetailsCache(code, viaPage.stores);
+        return { stores: viaPage.stores, answered: true };
+    }
+    if (viaPage.ok) {
+        pageApiEmptyStreak += 1;
+        return { stores: [], answered: true };
+    }
+
+    void options;
+    return { stores: [], answered: false };
 }
 
 async function fetchStorehousesFromPage(productCode, options = {}) {
@@ -2864,9 +2888,10 @@ function persistPhoneStoreDetailsCache() {
 }
 
 function savePhoneStoreDetailsCache(barcode, stores) {
-    if (!barcode || !stores?.length) return;
+    const clean = sanitizeStorehouseList(stores);
+    if (!barcode || !clean.length) return;
     const cache = loadPhoneStoreDetailsCache();
-    cache[barcode] = { stores: stores || [], ts: Date.now() };
+    cache[barcode] = { stores: clean, ts: Date.now() };
     phoneStoreDetailsCacheMemo = cache;
     if (phoneStoreDetailsSaveTimer) clearTimeout(phoneStoreDetailsSaveTimer);
     phoneStoreDetailsSaveTimer = setTimeout(persistPhoneStoreDetailsCache, 250);
@@ -2877,7 +2902,8 @@ function getCachedPhoneStoreDetails(barcode) {
     if (!entry || !entry.stores?.length) return null;
     const ageDays = (Date.now() - (entry.ts || 0)) / (1000 * 60 * 60 * 24);
     if (ageDays > PHONE_STORE_DETAILS_CACHE_DAYS) return null;
-    return entry.stores;
+    const stores = sanitizeStorehouseList(entry.stores);
+    return stores.length ? stores : null;
 }
 
 function hydratePhonesFromStoreDetailsCache(phones) {
@@ -2891,6 +2917,10 @@ function hydratePhonesFromStoreDetailsCache(phones) {
 }
 
 function getLoosePhoneStores(phone) {
+    return sanitizeStorehouseList(getLoosePhoneStoresRaw(phone));
+}
+
+function getLoosePhoneStoresRaw(phone) {
     const raw = [...(phone?.stores || []), ...(phone?.otherStores || [])];
     const seen = new Map();
     raw.forEach((store) => {
@@ -2904,7 +2934,7 @@ function getLoosePhoneStores(phone) {
 }
 
 function getEffectivePhoneStores(phone) {
-    const withStock = (stores) => (stores || []).filter((s) => (parseInt(s.qty, 10) || 0) > 0);
+    const withStock = (stores) => sanitizeStorehouseList(stores).filter((s) => (parseInt(s.qty, 10) || 0) > 0);
     const local = withStock(phone?.stores || []);
     if (local.length) return local;
     const other = withStock(phone?.otherStores || []);
@@ -2936,9 +2966,56 @@ function mergeOtherStoresFromAllPhones(allPhones, networkPhones) {
 }
 
 async function resolvePhonesStoreDetails(phones, options = {}) {
-    const { onProgress } = options;
+    const { concurrency = 6, onProgress, filter } = options;
+    const maxPasses = Math.max(1, Math.min(Number(options.maxPasses) || 3, 4));
+    if (options.force) storeResolveAnsweredEmpty.clear();
     hydratePhonesFromStoreDetailsCache(phones);
-    onProgress?.(1, 1);
+    const list = (phones || []).filter((p) => (!filter || filter(p)) && phoneNeedsStoreResolve(p));
+    const unique = [...new Map(list.map((p) => [p.barcode, p])).values()];
+    if (!unique.length) {
+        onProgress?.(1, 1);
+        persistPhoneStoreDetailsCache();
+        if (options.persistOtherStoreCache) saveOtherStoreCache(phones);
+        return phones;
+    }
+
+    let remaining = unique.slice();
+    let done = 0;
+    for (let pass = 1; remaining.length && pass <= maxPasses; pass += 1) {
+        const retry = [];
+        for (let i = 0; i < remaining.length; i += concurrency) {
+            const batch = remaining.slice(i, i + concurrency);
+            await Promise.all(batch.map(async (phone) => {
+                if (getEffectivePhoneStores(phone).length) {
+                    done += 1;
+                    onProgress?.(done, unique.length, { pass, pending: retry.length });
+                    return;
+                }
+                try {
+                    const result = await fetchStorehouseDetails(phone.barcode, { attempt: pass });
+                    if (result.stores.length) {
+                        phone.stores = result.stores;
+                        phone.otherStores = result.stores;
+                    } else if (result.answered) {
+                        storeResolveAnsweredEmpty.add(phone.barcode);
+                    } else {
+                        retry.push(phone);
+                        return;
+                    }
+                    done += 1;
+                    onProgress?.(done, unique.length, { pass, pending: retry.length });
+                } catch (e) {
+                    console.warn('[MMS Phone List] Could not resolve stores for', phone.barcode, e);
+                    retry.push(phone);
+                }
+            }));
+        }
+        remaining = retry.filter((p) => phoneNeedsStoreResolve(p));
+        if (remaining.length && pass < maxPasses) {
+            await new Promise((r) => setTimeout(r, 300));
+        }
+    }
+
     persistPhoneStoreDetailsCache();
     if (options.persistOtherStoreCache) saveOtherStoreCache(phones);
     return phones;
@@ -5206,6 +5283,7 @@ window.getPhoneGradeColor = getPhoneGradeColor;
 window.getAllColorHexMap = getAllColorHexMap;
 window.fetchStorehousesFromPage = fetchStorehousesFromPage;
 window.getEffectivePhoneStores = getEffectivePhoneStores;
+window.isPlausibleStorehouseName = isPlausibleStorehouseName;
 window.phoneNeedsStoreResolve = phoneNeedsStoreResolve;
 window.resolvePhonesStoreDetails = resolvePhonesStoreDetails;
 window.hydratePhonesFromStoreDetailsCache = hydratePhonesFromStoreDetailsCache;

@@ -3588,19 +3588,12 @@
 
     function buildNetworkStoreNavItem(store, idx, ctx, isActive) {
         const signal = getStoreSignalClass(store.variants.length);
-        const bbBadge = ctx?.showPurchaseStatus ? buildStoreHeadPurchaseBadge(store, true) : '';
-        const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
-        const distLabel = ctx?.showDistance && myStore
-            ? window.getStoreDistanceLabel?.(myStore, store.name)
-            : '';
-        const distChip = distLabel ? `<span class="tm-sl-store-dist">${esc(distLabel)}</span>` : '';
         const recommended = idx === 0 ? ' is-recommended' : '';
 
         return `<button type="button" class="tm-sl-network-store ${signal}${isActive ? ' is-active' : ''}${recommended}"
             data-tm-sl-select-store="${idx}" role="tab"
             aria-selected="${isActive ? 'true' : 'false'}" tabindex="${isActive ? '0' : '-1'}">
             <span class="tm-sl-network-store__name">${esc(store.name)}</span>
-            <span class="tm-sl-network-store__meta">${distChip}${bbBadge}<span>${store.variants.length} τεμ.</span></span>
         </button>`;
     }
 
@@ -3639,7 +3632,7 @@
 
         return `<div class="tm-sl-network-board">
             <aside class="tm-sl-network-stores" role="tablist" aria-label="Καταστήματα">
-                <div class="tm-sl-network-stores__label">Κοντά + αγοράσιμο</div>
+                <div class="tm-sl-network-stores__label">Καταστήματα</div>
                 ${navHtml}
             </aside>
             <main class="tm-sl-network-detail" id="tm-sl-network-detail" role="tabpanel">

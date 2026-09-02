@@ -58653,19 +58653,12 @@ window.initOrderTracking = initOrderTracking;
 
     function buildNetworkStoreNavItem(store, idx, ctx, isActive) {
         const signal = getStoreSignalClass(store.variants.length);
-        const bbBadge = ctx?.showPurchaseStatus ? buildStoreHeadPurchaseBadge(store, true) : '';
-        const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
-        const distLabel = ctx?.showDistance && myStore
-            ? window.getStoreDistanceLabel?.(myStore, store.name)
-            : '';
-        const distChip = distLabel ? `<span class="tm-sl-store-dist">${esc(distLabel)}</span>` : '';
         const recommended = idx === 0 ? ' is-recommended' : '';
 
         return `<button type="button" class="tm-sl-network-store ${signal}${isActive ? ' is-active' : ''}${recommended}"
             data-tm-sl-select-store="${idx}" role="tab"
             aria-selected="${isActive ? 'true' : 'false'}" tabindex="${isActive ? '0' : '-1'}">
             <span class="tm-sl-network-store__name">${esc(store.name)}</span>
-            <span class="tm-sl-network-store__meta">${distChip}${bbBadge}<span>${store.variants.length} τεμ.</span></span>
         </button>`;
     }
 
@@ -58704,7 +58697,7 @@ window.initOrderTracking = initOrderTracking;
 
         return `<div class="tm-sl-network-board">
             <aside class="tm-sl-network-stores" role="tablist" aria-label="Καταστήματα">
-                <div class="tm-sl-network-stores__label">Κοντά + αγοράσιμο</div>
+                <div class="tm-sl-network-stores__label">Καταστήματα</div>
                 ${navHtml}
             </aside>
             <main class="tm-sl-network-detail" id="tm-sl-network-detail" role="tabpanel">
@@ -60487,6 +60480,34 @@ function isDeprecatedStoreName(name) {
     return /^\(OLD\)/i.test(String(name || '').trim());
 }
 
+/** Reject product titles mistaken for storehouse names during grid scrape. */
+function isPlausibleStorehouseName(name) {
+    const clean = normalizeStoreDisplayName(name);
+    if (!clean || clean.length < 2 || clean.length > 72) return false;
+    const upper = clean.toUpperCase();
+    if (/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ|METAXEI/i.test(upper)) return false;
+    if (/ΚΙΝΗΤΟ\s*ΤΗΛΕΦΩΝΟ|ΦΟΡΗΤΟΣ\s*ΥΠΟΛΟΓΙΣΤ/i.test(upper)) return false;
+    if (/\bIPHONE\b|\bSAMSUNG\b|\bXIAOMI\b|\bREDMI\b|\bPOCO\b|\bHUAWEI\b|\bOPPO\b/i.test(upper)) return false;
+    if (/\d+\s*GB\b/i.test(clean)) return false;
+    if (/\bBB\s*:/i.test(clean)) return false;
+    if (/\([ABC][+-]?\s*[-–]?\d/i.test(clean) || /\([ABC][+-]?\s*$/i.test(clean)) return false;
+    if (/\((?:IKE|ΙΚΕ|ΕΕ|EE)\)/i.test(clean)) return true;
+    if (matchStoreNameInText(clean, DEFAULT_PROFILE_STORES)) return true;
+    if (/\d+\s*GB\b/i.test(clean) || /\bMINI\b|\bPRO\b|\bMAX\b|\bPLUS\b/i.test(upper)) return false;
+    return clean.length <= 48;
+}
+
+function sanitizeStorehouseList(stores) {
+    const seen = new Map();
+    (stores || []).forEach((store) => {
+        const name = normalizeStoreDisplayName(store?.name);
+        if (!isPlausibleStorehouseName(name)) return;
+        const qty = String(store?.qty != null ? store.qty : '1');
+        seen.set(name, { name, qty });
+    });
+    return [...seen.values()];
+}
+
 function normalizeStoreLookupKey(name) {
     return normalizeStoreDisplayName(name)
         .toUpperCase()
@@ -61444,11 +61465,11 @@ function buildPhoneListSnapshot(phones) {
 function compactStoreEntry(store) {
     if (!store) return null;
     if (typeof store === 'string') {
-        const name = store.trim();
-        return name ? { name, qty: '1' } : null;
+        const name = normalizeStoreDisplayName(store);
+        return isPlausibleStorehouseName(name) ? { name, qty: '1' } : null;
     }
-    const name = String(store.name || '').trim();
-    if (!name) return null;
+    const name = normalizeStoreDisplayName(store.name);
+    if (!isPlausibleStorehouseName(name)) return null;
     return { name, qty: String(store.qty != null ? store.qty : '1') };
 }
 
@@ -61660,7 +61681,7 @@ function parseStorehouseSnippets(rawSnippet, stores) {
         if (cols.length >= 2) {
             const name = (cols[0].textContent || '').trim();
             const qty = (cols[1].textContent || '').trim();
-            if (name) stores.push({ name, qty });
+            if (name && isPlausibleStorehouseName(name)) stores.push({ name, qty });
         }
     });
 
@@ -61668,7 +61689,12 @@ function parseStorehouseSnippets(rawSnippet, stores) {
 
     decoded.split('\n').map((l) => l.trim()).filter(Boolean).forEach((line) => {
         const match = line.match(/(.+?)\s+(\d+)\s*$/);
-        if (match) stores.push({ name: match[1].trim(), qty: match[2].trim() });
+        if (match) {
+            const name = match[1].trim();
+            if (isPlausibleStorehouseName(name)) {
+                stores.push({ name, qty: match[2].trim() });
+            }
+        }
     });
 }
 
@@ -61677,27 +61703,24 @@ function parseOtherStorehousesFromRow(row) {
     const seen = new Map();
 
     function addList(list) {
-        (list || []).forEach((store) => {
-            const name = String(store.name || '').trim();
-            if (!name) return;
-            seen.set(name, { name, qty: String(store.qty != null ? store.qty : '1') });
+        sanitizeStorehouseList(list).forEach((store) => {
+            seen.set(store.name, store);
         });
     }
 
-    addList(parseOtherStorehouses(row.querySelector('[id*="iUnitsRemainingOtherStoreHouses"]')));
+    const otherStoreEl = row.querySelector('[id*="iUnitsRemainingOtherStoreHouses"]');
+    addList(parseOtherStorehouses(otherStoreEl));
 
-    if (!seen.size) {
-        row.querySelectorAll('a, span, div, td, button').forEach((el) => {
-            addList(parseOtherStorehouses(el));
-        });
-    }
-
-    if (!seen.size && row.innerHTML) {
+    if (!seen.size && otherStoreEl) {
+        const scope = otherStoreEl.closest('td') || otherStoreEl.parentElement || row;
         const snippets = new Set();
-        row.querySelectorAll('[data-content],[data-bs-content],[data-original-title],[title]').forEach((el) => {
-            ['data-content', 'data-bs-content', 'data-original-title', 'title'].forEach((attr) => {
-                const val = el.getAttribute(attr);
-                if (val) snippets.add(val);
+        [otherStoreEl, scope].forEach((el) => {
+            if (!el) return;
+            el.querySelectorAll('[data-content],[data-bs-content],[data-original-title],[title]').forEach((node) => {
+                ['data-content', 'data-bs-content', 'data-original-title', 'title'].forEach((attr) => {
+                    const val = node.getAttribute(attr);
+                    if (val) snippets.add(val);
+                });
             });
         });
         const stores = [];
@@ -61734,18 +61757,13 @@ function parseOtherStorehouses(cell) {
     
     collect(cell);
     cell.querySelectorAll('*').forEach(collect);
-    
-    if (snippets.size === 0) {
-        if (cell.innerHTML) snippets.add(cell.innerHTML);
-        else if (cell.textContent) snippets.add(cell.textContent);
-    }
-    
+
     for (const rawSnippet of snippets) {
         parseStorehouseSnippets(rawSnippet, stores);
         if (stores.length > 0) break;
     }
-    
-    return stores;
+
+    return sanitizeStorehouseList(stores);
 }
 
 /** Read retail price text from a grid cell (Runner redesign may use div or input). */
@@ -61792,12 +61810,10 @@ function extractProductRetailPrice(row) {
 // Try to fetch storehouse availability using the page's own helper (getCheckOtherInventories)
 function normalizeStorehouseResponse(response) {
     if (!response || !response.length) return [];
-    return response
-        .map((r) => ({
-            name: String(r.storehouse || r.name || r.store || '').trim(),
-            qty: String(r.units != null ? r.units : (r.qty != null ? r.qty : '1')),
-        }))
-        .filter((s) => s.name);
+    return sanitizeStorehouseList(response.map((r) => ({
+        name: String(r.storehouse || r.name || r.store || '').trim(),
+        qty: String(r.units != null ? r.units : (r.qty != null ? r.qty : '1')),
+    })));
 }
 
 // The page helper answers with a small JSON payload, so it stays the preferred
@@ -61934,30 +61950,31 @@ function fetchStorehousesViaPageApi(productCode) {
  * source really reported on this barcode, so an empty list is a genuine "no
  * other-store stock" and does not deserve another pass.
  */
-async function fetchStorehouseDetails(productCode) {
+async function fetchStorehouseDetails(productCode, options = {}) {
     const code = String(productCode || '').trim();
     if (!code) return { stores: [], answered: true };
 
     const cached = getCachedPhoneStoreDetails(code);
     if (cached?.length) return { stores: cached, answered: true };
 
-    if (isStorehousePageApiUsable()) {
-        const viaPage = await fetchStorehousesViaPageApi(code);
-        notePageApiAnswer(viaPage.ok);
-        if (viaPage.ok && viaPage.stores.length) {
-            pageApiEmptyStreak = 0;
-            savePhoneStoreDetailsCache(code, viaPage.stores);
-            return { stores: viaPage.stores, answered: true };
-        }
-        if (viaPage.ok) {
-            pageApiEmptyStreak += 1;
-            return { stores: [], answered: true };
-        }
+    if (!isStorehousePageApiUsable()) {
+        return { stores: [], answered: true };
     }
 
-    // Do not open Περισσότερα / product HTML per barcode. Store names already
-    // parsed from the grid stay; the rest list under "Άλλα καταστήματα".
-    return { stores: [], answered: true };
+    const viaPage = await fetchStorehousesViaPageApi(code);
+    notePageApiAnswer(viaPage.ok);
+    if (viaPage.ok && viaPage.stores.length) {
+        pageApiEmptyStreak = 0;
+        savePhoneStoreDetailsCache(code, viaPage.stores);
+        return { stores: viaPage.stores, answered: true };
+    }
+    if (viaPage.ok) {
+        pageApiEmptyStreak += 1;
+        return { stores: [], answered: true };
+    }
+
+    void options;
+    return { stores: [], answered: false };
 }
 
 async function fetchStorehousesFromPage(productCode, options = {}) {
@@ -61993,9 +62010,10 @@ function persistPhoneStoreDetailsCache() {
 }
 
 function savePhoneStoreDetailsCache(barcode, stores) {
-    if (!barcode || !stores?.length) return;
+    const clean = sanitizeStorehouseList(stores);
+    if (!barcode || !clean.length) return;
     const cache = loadPhoneStoreDetailsCache();
-    cache[barcode] = { stores: stores || [], ts: Date.now() };
+    cache[barcode] = { stores: clean, ts: Date.now() };
     phoneStoreDetailsCacheMemo = cache;
     if (phoneStoreDetailsSaveTimer) clearTimeout(phoneStoreDetailsSaveTimer);
     phoneStoreDetailsSaveTimer = setTimeout(persistPhoneStoreDetailsCache, 250);
@@ -62006,7 +62024,8 @@ function getCachedPhoneStoreDetails(barcode) {
     if (!entry || !entry.stores?.length) return null;
     const ageDays = (Date.now() - (entry.ts || 0)) / (1000 * 60 * 60 * 24);
     if (ageDays > PHONE_STORE_DETAILS_CACHE_DAYS) return null;
-    return entry.stores;
+    const stores = sanitizeStorehouseList(entry.stores);
+    return stores.length ? stores : null;
 }
 
 function hydratePhonesFromStoreDetailsCache(phones) {
@@ -62020,6 +62039,10 @@ function hydratePhonesFromStoreDetailsCache(phones) {
 }
 
 function getLoosePhoneStores(phone) {
+    return sanitizeStorehouseList(getLoosePhoneStoresRaw(phone));
+}
+
+function getLoosePhoneStoresRaw(phone) {
     const raw = [...(phone?.stores || []), ...(phone?.otherStores || [])];
     const seen = new Map();
     raw.forEach((store) => {
@@ -62033,7 +62056,7 @@ function getLoosePhoneStores(phone) {
 }
 
 function getEffectivePhoneStores(phone) {
-    const withStock = (stores) => (stores || []).filter((s) => (parseInt(s.qty, 10) || 0) > 0);
+    const withStock = (stores) => sanitizeStorehouseList(stores).filter((s) => (parseInt(s.qty, 10) || 0) > 0);
     const local = withStock(phone?.stores || []);
     if (local.length) return local;
     const other = withStock(phone?.otherStores || []);
@@ -62065,9 +62088,56 @@ function mergeOtherStoresFromAllPhones(allPhones, networkPhones) {
 }
 
 async function resolvePhonesStoreDetails(phones, options = {}) {
-    const { onProgress } = options;
+    const { concurrency = 6, onProgress, filter } = options;
+    const maxPasses = Math.max(1, Math.min(Number(options.maxPasses) || 3, 4));
+    if (options.force) storeResolveAnsweredEmpty.clear();
     hydratePhonesFromStoreDetailsCache(phones);
-    onProgress?.(1, 1);
+    const list = (phones || []).filter((p) => (!filter || filter(p)) && phoneNeedsStoreResolve(p));
+    const unique = [...new Map(list.map((p) => [p.barcode, p])).values()];
+    if (!unique.length) {
+        onProgress?.(1, 1);
+        persistPhoneStoreDetailsCache();
+        if (options.persistOtherStoreCache) saveOtherStoreCache(phones);
+        return phones;
+    }
+
+    let remaining = unique.slice();
+    let done = 0;
+    for (let pass = 1; remaining.length && pass <= maxPasses; pass += 1) {
+        const retry = [];
+        for (let i = 0; i < remaining.length; i += concurrency) {
+            const batch = remaining.slice(i, i + concurrency);
+            await Promise.all(batch.map(async (phone) => {
+                if (getEffectivePhoneStores(phone).length) {
+                    done += 1;
+                    onProgress?.(done, unique.length, { pass, pending: retry.length });
+                    return;
+                }
+                try {
+                    const result = await fetchStorehouseDetails(phone.barcode, { attempt: pass });
+                    if (result.stores.length) {
+                        phone.stores = result.stores;
+                        phone.otherStores = result.stores;
+                    } else if (result.answered) {
+                        storeResolveAnsweredEmpty.add(phone.barcode);
+                    } else {
+                        retry.push(phone);
+                        return;
+                    }
+                    done += 1;
+                    onProgress?.(done, unique.length, { pass, pending: retry.length });
+                } catch (e) {
+                    console.warn('[MMS Phone List] Could not resolve stores for', phone.barcode, e);
+                    retry.push(phone);
+                }
+            }));
+        }
+        remaining = retry.filter((p) => phoneNeedsStoreResolve(p));
+        if (remaining.length && pass < maxPasses) {
+            await new Promise((r) => setTimeout(r, 300));
+        }
+    }
+
     persistPhoneStoreDetailsCache();
     if (options.persistOtherStoreCache) saveOtherStoreCache(phones);
     return phones;
@@ -64335,6 +64405,7 @@ window.getPhoneGradeColor = getPhoneGradeColor;
 window.getAllColorHexMap = getAllColorHexMap;
 window.fetchStorehousesFromPage = fetchStorehousesFromPage;
 window.getEffectivePhoneStores = getEffectivePhoneStores;
+window.isPlausibleStorehouseName = isPlausibleStorehouseName;
 window.phoneNeedsStoreResolve = phoneNeedsStoreResolve;
 window.resolvePhonesStoreDetails = resolvePhonesStoreDetails;
 window.hydratePhonesFromStoreDetailsCache = hydratePhonesFromStoreDetailsCache;
@@ -65610,7 +65681,21 @@ try {
     }
 
     function cleanStoreName(name) {
-        return String(name || '').replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
+        const clean = String(name || '').replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
+        if (!clean) return '';
+        if (typeof window.isPlausibleStorehouseName === 'function' && !window.isPlausibleStorehouseName(clean)) {
+            return '';
+        }
+        return clean;
+    }
+
+    function resolveBoardStoreNames(phone, getStores) {
+        const names = new Set();
+        getStores(phone).forEach((store) => {
+            const name = cleanStoreName(store.name);
+            if (name) names.add(name);
+        });
+        return [...names];
     }
 
     function resolveMyStoreLabel() {
@@ -65739,9 +65824,8 @@ try {
         filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
             const model = extractBaseModel(phone.model);
             if (!model) return;
-            let stores = getStores(phone);
-            const otherCount = parseInt(phone.otherStoreCount, 10) || 0;
-            if (!stores.length && otherCount <= 0) return;
+            const storeNames = resolveBoardStoreNames(phone, getStores);
+            if (!storeNames.length) return;
             if (!map.has(model)) {
                 map.set(model, { grades: {}, storeNames: new Set(), totalUnits: 0, myCount: 0 });
             }
@@ -65749,14 +65833,7 @@ try {
             entry.totalUnits += 1;
             const g = normalizePhoneGrade(phone.grade);
             if (g) entry.grades[g] = (entry.grades[g] || 0) + 1;
-            if (stores.length) {
-                stores.forEach((store) => {
-                    const name = cleanStoreName(store.name);
-                    if (name) entry.storeNames.add(name);
-                });
-            } else {
-                entry.storeNames.add('Άλλα καταστήματα');
-            }
+            storeNames.forEach((name) => entry.storeNames.add(name));
         });
 
         return [...map.entries()]
@@ -66033,9 +66110,6 @@ try {
     function phoneMatchesFilters(phone, model, filters, helpers) {
         const { extractBaseModel, extractGB, extractColor } = helpers;
         if (extractBaseModel(phone.model) !== model) return false;
-        if (phone.productKind === 'laptop' || filters.brand || filters.cpu || filters.ram || filters.storage) {
-            if (!laptopMatchesFilters(phone, filters, helpers)) return false;
-        }
         if (filters.grade && phone.grade !== filters.grade) return false;
         const gb = extractGB(phone.name || phone.model);
         if (filters.gb && gb !== filters.gb) return false;
@@ -66091,16 +66165,9 @@ try {
         filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             const variant = phoneToVariant(phone, helpers);
-            const stores = getStores(phone);
-            if (!stores.length) {
-                const otherCount = parseInt(phone.otherStoreCount, 10) || 0;
-                if (otherCount <= 0) return;
-                addVariant('__unresolved__', 'Άλλα καταστήματα', variant);
-                return;
-            }
-            stores.forEach((store) => {
-                const name = cleanStoreName(store.name);
-                if (!name) return;
+            const storeNames = resolveBoardStoreNames(phone, getStores);
+            if (!storeNames.length) return;
+            storeNames.forEach((name) => {
                 addVariant(name, name, variant);
             });
         });
@@ -66143,16 +66210,9 @@ try {
         filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             const variant = phoneToVariant(phone, helpers);
-            const stores = getStores(phone);
-            if (!stores.length) {
-                const otherCount = parseInt(phone.otherStoreCount, 10) || 0;
-                if (otherCount <= 0) return;
-                addVariant('__unresolved__', 'Άλλα καταστήματα', false, variant);
-                return;
-            }
-            stores.forEach((store) => {
-                const name = cleanStoreName(store.name);
-                if (!name) return;
+            const storeNames = resolveBoardStoreNames(phone, getStores);
+            if (!storeNames.length) return;
+            storeNames.forEach((name) => {
                 addVariant(name, name, false, variant);
             });
         });
@@ -66678,8 +66738,12 @@ try {
                         const val = chip.getAttribute('data-tm-sl-value') || '';
                         activeFilters[key] = activeFilters[key] === val ? '' : val;
                     }
-                    if (step === 'stores' && selectedModel) renderStoresStep();
-                    else renderModelsStep();
+                    if (catalogCategory === 'laptops') {
+                        if (step === 'stores' && selectedModel) renderStoresStep();
+                        else renderModelsStep();
+                    } else {
+                        renderStoresStep();
+                    }
                 });
             });
         }
@@ -66912,10 +66976,13 @@ try {
         }
 
         function hasActiveFilters() {
-            return !!(
-                activeFilters.grade || activeFilters.gb || activeFilters.color || activeFilters.tag
-                || activeFilters.brand || activeFilters.cpu || activeFilters.ram || activeFilters.storage
-            );
+            if (catalogCategory === 'laptops') {
+                return !!(
+                    activeFilters.brand || activeFilters.cpu || activeFilters.ram || activeFilters.storage
+                    || activeFilters.grade || activeFilters.tag
+                );
+            }
+            return !!(activeFilters.grade || activeFilters.gb || activeFilters.color || activeFilters.tag);
         }
 
         function buildLaptopChipsHtml(model = null) {
@@ -67490,6 +67557,59 @@ try {
         bodyEl.innerHTML = UI.buildSkeletonGrid(8);
         syncCatalogHeaders();
 
+        function warmNetworkInBackground() {
+            return ensureOtherStores().then(async () => {
+                if (catalogCategory !== 'laptops' && catalogView === 'network' && step === 'models') {
+                    await resolveNetworkStoreDetails();
+                    renderModelsStep();
+                }
+            }).catch(() => {});
+        }
+
+        function scheduleWarmNetwork() {
+            requestAnimationFrame(() => {
+                setTimeout(() => { warmNetworkInBackground(); }, 0);
+            });
+        }
+
+        let paintedFromLocalCache = false;
+        if (catalogCategory === 'phones') {
+            const cached = typeof window.loadPhoneListCache === 'function' ? window.loadPhoneListCache() : null;
+            const cacheStale = typeof window.isPhoneListCacheStale === 'function'
+                ? window.isPhoneListCacheStale()
+                : true;
+            const otherCached = typeof window.getOtherStoreCache === 'function'
+                ? window.getOtherStoreCache()
+                : null;
+
+            if (otherCached?.length) {
+                otherStorePhones = helpers.filterIphoneTitlePhones(otherCached);
+                otherStoreLoaded = true;
+                mergeNetworkStoreHints();
+            }
+
+            if (cached?.length) {
+                allPhones = helpers.filterIphoneTitlePhones(cached);
+                const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
+                lastUpdated = new Date(ts);
+                syncFreshness();
+                renderModelsStep();
+                paintedFromLocalCache = true;
+
+                if (cacheStale) {
+                    setStatus('Ενημέρωση στο παρασκήνιο…');
+                    requestAnimationFrame(() => {
+                        setTimeout(() => { refreshData({ quiet: true }); }, 0);
+                    });
+                } else if (catalogView === 'network' && !otherStoreLoaded) {
+                    setStatus('Φόρτωση δικτύου…');
+                    warmNetworkInBackground();
+                } else {
+                    scheduleWarmNetwork();
+                }
+            }
+        }
+
         async function paintStoredCatalogData() {
             if (catalogCategory === 'laptops') {
                 const laptopCached = typeof window.loadLaptopListCache === 'function'
@@ -67527,7 +67647,7 @@ try {
             try {
                 if (typeof window.loadPhoneCatalogFromDatabase === 'function') {
                     snap = await window.loadPhoneCatalogFromDatabase();
-                } else if (typeof window.loadPhoneListCache === 'function') {
+                } else if (!paintedFromLocalCache && typeof window.loadPhoneListCache === 'function') {
                     snap.phones = window.loadPhoneListCache() || [];
                     snap.otherStorePhones = typeof window.getOtherStoreCache === 'function'
                         ? (window.getOtherStoreCache() || [])
@@ -67535,6 +67655,11 @@ try {
                 }
             } catch (err) {
                 console.warn('[MMS Store Locator] stored catalog load failed', err);
+            }
+
+            if (paintedFromLocalCache && !snap.phones?.length && !snap.otherStorePhones?.length) {
+                scheduleWarmNetwork();
+                return;
             }
 
             if (snap.otherStorePhones?.length) {
@@ -67586,10 +67711,35 @@ try {
             } else {
                 setStatus(`${mineUnits} συσκευές${who} · πατήστε Ανανέωση για νέα λήψη`);
             }
+
+            if (catalogCategory !== 'laptops') {
+                scheduleWarmNetwork();
+            }
             return;
         }
 
-        paintStoredCatalogData();
+        if (catalogCategory === 'phones' && !paintedFromLocalCache) {
+            paintStoredCatalogData().then(() => {
+                if (!allPhones.length && !otherStorePhones.length) {
+                    setStatus('Φόρτωση καταλόγου…');
+                    refreshData();
+                }
+            }).catch(() => {
+                bodyEl.innerHTML = UI.buildEmptyState(
+                    UI.ICON.emptyPhone,
+                    'Δεν υπάρχουν αποθηκευμένα δεδομένα',
+                    'Πατήστε Ανανέωση για λήψη καταλόγου από MyManager.',
+                    { actionId: 'refresh', actionLabel: 'Ανανέωση δεδομένων' }
+                );
+                wireUnitActions();
+                setStatus('Φόρτωση καταλόγου…');
+                refreshData();
+            });
+        } else if (catalogCategory === 'phones') {
+            paintStoredCatalogData().catch(() => {});
+        } else {
+            paintStoredCatalogData();
+        }
     }
 
     window.showStoreLocatorModal = showStoreLocatorModal;
