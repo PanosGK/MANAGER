@@ -55381,6 +55381,19 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-network-store__preview {
             display: none;
         }
+        .tm-sl-network-store--bb-blocked .tm-sl-network-store__name {
+            opacity: 0.72;
+        }
+        .tm-sl-network-store__bb-blocked {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--tm-danger-color, #dc2626);
+        }
         .tm-sl-network-detail {
             display: flex; flex-direction: column; min-height: 0; min-width: 0; max-height: 100%;
             overflow: hidden;
@@ -58651,14 +58664,31 @@ window.initOrderTracking = initOrderTracking;
         </div>`;
     }
 
+    function storeHasAnyBuyable(store) {
+        if (!store?.variants?.length) return false;
+        return store.variants.some((v) => isStorePurchaseAllowed(store.name, !!v.isBuyback));
+    }
+
+    function storeIsBbPurchaseBlocked(store) {
+        if (!store?.variants?.length) return false;
+        if (!store.variants.every((v) => v.isBuyback)) return false;
+        return !storeHasAnyBuyable(store);
+    }
+
     function buildNetworkStoreNavItem(store, idx, ctx, isActive) {
         const signal = getStoreSignalClass(store.variants.length);
         const recommended = idx === 0 ? ' is-recommended' : '';
+        const bbBlocked = storeIsBbPurchaseBlocked(store);
+        const blockedClass = bbBlocked ? ' tm-sl-network-store--bb-blocked' : '';
+        const blockedHint = bbBlocked
+            ? '<span class="tm-sl-network-store__bb-blocked" title="Buyback IKE — δεν επιτρέπεται αγορά BB από αυτό το κατάστημα">✕ Μόνο BB · δεν αγοράζεται</span>'
+            : '';
 
-        return `<button type="button" class="tm-sl-network-store ${signal}${isActive ? ' is-active' : ''}${recommended}"
+        return `<button type="button" class="tm-sl-network-store ${signal}${isActive ? ' is-active' : ''}${recommended}${blockedClass}"
             data-tm-sl-select-store="${idx}" role="tab"
             aria-selected="${isActive ? 'true' : 'false'}" tabindex="${isActive ? '0' : '-1'}">
             <span class="tm-sl-network-store__name">${esc(store.name)}</span>
+            ${blockedHint}
         </button>`;
     }
 
@@ -58707,11 +58737,6 @@ window.initOrderTracking = initOrderTracking;
             </main>
             <div class="tm-sl-network-panels" hidden aria-hidden="true">${panelsHtml}</div>
         </div>`;
-    }
-
-    function storeHasAnyBuyable(store) {
-        if (!store?.variants?.length) return false;
-        return store.variants.some((v) => isStorePurchaseAllowed(store.name, !!v.isBuyback));
     }
 
     function buildStoreBoard(modelName, myStore, allRows, ctx) {
