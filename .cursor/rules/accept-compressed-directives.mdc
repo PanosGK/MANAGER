@@ -1,0 +1,14 @@
+---
+description: Accept INTERPRETER DIRECTIVE blocks; execute with minimal tokens
+alwaysApply: true
+---
+
+# Compressed directives
+
+If the user (or interpreter) pastes a `DIRECTIVE:` block:
+
+1. Treat it as the full task — do not re-ask for the long original wording.
+2. Follow `SCOPE` → `DO` → `DONT` → `VERIFY` → `SHIP` in order.
+3. Load only files named in `SCOPE` (or find via `SKELETON.md` keyword). Cap reads at 1–3 files unless blocked.
+4. `SHIP`: `none` = code/answer only; `build` = release.mjs; `push-test` / `push-main` = commit+push that branch.
+5. Reply in the project two-line Done / Action Required format. No code dumps.
