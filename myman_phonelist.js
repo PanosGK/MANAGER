@@ -2801,115 +2801,17 @@ function fetchStorehousesViaPageApi(productCode) {
     return Promise.resolve({ stores: [], ok: false });
 }
 
-function parseStorehousesFromProductHtml(html, barcode) {
-    try {
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        let best = [];
-        let rowFound = false;
-        doc.querySelectorAll('tr').forEach((row) => {
-            const rowBarcodeEl = row.querySelector('[id*="strProductID"]');
-            const rowBarcode = (rowBarcodeEl?.textContent || '').trim();
-            if (barcode && rowBarcode && rowBarcode !== barcode) return;
-
-            const otherStoreEl = row.querySelector('[id*="iUnitsRemainingOtherStoreHouses"]');
-            if (!otherStoreEl) return;
-            rowFound = true;
-            const otherCount = parseInt((otherStoreEl.textContent || '').trim(), 10) || 0;
-            if (otherCount <= 0) return;
-
-            let stores = parseOtherStorehouses(otherStoreEl);
-            if (!stores.length) stores = parseOtherStorehousesFromRow(row);
-            if (stores.length > best.length) best = stores;
-        });
-        return { stores: best, rowFound };
-        } catch (e) {
-        return { stores: [], rowFound: false };
-    }
-}
-
-async function pcMapPool(items, limit, worker) {
-    const list = Array.isArray(items) ? items : [];
-    if (!list.length) return;
-    const concurrency = Math.max(1, Math.min(Number(limit) || 8, list.length));
-    let cursor = 0;
-    async function pump() {
-        for (;;) {
-            const i = cursor;
-            cursor += 1;
-            if (i >= list.length) return;
-            try {
-                await worker(list[i], i);
-            } catch (_) { /* keep going */ }
-        }
-    }
-    await Promise.all(Array.from({ length: concurrency }, () => pump()));
-}
-
-function fetchStorehousesViaHttp(productCode, options = {}) {
-    return new Promise((resolve) => {
-        const code = String(productCode || '').trim();
-        if (!code) {
-            resolve({ stores: [], ok: false });
-            return;
-        }
-        const url = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(code)}`;
-        const timeoutMs = Math.max(4000, Number(options.timeoutMs) || 9000);
-        let settled = false;
-        let handle = null;
-        const finish = (result) => {
-            if (settled) return;
-            settled = true;
-            clearTimeout(timer);
-            // Restoring per barcode makes PHPRunner replay a show-all between
-            // fetches, so a batched caller resets the session search once.
-            if (!options.deferSessionRestore) {
-                try { window.restoreRunnerSessionSearch?.(url); } catch (_) { /* ignore */ }
-            }
-            resolve(result);
-        };
-        // An abandoned fetch would keep a connection busy and push real
-        // concurrency past the pool limit, so the timeout aborts the request.
-        const timer = setTimeout(() => {
-            try { handle?.abort?.(); } catch (_) { /* ignore */ }
-            finish({ stores: [], ok: false });
-        }, timeoutMs);
-        handle = GM_xmlhttpRequest({
-            method: 'GET',
-            url,
-            timeout: timeoutMs - 500,
-            onload(response) {
-                const html = response?.responseText || '';
-                const status = Number(response?.status) || 0;
-                if (status < 200 || status >= 300 || html.length < 200) {
-                    finish({ stores: [], ok: false });
-                    return;
-                }
-                const parsed = parseStorehousesFromProductHtml(html, code);
-                finish({ stores: parsed.stores, ok: parsed.rowFound });
-            },
-            onerror() {
-                finish({ stores: [], ok: false });
-            },
-            ontimeout() {
-                finish({ stores: [], ok: false });
-            },
-        });
-    });
-}
-
 /**
  * @returns {Promise<{stores: Array, answered: boolean}>} `answered` means a
  * source really reported on this barcode, so an empty list is a genuine "no
  * other-store stock" and does not deserve another pass.
  */
-async function fetchStorehouseDetails(productCode, options = {}) {
+async function fetchStorehouseDetails(productCode) {
     const code = String(productCode || '').trim();
     if (!code) return { stores: [], answered: true };
 
     const cached = getCachedPhoneStoreDetails(code);
     if (cached?.length) return { stores: cached, answered: true };
-
-    const attempt = Math.max(1, Number(options.attempt) || 1);
 
     if (isStorehousePageApiUsable()) {
         const viaPage = await fetchStorehousesViaPageApi(code);
@@ -2921,22 +2823,13 @@ async function fetchStorehouseDetails(productCode, options = {}) {
         }
         if (viaPage.ok) {
             pageApiEmptyStreak += 1;
-            if (pageApiEmptyStreak < PAGE_API_MAX_EMPTY_STREAK) {
-                return { stores: [], answered: true };
-            }
-            // Those empty answers cannot be trusted either, so let the HTML
-            // page have another go at them.
-            pageApiTrusted = false;
-            storeResolveAnsweredEmpty.clear();
+            return { stores: [], answered: true };
         }
     }
 
-    const viaHttp = await fetchStorehousesViaHttp(code, {
-        timeoutMs: Math.min(18000, 9000 + (attempt - 1) * 3000),
-        deferSessionRestore: options.deferSessionRestore,
-    });
-    if (viaHttp.stores.length) savePhoneStoreDetailsCache(code, viaHttp.stores);
-    return { stores: viaHttp.stores, answered: viaHttp.ok };
+    // Do not open Περισσότερα / product HTML per barcode. Store names already
+    // parsed from the grid stay; the rest list under "Άλλα καταστήματα".
+    return { stores: [], answered: true };
 }
 
 async function fetchStorehousesFromPage(productCode, options = {}) {
@@ -3044,66 +2937,98 @@ function mergeOtherStoresFromAllPhones(allPhones, networkPhones) {
 }
 
 async function resolvePhonesStoreDetails(phones, options = {}) {
-    const { concurrency = 6, onProgress, filter } = options;
-    const maxPasses = Math.max(1, Math.min(Number(options.maxPasses) || 3, 4));
-    if (options.force) storeResolveAnsweredEmpty.clear();
+    const { onProgress } = options;
     hydratePhonesFromStoreDetailsCache(phones);
-    const list = (phones || []).filter((p) => (!filter || filter(p)) && phoneNeedsStoreResolve(p));
-    const unique = [...new Map(list.map((p) => [p.barcode, p])).values()];
-    if (!unique.length) {
-        onProgress?.(1, 1);
-        if (options.persistOtherStoreCache) saveOtherStoreCache(phones);
-        return phones;
-    }
+    onProgress?.(1, 1);
+    persistPhoneStoreDetailsCache();
+    if (options.persistOtherStoreCache) saveOtherStoreCache(phones);
+    return phones;
+}
 
-    let remaining = unique.slice();
-    let done = 0;
-    for (let pass = 1; remaining.length && pass <= maxPasses; pass += 1) {
-        const retry = [];
-        await pcMapPool(remaining, concurrency, async (phone) => {
-            if (getEffectivePhoneStores(phone).length) {
-                done += 1;
-                onProgress?.(done, unique.length, { pass, pending: retry.length });
-                return;
-            }
-            try {
-                const result = await fetchStorehouseDetails(phone.barcode, {
-                    attempt: pass,
-                    deferSessionRestore: true,
-                });
-                if (result.stores.length) {
-                    phone.stores = result.stores;
-                    phone.otherStores = result.stores;
-                } else if (result.answered) {
-                    storeResolveAnsweredEmpty.add(phone.barcode);
-                } else {
-                    retry.push(phone);
-                    onProgress?.(done, unique.length, { pass, pending: retry.length });
+const PRODUCT_LIST_HTML_TTL_MS = 120000;
+let productListHtmlCache = null;
+let productListHtmlInflight = null;
+
+function invalidateProductListPageHtml() {
+    productListHtmlCache = null;
+}
+
+/**
+ * The own-store list and the other-store list are both parsed out of the same
+ * multi-megabyte grid, so it is downloaded once and shared: scraping it per
+ * caller doubled every refresh.
+ */
+function fetchProductListPageHtml(options = {}) {
+    const onProgress = typeof options.onProgress === 'function' ? options.onProgress : () => {};
+    if (productListHtmlCache && Date.now() - productListHtmlCache.at < PRODUCT_LIST_HTML_TTL_MS) {
+        onProgress({ phase: 'download', ratio: 1, fromCache: true });
+        return Promise.resolve({ ok: true, html: productListHtmlCache.html, fromCache: true });
+    }
+    if (productListHtmlInflight) return productListHtmlInflight;
+
+    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(USED_PHONE_SEARCH_QS)}&recordspp=-1`;
+    const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
+
+    productListHtmlInflight = new Promise((resolve) => {
+        const finish = (result) => {
+            productListHtmlInflight = null;
+            if (result.ok) productListHtmlCache = { at: Date.now(), html: result.html };
+            resolve(result);
+        };
+        onProgress({ phase: 'init', ratio: 0.04 });
+        // Seed with the used-phone title so pagesize=1000000 does not dump the entire products table.
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: seedUrl,
+            timeout: 30000,
+            onload(seed) {
+                const seedOk = seed
+                    && seed.status >= 200
+                    && seed.status < 300
+                    && String(seed.responseText || '').length > 200;
+                if (!seedOk) {
+                    finish({ ok: false, html: '', reason: 'seed returned an empty/invalid page' });
                     return;
                 }
-                done += 1;
-                onProgress?.(done, unique.length, { pass, pending: retry.length });
-                return;
-            } catch (e) {
-                console.warn('[MMS Phone List] Could not resolve stores for', phone.barcode, e);
-            }
-            retry.push(phone);
-            onProgress?.(done, unique.length, { pass, pending: retry.length });
+                console.log('[MMS Phone List] Seed page loaded, fetching full product grid');
+                onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: pageUrl,
+                    timeout: PRODUCT_LIST_SCRAPE_TIMEOUT_MS,
+                    onprogress(e) {
+                        if (e.lengthComputable && e.total > 0) {
+                            onProgress({
+                                phase: 'download',
+                                ratio: e.loaded / e.total,
+                                loaded: e.loaded,
+                                total: e.total,
+                            });
+                        } else if (e.loaded > 0) {
+                            onProgress({
+                                phase: 'download',
+                                indeterminate: true,
+                                loaded: e.loaded,
+                            });
+                        }
+                    },
+                    onload(res) {
+                        const html = String(res?.responseText || '');
+                        finish({
+                            ok: html.length > 200,
+                            html,
+                            reason: html.length > 200 ? '' : 'list page came back empty',
+                        });
+                    },
+                    onerror() { finish({ ok: false, html: '', reason: 'list request failed' }); },
+                    ontimeout() { finish({ ok: false, html: '', reason: 'list request timed out' }); },
+                });
+            },
+            onerror() { finish({ ok: false, html: '', reason: 'seed request failed' }); },
+            ontimeout() { finish({ ok: false, html: '', reason: 'seed request timed out' }); },
         });
-        remaining = retry.filter((p) => phoneNeedsStoreResolve(p));
-        if (remaining.length && pass < maxPasses) {
-            await new Promise((r) => setTimeout(r, 300));
-        }
-    }
-
-    try {
-        window.restoreRunnerSessionSearch?.(`${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(USED_PHONE_SEARCH_QS)}`);
-    } catch (_) { /* ignore */ }
-    persistPhoneStoreDetailsCache();
-    if (options.persistOtherStoreCache) {
-        saveOtherStoreCache(phones);
-    }
-    return phones;
+    });
+    return productListHtmlInflight;
 }
 
 /**
@@ -3121,10 +3046,11 @@ async function fetchPhoneList(options = {}) {
         }
     }
     const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(USED_PHONE_SEARCH_QS)}&recordspp=-1`;
-    const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
     const restoreSession = () => {
         try { window.restoreRunnerSessionSearch?.(seedUrl); } catch (_) { /* ignore */ }
     };
+    // A manual refresh must see today's grid, not the shared copy.
+    if (options.force) invalidateProductListPageHtml();
 
     return new Promise((resolve) => {
         const fail = (error, msg) => {
@@ -3133,48 +3059,15 @@ async function fetchPhoneList(options = {}) {
             finalizePhoneListFetch([], onProgress, resolve);
         };
 
-        onProgress({ phase: 'init', ratio: 0.04 });
-        // Seed with the used-phone title so pagesize=1000000 does not dump the entire products table.
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: seedUrl,
-            timeout: 30000,
-            onload: function(firstResponse) {
-                const seedOk = firstResponse
-                    && firstResponse.status >= 200
-                    && firstResponse.status < 300
-                    && String(firstResponse.responseText || '').length > 200;
-                if (!seedOk) {
-                    fail(null, '[MMS Phone List] Seed request returned empty/invalid page');
-                    return;
-                }
-                console.log('[MMS Phone List] Seed page loaded, fetching full phone list');
-                onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
-                GM_xmlhttpRequest({
-                    method: 'GET',
-                    url: pageUrl,
-                    timeout: PRODUCT_LIST_SCRAPE_TIMEOUT_MS,
-                    onprogress: function(e) {
-                        if (e.lengthComputable && e.total > 0) {
-                            onProgress({
-                                phase: 'download',
-                                ratio: e.loaded / e.total,
-                                loaded: e.loaded,
-                                total: e.total,
-                            });
-                        } else if (e.loaded > 0) {
-                            onProgress({
-                                phase: 'download',
-                                indeterminate: true,
-                                loaded: e.loaded,
-                            });
-                        }
-                    },
-                    onload: function(response) {
+        fetchProductListPageHtml({ onProgress }).then((page) => {
+            if (!page.ok) {
+                fail(null, `[MMS Phone List] Could not load product grid: ${page.reason || 'unknown'}`);
+                return;
+            }
                 try {
                     onProgress({ phase: 'parse', ratio: 0.9 });
                     const parser = new DOMParser();
-                    const doc = parser.parseFromString(response.responseText, 'text/html');
+                    const doc = parser.parseFromString(page.html, 'text/html');
                     detectAndCacheCurrentStoreName(doc);
                     
                     // Try multiple table selectors - be more flexible
@@ -3359,22 +3252,7 @@ async function fetchPhoneList(options = {}) {
                     } catch (error) {
                         fail(error, '[MMS Phone List] Error parsing phone list:');
                     }
-                },
-                onerror: function(error) {
-                    fail(error, '[MMS Phone List] Failed to fetch phone list:');
-                },
-                ontimeout: function() {
-                    fail(null, '[MMS Phone List] List request timed out');
-                }
-                });
-            },
-            onerror: function(error) {
-                fail(error, '[MMS Phone List] Seed request failed:');
-            },
-            ontimeout: function() {
-                fail(null, '[MMS Phone List] Seed request timed out');
-            }
-        });
+        }, (error) => fail(error, '[MMS Phone List] Product grid request failed:'));
     });
 }
 
@@ -3822,131 +3700,6 @@ function pcRequestHtml(url, timeoutMs) {
     });
 }
 
-function findProductFulltextQuery(nameEl, row) {
-    const roots = [nameEl, row].filter(Boolean);
-    for (const root of roots) {
-        const link = root.querySelector?.('a[data-query*="fulltext.php"]')
-            || root.querySelector?.('a[href*="fulltext.php"]');
-        if (!link) continue;
-        const q = link.getAttribute('data-query') || link.getAttribute('href') || '';
-        if (q.includes('fulltext.php')) return q.replace(/^javascript:void\(0\);?/i, '').trim();
-    }
-    return '';
-}
-
-function parseFulltextResponse(text) {
-    const raw = String(text || '').trim();
-    if (!raw) return '';
-    // API returns JSON: {"success":true,"textCont":"..."}
-    if (raw.startsWith('{') || raw.startsWith('[')) {
-        try {
-            const json = JSON.parse(raw);
-            const fromJson = String(json?.textCont ?? json?.text ?? json?.content ?? '').trim();
-            if (fromJson) return fromJson.replace(/\s+/g, ' ').trim();
-        } catch (_) { /* fall through */ }
-    }
-    try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(raw, 'text/html');
-        const bodyText = (doc.body?.textContent || '').replace(/\s+/g, ' ').trim();
-        if (bodyText && bodyText.startsWith('{')) {
-            try {
-                const json = JSON.parse(bodyText);
-                const fromJson = String(json?.textCont ?? json?.text ?? json?.content ?? '').trim();
-                if (fromJson) return fromJson.replace(/\s+/g, ' ').trim();
-            } catch (_) { /* ignore */ }
-        }
-        if (bodyText && bodyText.length > 8 && !bodyText.includes('"textCont"')) return bodyText;
-    } catch (_) { /* ignore */ }
-    return raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-async function fetchProductFullName(barcode, dataQuery, timeoutMs) {
-    const code = String(barcode || '').trim();
-    let path = String(dataQuery || '').trim();
-    if (!path && code) {
-        path = `fulltext.php?pagetype=list&table=products&field=strProductName&key1=${encodeURIComponent(code)}`;
-    }
-    if (!path) return { name: '', answered: true };
-    if (path.startsWith('javascript:')) return { name: '', answered: true };
-    const url = path.startsWith('http')
-        ? path
-        : `https://thefixers.mymanager.gr/mymanagerservice/${path.replace(/^\//, '')}`;
-    const res = await pcRequestHtml(url, Number(timeoutMs) || 8000);
-    if (!res.ok) return { name: '', answered: false };
-    return { name: parseFulltextResponse(res.text), answered: true };
-}
-
-async function expandLaptopNames(items, onProgress) {
-    const needExpand = items.filter((item) => item?._needsFullName && item.barcode);
-    if (!needExpand.length) return items;
-    const concurrency = 6;
-    const maxPasses = 3;
-    let remaining = needExpand.slice();
-    let done = 0;
-    for (let pass = 1; remaining.length && pass <= maxPasses; pass += 1) {
-        const failed = [];
-        await pcMapPool(remaining, concurrency, async (item) => {
-            try {
-                const res = await fetchProductFullName(
-                    item.barcode,
-                    item._fulltextQuery,
-                    8000 + (pass - 1) * 2000
-                );
-                const full = res.name;
-                if (!full && !res.answered) {
-                    failed.push(item);
-                    if (typeof onProgress === 'function') {
-                        onProgress({ phase: 'expand', done, total: needExpand.length, ratio: done / needExpand.length });
-                    }
-                    return;
-                }
-                if (full && full.length > String(item.name || '').length) {
-                    const parsed = parseLaptopName(full);
-                    item.name = parsed.fullName;
-                    item.model = parsed.model;
-                    item.grade = parsed.grade || item.grade;
-                    item.imei = parsed.imei || item.imei;
-                    item.brand = parsed.brand || item.brand;
-                    item.cpu = parsed.cpu || item.cpu;
-                    item.ram = parsed.ram || item.ram;
-                    item.storage = parsed.storage || item.storage;
-                    item.isBuyback = isBuybackTitle(full) || !!item.isBuyback;
-                    delete item._needsFullName;
-                    delete item._fulltextQuery;
-                    done += 1;
-                    if (typeof onProgress === 'function') {
-                        onProgress({ phase: 'expand', done, total: needExpand.length, ratio: done / needExpand.length });
-                    }
-                    return;
-                }
-                // Answered with nothing better than the grid title: the short
-                // name is all there is, so stop asking for it.
-                delete item._needsFullName;
-                delete item._fulltextQuery;
-                done += 1;
-                if (typeof onProgress === 'function') {
-                    onProgress({ phase: 'expand', done, total: needExpand.length, ratio: done / needExpand.length });
-                }
-                return;
-            } catch (_) { /* retry */ }
-            failed.push(item);
-            if (typeof onProgress === 'function') {
-                onProgress({ phase: 'expand', done, total: needExpand.length, ratio: done / needExpand.length });
-            }
-        });
-        remaining = failed;
-        if (remaining.length && pass < maxPasses) {
-            await new Promise((r) => setTimeout(r, 300));
-        }
-    }
-    items.forEach((item) => {
-        delete item._needsFullName;
-        delete item._fulltextQuery;
-    });
-    return items;
-}
-
 function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherStock = false } = {}) {
     let table = doc.querySelector('table.rnr-c.rnr-cont.rnr-c-grid.rnr-b-grid.rnr-gridtable.hoverable')
         || doc.querySelector('table.rnr-b-grid.rnr-gridtable')
@@ -3990,7 +3743,6 @@ function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherSto
 
         let barcode = (barcodeEl.textContent || '').replace(/\s+/g, ' ').trim();
         let name = (nameEl.textContent || '').replace(/\s+/g, ' ').trim();
-        const hadMoreLink = /Περισσότερα/i.test(name) || !!findProductFulltextQuery(nameEl, row);
         name = name.replace(/\s*Περισσότερα\s*\.\.\.\s*/i, '').trim();
         if (!barcode || !name) return;
         // 55./56. also cover phones — never keep clear phone titles.
@@ -3999,7 +3751,6 @@ function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherSto
         // Require laptop markers in the visible name (even when truncated).
         if (!isUsedLaptopTitle(name)) return;
 
-        const fulltextQuery = findProductFulltextQuery(nameEl, row);
         const parsed = parseLaptopName(name);
         const retailPrice = extractProductRetailPrice(row);
         laptops.push({
@@ -4018,26 +3769,47 @@ function parseLaptopRowsFromDoc(doc, { requireLocalStock = true, requireOtherSto
             otherStoreCount,
             otherStores,
             productKind: 'laptop',
-            _needsFullName: !!(hadMoreLink || fulltextQuery || /Περισσότερα/i.test(nameEl?.textContent || '')),
-            _fulltextQuery: fulltextQuery,
         });
     });
     return laptops;
 }
 
+// Own-store and network laptops are parsed from the same two prefix pages, so
+// the parsed documents are shared for a short window.
+const laptopDocCache = new Map();
+const laptopDocInflight = new Map();
+
+function invalidateLaptopDocs() {
+    laptopDocCache.clear();
+}
+
 async function fetchProductListHtml(qsPrefix, onProgress) {
-    const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(qsPrefix)}&recordspp=-1`;
-    const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
-    const first = await pcRequestHtml(seedUrl, 30000);
-    if (!first.ok) throw new Error(`Laptop list seed failed (${qsPrefix})`);
-    if (typeof onProgress === 'function') onProgress({ phase: 'download', ratio: 0.15, qs: qsPrefix });
-    const second = await pcRequestHtml(pageUrl, PRODUCT_LIST_SCRAPE_TIMEOUT_MS);
-    if (!second.ok) throw new Error(`Laptop list page failed (${qsPrefix})`);
-    if (typeof onProgress === 'function') onProgress({ phase: 'parse', ratio: 0.55, qs: qsPrefix });
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(second.text, 'text/html');
-    try { detectAndCacheCurrentStoreName(doc); } catch (_) { /* ignore */ }
-    return doc;
+    const key = String(qsPrefix);
+    const cached = laptopDocCache.get(key);
+    if (cached && Date.now() - cached.at < PRODUCT_LIST_HTML_TTL_MS) {
+        if (typeof onProgress === 'function') onProgress({ phase: 'parse', ratio: 1, qs: qsPrefix, fromCache: true });
+        return cached.doc;
+    }
+    if (laptopDocInflight.has(key)) return laptopDocInflight.get(key);
+
+    const job = (async () => {
+        const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(qsPrefix)}&recordspp=-1`;
+        const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
+        const first = await pcRequestHtml(seedUrl, 30000);
+        if (!first.ok) throw new Error(`Laptop list seed failed (${qsPrefix})`);
+        if (typeof onProgress === 'function') onProgress({ phase: 'download', ratio: 0.15, qs: qsPrefix });
+        const second = await pcRequestHtml(pageUrl, PRODUCT_LIST_SCRAPE_TIMEOUT_MS);
+        if (!second.ok) throw new Error(`Laptop list page failed (${qsPrefix})`);
+        if (typeof onProgress === 'function') onProgress({ phase: 'parse', ratio: 0.55, qs: qsPrefix });
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(second.text, 'text/html');
+        try { detectAndCacheCurrentStoreName(doc); } catch (_) { /* ignore */ }
+        laptopDocCache.set(key, { at: Date.now(), doc });
+        return doc;
+    })().finally(() => laptopDocInflight.delete(key));
+
+    laptopDocInflight.set(key, job);
+    return job;
 }
 
 async function fetchLaptopList(options = {}) {
@@ -4050,6 +3822,7 @@ async function fetchLaptopList(options = {}) {
         }
     }
     onProgress({ phase: 'init', ratio: 0.04 });
+    if (options.force) invalidateLaptopDocs();
     const prefixes = ['55.', '56.'];
     const byBarcode = new Map();
     for (let i = 0; i < prefixes.length; i += 1) {
@@ -4065,15 +3838,6 @@ async function fetchLaptopList(options = {}) {
         });
     }
     let laptops = [...byBarcode.values()];
-    onProgress({ phase: 'expand', ratio: 0.7, total: laptops.length });
-    laptops = await expandLaptopNames(laptops, (info) => {
-        onProgress({
-            phase: 'expand',
-            ratio: 0.7 + 0.25 * (info.ratio || 0),
-            done: info.done,
-            total: info.total,
-        });
-    });
     // Title is authoritative — 55./56. barcodes include phones too.
     laptops = laptops
         .filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name))
@@ -4110,14 +3874,6 @@ async function fetchOtherStoreLaptops(options = {}) {
         });
     }
     let laptops = [...byBarcode.values()];
-    laptops = await expandLaptopNames(laptops, (info) => {
-        onProgress({
-            phase: 'expand',
-            ratio: 0.7 + 0.25 * (info.ratio || 0),
-            done: info.done,
-            total: info.total,
-        });
-    });
     laptops = laptops
         .filter((item) => isUsedLaptopTitle(item.name) && !isUsedPhoneProductTitle(item.name))
         .map((item) => hydrateLaptopItem(item));
@@ -4141,7 +3897,6 @@ async function fetchOtherStorePhones(options = {}) {
     }
     
     const seedUrl = `${PRODUCT_LIST_BASE}?qs=${encodeURIComponent(USED_PHONE_SEARCH_QS)}&recordspp=-1`;
-    const pageUrl = `${PRODUCT_LIST_BASE}?pagesize=1000000|`;
     const restoreSession = () => {
         try { window.restoreRunnerSessionSearch?.(seedUrl); } catch (_) { /* ignore */ }
     };
@@ -4167,47 +3922,16 @@ async function fetchOtherStorePhones(options = {}) {
             resolve([]);
         };
 
-        onProgress({ phase: 'init', ratio: 0.05 });
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: seedUrl,
-            timeout: 30000,
-            onload: function(firstResponse) {
-                const seedOk = firstResponse
-                    && firstResponse.status >= 200
-                    && firstResponse.status < 300
-                    && String(firstResponse.responseText || '').length > 200;
-                if (!seedOk) {
-                    console.warn('[MMS Other Stores] Seed request returned empty/invalid page');
-                    finish([]);
-                    return;
-                }
-                onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
-                GM_xmlhttpRequest({
-                    method: 'GET',
-                    url: pageUrl,
-                    timeout: PRODUCT_LIST_SCRAPE_TIMEOUT_MS,
-                    onprogress: function(e) {
-                    if (e.lengthComputable && e.total > 0) {
-                        onProgress({
-                            phase: 'download',
-                            ratio: e.loaded / e.total,
-                            loaded: e.loaded,
-                            total: e.total,
-                        });
-                    } else if (e.loaded > 0) {
-                        onProgress({
-                            phase: 'download',
-                            indeterminate: true,
-                            loaded: e.loaded,
-                        });
-                    }
-                },
-                onload: function(response) {
+        fetchProductListPageHtml({ onProgress }).then((page) => {
+            if (!page.ok) {
+                console.warn(`[MMS Other Stores] Could not load product grid: ${page.reason || 'unknown'}`);
+                finish([]);
+                return;
+            }
                     try {
                         onProgress({ phase: 'parse', ratio: 0.9 });
                         const parser = new DOMParser();
-                        const doc = parser.parseFromString(response.responseText, 'text/html');
+                        const doc = parser.parseFromString(page.html, 'text/html');
                         detectAndCacheCurrentStoreName(doc);
                         
                         let table = doc.querySelector('table.rnr-c.rnr-cont.rnr-b-grid.rnr-gridtable.hoverable');
@@ -4294,25 +4018,9 @@ async function fetchOtherStorePhones(options = {}) {
                         console.error('[MMS Other Stores] Parse error:', err);
                         finish([]);
                     }
-                },
-                onerror: function(error) {
-                    console.warn('[MMS Other Stores] Request failed:', error);
-                    finish([]);
-                },
-                ontimeout: function() {
-                    console.warn('[MMS Other Stores] Request timed out');
-                    finish([]);
-                }
-                });
-            },
-            onerror: function(error) {
-                console.warn('[MMS Other Stores] Seed request failed:', error);
-                finish([]);
-            },
-            ontimeout: function() {
-                console.warn('[MMS Other Stores] Seed request timed out');
-                finish([]);
-            }
+        }, (err) => {
+            console.warn('[MMS Other Stores] Product grid request failed:', err);
+            finish([]);
         });
     });
 }
