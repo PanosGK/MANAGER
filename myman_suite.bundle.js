@@ -71014,18 +71014,14 @@ try {
         if (existing) existing.remove();
         const style = document.createElement('style');
         style.id = 'tm-order-history-ui-styles';
-        // Keep chrome identical to the live list — only functional hints, no custom skin.
+        // No visual skin — only layout plumbing so clones sit like live bricks.
         style.textContent = `
             #tm-oh-native-root:not([hidden]) { display: contents; }
-            #tm-oh-native-root th[data-sort] { cursor: pointer; user-select: none; }
-            #tm-oh-native-root th[data-sort].sort-asc::after { content: ' ↑'; }
-            #tm-oh-native-root th[data-sort].sort-desc::after { content: ' ↓'; }
-            #tm-oh-native-root .tm-copy-phone-btn {
-                margin-left: 4px;
-                cursor: pointer;
-                text-decoration: none;
-            }
             #tm-oh-hist-controls[hidden] { display: none !important; }
+            #tm-oh-native-root .rnr-orderlink[data-sort] { cursor: pointer; }
+            #tm-oh-native-root .rnr-orderlink.sort-asc::after { content: ' ↑'; }
+            #tm-oh-native-root .rnr-orderlink.sort-desc::after { content: ' ↓'; }
+            #tm-oh-native-root .tm-copy-phone-btn { margin-left: 4px; cursor: pointer; }
         `;
         document.head.appendChild(style);
     }
@@ -71105,52 +71101,59 @@ try {
         const center = document.querySelector('.rnr-center') || document.querySelector('#center') || document.body;
         const livePag = center.querySelector('.rnr-cw-pagination');
         const liveGrid = center.querySelector('.rnr-cw-grid');
-        const liveSearch = center.querySelector('.rnr-cw-search');
-        const pagClass = livePag?.className || 'rnr-cw-pagination rnr-s-1 MyMANAGERWhite_label1';
-        const gridClass = liveGrid?.className || 'rnr-cw-grid rnr-s-grid MyMANAGERWhite_label1';
-        const searchClass = liveSearch?.className || 'rnr-cw-search rnr-s-1 MyMANAGERWhite_label1';
+        const liveTable = liveGrid?.querySelector('table.rnr-gridtable, table.rnr-b-grid, table');
+        const cellsCss = liveGrid?.querySelector('style.rnr-cells-css');
+
+        const pagClass = livePag?.className || 'rnr-cw-pagination rnr-s-2 asbuttons MyMANAGERWhite_label1';
         const pagInnerClass = livePag?.querySelector('.rnr-c-pagination')?.className || 'rnr-c rnr-ch rnr-c-pagination';
-        const gridInnerClass = liveGrid?.querySelector('.rnr-c-grid')?.className || 'rnr-c rnr-ch rnr-c-grid';
-        const searchInnerClass = liveSearch?.querySelector('.rnr-c-search')?.className || 'rnr-c rnr-ch rnr-c-search';
+        const gridClass = liveGrid?.className || 'rnr-cw-grid rnr-s-grid asbuttons MyMANAGERWhite_label1';
+        const tableClass = liveTable?.className || 'rnr-c rnr-cont rnr-c-grid rnr-b-grid rnr-gridtable hoverable';
 
         root = document.createElement('div');
         root.id = 'tm-oh-native-root';
         root.setAttribute('hidden', '');
-        root.innerHTML = `
-            <div class="${escapeHtml(searchClass)}">
-                <div data-location="search" class="${escapeHtml(searchInnerClass)}">
-                    <span class="rnr-b-recordcount">Εγγραφές: <span id="tm-oh-count-label">0</span></span>
-                    &nbsp;
-                    <input type="text" id="tm-order-history-search" size="20" placeholder="Αναζήτηση…" />
-                    &nbsp;
+
+        // Pagination brick — same structure as live (details_found + filler + filters on the right)
+        const pag = document.createElement('div');
+        pag.className = pagClass;
+        pag.innerHTML = `
+            <div class="${pagInnerClass}" data-location="pagination">
+                <div class="style1 rnr-bl rnr-b-details_found">
+                    <span>Εγγραφές: <b><span class="rnr-details_found_count" id="tm-oh-count-label">0</span></b></span>
+                </div>
+                <div class="rnr-hfiller"></div>
+                <div class="style1 rnr-br rnr-b-recsperpage" id="tm-oh-filter-brick">
+                    <input type="text" id="tm-order-history-search" size="18" placeholder="Αναζήτηση…" />
                     <select id="tm-order-status-filter">
                         <option value="all">Όλες</option>
                         <option value="active">Ενεργές</option>
                         <option value="removed">Διαγραμμένες</option>
                     </select>
-                    &nbsp;
                     <input type="date" id="tm-oh-date-from" title="Από" />
                     <input type="date" id="tm-oh-date-to" title="Έως" />
-                    &nbsp;
                     <a href="#" class="rnr-button tm-oh-preset" data-preset="today"><span>Σήμερα</span></a>
                     <a href="#" class="rnr-button tm-oh-preset" data-preset="7d"><span>7η</span></a>
                     <a href="#" class="rnr-button tm-oh-preset" data-preset="30d"><span>30η</span></a>
                     <a href="#" class="rnr-button tm-oh-preset" data-preset="clear"><span>Καθαρισμός</span></a>
                 </div>
             </div>
-            <div class="${escapeHtml(pagClass)}">
-                <div data-location="pagination" class="${escapeHtml(pagInnerClass)}">
-                    <span class="rnr-b-recordcount">Εγγραφές: <span id="tm-oh-count-label-pag">0</span></span>
-                </div>
-            </div>
-            <div class="${escapeHtml(gridClass)}">
-                <div class="${escapeHtml(gridInnerClass)}" id="tm-order-history-container">
-                    <table class="rnr-c rnr-cont rnr-c-grid rnr-b-grid rnr-gridtable hoverable" cellpadding="0">
-                        <tbody><tr class="rnr-row style1"><td class="rnr-edge"><span class="rnr-field-text">Φόρτωση…</span></td></tr></tbody>
-                    </table>
-                </div>
-            </div>
         `;
+
+        // Grid brick — clone live wrapper + table element (no extra inner rnr-c-grid div)
+        const grid = document.createElement('div');
+        grid.className = gridClass;
+        grid.id = 'tm-oh-native-grid';
+        if (cellsCss) grid.appendChild(cellsCss.cloneNode(true));
+        const table = document.createElement('table');
+        table.className = tableClass;
+        table.cellPadding = '0';
+        table.setAttribute('data-location', 'grid');
+        table.id = 'tm-oh-native-table';
+        table.innerHTML = '<thead></thead><tbody></tbody>';
+        grid.appendChild(table);
+
+        root.appendChild(pag);
+        root.appendChild(grid);
         center.appendChild(root);
         return root;
     }
@@ -71246,15 +71249,14 @@ try {
 
     function wireNativeHistorySession(root) {
         const useDatabase = ohUseDatabase();
-        const container = root.querySelector('#tm-order-history-container');
+        const histTable = root.querySelector('#tm-oh-native-table') || document.getElementById('tm-oh-native-table');
+        const clickRoot = root.querySelector('#tm-oh-native-grid') || histTable || root;
         const searchInput = root.querySelector('#tm-order-history-search');
         const statusFilter = root.querySelector('#tm-order-status-filter');
         const dateFrom = root.querySelector('#tm-oh-date-from');
         const dateTo = root.querySelector('#tm-oh-date-to');
         const syncBtn = document.getElementById('tm-order-sync-btn');
         const exportBtn = document.getElementById('tm-order-export-btn');
-        const liveTable = document.querySelector('.rnr-center table.rnr-gridtable, .rnr-center table.rnr-b-grid');
-        const tableClass = liveTable?.className || 'rnr-c rnr-cont rnr-c-grid rnr-b-grid rnr-gridtable hoverable';
 
         let sortKey = 'timestamp';
         let sortDir = 'desc';
@@ -71270,11 +71272,9 @@ try {
         const setCountLabel = (visible, total) => {
             const cap = ohViewCapped ? ' · νεότερα 200' : '';
             const text = total ? `${visible} / ${total}${cap}` : String(visible || 0);
-            root.querySelectorAll('#tm-oh-count-label, #tm-oh-count-label-pag').forEach((el) => {
-                el.textContent = text;
-            });
+            const el = root.querySelector('#tm-oh-count-label') || document.getElementById('tm-oh-count-label');
+            if (el) el.textContent = text;
         };
-
         const orderDayStart = (order) => {
             const ts = Number(order.timestamp) || 0;
             if (ts) {
@@ -71362,7 +71362,7 @@ try {
             return list;
         };
 
-        const statusBadgeHtml = (order) => {
+        const statusText = (order) => {
             const key = String(order.id || ohExtractOrderId(order));
             let label = order.status || '—';
             if (orderHistoryStatusCheckEnabled) {
@@ -71372,46 +71372,62 @@ try {
                 else if (st.exists) label = 'Ενεργή';
                 else label = 'Διαγραμμένη';
             }
-            return `<span class="rnr-field-text">${escapeHtml(label)}</span>`;
+            return label;
         };
 
-        const emptyTable = (msg) => `
-            <table class="${escapeHtml(tableClass)}" cellpadding="0" data-location="grid">
-                <tbody>
-                    <tr class="rnr-row style1">
-                        <td class="rnr-edge"><span class="rnr-field-text">${msg}</span></td>
-                    </tr>
-                </tbody>
-            </table>`;
+        const liveTd = (innerHtml, href) => {
+            const hrefBits = href
+                ? ` data-href="${escapeHtml(href)}" style="cursor:pointer"`
+                : '';
+            return `<td class="rnr-field-text"${hrefBits}>${innerHtml}</td>`;
+        };
+
+        const liveTh = (key, label) => {
+            const sortCls = sortKey === key ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : '';
+            return `<th class="rnr-gridfieldlabel rnr-field-text">
+                <span class="rnr-orderlink ${sortCls}" data-sort="${escapeHtml(key)}">${escapeHtml(label)}</span>
+            </th>`;
+        };
+
+        const paintTable = (theadHtml, tbodyHtml) => {
+            if (!histTable) return;
+            const thead = histTable.querySelector('thead');
+            const tbody = histTable.querySelector('tbody');
+            if (thead) thead.innerHTML = theadHtml;
+            if (tbody) tbody.innerHTML = tbodyHtml;
+        };
 
         const renderOrders = () => {
             const filtered = getFilteredOrders();
             setCountLabel(filtered.length, ohViewOrders.length);
 
             if (!ohViewOrders.length) {
-                container.innerHTML = emptyTable(useDatabase
+                paintTable('', `<tr class="rnr-row style1"><td class="rnr-field-text"><span>${useDatabase
                     ? 'Δεν υπάρχουν εγγραφές στο server για αυτό το κατάστημα.'
-                    : 'Δεν υπάρχει τοπικό ιστορικό ακόμα.');
+                    : 'Δεν υπάρχει τοπικό ιστορικό ακόμα.'}</span></td></tr>`);
                 return;
             }
             if (!filtered.length) {
-                container.innerHTML = emptyTable('Καμία εγγραφή με τα τρέχοντα φίλτρα.');
+                paintTable('', `<tr class="rnr-row style1"><td class="rnr-field-text"><span>Καμία εγγραφή με τα τρέχοντα φίλτρα.</span></td></tr>`);
                 return;
             }
 
             const tableCols = ohCollectTableColumns(filtered);
-            const th = (key, label, edge) => {
-                const cls = [
-                    edge || '',
-                    sortKey === key ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : '',
-                ].filter(Boolean).join(' ');
-                return `<th class="${cls}" data-sort="${escapeHtml(key)}" title="${escapeHtml(label)}">${escapeHtml(label)}</th>`;
-            };
+            const headRow = `<tr class="rnr-toprow style1">
+                <th class="rnr-bc"></th>
+                ${liveTh('timestamp', 'Προστέθηκε')}
+                ${tableCols.map((col) => liveTh(`col:${col}`, col)).join('')}
+                ${liveTh('status', 'Κατάσταση')}
+            </tr>`;
 
-            const rows = filtered.map((order) => {
+            const rows = filtered.map((order, idx) => {
                 const phone = String(order.phone || '');
                 const added = order.timestamp ? formatDateTime(order.timestamp) : '—';
                 const href = order.url || '';
+                const rid = idx + 1;
+                const bc = href
+                    ? `<td class="rnr-bc" data-record-id="${rid}" style="cursor:pointer" data-href="${escapeHtml(href)}"></td>`
+                    : `<td class="rnr-bc" data-record-id="${rid}"></td>`;
                 const dynCells = tableCols.map((col) => {
                     const raw = ohColumnCellValue(order, col);
                     const lower = col.toLowerCase();
@@ -71420,33 +71436,21 @@ try {
                     if (isPhone) {
                         const disp = formatPhoneDisplay(raw || phone) || raw || '—';
                         const copyVal = raw || phone;
-                        inner = `<span class="rnr-field-text">${escapeHtml(disp)}${copyVal ? ` <a href="#" class="tm-copy-phone-btn" data-phone="${escapeHtml(copyVal)}" title="Αντιγραφή">⧉</a>` : ''}</span>`;
+                        inner = `<span>${escapeHtml(disp)}${copyVal ? ` <a href="#" class="tm-copy-phone-btn" data-phone="${escapeHtml(copyVal)}" title="Αντιγραφή">⧉</a>` : ''}</span>`;
                     } else {
-                        inner = `<span class="rnr-field-text">${escapeHtml(raw || '—')}</span>`;
+                        inner = `<span>${escapeHtml(raw || '—')}</span>`;
                     }
-                    return `<td data-field="${escapeHtml(col)}" ${href ? `data-href="${escapeHtml(href)}"` : ''} title="${escapeHtml(raw || '')}">${inner}</td>`;
+                    return liveTd(inner, href);
                 }).join('');
-                return `
-                    <tr class="rnr-row style1" ${href ? `data-href="${escapeHtml(href)}"` : ''}>
-                        <td class="rnr-edge" ${href ? `data-href="${escapeHtml(href)}"` : ''}>
-                            <span class="rnr-field-text">${escapeHtml(added)}</span>
-                        </td>
-                        ${dynCells}
-                        <td class="rnr-edge" ${href ? `data-href="${escapeHtml(href)}"` : ''}>${statusBadgeHtml(order)}</td>
-                    </tr>`;
+                return `<tr class="rnr-row style1" id="tmOhRow${rid}" ${href ? `data-href="${escapeHtml(href)}"` : ''}>
+                    ${bc}
+                    ${liveTd(`<span>${escapeHtml(added)}</span>`, href)}
+                    ${dynCells}
+                    ${liveTd(`<span>${escapeHtml(statusText(order))}</span>`, href)}
+                </tr>`;
             }).join('');
 
-            container.innerHTML = `
-                <table class="${escapeHtml(tableClass)}" cellpadding="0" data-location="grid">
-                    <thead>
-                        <tr class="rnr-toprow style1">
-                            ${th('timestamp', 'Προστέθηκε', 'rnr-edge')}
-                            ${tableCols.map((col) => th(`col:${col}`, col, '')).join('')}
-                            <th class="rnr-edge">Κατάσταση</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>`;
+            paintTable(headRow, rows);
         };
 
         const runStatusChecks = async () => {
@@ -71560,7 +71564,7 @@ try {
                 setSyncStatus(`cache${age ? ` · ${age}` : ''} · ενημέρωση…`);
                 renderOrders();
             } else {
-                container.innerHTML = emptyTable('Φόρτωση από server…');
+                paintTable('', '<tr class="rnr-row style1"><td class="rnr-field-text"><span>Φόρτωση από server…</span></td></tr>');
             }
             refreshFromServer({ silent: true }).catch(() => {});
         };
@@ -71609,7 +71613,7 @@ try {
             });
         });
 
-        container.addEventListener('click', (e) => {
+        clickRoot.addEventListener('click', (e) => {
             const copyBtn = e.target.closest?.('.tm-copy-phone-btn');
             if (copyBtn) {
                 e.stopPropagation();
@@ -71623,7 +71627,7 @@ try {
                 }).catch(() => {});
                 return;
             }
-            const thEl = e.target.closest?.('th[data-sort]');
+            const thEl = e.target.closest?.('.rnr-orderlink[data-sort], th[data-sort]');
             if (thEl) {
                 e.preventDefault();
                 const key = thEl.getAttribute('data-sort');
@@ -71671,9 +71675,7 @@ try {
             URL.revokeObjectURL(a.href);
         });
 
-        container.innerHTML = emptyTable(useDatabase
-            ? 'Φόρτωση από server…'
-            : 'Φόρτωση τοπικού ιστορικού…');
+        paintTable('', `<tr class="rnr-row style1"><td class="rnr-field-text"><span>${useDatabase ? 'Φόρτωση από server…' : 'Φόρτωση τοπικού ιστορικού…'}</span></td></tr>`);
         paintFromCacheThenRefresh();
 
         nativeHistorySession = { paintFromCacheThenRefresh, renderOrders };
