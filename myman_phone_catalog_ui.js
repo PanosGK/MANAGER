@@ -2999,7 +2999,7 @@
             const nearest = typeof getNearestHint === 'function' ? getNearestHint(model, data) : '';
             let whisper = '';
             if (nearest) {
-                whisper = `<span class="tm-sl-whisper">Κοντύτερο · ${esc(nearest)}</span>`;
+                whisper = `<span class="tm-sl-whisper">Κοντινότερο · ${esc(nearest)}</span>`;
             } else if (data.storeCount === 1) {
                 whisper = '<span class="tm-sl-whisper tm-sl-whisper--warn">Σπάνιο στο δίκτυο</span>';
             }
