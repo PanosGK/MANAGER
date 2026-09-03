@@ -2261,11 +2261,7 @@
                     const value = orderHistoryCheckbox.checked;
                     GM_setValue('orderHistoryEnabled', value);
                     config.orderHistoryEnabled = value;
-                    
-                    // Update order history button visibility
-                    if (typeof window.updateOrderHistoryButtonVisibility === 'function') {
-                        window.updateOrderHistoryButtonVisibility(config);
-                    }
+                    document.getElementById('tm-order-history-btn')?.remove();
                 });
             }
             if (suiteDbCheckbox) {

@@ -3413,26 +3413,8 @@
             setTimeout(checkAndUpdateButton, 3000);
         }
         
-        // Order History button (only show on order list pages and if enabled)
-        const currentPath = window.location.pathname;
-        const isOrderListPage = currentPath.includes('srvorders_list.php') || 
-                                currentPath.includes('sparepartstoorder_list.php');
-        
-        if (isOrderListPage && config.orderHistoryEnabled && (typeof window.enterNativeHistoryMode === 'function' || typeof window.showOrderHistoryModal === 'function')) {
-            const orderHistoryBtn = createFeatureButton(
-                '📦', 'Order History', '#2196f3 0%, #1976d2 100%',
-                () => {
-                    if (typeof window.enterNativeHistoryMode === 'function') {
-                        window.enterNativeHistoryMode();
-                    } else if (typeof window.showOrderHistoryModal === 'function') {
-                        window.showOrderHistoryModal();
-                    }
-                }
-            );
-            orderHistoryBtn.id = 'tm-order-history-btn';
-            buttonContainer.appendChild(orderHistoryBtn);
-        }
-        
+        document.getElementById('tm-order-history-btn')?.remove();
+
         // Append container to parent if it has children (but also check after delays for tech stats button)
         if (buttonContainer.children.length > 0) {
             if (!parentContainer.contains(buttonContainer)) {
@@ -4219,20 +4201,8 @@
     // Make function globally accessible
     window.updateRecentRepairsButtonVisibility = updateRecentRepairsButtonVisibility;
     
-    function updateOrderHistoryButtonVisibility(config) {
-        const orderHistoryBtn = document.getElementById('tm-order-history-btn');
-        if (orderHistoryBtn) {
-            const currentPath = window.location.pathname;
-            const isOrderListPage = currentPath.includes('srvorders_list.php') || 
-                                    currentPath.includes('sparepartstoorder_list.php');
-            // Only show if on order list page AND enabled
-            orderHistoryBtn.style.display = (isOrderListPage && config.orderHistoryEnabled) ? 'flex' : 'none';
-        }
-    }
-    
-    // Make function globally accessible
-    window.updateOrderHistoryButtonVisibility = updateOrderHistoryButtonVisibility;
-    
+    document.getElementById('tm-order-history-btn')?.remove();
+
     // ===================================================================
     // === FEATURE: REPAIR AGE INDICATOR
     // ===================================================================
@@ -5454,10 +5424,7 @@
             window.updateSearchMenuItemVisibility(config);
         }
         
-        // Update order history button visibility on page load
-        if (typeof window.updateOrderHistoryButtonVisibility === 'function') {
-            window.updateOrderHistoryButtonVisibility(config);
-        }
+        document.getElementById('tm-order-history-btn')?.remove();
         } catch (initError) {
             console.error('[MMS] initializeScript failed — revealing page anyway:', initError);
         } finally {

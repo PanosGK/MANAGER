@@ -1,11 +1,11 @@
 {
-  "version": "442",
+  "version": "443",
   "loaderVersion": "42",
-  "silentVersion": "26",
-  "displayVersion": "42.26",
+  "silentVersion": "27",
+  "displayVersion": "42.27",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Native Order History, barcode store search, and debug-gated ADB backup.",
+  "releaseNotes": "Remove footer Order History button; use the native list toggle only.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
