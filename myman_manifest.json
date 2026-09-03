@@ -1,11 +1,11 @@
 {
-  "version": "441",
+  "version": "442",
   "loaderVersion": "42",
-  "silentVersion": "25",
-  "displayVersion": "42.25",
+  "silentVersion": "26",
+  "displayVersion": "42.26",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Remove injected ADB backup buttons from repair and order pages",
+  "releaseNotes": "Native Order History, barcode store search, and debug-gated ADB backup.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
