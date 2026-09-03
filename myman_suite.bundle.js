@@ -71087,172 +71087,16 @@ try {
         if (existing) existing.remove();
         const style = document.createElement('style');
         style.id = 'tm-order-history-ui-styles';
+        // Plumbing only — no custom skin so site theme styles the bricks.
         style.textContent = `
             #tm-oh-native-root:not([hidden]) { display: contents; }
-            #tm-oh-hist-controls[hidden] { display: none !important; }
+            #tm-oh-bar { display: contents; }
             #tm-oh-native-root .rnr-orderlink[data-sort] { cursor: pointer; }
             #tm-oh-native-root .rnr-orderlink.sort-asc::after { content: ' ↑'; }
             #tm-oh-native-root .rnr-orderlink.sort-desc::after { content: ' ↓'; }
             #tm-oh-native-root .tm-copy-phone-btn { margin-left: 4px; cursor: pointer; }
-
-            #tm-oh-bar {
-                display: grid;
-                grid-template-columns: minmax(180px, 1.4fr) auto minmax(220px, 1fr) auto;
-                grid-template-areas:
-                    "search status dates actions"
-                    "meta meta meta meta";
-                gap: 10px 12px;
-                align-items: center;
-                margin: 0 0 10px;
-                padding: 12px 14px;
-                border: 1px solid var(--tm-shop-item-border, #cfcfcf);
-                background: linear-gradient(
-                    180deg,
-                    color-mix(in srgb, var(--tm-shop-item-bg, #fff) 92%, var(--tm-primary-color, #333) 8%),
-                    var(--tm-shop-item-bg, #fff)
-                );
-                box-shadow: inset 0 1px 0 rgba(255,255,255,0.55);
-            }
-            #tm-oh-bar .tm-oh-bar-search { grid-area: search; }
-            #tm-oh-bar .tm-oh-bar-status { grid-area: status; }
-            #tm-oh-bar .tm-oh-bar-dates { grid-area: dates; }
-            #tm-oh-bar .tm-oh-bar-actions { grid-area: actions; justify-self: end; }
-            #tm-oh-bar .tm-oh-bar-meta { grid-area: meta; }
-
-            #tm-oh-bar .tm-oh-bar-search input {
-                width: 100%;
-                box-sizing: border-box;
-                height: 34px;
-                padding: 0 12px 0 34px;
-                border: 1px solid var(--tm-input-border, var(--tm-shop-item-border, #bbb));
-                background: var(--tm-input-bg, #fff) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") 10px 50% no-repeat;
-                color: var(--tm-input-text, var(--tm-primary-color, #222));
-                font-size: 13px;
-            }
-            #tm-oh-bar .tm-oh-bar-search input:focus {
-                outline: none;
-                border-color: var(--tm-primary-color, #444);
-            }
-
-            #tm-oh-bar .tm-oh-seg {
-                display: inline-flex;
-                border: 1px solid var(--tm-shop-item-border, #bbb);
-                overflow: hidden;
-                background: var(--tm-shop-item-owned-bg, #f3f3f3);
-            }
-            #tm-oh-bar .tm-oh-seg button {
-                appearance: none;
-                border: 0;
-                margin: 0;
-                padding: 8px 12px;
-                background: transparent;
-                color: var(--tm-shop-item-text, var(--tm-primary-color, #333));
-                font-size: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                border-right: 1px solid var(--tm-shop-item-border, #bbb);
-            }
-            #tm-oh-bar .tm-oh-seg button:last-child { border-right: 0; }
-            #tm-oh-bar .tm-oh-seg button.is-on {
-                background: var(--tm-primary-color, #333);
-                color: #fff;
-            }
-
-            #tm-oh-bar .tm-oh-bar-dates {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
-                align-items: center;
-            }
-            #tm-oh-bar .tm-oh-date-wrap {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                padding: 2px 6px;
-                border: 1px dashed var(--tm-shop-item-border, #bbb);
-                background: color-mix(in srgb, var(--tm-shop-item-bg, #fff) 85%, transparent);
-                font-size: 11px;
-                color: var(--tm-muted-text, #666);
-            }
-            #tm-oh-bar .tm-oh-date-wrap input[type="date"] {
-                border: 0;
-                background: transparent;
-                color: inherit;
-                font-size: 12px;
-                padding: 4px 0;
-            }
-            #tm-oh-bar .tm-oh-chip {
-                appearance: none;
-                border: 1px solid var(--tm-shop-item-border, #bbb);
-                background: transparent;
-                color: var(--tm-shop-item-text, var(--tm-primary-color, #333));
-                font-size: 11px;
-                font-weight: 700;
-                letter-spacing: 0.02em;
-                text-transform: uppercase;
-                padding: 7px 9px;
-                cursor: pointer;
-            }
-            #tm-oh-bar .tm-oh-chip.is-active {
-                border-color: var(--tm-primary-color, #333);
-                background: color-mix(in srgb, var(--tm-primary-color, #333) 14%, transparent);
-            }
-
-            #tm-oh-bar .tm-oh-bar-actions {
-                display: flex;
-                gap: 6px;
-                align-items: center;
-            }
-            #tm-oh-bar .tm-oh-action {
-                appearance: none;
-                border: 1px solid var(--tm-shop-item-border, #bbb);
-                background: var(--tm-shop-item-bg, #fff);
-                color: var(--tm-shop-item-text, var(--tm-primary-color, #333));
-                font-size: 12px;
-                font-weight: 700;
-                padding: 8px 12px;
-                cursor: pointer;
-            }
-            #tm-oh-bar .tm-oh-action:hover {
-                border-color: var(--tm-primary-color, #444);
-            }
-            #tm-oh-bar .tm-oh-action:disabled {
-                opacity: 0.55;
-                cursor: wait;
-            }
-            #tm-oh-bar .tm-oh-action.tm-oh-action-ghost {
-                background: transparent;
-            }
-
-            #tm-oh-bar .tm-oh-bar-meta {
-                display: flex;
-                justify-content: space-between;
-                gap: 10px;
-                align-items: baseline;
-                padding-top: 8px;
-                border-top: 1px solid color-mix(in srgb, var(--tm-shop-item-border, #ccc) 70%, transparent);
-                font-size: 12px;
-                color: var(--tm-muted-text, #666);
-            }
-            #tm-oh-bar .tm-oh-count strong {
-                color: var(--tm-shop-item-text, var(--tm-primary-color, #222));
-                font-size: 14px;
-            }
-            #tm-oh-bar #tm-oh-sync-status {
-                font-style: italic;
-            }
-
-            @media (max-width: 1100px) {
-                #tm-oh-bar {
-                    grid-template-columns: 1fr 1fr;
-                    grid-template-areas:
-                        "search search"
-                        "status dates"
-                        "actions actions"
-                        "meta meta";
-                }
-                #tm-oh-bar .tm-oh-bar-actions { justify-self: start; }
-            }
+            #tm-oh-native-root a.tm-oh-preset.is-active,
+            #tm-oh-native-root a.tm-oh-status.is-on { font-weight: 700; text-decoration: underline; }
         `;
         document.head.appendChild(style);
     }
@@ -71310,7 +71154,11 @@ try {
         ensureNativeHistoryStyles();
         ensureNativeToggleButton();
         let root = document.getElementById('tm-oh-native-root');
-        if (root && !root.querySelector('#tm-oh-bar')) {
+        // Drop previous custom toolbar mounts so we always use native bricks
+        if (root && (
+            !root.querySelector('#tm-oh-bar .rnr-cw-recordcontrols')
+            || root.querySelector('.tm-oh-bar-search, .tm-oh-seg, .tm-oh-chip, .tm-oh-action')
+        )) {
             root.remove();
             root = null;
             nativeHistoryWired = false;
@@ -71319,11 +71167,17 @@ try {
         if (root) return root;
 
         const center = document.querySelector('.rnr-center') || document.querySelector('#center') || document.body;
+        const liveControls = center.querySelector('.rnr-cw-recordcontrols');
+        const livePag = center.querySelector('.rnr-cw-pagination');
         const liveGrid = center.querySelector('.rnr-cw-grid');
         const liveTable = liveGrid?.querySelector('table.rnr-gridtable, table.rnr-b-grid, table');
         const cellsCss = liveGrid?.querySelector('style.rnr-cells-css');
         const useDatabase = ohUseDatabase();
 
+        const controlsClass = liveControls?.className || 'rnr-cw-recordcontrols rnr-s-2 asbuttons MyMANAGERWhite_label1';
+        const controlsInner = liveControls?.querySelector('.rnr-c-recordcontrols')?.className || 'rnr-c rnr-ch rnr-c-recordcontrols';
+        const pagClass = livePag?.className || 'rnr-cw-pagination rnr-s-2 asbuttons MyMANAGERWhite_label1';
+        const pagInner = livePag?.querySelector('.rnr-c-pagination')?.className || 'rnr-c rnr-ch rnr-c-pagination';
         const gridClass = liveGrid?.className || 'rnr-cw-grid rnr-s-grid asbuttons MyMANAGERWhite_label1';
         const tableClass = liveTable?.className || 'rnr-c rnr-cont rnr-c-grid rnr-b-grid rnr-gridtable hoverable';
 
@@ -71334,33 +71188,51 @@ try {
         const bar = document.createElement('div');
         bar.id = 'tm-oh-bar';
         bar.innerHTML = `
-            <div class="tm-oh-bar-search">
-                <input type="search" id="tm-order-history-search" placeholder="Αναζήτηση σε όλες τις στήλες…" autocomplete="off" />
-            </div>
-            <div class="tm-oh-bar-status">
-                <div class="tm-oh-seg" role="tablist" aria-label="Κατάσταση">
-                    <button type="button" class="tm-oh-status is-on" data-status="all">Όλες</button>
-                    <button type="button" class="tm-oh-status" data-status="active">Ενεργές</button>
-                    <button type="button" class="tm-oh-status" data-status="removed">Διαγραμμένες</button>
+            <div class="${escapeHtml(controlsClass)}">
+                <div class="${escapeHtml(controlsInner)}" data-location="recordcontrols">
+                    <div class="style1 rnr-bl rnr-b-recordcontrol">
+                        <a href="#" class="rnr-button" id="tm-order-sync-btn" ${useDatabase ? '' : 'hidden'}><span>Ανανέωση</span></a>
+                    </div>
+                    <div class="style1 rnr-bl rnr-b-recordcontrol">
+                        <a href="#" class="rnr-button" id="tm-order-export-btn"><span>CSV</span></a>
+                    </div>
+                    <div class="style1 rnr-bl rnr-b-toplinks">
+                        <span class="rnr-buttons-group">
+                            <a href="#" class="rnr-button tm-oh-status is-on" data-status="all"><span>Όλες</span></a>
+                            <a href="#" class="rnr-button tm-oh-status" data-status="active"><span>Ενεργές</span></a>
+                            <a href="#" class="rnr-button tm-oh-status" data-status="removed"><span>Διαγραμμένες</span></a>
+                        </span>
+                    </div>
+                    <div class="style1 rnr-bl rnr-b-toplinks">
+                        <span class="rnr-buttons-group">
+                            <a href="#" class="rnr-button tm-oh-preset" data-preset="today"><span>Σήμερα</span></a>
+                            <a href="#" class="rnr-button tm-oh-preset" data-preset="7d"><span>7η</span></a>
+                            <a href="#" class="rnr-button tm-oh-preset" data-preset="30d"><span>30η</span></a>
+                            <a href="#" class="rnr-button tm-oh-preset" data-preset="clear"><span>Καθαρισμός</span></a>
+                        </span>
+                    </div>
+                    <div class="rnr-hfiller"></div>
+                    <div class="style1 rnr-br">
+                        <span id="tm-oh-sync-status">${useDatabase ? 'φόρτωση…' : 'τοπικό'}</span>
+                        <span id="tm-oh-store-label" hidden></span>
+                    </div>
+                    <input type="hidden" id="tm-order-status-filter" value="all" />
                 </div>
-                <input type="hidden" id="tm-order-status-filter" value="all" />
             </div>
-            <div class="tm-oh-bar-dates">
-                <label class="tm-oh-date-wrap">Από <input type="date" id="tm-oh-date-from" /></label>
-                <label class="tm-oh-date-wrap">Έως <input type="date" id="tm-oh-date-to" /></label>
-                <button type="button" class="tm-oh-chip tm-oh-preset" data-preset="today">Σήμερα</button>
-                <button type="button" class="tm-oh-chip tm-oh-preset" data-preset="7d">7 ημέρες</button>
-                <button type="button" class="tm-oh-chip tm-oh-preset" data-preset="30d">30 ημέρες</button>
-            </div>
-            <div class="tm-oh-bar-actions">
-                <button type="button" class="tm-oh-action" id="tm-order-sync-btn" ${useDatabase ? '' : 'hidden'}>Ανανέωση</button>
-                <button type="button" class="tm-oh-action" id="tm-order-export-btn">CSV</button>
-                <button type="button" class="tm-oh-action tm-oh-action-ghost tm-oh-preset" data-preset="clear">Καθαρισμός</button>
-            </div>
-            <div class="tm-oh-bar-meta">
-                <div class="tm-oh-count">Εμφάνιση <strong id="tm-oh-count-label">0</strong> εγγραφών</div>
-                <div id="tm-oh-sync-status">${useDatabase ? 'φόρτωση…' : 'τοπικό αντίγραφο'}</div>
-                <span id="tm-oh-store-label" hidden></span>
+            <div class="${escapeHtml(pagClass)}">
+                <div class="${escapeHtml(pagInner)}" data-location="pagination">
+                    <div class="style1 rnr-bl rnr-b-details_found">
+                        <span>Εγγραφές: <b><span class="rnr-details_found_count" id="tm-oh-count-label">0</span></b></span>
+                    </div>
+                    <div class="rnr-hfiller"></div>
+                    <div class="style1 rnr-br rnr-b-recsperpage">
+                        <span>
+                            Αναζήτηση:&nbsp;<input type="text" id="tm-order-history-search" size="20" />
+                            &nbsp;Από&nbsp;<input type="date" id="tm-oh-date-from" />
+                            &nbsp;Έως&nbsp;<input type="date" id="tm-oh-date-to" />
+                        </span>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -71719,10 +71591,10 @@ try {
 
         const refreshFromServer = async ({ silent } = {}) => {
             setSyncStatus('συγχρονισμός…');
-            if (syncBtn) syncBtn.disabled = true;
+            if (syncBtn) { syncBtn.classList.add('disabled'); syncBtn.setAttribute('aria-disabled', 'true'); }
             const kind = ohPageKind();
             const remote = await fetchStoreOrderHistoryFromServer(kind);
-            if (syncBtn) syncBtn.disabled = false;
+            if (syncBtn) { syncBtn.classList.remove('disabled'); syncBtn.removeAttribute('aria-disabled'); }
             if (!remote.ok) {
                 const cache = ohLoadViewCache(ohStoreKey(), kind);
                 if (cache?.orders?.length) {
@@ -71812,7 +71684,7 @@ try {
 
         const applyPreset = (preset) => {
             activePreset = preset;
-            root.querySelectorAll('.tm-oh-chip.tm-oh-preset').forEach((btn) => {
+            root.querySelectorAll('a.tm-oh-preset').forEach((btn) => {
                 btn.classList.toggle('is-active', btn.getAttribute('data-preset') === preset && preset !== 'clear');
             });
             const now = new Date();
@@ -71850,7 +71722,8 @@ try {
 
         searchInput?.addEventListener('input', () => renderOrders());
         root.querySelectorAll('.tm-oh-status').forEach((btn) => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
                 const mode = btn.getAttribute('data-status') || 'all';
                 if (statusFilter) statusFilter.value = mode;
                 root.querySelectorAll('.tm-oh-status').forEach((b) => {
@@ -71861,12 +71734,12 @@ try {
         });
         dateFrom?.addEventListener('change', () => {
             activePreset = '';
-            root.querySelectorAll('.tm-oh-chip.tm-oh-preset').forEach((b) => b.classList.remove('is-active'));
+            root.querySelectorAll('a.tm-oh-preset').forEach((b) => b.classList.remove('is-active'));
             renderOrders();
         });
         dateTo?.addEventListener('change', () => {
             activePreset = '';
-            root.querySelectorAll('.tm-oh-chip.tm-oh-preset').forEach((b) => b.classList.remove('is-active'));
+            root.querySelectorAll('a.tm-oh-preset').forEach((b) => b.classList.remove('is-active'));
             renderOrders();
         });
         root.querySelectorAll('.tm-oh-preset').forEach((btn) => {
