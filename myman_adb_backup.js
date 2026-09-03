@@ -50,7 +50,12 @@
     }
 
     function isFeatureEnabled(config) {
-        return (config || window.config)?.adbBackupEnabled !== false;
+        const cfg = config || window.config || {};
+        // Feature is only available when debugging mode is on
+        if (!cfg.debugEnabled && typeof GM_getValue === 'function' && !GM_getValue('debugEnabled', false)) {
+            return false;
+        }
+        return cfg.adbBackupEnabled !== false;
     }
 
     function esc(value) {

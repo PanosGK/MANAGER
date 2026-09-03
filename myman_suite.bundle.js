@@ -17308,7 +17308,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-link-enabled"></div>
                     </div>
 
-                    <h4 class="tm-settings-subgroup">Αντίγραφο συσκευής (ADB)</h4>
+                    ${config.debugEnabled ? `<h4 class="tm-settings-subgroup">Αντίγραφο συσκευής (ADB)</h4>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <div class="tm-setting-label-row">
@@ -17326,7 +17326,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         <div class="tm-setting-control" style="flex:1;min-width:180px;">
                             <input type="text" id="tm-setting-adb-backup-url" class="tm-settings-input" autocomplete="off" spellcheck="false" placeholder="http://127.0.0.1:8765">
                         </div>
-                    </div>
+                    </div>` : ''}
 
                     <h4 class="tm-settings-subgroup">WiFi QR</h4>
                     <div class="tm-setting-row">
@@ -72882,7 +72882,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
 
     function isFeatureEnabled(config) {
-        return (config || window.config)?.adbBackupEnabled !== false;
+        const cfg = config || window.config || {};
+        // Feature is only available when debugging mode is on
+        if (!cfg.debugEnabled && typeof GM_getValue === 'function' && !GM_getValue('debugEnabled', false)) {
+            return false;
+        }
+        return cfg.adbBackupEnabled !== false;
     }
 
     function esc(value) {
