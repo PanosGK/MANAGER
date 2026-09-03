@@ -1782,23 +1782,7 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
                 border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent) !important;
                 color: var(--tm-info-color) !important;
             }
-            /* Order history native badges (inline list mode) */
-            #tm-oh-native-root .tm-oh-badge--active {
-                background: color-mix(in srgb, var(--tm-success-color) 14%, transparent) !important;
-                color: var(--tm-success-color) !important;
-                border-color: color-mix(in srgb, var(--tm-success-color) 30%, transparent) !important;
-            }
-            #tm-oh-native-root .tm-oh-badge--removed {
-                background: color-mix(in srgb, var(--tm-danger-color) 12%, transparent) !important;
-                color: var(--tm-danger-color) !important;
-                border-color: color-mix(in srgb, var(--tm-danger-color) 28%, transparent) !important;
-            }
-            #tm-oh-native-root .tm-oh-badge--unknown,
-            #tm-oh-native-root .tm-oh-badge--checking {
-                background: color-mix(in srgb, var(--tm-warning-color) 12%, transparent) !important;
-                color: var(--tm-warning-color) !important;
-                border-color: color-mix(in srgb, var(--tm-warning-color) 28%, transparent) !important;
-            }
+            /* (order history uses native rnr chrome — no custom panel skin) */
             /* Customer history modal */
             #tm-customer-history-modal.tm-modal-overlay,
             .tm-customer-history-overlay {
@@ -7214,22 +7198,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent);
                 color: var(--tm-info-color);
             }
-            /* Order history native badges (inline list mode) */
-            #tm-oh-native-root .tm-oh-badge--active {
-                background: color-mix(in srgb, var(--tm-success-color) 14%, transparent);
-                color: var(--tm-success-color);
-                border: 1px solid color-mix(in srgb, var(--tm-success-color) 30%, transparent);
-            }
-            #tm-oh-native-root .tm-oh-badge--removed {
-                background: color-mix(in srgb, var(--tm-danger-color) 12%, transparent);
-                color: var(--tm-danger-color);
-                border: 1px solid color-mix(in srgb, var(--tm-danger-color) 28%, transparent);
-            }
-            #tm-oh-native-root .tm-oh-badge--unknown, #tm-oh-native-root .tm-oh-badge--checking {
-                background: color-mix(in srgb, var(--tm-warning-color) 12%, transparent);
-                color: var(--tm-warning-color);
-                border: 1px solid color-mix(in srgb, var(--tm-warning-color) 28%, transparent);
-            }
+            /* (order history uses native rnr chrome — no custom panel skin) */
             /* Order link popup (status 65) */
             .tm-order-popup-overlay,
             #tm-order-popup {
@@ -71045,72 +71014,18 @@ try {
         if (existing) existing.remove();
         const style = document.createElement('style');
         style.id = 'tm-order-history-ui-styles';
+        // Keep chrome identical to the live list — only functional hints, no custom skin.
         style.textContent = `
-            #tm-oh-native-root .tm-oh-badge {
-                display: inline-flex;
-                align-items: center;
-                padding: 2px 7px;
-                border-radius: 999px;
-                font-size: 10px;
-                font-weight: 700;
-                border: 1px solid transparent;
-            }
-            #tm-oh-native-root .tm-oh-badge--checking {
-                background: color-mix(in srgb, var(--tm-warning-color, #b78103) 12%, transparent);
-                color: var(--tm-warning-color, #b78103);
-                border-color: color-mix(in srgb, var(--tm-warning-color, #b78103) 35%, transparent);
-            }
-            #tm-oh-native-root .tm-oh-badge--active {
-                background: color-mix(in srgb, var(--tm-success-color, #2e7d32) 12%, transparent);
-                color: var(--tm-success-color, #2e7d32);
-                border-color: color-mix(in srgb, var(--tm-success-color, #2e7d32) 35%, transparent);
-            }
-            #tm-oh-native-root .tm-oh-badge--removed {
-                background: color-mix(in srgb, var(--tm-danger-color, #c62828) 12%, transparent);
-                color: var(--tm-danger-color, #c62828);
-                border-color: color-mix(in srgb, var(--tm-danger-color, #c62828) 35%, transparent);
-            }
-            #tm-oh-native-root .tm-oh-badge--unknown {
-                background: color-mix(in srgb, var(--tm-muted-text, #888) 12%, transparent);
-                color: var(--tm-muted-text, #666);
-                border-color: color-mix(in srgb, var(--tm-muted-text, #888) 30%, transparent);
-            }
-            #tm-oh-native-root .tm-oh-phone-cell {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-            }
-            #tm-oh-native-root .tm-copy-phone-btn {
-                border: 1px solid var(--tm-shop-item-border, #ccc);
-                background: transparent;
-                border-radius: 4px;
-                padding: 2px 6px;
-                font-size: 10px;
-                cursor: pointer;
-                color: inherit;
-            }
-            #tm-oh-native-root .tm-oh-empty {
-                padding: 48px 20px;
-                text-align: center;
-                color: var(--tm-muted-text, var(--tm-secondary-color));
-                font-size: 13px;
-            }
+            #tm-oh-native-root:not([hidden]) { display: contents; }
             #tm-oh-native-root th[data-sort] { cursor: pointer; user-select: none; }
             #tm-oh-native-root th[data-sort].sort-asc::after { content: ' ↑'; }
             #tm-oh-native-root th[data-sort].sort-desc::after { content: ' ↓'; }
-            #tm-oh-native-root .tm-oh-filter-row input,
-            #tm-oh-native-root .tm-oh-filter-row select {
-                padding: 4px 8px;
-                font-size: 12px;
-                margin: 0 4px 4px 0;
-                box-sizing: border-box;
+            #tm-oh-native-root .tm-copy-phone-btn {
+                margin-left: 4px;
+                cursor: pointer;
+                text-decoration: none;
             }
-            #tm-oh-native-root .tm-oh-filter-row .rnr-button.is-active {
-                font-weight: 700;
-            }
-            #tm-oh-native-toggle.is-active {
-                font-weight: 700;
-            }
+            #tm-oh-hist-controls[hidden] { display: none !important; }
         `;
         document.head.appendChild(style);
     }
@@ -71129,11 +71044,15 @@ try {
     let nativeHistorySession = null;
     let nativeHistoryEscHandler = null;
 
+    function getLiveRecordControlsStrip() {
+        return document.querySelector('.rnr-center .rnr-c-recordcontrols, .rnr-cw-recordcontrols .rnr-c-recordcontrols, .rnr-c-recordcontrols');
+    }
+
     function ensureNativeToggleButton() {
         if (!isOrderHistoryListPage()) return null;
         let btn = document.getElementById('tm-oh-native-toggle');
         if (btn) return btn;
-        const strip = document.querySelector('.rnr-c-recordcontrols, .rnr-cw-recordcontrols .rnr-c-recordcontrols');
+        const strip = getLiveRecordControlsStrip();
         if (!strip) return null;
         btn = document.createElement('a');
         btn.href = '#';
@@ -71147,54 +71066,88 @@ try {
             else enterNativeHistoryMode();
         });
         strip.appendChild(btn);
+        ensureNativeHistoryControlButtons(strip);
         return btn;
+    }
+
+    function ensureNativeHistoryControlButtons(strip) {
+        const host = strip || getLiveRecordControlsStrip();
+        if (!host) return;
+        let wrap = document.getElementById('tm-oh-hist-controls');
+        if (wrap) return wrap;
+        const useDatabase = ohUseDatabase();
+        wrap = document.createElement('span');
+        wrap.id = 'tm-oh-hist-controls';
+        wrap.setAttribute('hidden', '');
+        wrap.innerHTML = `
+            <a href="#" class="rnr-button" id="tm-order-sync-btn" cid="tm-oh-sync" ${useDatabase ? '' : 'hidden'}><span>Ανανέωση</span></a>
+            <a href="#" class="rnr-button" id="tm-order-export-btn" cid="tm-oh-csv"><span>CSV</span></a>
+            <span class="rnr-bl" id="tm-oh-sync-status" style="margin-left:6px;"></span>
+            <span class="rnr-bl" id="tm-oh-store-label" hidden></span>
+        `;
+        host.appendChild(wrap);
+        return wrap;
+    }
+
+    function setHistoryControlsVisible(visible) {
+        const wrap = document.getElementById('tm-oh-hist-controls');
+        if (!wrap) return;
+        if (visible) wrap.removeAttribute('hidden');
+        else wrap.setAttribute('hidden', '');
     }
 
     function ensureNativeHistoryShell() {
         ensureNativeHistoryStyles();
+        ensureNativeToggleButton();
         let root = document.getElementById('tm-oh-native-root');
         if (root) return root;
 
         const center = document.querySelector('.rnr-center') || document.querySelector('#center') || document.body;
-        const pageName = isServiceOrdersPage ? 'Υπηρεσίες' : 'Ανταλλακτικά';
-        const useDatabase = ohUseDatabase();
+        const livePag = center.querySelector('.rnr-cw-pagination');
+        const liveGrid = center.querySelector('.rnr-cw-grid');
+        const liveSearch = center.querySelector('.rnr-cw-search');
+        const pagClass = livePag?.className || 'rnr-cw-pagination rnr-s-1 MyMANAGERWhite_label1';
+        const gridClass = liveGrid?.className || 'rnr-cw-grid rnr-s-grid MyMANAGERWhite_label1';
+        const searchClass = liveSearch?.className || 'rnr-cw-search rnr-s-1 MyMANAGERWhite_label1';
+        const pagInnerClass = livePag?.querySelector('.rnr-c-pagination')?.className || 'rnr-c rnr-ch rnr-c-pagination';
+        const gridInnerClass = liveGrid?.querySelector('.rnr-c-grid')?.className || 'rnr-c rnr-ch rnr-c-grid';
+        const searchInnerClass = liveSearch?.querySelector('.rnr-c-search')?.className || 'rnr-c rnr-ch rnr-c-search';
 
         root = document.createElement('div');
         root.id = 'tm-oh-native-root';
         root.setAttribute('hidden', '');
         root.innerHTML = `
-            <div class="rnr-cw-recordcontrols rnr-s-2 asbuttons MyMANAGERWhite_label1">
-                <div data-location="recordcontrols" class="rnr-c rnr-ch rnr-c-recordcontrols">
-                    <div class="style1 rnr-bl rnr-b-recordcontrols_new">
-                        <span id="tm-oh-store-label">${escapeHtml(ohGetStoreName() || '—')}</span>
-                        · Ιστορικό ${escapeHtml(pageName)}
-                        · <span id="tm-oh-sync-status">${useDatabase ? 'φόρτωση…' : 'τοπικό'}</span>
-                    </div>
-                    <a href="#" class="rnr-button" id="tm-oh-live-btn" cid="tm-oh-live"><span>Ζωντανές</span></a>
-                    <a href="#" class="rnr-button" id="tm-order-sync-btn" cid="tm-oh-sync" ${useDatabase ? '' : 'style="display:none"'}><span>Ανανέωση</span></a>
-                    <a href="#" class="rnr-button" id="tm-order-export-btn" cid="tm-oh-csv"><span>CSV</span></a>
-                </div>
-            </div>
-            <div class="rnr-cw-pagination rnr-s-1 MyMANAGERWhite_label1">
-                <div class="rnr-c rnr-ch rnr-c-pagination tm-oh-filter-row" style="flex-wrap:wrap;align-items:center;gap:4px;">
+            <div class="${escapeHtml(searchClass)}">
+                <div data-location="search" class="${escapeHtml(searchInnerClass)}">
                     <span class="rnr-b-recordcount">Εγγραφές: <span id="tm-oh-count-label">0</span></span>
-                    <input type="search" id="tm-order-history-search" placeholder="Αναζήτηση…" style="min-width:160px;flex:1 1 160px;" />
+                    &nbsp;
+                    <input type="text" id="tm-order-history-search" size="20" placeholder="Αναζήτηση…" />
+                    &nbsp;
                     <select id="tm-order-status-filter">
                         <option value="all">Όλες</option>
                         <option value="active">Ενεργές</option>
                         <option value="removed">Διαγραμμένες</option>
                     </select>
+                    &nbsp;
                     <input type="date" id="tm-oh-date-from" title="Από" />
                     <input type="date" id="tm-oh-date-to" title="Έως" />
+                    &nbsp;
                     <a href="#" class="rnr-button tm-oh-preset" data-preset="today"><span>Σήμερα</span></a>
                     <a href="#" class="rnr-button tm-oh-preset" data-preset="7d"><span>7η</span></a>
                     <a href="#" class="rnr-button tm-oh-preset" data-preset="30d"><span>30η</span></a>
                     <a href="#" class="rnr-button tm-oh-preset" data-preset="clear"><span>Καθαρισμός</span></a>
                 </div>
             </div>
-            <div class="rnr-cw-grid rnr-s-grid MyMANAGERWhite_label1">
-                <div class="rnr-c rnr-ch rnr-c-grid" id="tm-order-history-container">
-                    <div class="tm-oh-empty">Φόρτωση…</div>
+            <div class="${escapeHtml(pagClass)}">
+                <div data-location="pagination" class="${escapeHtml(pagInnerClass)}">
+                    <span class="rnr-b-recordcount">Εγγραφές: <span id="tm-oh-count-label-pag">0</span></span>
+                </div>
+            </div>
+            <div class="${escapeHtml(gridClass)}">
+                <div class="${escapeHtml(gridInnerClass)}" id="tm-order-history-container">
+                    <table class="rnr-c rnr-cont rnr-c-grid rnr-b-grid rnr-gridtable hoverable" cellpadding="0">
+                        <tbody><tr class="rnr-row style1"><td class="rnr-edge"><span class="rnr-field-text">Φόρτωση…</span></td></tr></tbody>
+                    </table>
                 </div>
             </div>
         `;
@@ -71223,6 +71176,7 @@ try {
         }
         if (root) root.setAttribute('hidden', '');
         nativeHistoryActive = false;
+        setHistoryControlsVisible(false);
         const toggle = document.getElementById('tm-oh-native-toggle');
         if (toggle) {
             toggle.classList.remove('is-active');
@@ -71263,6 +71217,7 @@ try {
         }
         root.removeAttribute('hidden');
         nativeHistoryActive = true;
+        setHistoryControlsVisible(true);
 
         const toggle = document.getElementById('tm-oh-native-toggle');
         if (toggle) {
@@ -71296,9 +71251,10 @@ try {
         const statusFilter = root.querySelector('#tm-order-status-filter');
         const dateFrom = root.querySelector('#tm-oh-date-from');
         const dateTo = root.querySelector('#tm-oh-date-to');
-        const syncBtn = root.querySelector('#tm-order-sync-btn');
-        const exportBtn = root.querySelector('#tm-order-export-btn');
-        const liveBtn = root.querySelector('#tm-oh-live-btn');
+        const syncBtn = document.getElementById('tm-order-sync-btn');
+        const exportBtn = document.getElementById('tm-order-export-btn');
+        const liveTable = document.querySelector('.rnr-center table.rnr-gridtable, .rnr-center table.rnr-b-grid');
+        const tableClass = liveTable?.className || 'rnr-c rnr-cont rnr-c-grid rnr-b-grid rnr-gridtable hoverable';
 
         let sortKey = 'timestamp';
         let sortDir = 'desc';
@@ -71307,21 +71263,17 @@ try {
         let activePreset = '';
 
         const setSyncStatus = (text) => {
-            const el = root.querySelector('#tm-oh-sync-status');
+            const el = document.getElementById('tm-oh-sync-status');
             if (el) el.textContent = text;
         };
 
         const setCountLabel = (visible, total) => {
-            const el = root.querySelector('#tm-oh-count-label');
-            if (!el) return;
             const cap = ohViewCapped ? ' · νεότερα 200' : '';
-            el.textContent = total ? `${visible} / ${total}${cap}` : String(visible || 0);
+            const text = total ? `${visible} / ${total}${cap}` : String(visible || 0);
+            root.querySelectorAll('#tm-oh-count-label, #tm-oh-count-label-pag').forEach((el) => {
+                el.textContent = text;
+            });
         };
-
-        liveBtn?.addEventListener('click', (e) => {
-            e.preventDefault();
-            exitNativeHistoryMode();
-        });
 
         const orderDayStart = (order) => {
             const ts = Number(order.timestamp) || 0;
@@ -71412,34 +71364,38 @@ try {
 
         const statusBadgeHtml = (order) => {
             const key = String(order.id || ohExtractOrderId(order));
-            if (!orderHistoryStatusCheckEnabled) {
-                return `<span class="tm-oh-badge tm-oh-badge--unknown">${escapeHtml(order.status || '—')}</span>`;
+            let label = order.status || '—';
+            if (orderHistoryStatusCheckEnabled) {
+                const st = statusResultsMap.get(key);
+                if (!st || st.checking) label = '…';
+                else if (st.error) label = '?';
+                else if (st.exists) label = 'Ενεργή';
+                else label = 'Διαγραμμένη';
             }
-            const st = statusResultsMap.get(key);
-            if (!st || st.checking) {
-                return '<span class="tm-oh-badge tm-oh-badge--checking">…</span>';
-            }
-            if (st.error) {
-                return '<span class="tm-oh-badge tm-oh-badge--unknown">?</span>';
-            }
-            if (st.exists) {
-                return '<span class="tm-oh-badge tm-oh-badge--active">Ενεργή</span>';
-            }
-            return '<span class="tm-oh-badge tm-oh-badge--removed">Διαγραμμένη</span>';
+            return `<span class="rnr-field-text">${escapeHtml(label)}</span>`;
         };
+
+        const emptyTable = (msg) => `
+            <table class="${escapeHtml(tableClass)}" cellpadding="0" data-location="grid">
+                <tbody>
+                    <tr class="rnr-row style1">
+                        <td class="rnr-edge"><span class="rnr-field-text">${msg}</span></td>
+                    </tr>
+                </tbody>
+            </table>`;
 
         const renderOrders = () => {
             const filtered = getFilteredOrders();
             setCountLabel(filtered.length, ohViewOrders.length);
 
             if (!ohViewOrders.length) {
-                container.innerHTML = useDatabase
-                    ? `<div class="tm-oh-empty">Δεν υπάρχουν εγγραφές στο server για αυτό το κατάστημα.<br><span class="tm-oh-muted">Η αποδοχή παραγγελιών ανεβαίνει αυτόματα.</span></div>`
-                    : `<div class="tm-oh-empty">Δεν υπάρχει τοπικό ιστορικό ακόμα.<br><span class="tm-oh-muted">Οι αποδοχές σε αυτόν τον υπολογιστή χτίζουν τη λίστα.</span></div>`;
+                container.innerHTML = emptyTable(useDatabase
+                    ? 'Δεν υπάρχουν εγγραφές στο server για αυτό το κατάστημα.'
+                    : 'Δεν υπάρχει τοπικό ιστορικό ακόμα.');
                 return;
             }
             if (!filtered.length) {
-                container.innerHTML = `<div class="tm-oh-empty">Καμία εγγραφή με τα τρέχοντα φίλτρα.</div>`;
+                container.innerHTML = emptyTable('Καμία εγγραφή με τα τρέχοντα φίλτρα.');
                 return;
             }
 
@@ -71456,23 +71412,19 @@ try {
                 const phone = String(order.phone || '');
                 const added = order.timestamp ? formatDateTime(order.timestamp) : '—';
                 const href = order.url || '';
-                const dynCells = tableCols.map((col, idx) => {
+                const dynCells = tableCols.map((col) => {
                     const raw = ohColumnCellValue(order, col);
                     const lower = col.toLowerCase();
                     const isPhone = /τηλέφων|phone/.test(lower);
-                    const edge = idx === tableCols.length - 1 ? '' : '';
                     let inner;
                     if (isPhone) {
                         const disp = formatPhoneDisplay(raw || phone) || raw || '—';
                         const copyVal = raw || phone;
-                        inner = `<span class="rnr-field-text tm-oh-phone-cell">
-                            <span>${escapeHtml(disp)}</span>
-                            ${copyVal ? `<button type="button" class="tm-copy-phone-btn" data-phone="${escapeHtml(copyVal)}" title="Αντιγραφή">⧉</button>` : ''}
-                        </span>`;
+                        inner = `<span class="rnr-field-text">${escapeHtml(disp)}${copyVal ? ` <a href="#" class="tm-copy-phone-btn" data-phone="${escapeHtml(copyVal)}" title="Αντιγραφή">⧉</a>` : ''}</span>`;
                     } else {
                         inner = `<span class="rnr-field-text">${escapeHtml(raw || '—')}</span>`;
                     }
-                    return `<td class="${edge}" data-field="${escapeHtml(col)}" ${href ? `data-href="${escapeHtml(href)}"` : ''} title="${escapeHtml(raw || '')}">${inner}</td>`;
+                    return `<td data-field="${escapeHtml(col)}" ${href ? `data-href="${escapeHtml(href)}"` : ''} title="${escapeHtml(raw || '')}">${inner}</td>`;
                 }).join('');
                 return `
                     <tr class="rnr-row style1" ${href ? `data-href="${escapeHtml(href)}"` : ''}>
@@ -71485,7 +71437,7 @@ try {
             }).join('');
 
             container.innerHTML = `
-                <table class="rnr-c rnr-cont rnr-c-grid rnr-b-grid rnr-gridtable hoverable" cellpadding="0" data-location="grid">
+                <table class="${escapeHtml(tableClass)}" cellpadding="0" data-location="grid">
                     <thead>
                         <tr class="rnr-toprow style1">
                             ${th('timestamp', 'Προστέθηκε', 'rnr-edge')}
@@ -71533,7 +71485,7 @@ try {
                         .slice()
                         .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                     ohViewCapped = !!cache.capped;
-                    const storeEl = root.querySelector('#tm-oh-store-label');
+                    const storeEl = document.getElementById('tm-oh-store-label');
                     if (storeEl) storeEl.textContent = cache.store || ohGetStoreName() || '—';
                     const age = ohFormatCacheAge(cache.savedAt);
                     setSyncStatus(remote.unsupported
@@ -71569,7 +71521,7 @@ try {
                 .slice()
                 .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
             ohViewCapped = !!remote.capped;
-            const storeEl = root.querySelector('#tm-oh-store-label');
+            const storeEl = document.getElementById('tm-oh-store-label');
             if (storeEl) storeEl.textContent = remote.store || ohGetStoreName() || '—';
             setSyncStatus(`server · ${remote.storeKey || 'store'} · ${kind}`);
             statusesChecked = false;
@@ -71602,13 +71554,13 @@ try {
                     .slice()
                     .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                 ohViewCapped = !!cache.capped;
-                const storeEl = root.querySelector('#tm-oh-store-label');
+                const storeEl = document.getElementById('tm-oh-store-label');
                 if (storeEl) storeEl.textContent = cache.store || ohGetStoreName() || '—';
                 const age = ohFormatCacheAge(cache.savedAt);
                 setSyncStatus(`cache${age ? ` · ${age}` : ''} · ενημέρωση…`);
                 renderOrders();
             } else {
-                container.innerHTML = `<div class="tm-oh-empty">Φόρτωση από server…</div>`;
+                container.innerHTML = emptyTable('Φόρτωση από server…');
             }
             refreshFromServer({ silent: true }).catch(() => {});
         };
@@ -71719,9 +71671,9 @@ try {
             URL.revokeObjectURL(a.href);
         });
 
-        container.innerHTML = useDatabase
-            ? `<div class="tm-oh-empty">Φόρτωση από server…</div>`
-            : `<div class="tm-oh-empty">Φόρτωση τοπικού ιστορικού…</div>`;
+        container.innerHTML = emptyTable(useDatabase
+            ? 'Φόρτωση από server…'
+            : 'Φόρτωση τοπικού ιστορικού…');
         paintFromCacheThenRefresh();
 
         nativeHistorySession = { paintFromCacheThenRefresh, renderOrders };

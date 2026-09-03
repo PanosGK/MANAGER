@@ -231,22 +231,7 @@
                 border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent);
                 color: var(--tm-info-color);
             }
-            /* Order history native badges (inline list mode) */
-            #tm-oh-native-root .tm-oh-badge--active {
-                background: color-mix(in srgb, var(--tm-success-color) 14%, transparent);
-                color: var(--tm-success-color);
-                border: 1px solid color-mix(in srgb, var(--tm-success-color) 30%, transparent);
-            }
-            #tm-oh-native-root .tm-oh-badge--removed {
-                background: color-mix(in srgb, var(--tm-danger-color) 12%, transparent);
-                color: var(--tm-danger-color);
-                border: 1px solid color-mix(in srgb, var(--tm-danger-color) 28%, transparent);
-            }
-            #tm-oh-native-root .tm-oh-badge--unknown, #tm-oh-native-root .tm-oh-badge--checking {
-                background: color-mix(in srgb, var(--tm-warning-color) 12%, transparent);
-                color: var(--tm-warning-color);
-                border: 1px solid color-mix(in srgb, var(--tm-warning-color) 28%, transparent);
-            }
+            /* (order history uses native rnr chrome — no custom panel skin) */
             /* Order link popup (status 65) */
             .tm-order-popup-overlay,
             #tm-order-popup {

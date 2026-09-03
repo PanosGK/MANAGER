@@ -917,23 +917,7 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
                 border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent) !important;
                 color: var(--tm-info-color) !important;
             }
-            /* Order history native badges (inline list mode) */
-            #tm-oh-native-root .tm-oh-badge--active {
-                background: color-mix(in srgb, var(--tm-success-color) 14%, transparent) !important;
-                color: var(--tm-success-color) !important;
-                border-color: color-mix(in srgb, var(--tm-success-color) 30%, transparent) !important;
-            }
-            #tm-oh-native-root .tm-oh-badge--removed {
-                background: color-mix(in srgb, var(--tm-danger-color) 12%, transparent) !important;
-                color: var(--tm-danger-color) !important;
-                border-color: color-mix(in srgb, var(--tm-danger-color) 28%, transparent) !important;
-            }
-            #tm-oh-native-root .tm-oh-badge--unknown,
-            #tm-oh-native-root .tm-oh-badge--checking {
-                background: color-mix(in srgb, var(--tm-warning-color) 12%, transparent) !important;
-                color: var(--tm-warning-color) !important;
-                border-color: color-mix(in srgb, var(--tm-warning-color) 28%, transparent) !important;
-            }
+            /* (order history uses native rnr chrome — no custom panel skin) */
             /* Customer history modal */
             #tm-customer-history-modal.tm-modal-overlay,
             .tm-customer-history-overlay {
