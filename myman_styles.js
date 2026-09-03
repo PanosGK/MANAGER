@@ -231,55 +231,18 @@
                 border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent);
                 color: var(--tm-info-color);
             }
-            /* Order history panel (compact server-sourced table) */
-            .tm-oh-overlay { background: var(--tm-overlay-dim) !important; }
-            .tm-oh-shell {
-                background: var(--tm-modal-bg, var(--tm-shop-item-bg));
-                color: var(--tm-primary-color);
-                border: 1px solid var(--tm-shop-item-border);
-            }
-            .tm-oh-header {
-                background: var(--tm-shop-item-bg);
-                border-bottom: 1px solid var(--tm-shop-item-border);
-            }
-            .tm-oh-title { color: var(--tm-shop-item-text, var(--tm-primary-color)); }
-            .tm-oh-meta { color: var(--tm-muted-text, var(--tm-secondary-color)); }
-            .tm-oh-page-badge {
-                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent);
-                color: var(--tm-info-color);
-                border: 1px solid color-mix(in srgb, var(--tm-info-color) 32%, transparent);
-            }
-            .tm-oh-tool-btn, .tm-oh-close, .tm-oh-preset, .tm-oh-input, .tm-oh-select {
-                background: var(--tm-shop-item-bg);
-                border: 1px solid var(--tm-shop-item-border);
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-            }
-            .tm-oh-preset.is-active {
-                background: color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
-                border-color: color-mix(in srgb, var(--tm-primary-color) 40%, transparent);
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-            }
-            .tm-oh-toolbar, .tm-oh-body { background: var(--tm-shop-item-owned-bg, var(--tm-shop-item-bg)); }
-            .tm-oh-table thead th {
-                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg));
-                color: var(--tm-grid-header-text, var(--tm-muted-text, var(--tm-primary-color)));
-                border-bottom: 1px solid var(--tm-shop-item-border);
-            }
-            .tm-oh-table tbody tr:hover td {
-                background: var(--tm-shop-item-hover-bg);
-            }
-            .tm-oh-table td { color: var(--tm-shop-item-text, var(--tm-primary-color)); }
-            .tm-oh-badge--active {
+            /* Order history native badges (inline list mode) */
+            #tm-oh-native-root .tm-oh-badge--active {
                 background: color-mix(in srgb, var(--tm-success-color) 14%, transparent);
                 color: var(--tm-success-color);
                 border: 1px solid color-mix(in srgb, var(--tm-success-color) 30%, transparent);
             }
-            .tm-oh-badge--removed {
+            #tm-oh-native-root .tm-oh-badge--removed {
                 background: color-mix(in srgb, var(--tm-danger-color) 12%, transparent);
                 color: var(--tm-danger-color);
                 border: 1px solid color-mix(in srgb, var(--tm-danger-color) 28%, transparent);
             }
-            .tm-oh-badge--unknown, .tm-oh-badge--checking {
+            #tm-oh-native-root .tm-oh-badge--unknown, #tm-oh-native-root .tm-oh-badge--checking {
                 background: color-mix(in srgb, var(--tm-warning-color) 12%, transparent);
                 color: var(--tm-warning-color);
                 border: 1px solid color-mix(in srgb, var(--tm-warning-color) 28%, transparent);

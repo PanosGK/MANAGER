@@ -3418,11 +3418,13 @@
         const isOrderListPage = currentPath.includes('srvorders_list.php') || 
                                 currentPath.includes('sparepartstoorder_list.php');
         
-        if (isOrderListPage && config.orderHistoryEnabled && typeof window.showOrderHistoryModal === 'function') {
+        if (isOrderListPage && config.orderHistoryEnabled && (typeof window.enterNativeHistoryMode === 'function' || typeof window.showOrderHistoryModal === 'function')) {
             const orderHistoryBtn = createFeatureButton(
                 '📦', 'Order History', '#2196f3 0%, #1976d2 100%',
                 () => {
-                    if (typeof window.showOrderHistoryModal === 'function') {
+                    if (typeof window.enterNativeHistoryMode === 'function') {
+                        window.enterNativeHistoryMode();
+                    } else if (typeof window.showOrderHistoryModal === 'function') {
                         window.showOrderHistoryModal();
                     }
                 }

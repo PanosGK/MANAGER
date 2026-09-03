@@ -2374,32 +2374,47 @@ function compactPhoneForSnapshot(phone) {
 }
 
 function parsePhoneListSnapshot(payload, recordHint) {
+    // Prefer scrape fields on the payload. PocketBase record updatedAt/By is the
+    // last DB write (often a pull/flush), not the MyManager scrape.
     if (Array.isArray(payload)) {
         return {
             phones: payload,
-            refreshedAt: recordHint?.updatedAt ? Date.parse(recordHint.updatedAt) : 0,
-            refreshedBy: String(recordHint?.updatedBy || '').trim(),
+            refreshedAt: 0,
+            refreshedBy: '',
         };
     }
     if (payload && typeof payload === 'object' && Array.isArray(payload.phones)) {
         return {
             phones: payload.phones,
-            refreshedAt: Number(payload.refreshedAt)
-                || (recordHint?.updatedAt ? Date.parse(recordHint.updatedAt) : 0),
-            refreshedBy: String(payload.refreshedBy || recordHint?.updatedBy || '').trim(),
+            refreshedAt: Number(payload.refreshedAt) || 0,
+            refreshedBy: String(payload.refreshedBy || '').trim(),
         };
     }
+    void recordHint;
     return null;
 }
 
-function applyPhoneListSnapshot(snapshot) {
+function applyPhoneListSnapshot(snapshot, opts = {}) {
     if (!snapshot?.phones?.length) return;
     hydratePhonesFromStoreDetailsCache(snapshot.phones);
-    const ts = Number(snapshot.refreshedAt) || Date.now();
-    const by = String(snapshot.refreshedBy || '').trim().slice(0, 64);
+    const prevMeta = loadPhoneListRefreshMeta();
+    const prevTs = getPhoneListCacheTimestamp();
+    const snapTs = Number(snapshot.refreshedAt) || 0;
+    const snapBy = String(snapshot.refreshedBy || '').trim().slice(0, 64);
+    // Stock rows may carry scrape fields, but PocketBase kind `list_refresh` is
+    // the network source of truth for who scraped / when. Don't clobber it on
+    // every phone_list pull unless meta is missing or this is an explicit scrape save.
+    const updateRefreshMeta = opts.updateRefreshMeta === true
+        || ((!prevMeta?.at && !prevMeta?.by) && (snapTs || snapBy));
+    const ts = snapTs || Number(prevMeta?.at) || prevTs || 0;
     GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(snapshot.phones));
-    GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, ts);
-    GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify({ at: ts, by }));
+    if (ts > 0) GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, ts);
+    if (updateRefreshMeta && (snapTs || snapBy || prevMeta)) {
+        GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify({
+            at: snapTs || Number(prevMeta?.at) || prevTs || 0,
+            by: snapBy || String(prevMeta?.by || '').trim().slice(0, 64),
+        }));
+    }
 }
 
 function readStoredPhoneListCount() {
@@ -4661,12 +4676,13 @@ function pcReadLocalConfigPayload(kind) {
         case 'other_store_phones': {
             const list = getOtherStoreCache({ ignoreExpiry: true });
             if (!Array.isArray(list) || !list.length) return null;
-            const ts = Number(GM_getValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0)) || Date.now();
             const meta = loadPhoneListRefreshMeta();
+            // Keep phone-list scrape time/actor for shared stock — not the other-store
+            // cache write time (that updates on every network warm).
             return {
                 v: 2,
                 phones: list,
-                refreshedAt: ts,
+                refreshedAt: Number(meta?.at) || Number(GM_getValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0)) || Date.now(),
                 refreshedBy: String(meta?.by || '').trim().slice(0, 64),
             };
         }
@@ -4704,15 +4720,19 @@ function pcApplyConfigPayload(kind, payload, recordHint) {
             }
         } else if (kind === 'phone_list') {
             const snapshot = parsePhoneListSnapshot(payload, recordHint);
-            if (snapshot) applyPhoneListSnapshot(snapshot);
+            // Keep DB `list_refresh` as scrape actor/time; stock pull only updates phones.
+            if (snapshot) applyPhoneListSnapshot(snapshot, { updateRefreshMeta: false });
         } else if (kind === 'other_store_phones') {
             const snapshot = parsePhoneListSnapshot(payload, recordHint);
             if (snapshot?.phones?.length) {
                 GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(snapshot.phones));
-                GM_setValue(
-                    OTHER_STORE_CACHE_TIMESTAMP_KEY,
-                    Number(snapshot.refreshedAt) || Date.now()
-                );
+                const otherTs = Number(snapshot.refreshedAt)
+                    || Number(loadPhoneListRefreshMeta()?.at)
+                    || Number(GM_getValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0))
+                    || 0;
+                if (otherTs > 0) {
+                    GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, otherTs);
+                }
             }
         }
     } finally {
@@ -4813,7 +4833,6 @@ function pcAssembleStockRecords(recs) {
         if (kind === base && Array.isArray(payload)) {
             chunks[0] = payload;
             totalHint = 1;
-            refreshedBy = String(rec.updatedBy || refreshedBy).trim();
             return;
         }
         const phones = Array.isArray(payload.phones) ? payload.phones : [];
@@ -4825,11 +4844,13 @@ function pcAssembleStockRecords(recs) {
         chunks[idx] = phones;
         if (payload.total != null) totalHint = Number(payload.total) || totalHint;
         if (isLegacyBlob) totalHint = 1;
-        refreshedAt = Number(payload.refreshedAt) || refreshedAt;
-        refreshedBy = String(payload.refreshedBy || rec.updatedBy || refreshedBy).trim();
-        if (rec.updatedAt && !refreshedAt) {
-            const parsed = Date.parse(rec.updatedAt);
-            if (!Number.isNaN(parsed)) refreshedAt = parsed;
+        // Only scrape fields from the payload — ignore PocketBase record updatedAt/By
+        // (those are write times, not MyManager scrape times).
+        if (Number(payload.refreshedAt) > 0) {
+            refreshedAt = Number(payload.refreshedAt);
+        }
+        if (payload.refreshedBy) {
+            refreshedBy = String(payload.refreshedBy).trim();
         }
     });
     const total = totalHint || chunks.filter(Boolean).length;
@@ -5030,6 +5051,7 @@ async function pcPullConfigs(token) {
     const stockByBase = { phone_list: [], other_store_phones: [] };
     const noteMap = {};
     let notesFound = false;
+    const refreshRecs = [];
     items.forEach((rec) => {
         const kind = String(rec.kind || '').trim();
         const payload = pcParsePayload(rec.payload);
@@ -5046,6 +5068,10 @@ async function pcPullConfigs(token) {
             };
             return;
         }
+        if (kind === 'list_refresh') {
+            refreshRecs.push(rec);
+            return;
+        }
         const stockBase = pcStockKindBase(kind);
         if (stockBase) {
             stockByBase[stockBase].push(rec);
@@ -5053,9 +5079,15 @@ async function pcPullConfigs(token) {
         }
         if (kind && payload != null) pcApplyConfigPayload(kind, payload, rec);
     });
-    Object.keys(stockByBase).forEach((base) => {
-        const snapshot = pcAssembleStockRecords(stockByBase[base]);
-        if (snapshot) pcApplyConfigPayload(base, snapshot, stockByBase[base][0]);
+    // Apply stock first, then authoritative scrape meta from DB `list_refresh`
+    // so phone_list payload fields cannot overwrite who scraped / when.
+    Object.keys(stockByBase).forEach((baseKind) => {
+        const snapshot = pcAssembleStockRecords(stockByBase[baseKind]);
+        if (snapshot) pcApplyConfigPayload(baseKind, snapshot, stockByBase[baseKind][0]);
+    });
+    refreshRecs.forEach((rec) => {
+        const payload = pcParsePayload(rec.payload);
+        if (payload != null) pcApplyConfigPayload('list_refresh', payload, rec);
     });
     if (notesFound) {
         const next = { ...noteMap };

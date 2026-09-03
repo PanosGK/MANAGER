@@ -1782,44 +1782,23 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
                 border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent) !important;
                 color: var(--tm-info-color) !important;
             }
-            /* Order history panel (compact) */
-            .tm-oh-overlay { background: var(--tm-overlay-dim, rgba(0,0,0,0.72)) !important; }
-            .tm-oh-shell {
-                background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important;
-                color: var(--tm-primary-color) !important;
-                border-color: var(--tm-shop-item-border) !important;
+            /* Order history native badges (inline list mode) */
+            #tm-oh-native-root .tm-oh-badge--active {
+                background: color-mix(in srgb, var(--tm-success-color) 14%, transparent) !important;
+                color: var(--tm-success-color) !important;
+                border-color: color-mix(in srgb, var(--tm-success-color) 30%, transparent) !important;
             }
-            .tm-oh-header {
-                background: var(--tm-shop-item-bg) !important;
-                border-bottom-color: var(--tm-shop-item-border) !important;
+            #tm-oh-native-root .tm-oh-badge--removed {
+                background: color-mix(in srgb, var(--tm-danger-color) 12%, transparent) !important;
+                color: var(--tm-danger-color) !important;
+                border-color: color-mix(in srgb, var(--tm-danger-color) 28%, transparent) !important;
             }
-            .tm-oh-title { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
-            .tm-oh-meta { color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
-            .tm-oh-page-badge {
-                background: color-mix(in srgb, var(--tm-info-color) 16%, transparent) !important;
-                color: var(--tm-info-color) !important;
-                border-color: color-mix(in srgb, var(--tm-info-color) 35%, transparent) !important;
+            #tm-oh-native-root .tm-oh-badge--unknown,
+            #tm-oh-native-root .tm-oh-badge--checking {
+                background: color-mix(in srgb, var(--tm-warning-color) 12%, transparent) !important;
+                color: var(--tm-warning-color) !important;
+                border-color: color-mix(in srgb, var(--tm-warning-color) 28%, transparent) !important;
             }
-            .tm-oh-tool-btn, .tm-oh-close, .tm-oh-preset, .tm-oh-input, .tm-oh-select {
-                background: var(--tm-input-bg, var(--tm-shop-item-bg)) !important;
-                border-color: var(--tm-input-border, var(--tm-shop-item-border)) !important;
-                color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color))) !important;
-            }
-            .tm-oh-preset.is-active {
-                background: color-mix(in srgb, var(--tm-primary-color) 14%, transparent) !important;
-                border-color: color-mix(in srgb, var(--tm-primary-color) 40%, transparent) !important;
-                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
-            }
-            .tm-oh-toolbar, .tm-oh-body { background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg)) !important; }
-            .tm-oh-table thead th {
-                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg)) !important;
-                color: var(--tm-grid-header-text, var(--tm-muted-text, var(--tm-primary-color))) !important;
-                border-bottom-color: var(--tm-shop-item-border) !important;
-            }
-            .tm-oh-table tbody tr:hover td {
-                background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg)) !important;
-            }
-            .tm-oh-table td { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
             /* Customer history modal */
             #tm-customer-history-modal.tm-modal-overlay,
             .tm-customer-history-overlay {
@@ -7235,55 +7214,18 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent);
                 color: var(--tm-info-color);
             }
-            /* Order history panel (compact server-sourced table) */
-            .tm-oh-overlay { background: var(--tm-overlay-dim) !important; }
-            .tm-oh-shell {
-                background: var(--tm-modal-bg, var(--tm-shop-item-bg));
-                color: var(--tm-primary-color);
-                border: 1px solid var(--tm-shop-item-border);
-            }
-            .tm-oh-header {
-                background: var(--tm-shop-item-bg);
-                border-bottom: 1px solid var(--tm-shop-item-border);
-            }
-            .tm-oh-title { color: var(--tm-shop-item-text, var(--tm-primary-color)); }
-            .tm-oh-meta { color: var(--tm-muted-text, var(--tm-secondary-color)); }
-            .tm-oh-page-badge {
-                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent);
-                color: var(--tm-info-color);
-                border: 1px solid color-mix(in srgb, var(--tm-info-color) 32%, transparent);
-            }
-            .tm-oh-tool-btn, .tm-oh-close, .tm-oh-preset, .tm-oh-input, .tm-oh-select {
-                background: var(--tm-shop-item-bg);
-                border: 1px solid var(--tm-shop-item-border);
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-            }
-            .tm-oh-preset.is-active {
-                background: color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
-                border-color: color-mix(in srgb, var(--tm-primary-color) 40%, transparent);
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-            }
-            .tm-oh-toolbar, .tm-oh-body { background: var(--tm-shop-item-owned-bg, var(--tm-shop-item-bg)); }
-            .tm-oh-table thead th {
-                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg));
-                color: var(--tm-grid-header-text, var(--tm-muted-text, var(--tm-primary-color)));
-                border-bottom: 1px solid var(--tm-shop-item-border);
-            }
-            .tm-oh-table tbody tr:hover td {
-                background: var(--tm-shop-item-hover-bg);
-            }
-            .tm-oh-table td { color: var(--tm-shop-item-text, var(--tm-primary-color)); }
-            .tm-oh-badge--active {
+            /* Order history native badges (inline list mode) */
+            #tm-oh-native-root .tm-oh-badge--active {
                 background: color-mix(in srgb, var(--tm-success-color) 14%, transparent);
                 color: var(--tm-success-color);
                 border: 1px solid color-mix(in srgb, var(--tm-success-color) 30%, transparent);
             }
-            .tm-oh-badge--removed {
+            #tm-oh-native-root .tm-oh-badge--removed {
                 background: color-mix(in srgb, var(--tm-danger-color) 12%, transparent);
                 color: var(--tm-danger-color);
                 border: 1px solid color-mix(in srgb, var(--tm-danger-color) 28%, transparent);
             }
-            .tm-oh-badge--unknown, .tm-oh-badge--checking {
+            #tm-oh-native-root .tm-oh-badge--unknown, #tm-oh-native-root .tm-oh-badge--checking {
                 background: color-mix(in srgb, var(--tm-warning-color) 12%, transparent);
                 color: var(--tm-warning-color);
                 border: 1px solid color-mix(in srgb, var(--tm-warning-color) 28%, transparent);
@@ -58820,22 +58762,26 @@ window.initOrderTracking = initOrderTracking;
         }, opts.durationMs || 2600);
     }
 
-    function updateFreshness(overlay, lastUpdated, refreshedBy) {
+    function updateFreshness(overlay, lastUpdated, refreshedBy, opts = {}) {
         const wrap = overlay?.querySelector('#tm-sl-freshness');
         const updatedEl = overlay?.querySelector('#tm-sl-updated');
         if (!wrap || !lastUpdated) return;
         const ageMs = Date.now() - lastUpdated.getTime();
         wrap.classList.remove('tm-sl-freshness--fresh', 'tm-sl-freshness--cached', 'tm-sl-freshness--stale');
-        let label = 'Cache';
-        if (ageMs < 5 * 60 * 1000) {
+        // Labels describe the scrape snapshot, not when this browser opened the panel.
+        let label = 'Ανανέωση';
+        if (opts.fromLiveScrape && ageMs < 5 * 60 * 1000) {
             wrap.classList.add('tm-sl-freshness--fresh');
             label = 'Ζωντανά';
+        } else if (ageMs < 5 * 60 * 1000) {
+            wrap.classList.add('tm-sl-freshness--fresh');
+            label = 'Ανανέωση';
         } else if (ageMs < 60 * 60 * 1000) {
             wrap.classList.add('tm-sl-freshness--cached');
-            label = 'Cache';
+            label = 'Ανανέωση';
         } else {
             wrap.classList.add('tm-sl-freshness--stale');
-            label = 'Παλιά δεδομένα';
+            label = 'Παλιά ανανέωση';
         }
         if (updatedEl) {
             const when = lastUpdated.toLocaleString('el-GR');
@@ -61521,32 +61467,47 @@ function compactPhoneForSnapshot(phone) {
 }
 
 function parsePhoneListSnapshot(payload, recordHint) {
+    // Prefer scrape fields on the payload. PocketBase record updatedAt/By is the
+    // last DB write (often a pull/flush), not the MyManager scrape.
     if (Array.isArray(payload)) {
         return {
             phones: payload,
-            refreshedAt: recordHint?.updatedAt ? Date.parse(recordHint.updatedAt) : 0,
-            refreshedBy: String(recordHint?.updatedBy || '').trim(),
+            refreshedAt: 0,
+            refreshedBy: '',
         };
     }
     if (payload && typeof payload === 'object' && Array.isArray(payload.phones)) {
         return {
             phones: payload.phones,
-            refreshedAt: Number(payload.refreshedAt)
-                || (recordHint?.updatedAt ? Date.parse(recordHint.updatedAt) : 0),
-            refreshedBy: String(payload.refreshedBy || recordHint?.updatedBy || '').trim(),
+            refreshedAt: Number(payload.refreshedAt) || 0,
+            refreshedBy: String(payload.refreshedBy || '').trim(),
         };
     }
+    void recordHint;
     return null;
 }
 
-function applyPhoneListSnapshot(snapshot) {
+function applyPhoneListSnapshot(snapshot, opts = {}) {
     if (!snapshot?.phones?.length) return;
     hydratePhonesFromStoreDetailsCache(snapshot.phones);
-    const ts = Number(snapshot.refreshedAt) || Date.now();
-    const by = String(snapshot.refreshedBy || '').trim().slice(0, 64);
+    const prevMeta = loadPhoneListRefreshMeta();
+    const prevTs = getPhoneListCacheTimestamp();
+    const snapTs = Number(snapshot.refreshedAt) || 0;
+    const snapBy = String(snapshot.refreshedBy || '').trim().slice(0, 64);
+    // Stock rows may carry scrape fields, but PocketBase kind `list_refresh` is
+    // the network source of truth for who scraped / when. Don't clobber it on
+    // every phone_list pull unless meta is missing or this is an explicit scrape save.
+    const updateRefreshMeta = opts.updateRefreshMeta === true
+        || ((!prevMeta?.at && !prevMeta?.by) && (snapTs || snapBy));
+    const ts = snapTs || Number(prevMeta?.at) || prevTs || 0;
     GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(snapshot.phones));
-    GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, ts);
-    GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify({ at: ts, by }));
+    if (ts > 0) GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, ts);
+    if (updateRefreshMeta && (snapTs || snapBy || prevMeta)) {
+        GM_setValue(PHONE_LIST_REFRESH_META_KEY, JSON.stringify({
+            at: snapTs || Number(prevMeta?.at) || prevTs || 0,
+            by: snapBy || String(prevMeta?.by || '').trim().slice(0, 64),
+        }));
+    }
 }
 
 function readStoredPhoneListCount() {
@@ -63808,12 +63769,13 @@ function pcReadLocalConfigPayload(kind) {
         case 'other_store_phones': {
             const list = getOtherStoreCache({ ignoreExpiry: true });
             if (!Array.isArray(list) || !list.length) return null;
-            const ts = Number(GM_getValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0)) || Date.now();
             const meta = loadPhoneListRefreshMeta();
+            // Keep phone-list scrape time/actor for shared stock — not the other-store
+            // cache write time (that updates on every network warm).
             return {
                 v: 2,
                 phones: list,
-                refreshedAt: ts,
+                refreshedAt: Number(meta?.at) || Number(GM_getValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0)) || Date.now(),
                 refreshedBy: String(meta?.by || '').trim().slice(0, 64),
             };
         }
@@ -63851,15 +63813,19 @@ function pcApplyConfigPayload(kind, payload, recordHint) {
             }
         } else if (kind === 'phone_list') {
             const snapshot = parsePhoneListSnapshot(payload, recordHint);
-            if (snapshot) applyPhoneListSnapshot(snapshot);
+            // Keep DB `list_refresh` as scrape actor/time; stock pull only updates phones.
+            if (snapshot) applyPhoneListSnapshot(snapshot, { updateRefreshMeta: false });
         } else if (kind === 'other_store_phones') {
             const snapshot = parsePhoneListSnapshot(payload, recordHint);
             if (snapshot?.phones?.length) {
                 GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(snapshot.phones));
-                GM_setValue(
-                    OTHER_STORE_CACHE_TIMESTAMP_KEY,
-                    Number(snapshot.refreshedAt) || Date.now()
-                );
+                const otherTs = Number(snapshot.refreshedAt)
+                    || Number(loadPhoneListRefreshMeta()?.at)
+                    || Number(GM_getValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0))
+                    || 0;
+                if (otherTs > 0) {
+                    GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, otherTs);
+                }
             }
         }
     } finally {
@@ -63960,7 +63926,6 @@ function pcAssembleStockRecords(recs) {
         if (kind === base && Array.isArray(payload)) {
             chunks[0] = payload;
             totalHint = 1;
-            refreshedBy = String(rec.updatedBy || refreshedBy).trim();
             return;
         }
         const phones = Array.isArray(payload.phones) ? payload.phones : [];
@@ -63972,11 +63937,13 @@ function pcAssembleStockRecords(recs) {
         chunks[idx] = phones;
         if (payload.total != null) totalHint = Number(payload.total) || totalHint;
         if (isLegacyBlob) totalHint = 1;
-        refreshedAt = Number(payload.refreshedAt) || refreshedAt;
-        refreshedBy = String(payload.refreshedBy || rec.updatedBy || refreshedBy).trim();
-        if (rec.updatedAt && !refreshedAt) {
-            const parsed = Date.parse(rec.updatedAt);
-            if (!Number.isNaN(parsed)) refreshedAt = parsed;
+        // Only scrape fields from the payload — ignore PocketBase record updatedAt/By
+        // (those are write times, not MyManager scrape times).
+        if (Number(payload.refreshedAt) > 0) {
+            refreshedAt = Number(payload.refreshedAt);
+        }
+        if (payload.refreshedBy) {
+            refreshedBy = String(payload.refreshedBy).trim();
         }
     });
     const total = totalHint || chunks.filter(Boolean).length;
@@ -64177,6 +64144,7 @@ async function pcPullConfigs(token) {
     const stockByBase = { phone_list: [], other_store_phones: [] };
     const noteMap = {};
     let notesFound = false;
+    const refreshRecs = [];
     items.forEach((rec) => {
         const kind = String(rec.kind || '').trim();
         const payload = pcParsePayload(rec.payload);
@@ -64193,6 +64161,10 @@ async function pcPullConfigs(token) {
             };
             return;
         }
+        if (kind === 'list_refresh') {
+            refreshRecs.push(rec);
+            return;
+        }
         const stockBase = pcStockKindBase(kind);
         if (stockBase) {
             stockByBase[stockBase].push(rec);
@@ -64200,9 +64172,15 @@ async function pcPullConfigs(token) {
         }
         if (kind && payload != null) pcApplyConfigPayload(kind, payload, rec);
     });
-    Object.keys(stockByBase).forEach((base) => {
-        const snapshot = pcAssembleStockRecords(stockByBase[base]);
-        if (snapshot) pcApplyConfigPayload(base, snapshot, stockByBase[base][0]);
+    // Apply stock first, then authoritative scrape meta from DB `list_refresh`
+    // so phone_list payload fields cannot overwrite who scraped / when.
+    Object.keys(stockByBase).forEach((baseKind) => {
+        const snapshot = pcAssembleStockRecords(stockByBase[baseKind]);
+        if (snapshot) pcApplyConfigPayload(baseKind, snapshot, stockByBase[baseKind][0]);
+    });
+    refreshRecs.forEach((rec) => {
+        const payload = pcParsePayload(rec.payload);
+        if (payload != null) pcApplyConfigPayload('list_refresh', payload, rec);
     });
     if (notesFound) {
         const next = { ...noteMap };
@@ -66512,20 +66490,32 @@ try {
             if (statusEl) statusEl.textContent = text;
         }
 
-        function syncFreshness() {
-            if (!lastUpdated) return;
-            let by = '';
+        function readScrapeFreshness() {
             try {
                 const meta = typeof window.loadPhoneListRefreshMeta === 'function'
                     ? window.loadPhoneListRefreshMeta()
                     : null;
-                if (meta?.by) by = String(meta.by).trim();
-                if (meta?.at) {
-                    const metaDate = new Date(meta.at);
-                    if (!Number.isNaN(metaDate.getTime())) lastUpdated = metaDate;
-                }
-            } catch (_) { /* ignore */ }
-            UI.updateFreshness(overlay, lastUpdated, by);
+                const at = Number(meta?.at) || 0;
+                const by = String(meta?.by || '').trim();
+                if (at > 0) return { at, by, date: new Date(at) };
+                const cacheTs = Number(GM_getValue(
+                    window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp',
+                    0
+                )) || 0;
+                if (cacheTs > 0) return { at: cacheTs, by, date: new Date(cacheTs) };
+                return { at: 0, by, date: null };
+            } catch (_) {
+                return { at: 0, by: '', date: null };
+            }
+        }
+
+        function syncFreshness(opts = {}) {
+            const scrape = readScrapeFreshness();
+            if (scrape.date) lastUpdated = scrape.date;
+            if (!lastUpdated) return;
+            UI.updateFreshness(overlay, lastUpdated, scrape.by, {
+                fromLiveScrape: !!opts.fromLiveScrape,
+            });
         }
 
         function wireModelCards() {
@@ -67467,8 +67457,7 @@ try {
                 if (catalogCategory !== 'laptops' && typeof window.syncPhoneColorCatalog === 'function') {
                     window.syncPhoneColorCatalog(allPhones);
                 }
-                lastUpdated = new Date();
-                syncFreshness();
+                syncFreshness({ fromLiveScrape: true });
                 if (step === 'stores' && selectedModel) {
                     await renderStoresStep();
                 } else {
@@ -67615,8 +67604,6 @@ try {
 
             if (cached?.length) {
                 allPhones = helpers.filterIphoneTitlePhones(cached);
-                const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
-                lastUpdated = new Date(ts);
                 syncFreshness();
                 renderModelsStep();
                 paintedFromLocalCache = true;
@@ -67683,6 +67670,8 @@ try {
             }
 
             if (paintedFromLocalCache && !snap.phones?.length && !snap.otherStorePhones?.length) {
+                // DB pull may still have updated `list_refresh` (who scraped / when).
+                syncFreshness();
                 scheduleWarmNetwork();
                 return;
             }
@@ -67694,8 +67683,10 @@ try {
 
             if (snap.phones?.length) {
                 allPhones = helpers.filterIphoneTitlePhones(snap.phones);
-                if (snap.lastUpdated) lastUpdated = snap.lastUpdated;
             }
+            // Freshness comes from PocketBase `list_refresh` (scrape actor/time).
+            if (snap.lastUpdated) lastUpdated = snap.lastUpdated;
+            syncFreshness();
 
             mergeNetworkStoreHints();
 
@@ -67726,9 +67717,9 @@ try {
                 syncCatalogHeaders();
             }
 
-            syncFreshness();
             renderModelsStep();
-            const who = snap.refreshedBy ? ` · ${snap.refreshedBy}` : '';
+            const scrape = readScrapeFreshness();
+            const who = scrape.by ? ` · ${scrape.by}` : (snap.refreshedBy ? ` · ${snap.refreshedBy}` : '');
             const mineUnits = allPhones.filter((p) => (p.unitsRemaining || 0) > 0).length;
             const netUnits = otherStorePhones.length;
             if (catalogView === 'network') {
@@ -71049,219 +71040,13 @@ try {
         return trimmed;
     }
 
-    function ensureOrderHistoryStyles() {
+    function ensureNativeHistoryStyles() {
         const existing = document.getElementById('tm-order-history-ui-styles');
         if (existing) existing.remove();
         const style = document.createElement('style');
         style.id = 'tm-order-history-ui-styles';
         style.textContent = `
-            .tm-oh-overlay {
-                background: var(--tm-overlay-dim, rgba(0,0,0,0.55)) !important;
-                z-index: 10050 !important;
-            }
-            .tm-oh-shell {
-                width: min(96vw, 1280px) !important;
-                max-width: 1280px !important;
-                height: min(88vh, 820px) !important;
-                padding: 0 !important;
-                border-radius: 10px !important;
-                overflow: hidden !important;
-                border: 1px solid var(--tm-shop-item-border) !important;
-                box-shadow: 0 16px 48px var(--tm-shadow-color, rgba(0,0,0,0.28)) !important;
-                background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
-                color: var(--tm-primary-color) !important;
-                display: flex !important;
-                flex-direction: column !important;
-            }
-            .tm-oh-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-                padding: 12px 14px;
-                border-bottom: 1px solid var(--tm-shop-item-border);
-                flex-shrink: 0;
-                background: var(--tm-shop-item-bg);
-            }
-            .tm-oh-header-left { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-            .tm-oh-title {
-                margin: 0;
-                font-size: 15px;
-                font-weight: 700;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
-            .tm-oh-page-badge {
-                display: inline-flex;
-                padding: 2px 8px;
-                border-radius: 4px;
-                font-size: 10px;
-                font-weight: 700;
-                letter-spacing: 0.03em;
-                text-transform: uppercase;
-                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent);
-                color: var(--tm-info-color);
-                border: 1px solid color-mix(in srgb, var(--tm-info-color) 30%, transparent);
-            }
-            .tm-oh-meta {
-                margin: 0;
-                font-size: 11px;
-                color: var(--tm-muted-text, var(--tm-secondary-color));
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px 10px;
-                align-items: center;
-            }
-            .tm-oh-store-chip {
-                display: inline-flex;
-                padding: 1px 7px;
-                border-radius: 4px;
-                border: 1px solid var(--tm-shop-item-border);
-                background: color-mix(in srgb, var(--tm-shop-item-border) 25%, transparent);
-                font-weight: 600;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-            }
-            .tm-oh-header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-            .tm-oh-tool-btn, .tm-oh-close {
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                padding: 6px 10px;
-                border-radius: 6px;
-                border: 1px solid var(--tm-shop-item-border);
-                background: var(--tm-input-bg, var(--tm-shop-item-bg));
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                font-size: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                line-height: 1.2;
-            }
-            .tm-oh-tool-btn:hover, .tm-oh-close:hover {
-                border-color: var(--tm-primary-color);
-            }
-            .tm-oh-tool-btn:disabled { opacity: 0.55; cursor: wait; }
-            .tm-oh-close {
-                width: 32px;
-                height: 32px;
-                padding: 0;
-                justify-content: center;
-                font-size: 18px;
-            }
-            .tm-oh-toolbar {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-                align-items: center;
-                padding: 10px 14px;
-                border-bottom: 1px solid var(--tm-shop-item-border);
-                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg, var(--tm-shop-item-bg)));
-                flex-shrink: 0;
-            }
-            .tm-oh-input, .tm-oh-select {
-                padding: 6px 8px;
-                border-radius: 6px;
-                border: 1px solid var(--tm-input-border, var(--tm-shop-item-border));
-                background: var(--tm-input-bg, var(--tm-shop-item-bg));
-                color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color)));
-                font-size: 12px;
-                box-sizing: border-box;
-            }
-            .tm-oh-input:focus, .tm-oh-select:focus {
-                outline: none;
-                border-color: var(--tm-input-focus-border, var(--tm-primary-color));
-            }
-            .tm-oh-search { flex: 1 1 180px; min-width: 140px; }
-            .tm-oh-select { flex: 0 0 auto; }
-            .tm-oh-date { width: 128px; }
-            .tm-oh-presets { display: inline-flex; gap: 4px; flex-wrap: wrap; }
-            .tm-oh-preset {
-                padding: 5px 8px;
-                border-radius: 6px;
-                border: 1px solid var(--tm-shop-item-border);
-                background: transparent;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                font-size: 11px;
-                font-weight: 600;
-                cursor: pointer;
-            }
-            .tm-oh-preset.is-active {
-                background: color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
-                border-color: color-mix(in srgb, var(--tm-primary-color) 40%, transparent);
-            }
-            .tm-oh-body {
-                flex: 1 1 auto;
-                min-height: 0;
-                overflow: auto;
-                padding: 0;
-                background: var(--tm-shop-item-bg);
-            }
-            .tm-oh-table-wrap {
-                width: 100%;
-                overflow-x: auto;
-            }
-            table.tm-oh-table {
-                width: max-content;
-                min-width: 100%;
-                border-collapse: collapse;
-                font-size: 12px;
-            }
-            .tm-oh-table thead th {
-                position: sticky;
-                top: 0;
-                z-index: 2;
-                text-align: left;
-                padding: 8px 10px;
-                font-size: 10px;
-                font-weight: 700;
-                letter-spacing: 0.04em;
-                text-transform: uppercase;
-                color: var(--tm-muted-text, var(--tm-secondary-color));
-                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg, var(--tm-shop-item-bg)));
-                border-bottom: 1px solid var(--tm-shop-item-border);
-                white-space: nowrap;
-                cursor: pointer;
-                user-select: none;
-            }
-            .tm-oh-table thead th.sort-asc::after { content: ' ↑'; }
-            .tm-oh-table thead th.sort-desc::after { content: ' ↓'; }
-            .tm-oh-table tbody td {
-                padding: 8px 10px;
-                border-bottom: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
-                vertical-align: middle;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                max-width: 280px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .tm-oh-table tbody td.tm-oh-cell-phone {
-                max-width: 200px;
-                white-space: normal;
-            }
-            .tm-oh-table tbody tr {
-                cursor: pointer;
-            }
-            .tm-oh-table tbody tr:hover td {
-                background: color-mix(in srgb, var(--tm-primary-color) 6%, transparent);
-            }
-            .tm-oh-phone-cell {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-            }
-            .tm-copy-phone-btn {
-                border: 1px solid var(--tm-shop-item-border);
-                background: transparent;
-                border-radius: 4px;
-                padding: 2px 6px;
-                font-size: 10px;
-                cursor: pointer;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-            }
-            .tm-oh-badge {
+            #tm-oh-native-root .tm-oh-badge {
                 display: inline-flex;
                 align-items: center;
                 padding: 2px 7px;
@@ -71270,95 +71055,250 @@ try {
                 font-weight: 700;
                 border: 1px solid transparent;
             }
-            .tm-oh-badge--checking {
+            #tm-oh-native-root .tm-oh-badge--checking {
                 background: color-mix(in srgb, var(--tm-warning-color, #b78103) 12%, transparent);
                 color: var(--tm-warning-color, #b78103);
                 border-color: color-mix(in srgb, var(--tm-warning-color, #b78103) 35%, transparent);
             }
-            .tm-oh-badge--active {
+            #tm-oh-native-root .tm-oh-badge--active {
                 background: color-mix(in srgb, var(--tm-success-color, #2e7d32) 12%, transparent);
                 color: var(--tm-success-color, #2e7d32);
                 border-color: color-mix(in srgb, var(--tm-success-color, #2e7d32) 35%, transparent);
             }
-            .tm-oh-badge--removed {
+            #tm-oh-native-root .tm-oh-badge--removed {
                 background: color-mix(in srgb, var(--tm-danger-color, #c62828) 12%, transparent);
                 color: var(--tm-danger-color, #c62828);
                 border-color: color-mix(in srgb, var(--tm-danger-color, #c62828) 35%, transparent);
             }
-            .tm-oh-badge--unknown {
+            #tm-oh-native-root .tm-oh-badge--unknown {
                 background: color-mix(in srgb, var(--tm-muted-text, #888) 12%, transparent);
                 color: var(--tm-muted-text, #666);
                 border-color: color-mix(in srgb, var(--tm-muted-text, #888) 30%, transparent);
             }
-            .tm-oh-empty {
+            #tm-oh-native-root .tm-oh-phone-cell {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+            #tm-oh-native-root .tm-copy-phone-btn {
+                border: 1px solid var(--tm-shop-item-border, #ccc);
+                background: transparent;
+                border-radius: 4px;
+                padding: 2px 6px;
+                font-size: 10px;
+                cursor: pointer;
+                color: inherit;
+            }
+            #tm-oh-native-root .tm-oh-empty {
                 padding: 48px 20px;
                 text-align: center;
                 color: var(--tm-muted-text, var(--tm-secondary-color));
                 font-size: 13px;
             }
-            .tm-oh-empty strong { color: var(--tm-shop-item-text, var(--tm-primary-color)); }
-            .tm-oh-muted { opacity: 0.7; }
+            #tm-oh-native-root th[data-sort] { cursor: pointer; user-select: none; }
+            #tm-oh-native-root th[data-sort].sort-asc::after { content: ' ↑'; }
+            #tm-oh-native-root th[data-sort].sort-desc::after { content: ' ↓'; }
+            #tm-oh-native-root .tm-oh-filter-row input,
+            #tm-oh-native-root .tm-oh-filter-row select {
+                padding: 4px 8px;
+                font-size: 12px;
+                margin: 0 4px 4px 0;
+                box-sizing: border-box;
+            }
+            #tm-oh-native-root .tm-oh-filter-row .rnr-button.is-active {
+                font-weight: 700;
+            }
+            #tm-oh-native-toggle.is-active {
+                font-weight: 700;
+            }
         `;
         document.head.appendChild(style);
     }
 
-    function showOrderHistoryModal() {
-        if (document.querySelector('.tm-modal-overlay[data-order-history-modal]')) return;
+    function isOrderHistoryListPage() {
+        return onOrdersPage;
+    }
 
-        ensureOrderHistoryStyles();
+    function getOrderHistoryListUrl() {
+        const base = isPartsOrdersPage ? 'sparepartstoorder_list.php' : 'srvorders_list.php';
+        return `${base}?tm_oh=1`;
+    }
 
+    let nativeHistoryActive = false;
+    let nativeHistoryWired = false;
+    let nativeHistorySession = null;
+    let nativeHistoryEscHandler = null;
+
+    function ensureNativeToggleButton() {
+        if (!isOrderHistoryListPage()) return null;
+        let btn = document.getElementById('tm-oh-native-toggle');
+        if (btn) return btn;
+        const strip = document.querySelector('.rnr-c-recordcontrols, .rnr-cw-recordcontrols .rnr-c-recordcontrols');
+        if (!strip) return null;
+        btn = document.createElement('a');
+        btn.href = '#';
+        btn.id = 'tm-oh-native-toggle';
+        btn.className = 'rnr-button';
+        btn.setAttribute('cid', 'tm-oh-toggle');
+        btn.innerHTML = '<span>Ιστορικό</span>';
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (nativeHistoryActive) exitNativeHistoryMode();
+            else enterNativeHistoryMode();
+        });
+        strip.appendChild(btn);
+        return btn;
+    }
+
+    function ensureNativeHistoryShell() {
+        ensureNativeHistoryStyles();
+        let root = document.getElementById('tm-oh-native-root');
+        if (root) return root;
+
+        const center = document.querySelector('.rnr-center') || document.querySelector('#center') || document.body;
         const pageName = isServiceOrdersPage ? 'Υπηρεσίες' : 'Ανταλλακτικά';
-        const storeLabel = ohGetStoreName() || '—';
         const useDatabase = ohUseDatabase();
 
-        const overlay = document.createElement('div');
-        overlay.className = 'tm-modal-overlay tm-oh-overlay';
-        overlay.setAttribute('data-order-history-modal', 'true');
-        overlay.innerHTML = `
-            <div class="tm-modal-content tm-oh-shell">
-                <div class="tm-oh-header">
-                    <div class="tm-oh-header-left">
-                        <h2 class="tm-oh-title">Ιστορικό παραγγελιών <span class="tm-oh-page-badge">${pageName}</span></h2>
-                        <p class="tm-oh-meta">
-                            <span class="tm-oh-store-chip" id="tm-oh-store-label">${escapeHtml(storeLabel)}</span>
-                            <span id="tm-oh-sync-status">${useDatabase ? 'φόρτωση από server…' : 'τοπικό αντίγραφο'}</span>
-                            <span id="tm-oh-count-label" class="tm-oh-muted"></span>
-                        </p>
+        root = document.createElement('div');
+        root.id = 'tm-oh-native-root';
+        root.setAttribute('hidden', '');
+        root.innerHTML = `
+            <div class="rnr-cw-recordcontrols rnr-s-2 asbuttons MyMANAGERWhite_label1">
+                <div data-location="recordcontrols" class="rnr-c rnr-ch rnr-c-recordcontrols">
+                    <div class="style1 rnr-bl rnr-b-recordcontrols_new">
+                        <span id="tm-oh-store-label">${escapeHtml(ohGetStoreName() || '—')}</span>
+                        · Ιστορικό ${escapeHtml(pageName)}
+                        · <span id="tm-oh-sync-status">${useDatabase ? 'φόρτωση…' : 'τοπικό'}</span>
                     </div>
-                    <div class="tm-oh-header-actions">
-                        <button type="button" id="tm-order-sync-btn" class="tm-oh-tool-btn" title="${useDatabase ? 'Ανανέωση από server καταστήματος' : 'Ανανέωση τοπικού ιστορικού'}" ${useDatabase ? '' : 'style="display:none"'}>Ανανέωση</button>
-                        <button type="button" id="tm-order-export-btn" class="tm-oh-tool-btn" title="Εξαγωγή CSV">CSV</button>
-                        <button type="button" class="tm-oh-close tm-modal-close" title="Κλείσιμο" aria-label="Κλείσιμο">&times;</button>
-                    </div>
+                    <a href="#" class="rnr-button" id="tm-oh-live-btn" cid="tm-oh-live"><span>Ζωντανές</span></a>
+                    <a href="#" class="rnr-button" id="tm-order-sync-btn" cid="tm-oh-sync" ${useDatabase ? '' : 'style="display:none"'}><span>Ανανέωση</span></a>
+                    <a href="#" class="rnr-button" id="tm-order-export-btn" cid="tm-oh-csv"><span>CSV</span></a>
                 </div>
-                <div class="tm-oh-toolbar">
-                    <input type="search" id="tm-order-history-search" class="tm-oh-input tm-oh-search" placeholder="Αναζήτηση σε όλες τις στήλες…" />
-                    <select id="tm-order-status-filter" class="tm-oh-select">
+            </div>
+            <div class="rnr-cw-pagination rnr-s-1 MyMANAGERWhite_label1">
+                <div class="rnr-c rnr-ch rnr-c-pagination tm-oh-filter-row" style="flex-wrap:wrap;align-items:center;gap:4px;">
+                    <span class="rnr-b-recordcount">Εγγραφές: <span id="tm-oh-count-label">0</span></span>
+                    <input type="search" id="tm-order-history-search" placeholder="Αναζήτηση…" style="min-width:160px;flex:1 1 160px;" />
+                    <select id="tm-order-status-filter">
                         <option value="all">Όλες</option>
                         <option value="active">Ενεργές</option>
                         <option value="removed">Διαγραμμένες</option>
                     </select>
-                    <input type="date" id="tm-oh-date-from" class="tm-oh-input tm-oh-date" title="Από" />
-                    <input type="date" id="tm-oh-date-to" class="tm-oh-input tm-oh-date" title="Έως" />
-                    <div class="tm-oh-presets">
-                        <button type="button" class="tm-oh-preset" data-preset="today">Σήμερα</button>
-                        <button type="button" class="tm-oh-preset" data-preset="7d">7η</button>
-                        <button type="button" class="tm-oh-preset" data-preset="30d">30η</button>
-                        <button type="button" class="tm-oh-preset" data-preset="clear">Καθαρισμός</button>
-                    </div>
+                    <input type="date" id="tm-oh-date-from" title="Από" />
+                    <input type="date" id="tm-oh-date-to" title="Έως" />
+                    <a href="#" class="rnr-button tm-oh-preset" data-preset="today"><span>Σήμερα</span></a>
+                    <a href="#" class="rnr-button tm-oh-preset" data-preset="7d"><span>7η</span></a>
+                    <a href="#" class="rnr-button tm-oh-preset" data-preset="30d"><span>30η</span></a>
+                    <a href="#" class="rnr-button tm-oh-preset" data-preset="clear"><span>Καθαρισμός</span></a>
                 </div>
-                <div class="tm-oh-body" id="tm-order-history-container"></div>
+            </div>
+            <div class="rnr-cw-grid rnr-s-grid MyMANAGERWhite_label1">
+                <div class="rnr-c rnr-ch rnr-c-grid" id="tm-order-history-container">
+                    <div class="tm-oh-empty">Φόρτωση…</div>
+                </div>
             </div>
         `;
-        document.body.appendChild(overlay);
+        center.appendChild(root);
+        return root;
+    }
 
-        const container = overlay.querySelector('#tm-order-history-container');
-        const searchInput = overlay.querySelector('#tm-order-history-search');
-        const statusFilter = overlay.querySelector('#tm-order-status-filter');
-        const dateFrom = overlay.querySelector('#tm-oh-date-from');
-        const dateTo = overlay.querySelector('#tm-oh-date-to');
-        const syncBtn = overlay.querySelector('#tm-order-sync-btn');
-        const exportBtn = overlay.querySelector('#tm-order-export-btn');
+    function isLiveRecordControlsStrip(el) {
+        if (!el || el.id === 'tm-oh-native-root') return false;
+        if (el.classList?.contains('rnr-cw-recordcontrols')) return true;
+        if (el.classList?.contains('rnr-c-recordcontrols')) return true;
+        return !!el.querySelector?.('.rnr-c-recordcontrols, .rnr-cw-recordcontrols');
+    }
+
+    function exitNativeHistoryMode() {
+        const root = document.getElementById('tm-oh-native-root');
+        const center = root?.parentElement || document.querySelector('.rnr-center');
+        if (center) {
+            Array.from(center.children).forEach((child) => {
+                if (child.id === 'tm-oh-native-root') return;
+                if (child.getAttribute('data-tm-oh-hidden') === '1') {
+                    child.removeAttribute('data-tm-oh-hidden');
+                    child.style.display = '';
+                }
+            });
+        }
+        if (root) root.setAttribute('hidden', '');
+        nativeHistoryActive = false;
+        const toggle = document.getElementById('tm-oh-native-toggle');
+        if (toggle) {
+            toggle.classList.remove('is-active');
+            const span = toggle.querySelector('span');
+            if (span) span.textContent = 'Ιστορικό';
+        }
+        if (nativeHistoryEscHandler) {
+            document.removeEventListener('keydown', nativeHistoryEscHandler);
+            nativeHistoryEscHandler = null;
+        }
+        try {
+            const url = new URL(location.href);
+            if (url.searchParams.has('tm_oh')) {
+                url.searchParams.delete('tm_oh');
+                history.replaceState(null, '', url.pathname + url.search + url.hash);
+            }
+        } catch (_) { /* ignore */ }
+    }
+
+    function enterNativeHistoryMode() {
+        if (!isOrderHistoryListPage()) {
+            location.href = getOrderHistoryListUrl();
+            return;
+        }
+
+        ensureNativeToggleButton();
+        const root = ensureNativeHistoryShell();
+        const center = root.parentElement;
+        if (center) {
+            Array.from(center.children).forEach((child) => {
+                if (child === root) return;
+                // Keep live recordcontrols so Ιστορικό / Ζωντανές toggle stays clickable
+                if (isLiveRecordControlsStrip(child)) return;
+                if (child.style.display === 'none' && child.getAttribute('data-tm-oh-hidden') !== '1') return;
+                child.setAttribute('data-tm-oh-hidden', '1');
+                child.style.display = 'none';
+            });
+        }
+        root.removeAttribute('hidden');
+        nativeHistoryActive = true;
+
+        const toggle = document.getElementById('tm-oh-native-toggle');
+        if (toggle) {
+            toggle.classList.add('is-active');
+            const span = toggle.querySelector('span');
+            if (span) span.textContent = 'Ζωντανές';
+        }
+
+        if (!nativeHistoryEscHandler) {
+            nativeHistoryEscHandler = (e) => {
+                if (e.key === 'Escape' && nativeHistoryActive) {
+                    e.preventDefault();
+                    exitNativeHistoryMode();
+                }
+            };
+            document.addEventListener('keydown', nativeHistoryEscHandler);
+        }
+
+        if (!nativeHistoryWired) {
+            wireNativeHistorySession(root);
+            nativeHistoryWired = true;
+        } else if (nativeHistorySession?.paintFromCacheThenRefresh) {
+            nativeHistorySession.paintFromCacheThenRefresh();
+        }
+    }
+
+    function wireNativeHistorySession(root) {
+        const useDatabase = ohUseDatabase();
+        const container = root.querySelector('#tm-order-history-container');
+        const searchInput = root.querySelector('#tm-order-history-search');
+        const statusFilter = root.querySelector('#tm-order-status-filter');
+        const dateFrom = root.querySelector('#tm-oh-date-from');
+        const dateTo = root.querySelector('#tm-oh-date-to');
+        const syncBtn = root.querySelector('#tm-order-sync-btn');
+        const exportBtn = root.querySelector('#tm-order-export-btn');
+        const liveBtn = root.querySelector('#tm-oh-live-btn');
 
         let sortKey = 'timestamp';
         let sortDir = 'desc';
@@ -71367,21 +71307,20 @@ try {
         let activePreset = '';
 
         const setSyncStatus = (text) => {
-            const el = overlay.querySelector('#tm-oh-sync-status');
+            const el = root.querySelector('#tm-oh-sync-status');
             if (el) el.textContent = text;
         };
 
         const setCountLabel = (visible, total) => {
-            const el = overlay.querySelector('#tm-oh-count-label');
+            const el = root.querySelector('#tm-oh-count-label');
             if (!el) return;
             const cap = ohViewCapped ? ' · νεότερα 200' : '';
-            el.textContent = total ? `${visible} / ${total}${cap}` : '';
+            el.textContent = total ? `${visible} / ${total}${cap}` : String(visible || 0);
         };
 
-        const closeModal = () => overlay.remove();
-        overlay.querySelector('.tm-oh-close')?.addEventListener('click', closeModal);
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) closeModal();
+        liveBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            exitNativeHistoryMode();
         });
 
         const orderDayStart = (order) => {
@@ -71496,7 +71435,7 @@ try {
             if (!ohViewOrders.length) {
                 container.innerHTML = useDatabase
                     ? `<div class="tm-oh-empty">Δεν υπάρχουν εγγραφές στο server για αυτό το κατάστημα.<br><span class="tm-oh-muted">Η αποδοχή παραγγελιών ανεβαίνει αυτόματα.</span></div>`
-                    : `<div class="tm-oh-empty">Δεν υπάρχει τοπικό ιστορικό ακόμα.<br><span class="tm-oh-muted">Οι αποδοχές σε αυτόν τον υπολογιστή χτίζουν τη λίστα. Χωρίς βάση δεν βλέπετε κοινό ιστορικό καταστήματος.</span></div>`;
+                    : `<div class="tm-oh-empty">Δεν υπάρχει τοπικό ιστορικό ακόμα.<br><span class="tm-oh-muted">Οι αποδοχές σε αυτόν τον υπολογιστή χτίζουν τη λίστα.</span></div>`;
                 return;
             }
             if (!filtered.length) {
@@ -71505,51 +71444,57 @@ try {
             }
 
             const tableCols = ohCollectTableColumns(filtered);
-            const th = (key, label) => {
-                const cls = sortKey === key ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : '';
-                return `<th data-sort="${escapeHtml(key)}" class="${cls}" title="${escapeHtml(label)}">${escapeHtml(label)}</th>`;
+            const th = (key, label, edge) => {
+                const cls = [
+                    edge || '',
+                    sortKey === key ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : '',
+                ].filter(Boolean).join(' ');
+                return `<th class="${cls}" data-sort="${escapeHtml(key)}" title="${escapeHtml(label)}">${escapeHtml(label)}</th>`;
             };
 
             const rows = filtered.map((order) => {
                 const phone = String(order.phone || '');
                 const added = order.timestamp ? formatDateTime(order.timestamp) : '—';
-                const dynCells = tableCols.map((col) => {
+                const href = order.url || '';
+                const dynCells = tableCols.map((col, idx) => {
                     const raw = ohColumnCellValue(order, col);
                     const lower = col.toLowerCase();
                     const isPhone = /τηλέφων|phone/.test(lower);
+                    const edge = idx === tableCols.length - 1 ? '' : '';
+                    let inner;
                     if (isPhone) {
                         const disp = formatPhoneDisplay(raw || phone) || raw || '—';
                         const copyVal = raw || phone;
-                        return `<td class="tm-oh-cell-phone" title="${escapeHtml(disp)}">
-                            <span class="tm-oh-phone-cell">
-                                <span>${escapeHtml(disp)}</span>
-                                ${copyVal ? `<button type="button" class="tm-copy-phone-btn" data-phone="${escapeHtml(copyVal)}" title="Αντιγραφή">⧉</button>` : ''}
-                            </span>
-                        </td>`;
+                        inner = `<span class="rnr-field-text tm-oh-phone-cell">
+                            <span>${escapeHtml(disp)}</span>
+                            ${copyVal ? `<button type="button" class="tm-copy-phone-btn" data-phone="${escapeHtml(copyVal)}" title="Αντιγραφή">⧉</button>` : ''}
+                        </span>`;
+                    } else {
+                        inner = `<span class="rnr-field-text">${escapeHtml(raw || '—')}</span>`;
                     }
-                    return `<td title="${escapeHtml(raw)}">${escapeHtml(raw || '—')}</td>`;
+                    return `<td class="${edge}" data-field="${escapeHtml(col)}" ${href ? `data-href="${escapeHtml(href)}"` : ''} title="${escapeHtml(raw || '')}">${inner}</td>`;
                 }).join('');
                 return `
-                    <tr data-url="${escapeHtml(order.url || '')}">
-                        <td class="tm-oh-muted">${escapeHtml(added)}</td>
+                    <tr class="rnr-row style1" ${href ? `data-href="${escapeHtml(href)}"` : ''}>
+                        <td class="rnr-edge" ${href ? `data-href="${escapeHtml(href)}"` : ''}>
+                            <span class="rnr-field-text">${escapeHtml(added)}</span>
+                        </td>
                         ${dynCells}
-                        <td>${statusBadgeHtml(order)}</td>
+                        <td class="rnr-edge" ${href ? `data-href="${escapeHtml(href)}"` : ''}>${statusBadgeHtml(order)}</td>
                     </tr>`;
             }).join('');
 
             container.innerHTML = `
-                <div class="tm-oh-table-wrap">
-                    <table class="tm-oh-table">
-                        <thead>
-                            <tr>
-                                ${th('timestamp', 'Προστέθηκε')}
-                                ${tableCols.map((col) => th(`col:${col}`, col)).join('')}
-                                <th>Κατάσταση</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                </div>`;
+                <table class="rnr-c rnr-cont rnr-c-grid rnr-b-grid rnr-gridtable hoverable" cellpadding="0" data-location="grid">
+                    <thead>
+                        <tr class="rnr-toprow style1">
+                            ${th('timestamp', 'Προστέθηκε', 'rnr-edge')}
+                            ${tableCols.map((col) => th(`col:${col}`, col, '')).join('')}
+                            <th class="rnr-edge">Κατάσταση</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
         };
 
         const runStatusChecks = async () => {
@@ -71577,10 +71522,10 @@ try {
 
         const refreshFromServer = async ({ silent } = {}) => {
             setSyncStatus('συγχρονισμός…');
-            if (syncBtn) syncBtn.disabled = true;
+            if (syncBtn) syncBtn.classList.add('disabled');
             const kind = ohPageKind();
             const remote = await fetchStoreOrderHistoryFromServer(kind);
-            if (syncBtn) syncBtn.disabled = false;
+            if (syncBtn) syncBtn.classList.remove('disabled');
             if (!remote.ok) {
                 const cache = ohLoadViewCache(ohStoreKey(), kind);
                 if (cache?.orders?.length) {
@@ -71588,7 +71533,7 @@ try {
                         .slice()
                         .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                     ohViewCapped = !!cache.capped;
-                    const storeEl = overlay.querySelector('#tm-oh-store-label');
+                    const storeEl = root.querySelector('#tm-oh-store-label');
                     if (storeEl) storeEl.textContent = cache.store || ohGetStoreName() || '—';
                     const age = ohFormatCacheAge(cache.savedAt);
                     setSyncStatus(remote.unsupported
@@ -71624,7 +71569,7 @@ try {
                 .slice()
                 .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
             ohViewCapped = !!remote.capped;
-            const storeEl = overlay.querySelector('#tm-oh-store-label');
+            const storeEl = root.querySelector('#tm-oh-store-label');
             if (storeEl) storeEl.textContent = remote.store || ohGetStoreName() || '—';
             setSyncStatus(`server · ${remote.storeKey || 'store'} · ${kind}`);
             statusesChecked = false;
@@ -71657,7 +71602,7 @@ try {
                     .slice()
                     .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                 ohViewCapped = !!cache.capped;
-                const storeEl = overlay.querySelector('#tm-oh-store-label');
+                const storeEl = root.querySelector('#tm-oh-store-label');
                 if (storeEl) storeEl.textContent = cache.store || ohGetStoreName() || '—';
                 const age = ohFormatCacheAge(cache.savedAt);
                 setSyncStatus(`cache${age ? ` · ${age}` : ''} · ενημέρωση…`);
@@ -71670,7 +71615,7 @@ try {
 
         const applyPreset = (preset) => {
             activePreset = preset;
-            overlay.querySelectorAll('.tm-oh-preset').forEach((btn) => {
+            root.querySelectorAll('.tm-oh-preset').forEach((btn) => {
                 btn.classList.toggle('is-active', btn.getAttribute('data-preset') === preset && preset !== 'clear');
             });
             const now = new Date();
@@ -71705,14 +71650,18 @@ try {
         statusFilter.addEventListener('change', () => renderOrders());
         dateFrom.addEventListener('change', () => { activePreset = ''; renderOrders(); });
         dateTo.addEventListener('change', () => { activePreset = ''; renderOrders(); });
-        overlay.querySelectorAll('.tm-oh-preset').forEach((btn) => {
-            btn.addEventListener('click', () => applyPreset(btn.getAttribute('data-preset')));
+        root.querySelectorAll('.tm-oh-preset').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                applyPreset(btn.getAttribute('data-preset'));
+            });
         });
 
         container.addEventListener('click', (e) => {
             const copyBtn = e.target.closest?.('.tm-copy-phone-btn');
             if (copyBtn) {
                 e.stopPropagation();
+                e.preventDefault();
                 const phone = copyBtn.getAttribute('data-phone') || '';
                 if (!phone) return;
                 navigator.clipboard.writeText(phone).then(() => {
@@ -71722,26 +71671,29 @@ try {
                 }).catch(() => {});
                 return;
             }
-            const th = e.target.closest?.('th[data-sort]');
-            if (th) {
-                const key = th.getAttribute('data-sort');
+            const thEl = e.target.closest?.('th[data-sort]');
+            if (thEl) {
+                e.preventDefault();
+                const key = thEl.getAttribute('data-sort');
                 if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
                 else { sortKey = key; sortDir = key === 'timestamp' || key === 'date' ? 'desc' : 'asc'; }
                 renderOrders();
                 return;
             }
-            const tr = e.target.closest?.('tbody tr[data-url]');
+            const tr = e.target.closest?.('tbody tr[data-href], tbody td[data-href]');
             if (tr) {
-                const url = tr.getAttribute('data-url');
+                const url = tr.getAttribute('data-href') || tr.closest('tr')?.getAttribute('data-href');
                 if (url) window.open(url, '_blank');
             }
         });
 
-        syncBtn?.addEventListener('click', () => {
+        syncBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
             refreshFromServer({ silent: false }).catch(() => {});
         });
 
-        exportBtn?.addEventListener('click', () => {
+        exportBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
             const rows = getFilteredOrders();
             const tableCols = ohCollectTableColumns(rows);
             const headers = ['added', ...tableCols, 'live_status', 'url'];
@@ -71771,7 +71723,15 @@ try {
             ? `<div class="tm-oh-empty">Φόρτωση από server…</div>`
             : `<div class="tm-oh-empty">Φόρτωση τοπικού ιστορικού…</div>`;
         paintFromCacheThenRefresh();
+
+        nativeHistorySession = { paintFromCacheThenRefresh, renderOrders };
     }
+
+    /** @deprecated modal retired — opens native inline history on list pages */
+    function showOrderHistoryModal() {
+        enterNativeHistoryMode();
+    }
+
 
     // Initialize monitoring when page loads
     function initOrderHistory() {
@@ -71806,6 +71766,21 @@ try {
                 saveOrdersToHistory(orders);
             }
         }, 1000);
+
+        const mountNativeChrome = () => {
+            ensureNativeToggleButton();
+            try {
+                const params = new URLSearchParams(location.search || '');
+                if (params.get('tm_oh') === '1') enterNativeHistoryMode();
+            } catch (_) { /* ignore */ }
+        };
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => setTimeout(mountNativeChrome, 400));
+        } else {
+            setTimeout(mountNativeChrome, 400);
+        }
+        setTimeout(mountNativeChrome, 1200);
+        setTimeout(mountNativeChrome, 2500);
     }
 
     /**
@@ -71879,7 +71854,9 @@ try {
     }
 
     // Make functions globally accessible
-    window.showOrderHistoryModal = showOrderHistoryModal;
+    window.enterNativeHistoryMode = enterNativeHistoryMode;
+    window.exitNativeHistoryMode = exitNativeHistoryMode;
+    window.showOrderHistoryModal = showOrderHistoryModal; // compat → native mode
     window.initOrderHistory = initOrderHistory;
     window.getOrderHistoryOrdersForSearch = getOrderHistoryOrdersForSearch;
     window.seedOrderHistoryLocalFromCache = seedOrderHistoryLocalFromCache;
@@ -81218,11 +81195,13 @@ if (typeof window !== 'undefined') {
         const isOrderListPage = currentPath.includes('srvorders_list.php') || 
                                 currentPath.includes('sparepartstoorder_list.php');
         
-        if (isOrderListPage && config.orderHistoryEnabled && typeof window.showOrderHistoryModal === 'function') {
+        if (isOrderListPage && config.orderHistoryEnabled && (typeof window.enterNativeHistoryMode === 'function' || typeof window.showOrderHistoryModal === 'function')) {
             const orderHistoryBtn = createFeatureButton(
                 '📦', 'Order History', '#2196f3 0%, #1976d2 100%',
                 () => {
-                    if (typeof window.showOrderHistoryModal === 'function') {
+                    if (typeof window.enterNativeHistoryMode === 'function') {
+                        window.enterNativeHistoryMode();
+                    } else if (typeof window.showOrderHistoryModal === 'function') {
                         window.showOrderHistoryModal();
                     }
                 }

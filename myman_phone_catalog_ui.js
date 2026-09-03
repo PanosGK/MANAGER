@@ -3755,22 +3755,26 @@
         }, opts.durationMs || 2600);
     }
 
-    function updateFreshness(overlay, lastUpdated, refreshedBy) {
+    function updateFreshness(overlay, lastUpdated, refreshedBy, opts = {}) {
         const wrap = overlay?.querySelector('#tm-sl-freshness');
         const updatedEl = overlay?.querySelector('#tm-sl-updated');
         if (!wrap || !lastUpdated) return;
         const ageMs = Date.now() - lastUpdated.getTime();
         wrap.classList.remove('tm-sl-freshness--fresh', 'tm-sl-freshness--cached', 'tm-sl-freshness--stale');
-        let label = 'Cache';
-        if (ageMs < 5 * 60 * 1000) {
+        // Labels describe the scrape snapshot, not when this browser opened the panel.
+        let label = 'Ανανέωση';
+        if (opts.fromLiveScrape && ageMs < 5 * 60 * 1000) {
             wrap.classList.add('tm-sl-freshness--fresh');
             label = 'Ζωντανά';
+        } else if (ageMs < 5 * 60 * 1000) {
+            wrap.classList.add('tm-sl-freshness--fresh');
+            label = 'Ανανέωση';
         } else if (ageMs < 60 * 60 * 1000) {
             wrap.classList.add('tm-sl-freshness--cached');
-            label = 'Cache';
+            label = 'Ανανέωση';
         } else {
             wrap.classList.add('tm-sl-freshness--stale');
-            label = 'Παλιά δεδομένα';
+            label = 'Παλιά ανανέωση';
         }
         if (updatedEl) {
             const when = lastUpdated.toLocaleString('el-GR');

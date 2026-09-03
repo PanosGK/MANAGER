@@ -870,20 +870,32 @@
             if (statusEl) statusEl.textContent = text;
         }
 
-        function syncFreshness() {
-            if (!lastUpdated) return;
-            let by = '';
+        function readScrapeFreshness() {
             try {
                 const meta = typeof window.loadPhoneListRefreshMeta === 'function'
                     ? window.loadPhoneListRefreshMeta()
                     : null;
-                if (meta?.by) by = String(meta.by).trim();
-                if (meta?.at) {
-                    const metaDate = new Date(meta.at);
-                    if (!Number.isNaN(metaDate.getTime())) lastUpdated = metaDate;
-                }
-            } catch (_) { /* ignore */ }
-            UI.updateFreshness(overlay, lastUpdated, by);
+                const at = Number(meta?.at) || 0;
+                const by = String(meta?.by || '').trim();
+                if (at > 0) return { at, by, date: new Date(at) };
+                const cacheTs = Number(GM_getValue(
+                    window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp',
+                    0
+                )) || 0;
+                if (cacheTs > 0) return { at: cacheTs, by, date: new Date(cacheTs) };
+                return { at: 0, by, date: null };
+            } catch (_) {
+                return { at: 0, by: '', date: null };
+            }
+        }
+
+        function syncFreshness(opts = {}) {
+            const scrape = readScrapeFreshness();
+            if (scrape.date) lastUpdated = scrape.date;
+            if (!lastUpdated) return;
+            UI.updateFreshness(overlay, lastUpdated, scrape.by, {
+                fromLiveScrape: !!opts.fromLiveScrape,
+            });
         }
 
         function wireModelCards() {
@@ -1825,8 +1837,7 @@
                 if (catalogCategory !== 'laptops' && typeof window.syncPhoneColorCatalog === 'function') {
                     window.syncPhoneColorCatalog(allPhones);
                 }
-                lastUpdated = new Date();
-                syncFreshness();
+                syncFreshness({ fromLiveScrape: true });
                 if (step === 'stores' && selectedModel) {
                     await renderStoresStep();
                 } else {
@@ -1973,8 +1984,6 @@
 
             if (cached?.length) {
                 allPhones = helpers.filterIphoneTitlePhones(cached);
-                const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
-                lastUpdated = new Date(ts);
                 syncFreshness();
                 renderModelsStep();
                 paintedFromLocalCache = true;
@@ -2041,6 +2050,8 @@
             }
 
             if (paintedFromLocalCache && !snap.phones?.length && !snap.otherStorePhones?.length) {
+                // DB pull may still have updated `list_refresh` (who scraped / when).
+                syncFreshness();
                 scheduleWarmNetwork();
                 return;
             }
@@ -2052,8 +2063,10 @@
 
             if (snap.phones?.length) {
                 allPhones = helpers.filterIphoneTitlePhones(snap.phones);
-                if (snap.lastUpdated) lastUpdated = snap.lastUpdated;
             }
+            // Freshness comes from PocketBase `list_refresh` (scrape actor/time).
+            if (snap.lastUpdated) lastUpdated = snap.lastUpdated;
+            syncFreshness();
 
             mergeNetworkStoreHints();
 
@@ -2084,9 +2097,9 @@
                 syncCatalogHeaders();
             }
 
-            syncFreshness();
             renderModelsStep();
-            const who = snap.refreshedBy ? ` · ${snap.refreshedBy}` : '';
+            const scrape = readScrapeFreshness();
+            const who = scrape.by ? ` · ${scrape.by}` : (snap.refreshedBy ? ` · ${snap.refreshedBy}` : '');
             const mineUnits = allPhones.filter((p) => (p.unitsRemaining || 0) > 0).length;
             const netUnits = otherStorePhones.length;
             if (catalogView === 'network') {

@@ -2296,219 +2296,13 @@
         return trimmed;
     }
 
-    function ensureOrderHistoryStyles() {
+    function ensureNativeHistoryStyles() {
         const existing = document.getElementById('tm-order-history-ui-styles');
         if (existing) existing.remove();
         const style = document.createElement('style');
         style.id = 'tm-order-history-ui-styles';
         style.textContent = `
-            .tm-oh-overlay {
-                background: var(--tm-overlay-dim, rgba(0,0,0,0.55)) !important;
-                z-index: 10050 !important;
-            }
-            .tm-oh-shell {
-                width: min(96vw, 1280px) !important;
-                max-width: 1280px !important;
-                height: min(88vh, 820px) !important;
-                padding: 0 !important;
-                border-radius: 10px !important;
-                overflow: hidden !important;
-                border: 1px solid var(--tm-shop-item-border) !important;
-                box-shadow: 0 16px 48px var(--tm-shadow-color, rgba(0,0,0,0.28)) !important;
-                background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
-                color: var(--tm-primary-color) !important;
-                display: flex !important;
-                flex-direction: column !important;
-            }
-            .tm-oh-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-                padding: 12px 14px;
-                border-bottom: 1px solid var(--tm-shop-item-border);
-                flex-shrink: 0;
-                background: var(--tm-shop-item-bg);
-            }
-            .tm-oh-header-left { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-            .tm-oh-title {
-                margin: 0;
-                font-size: 15px;
-                font-weight: 700;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
-            .tm-oh-page-badge {
-                display: inline-flex;
-                padding: 2px 8px;
-                border-radius: 4px;
-                font-size: 10px;
-                font-weight: 700;
-                letter-spacing: 0.03em;
-                text-transform: uppercase;
-                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent);
-                color: var(--tm-info-color);
-                border: 1px solid color-mix(in srgb, var(--tm-info-color) 30%, transparent);
-            }
-            .tm-oh-meta {
-                margin: 0;
-                font-size: 11px;
-                color: var(--tm-muted-text, var(--tm-secondary-color));
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px 10px;
-                align-items: center;
-            }
-            .tm-oh-store-chip {
-                display: inline-flex;
-                padding: 1px 7px;
-                border-radius: 4px;
-                border: 1px solid var(--tm-shop-item-border);
-                background: color-mix(in srgb, var(--tm-shop-item-border) 25%, transparent);
-                font-weight: 600;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-            }
-            .tm-oh-header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-            .tm-oh-tool-btn, .tm-oh-close {
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                padding: 6px 10px;
-                border-radius: 6px;
-                border: 1px solid var(--tm-shop-item-border);
-                background: var(--tm-input-bg, var(--tm-shop-item-bg));
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                font-size: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                line-height: 1.2;
-            }
-            .tm-oh-tool-btn:hover, .tm-oh-close:hover {
-                border-color: var(--tm-primary-color);
-            }
-            .tm-oh-tool-btn:disabled { opacity: 0.55; cursor: wait; }
-            .tm-oh-close {
-                width: 32px;
-                height: 32px;
-                padding: 0;
-                justify-content: center;
-                font-size: 18px;
-            }
-            .tm-oh-toolbar {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-                align-items: center;
-                padding: 10px 14px;
-                border-bottom: 1px solid var(--tm-shop-item-border);
-                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg, var(--tm-shop-item-bg)));
-                flex-shrink: 0;
-            }
-            .tm-oh-input, .tm-oh-select {
-                padding: 6px 8px;
-                border-radius: 6px;
-                border: 1px solid var(--tm-input-border, var(--tm-shop-item-border));
-                background: var(--tm-input-bg, var(--tm-shop-item-bg));
-                color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color)));
-                font-size: 12px;
-                box-sizing: border-box;
-            }
-            .tm-oh-input:focus, .tm-oh-select:focus {
-                outline: none;
-                border-color: var(--tm-input-focus-border, var(--tm-primary-color));
-            }
-            .tm-oh-search { flex: 1 1 180px; min-width: 140px; }
-            .tm-oh-select { flex: 0 0 auto; }
-            .tm-oh-date { width: 128px; }
-            .tm-oh-presets { display: inline-flex; gap: 4px; flex-wrap: wrap; }
-            .tm-oh-preset {
-                padding: 5px 8px;
-                border-radius: 6px;
-                border: 1px solid var(--tm-shop-item-border);
-                background: transparent;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                font-size: 11px;
-                font-weight: 600;
-                cursor: pointer;
-            }
-            .tm-oh-preset.is-active {
-                background: color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
-                border-color: color-mix(in srgb, var(--tm-primary-color) 40%, transparent);
-            }
-            .tm-oh-body {
-                flex: 1 1 auto;
-                min-height: 0;
-                overflow: auto;
-                padding: 0;
-                background: var(--tm-shop-item-bg);
-            }
-            .tm-oh-table-wrap {
-                width: 100%;
-                overflow-x: auto;
-            }
-            table.tm-oh-table {
-                width: max-content;
-                min-width: 100%;
-                border-collapse: collapse;
-                font-size: 12px;
-            }
-            .tm-oh-table thead th {
-                position: sticky;
-                top: 0;
-                z-index: 2;
-                text-align: left;
-                padding: 8px 10px;
-                font-size: 10px;
-                font-weight: 700;
-                letter-spacing: 0.04em;
-                text-transform: uppercase;
-                color: var(--tm-muted-text, var(--tm-secondary-color));
-                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg, var(--tm-shop-item-bg)));
-                border-bottom: 1px solid var(--tm-shop-item-border);
-                white-space: nowrap;
-                cursor: pointer;
-                user-select: none;
-            }
-            .tm-oh-table thead th.sort-asc::after { content: ' ↑'; }
-            .tm-oh-table thead th.sort-desc::after { content: ' ↓'; }
-            .tm-oh-table tbody td {
-                padding: 8px 10px;
-                border-bottom: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
-                vertical-align: middle;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-                max-width: 280px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .tm-oh-table tbody td.tm-oh-cell-phone {
-                max-width: 200px;
-                white-space: normal;
-            }
-            .tm-oh-table tbody tr {
-                cursor: pointer;
-            }
-            .tm-oh-table tbody tr:hover td {
-                background: color-mix(in srgb, var(--tm-primary-color) 6%, transparent);
-            }
-            .tm-oh-phone-cell {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-            }
-            .tm-copy-phone-btn {
-                border: 1px solid var(--tm-shop-item-border);
-                background: transparent;
-                border-radius: 4px;
-                padding: 2px 6px;
-                font-size: 10px;
-                cursor: pointer;
-                color: var(--tm-shop-item-text, var(--tm-primary-color));
-            }
-            .tm-oh-badge {
+            #tm-oh-native-root .tm-oh-badge {
                 display: inline-flex;
                 align-items: center;
                 padding: 2px 7px;
@@ -2517,95 +2311,250 @@
                 font-weight: 700;
                 border: 1px solid transparent;
             }
-            .tm-oh-badge--checking {
+            #tm-oh-native-root .tm-oh-badge--checking {
                 background: color-mix(in srgb, var(--tm-warning-color, #b78103) 12%, transparent);
                 color: var(--tm-warning-color, #b78103);
                 border-color: color-mix(in srgb, var(--tm-warning-color, #b78103) 35%, transparent);
             }
-            .tm-oh-badge--active {
+            #tm-oh-native-root .tm-oh-badge--active {
                 background: color-mix(in srgb, var(--tm-success-color, #2e7d32) 12%, transparent);
                 color: var(--tm-success-color, #2e7d32);
                 border-color: color-mix(in srgb, var(--tm-success-color, #2e7d32) 35%, transparent);
             }
-            .tm-oh-badge--removed {
+            #tm-oh-native-root .tm-oh-badge--removed {
                 background: color-mix(in srgb, var(--tm-danger-color, #c62828) 12%, transparent);
                 color: var(--tm-danger-color, #c62828);
                 border-color: color-mix(in srgb, var(--tm-danger-color, #c62828) 35%, transparent);
             }
-            .tm-oh-badge--unknown {
+            #tm-oh-native-root .tm-oh-badge--unknown {
                 background: color-mix(in srgb, var(--tm-muted-text, #888) 12%, transparent);
                 color: var(--tm-muted-text, #666);
                 border-color: color-mix(in srgb, var(--tm-muted-text, #888) 30%, transparent);
             }
-            .tm-oh-empty {
+            #tm-oh-native-root .tm-oh-phone-cell {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+            #tm-oh-native-root .tm-copy-phone-btn {
+                border: 1px solid var(--tm-shop-item-border, #ccc);
+                background: transparent;
+                border-radius: 4px;
+                padding: 2px 6px;
+                font-size: 10px;
+                cursor: pointer;
+                color: inherit;
+            }
+            #tm-oh-native-root .tm-oh-empty {
                 padding: 48px 20px;
                 text-align: center;
                 color: var(--tm-muted-text, var(--tm-secondary-color));
                 font-size: 13px;
             }
-            .tm-oh-empty strong { color: var(--tm-shop-item-text, var(--tm-primary-color)); }
-            .tm-oh-muted { opacity: 0.7; }
+            #tm-oh-native-root th[data-sort] { cursor: pointer; user-select: none; }
+            #tm-oh-native-root th[data-sort].sort-asc::after { content: ' ↑'; }
+            #tm-oh-native-root th[data-sort].sort-desc::after { content: ' ↓'; }
+            #tm-oh-native-root .tm-oh-filter-row input,
+            #tm-oh-native-root .tm-oh-filter-row select {
+                padding: 4px 8px;
+                font-size: 12px;
+                margin: 0 4px 4px 0;
+                box-sizing: border-box;
+            }
+            #tm-oh-native-root .tm-oh-filter-row .rnr-button.is-active {
+                font-weight: 700;
+            }
+            #tm-oh-native-toggle.is-active {
+                font-weight: 700;
+            }
         `;
         document.head.appendChild(style);
     }
 
-    function showOrderHistoryModal() {
-        if (document.querySelector('.tm-modal-overlay[data-order-history-modal]')) return;
+    function isOrderHistoryListPage() {
+        return onOrdersPage;
+    }
 
-        ensureOrderHistoryStyles();
+    function getOrderHistoryListUrl() {
+        const base = isPartsOrdersPage ? 'sparepartstoorder_list.php' : 'srvorders_list.php';
+        return `${base}?tm_oh=1`;
+    }
 
+    let nativeHistoryActive = false;
+    let nativeHistoryWired = false;
+    let nativeHistorySession = null;
+    let nativeHistoryEscHandler = null;
+
+    function ensureNativeToggleButton() {
+        if (!isOrderHistoryListPage()) return null;
+        let btn = document.getElementById('tm-oh-native-toggle');
+        if (btn) return btn;
+        const strip = document.querySelector('.rnr-c-recordcontrols, .rnr-cw-recordcontrols .rnr-c-recordcontrols');
+        if (!strip) return null;
+        btn = document.createElement('a');
+        btn.href = '#';
+        btn.id = 'tm-oh-native-toggle';
+        btn.className = 'rnr-button';
+        btn.setAttribute('cid', 'tm-oh-toggle');
+        btn.innerHTML = '<span>Ιστορικό</span>';
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (nativeHistoryActive) exitNativeHistoryMode();
+            else enterNativeHistoryMode();
+        });
+        strip.appendChild(btn);
+        return btn;
+    }
+
+    function ensureNativeHistoryShell() {
+        ensureNativeHistoryStyles();
+        let root = document.getElementById('tm-oh-native-root');
+        if (root) return root;
+
+        const center = document.querySelector('.rnr-center') || document.querySelector('#center') || document.body;
         const pageName = isServiceOrdersPage ? 'Υπηρεσίες' : 'Ανταλλακτικά';
-        const storeLabel = ohGetStoreName() || '—';
         const useDatabase = ohUseDatabase();
 
-        const overlay = document.createElement('div');
-        overlay.className = 'tm-modal-overlay tm-oh-overlay';
-        overlay.setAttribute('data-order-history-modal', 'true');
-        overlay.innerHTML = `
-            <div class="tm-modal-content tm-oh-shell">
-                <div class="tm-oh-header">
-                    <div class="tm-oh-header-left">
-                        <h2 class="tm-oh-title">Ιστορικό παραγγελιών <span class="tm-oh-page-badge">${pageName}</span></h2>
-                        <p class="tm-oh-meta">
-                            <span class="tm-oh-store-chip" id="tm-oh-store-label">${escapeHtml(storeLabel)}</span>
-                            <span id="tm-oh-sync-status">${useDatabase ? 'φόρτωση από server…' : 'τοπικό αντίγραφο'}</span>
-                            <span id="tm-oh-count-label" class="tm-oh-muted"></span>
-                        </p>
+        root = document.createElement('div');
+        root.id = 'tm-oh-native-root';
+        root.setAttribute('hidden', '');
+        root.innerHTML = `
+            <div class="rnr-cw-recordcontrols rnr-s-2 asbuttons MyMANAGERWhite_label1">
+                <div data-location="recordcontrols" class="rnr-c rnr-ch rnr-c-recordcontrols">
+                    <div class="style1 rnr-bl rnr-b-recordcontrols_new">
+                        <span id="tm-oh-store-label">${escapeHtml(ohGetStoreName() || '—')}</span>
+                        · Ιστορικό ${escapeHtml(pageName)}
+                        · <span id="tm-oh-sync-status">${useDatabase ? 'φόρτωση…' : 'τοπικό'}</span>
                     </div>
-                    <div class="tm-oh-header-actions">
-                        <button type="button" id="tm-order-sync-btn" class="tm-oh-tool-btn" title="${useDatabase ? 'Ανανέωση από server καταστήματος' : 'Ανανέωση τοπικού ιστορικού'}" ${useDatabase ? '' : 'style="display:none"'}>Ανανέωση</button>
-                        <button type="button" id="tm-order-export-btn" class="tm-oh-tool-btn" title="Εξαγωγή CSV">CSV</button>
-                        <button type="button" class="tm-oh-close tm-modal-close" title="Κλείσιμο" aria-label="Κλείσιμο">&times;</button>
-                    </div>
+                    <a href="#" class="rnr-button" id="tm-oh-live-btn" cid="tm-oh-live"><span>Ζωντανές</span></a>
+                    <a href="#" class="rnr-button" id="tm-order-sync-btn" cid="tm-oh-sync" ${useDatabase ? '' : 'style="display:none"'}><span>Ανανέωση</span></a>
+                    <a href="#" class="rnr-button" id="tm-order-export-btn" cid="tm-oh-csv"><span>CSV</span></a>
                 </div>
-                <div class="tm-oh-toolbar">
-                    <input type="search" id="tm-order-history-search" class="tm-oh-input tm-oh-search" placeholder="Αναζήτηση σε όλες τις στήλες…" />
-                    <select id="tm-order-status-filter" class="tm-oh-select">
+            </div>
+            <div class="rnr-cw-pagination rnr-s-1 MyMANAGERWhite_label1">
+                <div class="rnr-c rnr-ch rnr-c-pagination tm-oh-filter-row" style="flex-wrap:wrap;align-items:center;gap:4px;">
+                    <span class="rnr-b-recordcount">Εγγραφές: <span id="tm-oh-count-label">0</span></span>
+                    <input type="search" id="tm-order-history-search" placeholder="Αναζήτηση…" style="min-width:160px;flex:1 1 160px;" />
+                    <select id="tm-order-status-filter">
                         <option value="all">Όλες</option>
                         <option value="active">Ενεργές</option>
                         <option value="removed">Διαγραμμένες</option>
                     </select>
-                    <input type="date" id="tm-oh-date-from" class="tm-oh-input tm-oh-date" title="Από" />
-                    <input type="date" id="tm-oh-date-to" class="tm-oh-input tm-oh-date" title="Έως" />
-                    <div class="tm-oh-presets">
-                        <button type="button" class="tm-oh-preset" data-preset="today">Σήμερα</button>
-                        <button type="button" class="tm-oh-preset" data-preset="7d">7η</button>
-                        <button type="button" class="tm-oh-preset" data-preset="30d">30η</button>
-                        <button type="button" class="tm-oh-preset" data-preset="clear">Καθαρισμός</button>
-                    </div>
+                    <input type="date" id="tm-oh-date-from" title="Από" />
+                    <input type="date" id="tm-oh-date-to" title="Έως" />
+                    <a href="#" class="rnr-button tm-oh-preset" data-preset="today"><span>Σήμερα</span></a>
+                    <a href="#" class="rnr-button tm-oh-preset" data-preset="7d"><span>7η</span></a>
+                    <a href="#" class="rnr-button tm-oh-preset" data-preset="30d"><span>30η</span></a>
+                    <a href="#" class="rnr-button tm-oh-preset" data-preset="clear"><span>Καθαρισμός</span></a>
                 </div>
-                <div class="tm-oh-body" id="tm-order-history-container"></div>
+            </div>
+            <div class="rnr-cw-grid rnr-s-grid MyMANAGERWhite_label1">
+                <div class="rnr-c rnr-ch rnr-c-grid" id="tm-order-history-container">
+                    <div class="tm-oh-empty">Φόρτωση…</div>
+                </div>
             </div>
         `;
-        document.body.appendChild(overlay);
+        center.appendChild(root);
+        return root;
+    }
 
-        const container = overlay.querySelector('#tm-order-history-container');
-        const searchInput = overlay.querySelector('#tm-order-history-search');
-        const statusFilter = overlay.querySelector('#tm-order-status-filter');
-        const dateFrom = overlay.querySelector('#tm-oh-date-from');
-        const dateTo = overlay.querySelector('#tm-oh-date-to');
-        const syncBtn = overlay.querySelector('#tm-order-sync-btn');
-        const exportBtn = overlay.querySelector('#tm-order-export-btn');
+    function isLiveRecordControlsStrip(el) {
+        if (!el || el.id === 'tm-oh-native-root') return false;
+        if (el.classList?.contains('rnr-cw-recordcontrols')) return true;
+        if (el.classList?.contains('rnr-c-recordcontrols')) return true;
+        return !!el.querySelector?.('.rnr-c-recordcontrols, .rnr-cw-recordcontrols');
+    }
+
+    function exitNativeHistoryMode() {
+        const root = document.getElementById('tm-oh-native-root');
+        const center = root?.parentElement || document.querySelector('.rnr-center');
+        if (center) {
+            Array.from(center.children).forEach((child) => {
+                if (child.id === 'tm-oh-native-root') return;
+                if (child.getAttribute('data-tm-oh-hidden') === '1') {
+                    child.removeAttribute('data-tm-oh-hidden');
+                    child.style.display = '';
+                }
+            });
+        }
+        if (root) root.setAttribute('hidden', '');
+        nativeHistoryActive = false;
+        const toggle = document.getElementById('tm-oh-native-toggle');
+        if (toggle) {
+            toggle.classList.remove('is-active');
+            const span = toggle.querySelector('span');
+            if (span) span.textContent = 'Ιστορικό';
+        }
+        if (nativeHistoryEscHandler) {
+            document.removeEventListener('keydown', nativeHistoryEscHandler);
+            nativeHistoryEscHandler = null;
+        }
+        try {
+            const url = new URL(location.href);
+            if (url.searchParams.has('tm_oh')) {
+                url.searchParams.delete('tm_oh');
+                history.replaceState(null, '', url.pathname + url.search + url.hash);
+            }
+        } catch (_) { /* ignore */ }
+    }
+
+    function enterNativeHistoryMode() {
+        if (!isOrderHistoryListPage()) {
+            location.href = getOrderHistoryListUrl();
+            return;
+        }
+
+        ensureNativeToggleButton();
+        const root = ensureNativeHistoryShell();
+        const center = root.parentElement;
+        if (center) {
+            Array.from(center.children).forEach((child) => {
+                if (child === root) return;
+                // Keep live recordcontrols so Ιστορικό / Ζωντανές toggle stays clickable
+                if (isLiveRecordControlsStrip(child)) return;
+                if (child.style.display === 'none' && child.getAttribute('data-tm-oh-hidden') !== '1') return;
+                child.setAttribute('data-tm-oh-hidden', '1');
+                child.style.display = 'none';
+            });
+        }
+        root.removeAttribute('hidden');
+        nativeHistoryActive = true;
+
+        const toggle = document.getElementById('tm-oh-native-toggle');
+        if (toggle) {
+            toggle.classList.add('is-active');
+            const span = toggle.querySelector('span');
+            if (span) span.textContent = 'Ζωντανές';
+        }
+
+        if (!nativeHistoryEscHandler) {
+            nativeHistoryEscHandler = (e) => {
+                if (e.key === 'Escape' && nativeHistoryActive) {
+                    e.preventDefault();
+                    exitNativeHistoryMode();
+                }
+            };
+            document.addEventListener('keydown', nativeHistoryEscHandler);
+        }
+
+        if (!nativeHistoryWired) {
+            wireNativeHistorySession(root);
+            nativeHistoryWired = true;
+        } else if (nativeHistorySession?.paintFromCacheThenRefresh) {
+            nativeHistorySession.paintFromCacheThenRefresh();
+        }
+    }
+
+    function wireNativeHistorySession(root) {
+        const useDatabase = ohUseDatabase();
+        const container = root.querySelector('#tm-order-history-container');
+        const searchInput = root.querySelector('#tm-order-history-search');
+        const statusFilter = root.querySelector('#tm-order-status-filter');
+        const dateFrom = root.querySelector('#tm-oh-date-from');
+        const dateTo = root.querySelector('#tm-oh-date-to');
+        const syncBtn = root.querySelector('#tm-order-sync-btn');
+        const exportBtn = root.querySelector('#tm-order-export-btn');
+        const liveBtn = root.querySelector('#tm-oh-live-btn');
 
         let sortKey = 'timestamp';
         let sortDir = 'desc';
@@ -2614,21 +2563,20 @@
         let activePreset = '';
 
         const setSyncStatus = (text) => {
-            const el = overlay.querySelector('#tm-oh-sync-status');
+            const el = root.querySelector('#tm-oh-sync-status');
             if (el) el.textContent = text;
         };
 
         const setCountLabel = (visible, total) => {
-            const el = overlay.querySelector('#tm-oh-count-label');
+            const el = root.querySelector('#tm-oh-count-label');
             if (!el) return;
             const cap = ohViewCapped ? ' · νεότερα 200' : '';
-            el.textContent = total ? `${visible} / ${total}${cap}` : '';
+            el.textContent = total ? `${visible} / ${total}${cap}` : String(visible || 0);
         };
 
-        const closeModal = () => overlay.remove();
-        overlay.querySelector('.tm-oh-close')?.addEventListener('click', closeModal);
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) closeModal();
+        liveBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            exitNativeHistoryMode();
         });
 
         const orderDayStart = (order) => {
@@ -2743,7 +2691,7 @@
             if (!ohViewOrders.length) {
                 container.innerHTML = useDatabase
                     ? `<div class="tm-oh-empty">Δεν υπάρχουν εγγραφές στο server για αυτό το κατάστημα.<br><span class="tm-oh-muted">Η αποδοχή παραγγελιών ανεβαίνει αυτόματα.</span></div>`
-                    : `<div class="tm-oh-empty">Δεν υπάρχει τοπικό ιστορικό ακόμα.<br><span class="tm-oh-muted">Οι αποδοχές σε αυτόν τον υπολογιστή χτίζουν τη λίστα. Χωρίς βάση δεν βλέπετε κοινό ιστορικό καταστήματος.</span></div>`;
+                    : `<div class="tm-oh-empty">Δεν υπάρχει τοπικό ιστορικό ακόμα.<br><span class="tm-oh-muted">Οι αποδοχές σε αυτόν τον υπολογιστή χτίζουν τη λίστα.</span></div>`;
                 return;
             }
             if (!filtered.length) {
@@ -2752,51 +2700,57 @@
             }
 
             const tableCols = ohCollectTableColumns(filtered);
-            const th = (key, label) => {
-                const cls = sortKey === key ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : '';
-                return `<th data-sort="${escapeHtml(key)}" class="${cls}" title="${escapeHtml(label)}">${escapeHtml(label)}</th>`;
+            const th = (key, label, edge) => {
+                const cls = [
+                    edge || '',
+                    sortKey === key ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : '',
+                ].filter(Boolean).join(' ');
+                return `<th class="${cls}" data-sort="${escapeHtml(key)}" title="${escapeHtml(label)}">${escapeHtml(label)}</th>`;
             };
 
             const rows = filtered.map((order) => {
                 const phone = String(order.phone || '');
                 const added = order.timestamp ? formatDateTime(order.timestamp) : '—';
-                const dynCells = tableCols.map((col) => {
+                const href = order.url || '';
+                const dynCells = tableCols.map((col, idx) => {
                     const raw = ohColumnCellValue(order, col);
                     const lower = col.toLowerCase();
                     const isPhone = /τηλέφων|phone/.test(lower);
+                    const edge = idx === tableCols.length - 1 ? '' : '';
+                    let inner;
                     if (isPhone) {
                         const disp = formatPhoneDisplay(raw || phone) || raw || '—';
                         const copyVal = raw || phone;
-                        return `<td class="tm-oh-cell-phone" title="${escapeHtml(disp)}">
-                            <span class="tm-oh-phone-cell">
-                                <span>${escapeHtml(disp)}</span>
-                                ${copyVal ? `<button type="button" class="tm-copy-phone-btn" data-phone="${escapeHtml(copyVal)}" title="Αντιγραφή">⧉</button>` : ''}
-                            </span>
-                        </td>`;
+                        inner = `<span class="rnr-field-text tm-oh-phone-cell">
+                            <span>${escapeHtml(disp)}</span>
+                            ${copyVal ? `<button type="button" class="tm-copy-phone-btn" data-phone="${escapeHtml(copyVal)}" title="Αντιγραφή">⧉</button>` : ''}
+                        </span>`;
+                    } else {
+                        inner = `<span class="rnr-field-text">${escapeHtml(raw || '—')}</span>`;
                     }
-                    return `<td title="${escapeHtml(raw)}">${escapeHtml(raw || '—')}</td>`;
+                    return `<td class="${edge}" data-field="${escapeHtml(col)}" ${href ? `data-href="${escapeHtml(href)}"` : ''} title="${escapeHtml(raw || '')}">${inner}</td>`;
                 }).join('');
                 return `
-                    <tr data-url="${escapeHtml(order.url || '')}">
-                        <td class="tm-oh-muted">${escapeHtml(added)}</td>
+                    <tr class="rnr-row style1" ${href ? `data-href="${escapeHtml(href)}"` : ''}>
+                        <td class="rnr-edge" ${href ? `data-href="${escapeHtml(href)}"` : ''}>
+                            <span class="rnr-field-text">${escapeHtml(added)}</span>
+                        </td>
                         ${dynCells}
-                        <td>${statusBadgeHtml(order)}</td>
+                        <td class="rnr-edge" ${href ? `data-href="${escapeHtml(href)}"` : ''}>${statusBadgeHtml(order)}</td>
                     </tr>`;
             }).join('');
 
             container.innerHTML = `
-                <div class="tm-oh-table-wrap">
-                    <table class="tm-oh-table">
-                        <thead>
-                            <tr>
-                                ${th('timestamp', 'Προστέθηκε')}
-                                ${tableCols.map((col) => th(`col:${col}`, col)).join('')}
-                                <th>Κατάσταση</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                </div>`;
+                <table class="rnr-c rnr-cont rnr-c-grid rnr-b-grid rnr-gridtable hoverable" cellpadding="0" data-location="grid">
+                    <thead>
+                        <tr class="rnr-toprow style1">
+                            ${th('timestamp', 'Προστέθηκε', 'rnr-edge')}
+                            ${tableCols.map((col) => th(`col:${col}`, col, '')).join('')}
+                            <th class="rnr-edge">Κατάσταση</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
         };
 
         const runStatusChecks = async () => {
@@ -2824,10 +2778,10 @@
 
         const refreshFromServer = async ({ silent } = {}) => {
             setSyncStatus('συγχρονισμός…');
-            if (syncBtn) syncBtn.disabled = true;
+            if (syncBtn) syncBtn.classList.add('disabled');
             const kind = ohPageKind();
             const remote = await fetchStoreOrderHistoryFromServer(kind);
-            if (syncBtn) syncBtn.disabled = false;
+            if (syncBtn) syncBtn.classList.remove('disabled');
             if (!remote.ok) {
                 const cache = ohLoadViewCache(ohStoreKey(), kind);
                 if (cache?.orders?.length) {
@@ -2835,7 +2789,7 @@
                         .slice()
                         .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                     ohViewCapped = !!cache.capped;
-                    const storeEl = overlay.querySelector('#tm-oh-store-label');
+                    const storeEl = root.querySelector('#tm-oh-store-label');
                     if (storeEl) storeEl.textContent = cache.store || ohGetStoreName() || '—';
                     const age = ohFormatCacheAge(cache.savedAt);
                     setSyncStatus(remote.unsupported
@@ -2871,7 +2825,7 @@
                 .slice()
                 .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
             ohViewCapped = !!remote.capped;
-            const storeEl = overlay.querySelector('#tm-oh-store-label');
+            const storeEl = root.querySelector('#tm-oh-store-label');
             if (storeEl) storeEl.textContent = remote.store || ohGetStoreName() || '—';
             setSyncStatus(`server · ${remote.storeKey || 'store'} · ${kind}`);
             statusesChecked = false;
@@ -2904,7 +2858,7 @@
                     .slice()
                     .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                 ohViewCapped = !!cache.capped;
-                const storeEl = overlay.querySelector('#tm-oh-store-label');
+                const storeEl = root.querySelector('#tm-oh-store-label');
                 if (storeEl) storeEl.textContent = cache.store || ohGetStoreName() || '—';
                 const age = ohFormatCacheAge(cache.savedAt);
                 setSyncStatus(`cache${age ? ` · ${age}` : ''} · ενημέρωση…`);
@@ -2917,7 +2871,7 @@
 
         const applyPreset = (preset) => {
             activePreset = preset;
-            overlay.querySelectorAll('.tm-oh-preset').forEach((btn) => {
+            root.querySelectorAll('.tm-oh-preset').forEach((btn) => {
                 btn.classList.toggle('is-active', btn.getAttribute('data-preset') === preset && preset !== 'clear');
             });
             const now = new Date();
@@ -2952,14 +2906,18 @@
         statusFilter.addEventListener('change', () => renderOrders());
         dateFrom.addEventListener('change', () => { activePreset = ''; renderOrders(); });
         dateTo.addEventListener('change', () => { activePreset = ''; renderOrders(); });
-        overlay.querySelectorAll('.tm-oh-preset').forEach((btn) => {
-            btn.addEventListener('click', () => applyPreset(btn.getAttribute('data-preset')));
+        root.querySelectorAll('.tm-oh-preset').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                applyPreset(btn.getAttribute('data-preset'));
+            });
         });
 
         container.addEventListener('click', (e) => {
             const copyBtn = e.target.closest?.('.tm-copy-phone-btn');
             if (copyBtn) {
                 e.stopPropagation();
+                e.preventDefault();
                 const phone = copyBtn.getAttribute('data-phone') || '';
                 if (!phone) return;
                 navigator.clipboard.writeText(phone).then(() => {
@@ -2969,26 +2927,29 @@
                 }).catch(() => {});
                 return;
             }
-            const th = e.target.closest?.('th[data-sort]');
-            if (th) {
-                const key = th.getAttribute('data-sort');
+            const thEl = e.target.closest?.('th[data-sort]');
+            if (thEl) {
+                e.preventDefault();
+                const key = thEl.getAttribute('data-sort');
                 if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
                 else { sortKey = key; sortDir = key === 'timestamp' || key === 'date' ? 'desc' : 'asc'; }
                 renderOrders();
                 return;
             }
-            const tr = e.target.closest?.('tbody tr[data-url]');
+            const tr = e.target.closest?.('tbody tr[data-href], tbody td[data-href]');
             if (tr) {
-                const url = tr.getAttribute('data-url');
+                const url = tr.getAttribute('data-href') || tr.closest('tr')?.getAttribute('data-href');
                 if (url) window.open(url, '_blank');
             }
         });
 
-        syncBtn?.addEventListener('click', () => {
+        syncBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
             refreshFromServer({ silent: false }).catch(() => {});
         });
 
-        exportBtn?.addEventListener('click', () => {
+        exportBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
             const rows = getFilteredOrders();
             const tableCols = ohCollectTableColumns(rows);
             const headers = ['added', ...tableCols, 'live_status', 'url'];
@@ -3018,7 +2979,15 @@
             ? `<div class="tm-oh-empty">Φόρτωση από server…</div>`
             : `<div class="tm-oh-empty">Φόρτωση τοπικού ιστορικού…</div>`;
         paintFromCacheThenRefresh();
+
+        nativeHistorySession = { paintFromCacheThenRefresh, renderOrders };
     }
+
+    /** @deprecated modal retired — opens native inline history on list pages */
+    function showOrderHistoryModal() {
+        enterNativeHistoryMode();
+    }
+
 
     // Initialize monitoring when page loads
     function initOrderHistory() {
@@ -3053,6 +3022,21 @@
                 saveOrdersToHistory(orders);
             }
         }, 1000);
+
+        const mountNativeChrome = () => {
+            ensureNativeToggleButton();
+            try {
+                const params = new URLSearchParams(location.search || '');
+                if (params.get('tm_oh') === '1') enterNativeHistoryMode();
+            } catch (_) { /* ignore */ }
+        };
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => setTimeout(mountNativeChrome, 400));
+        } else {
+            setTimeout(mountNativeChrome, 400);
+        }
+        setTimeout(mountNativeChrome, 1200);
+        setTimeout(mountNativeChrome, 2500);
     }
 
     /**
@@ -3126,7 +3110,9 @@
     }
 
     // Make functions globally accessible
-    window.showOrderHistoryModal = showOrderHistoryModal;
+    window.enterNativeHistoryMode = enterNativeHistoryMode;
+    window.exitNativeHistoryMode = exitNativeHistoryMode;
+    window.showOrderHistoryModal = showOrderHistoryModal; // compat → native mode
     window.initOrderHistory = initOrderHistory;
     window.getOrderHistoryOrdersForSearch = getOrderHistoryOrdersForSearch;
     window.seedOrderHistoryLocalFromCache = seedOrderHistoryLocalFromCache;
