@@ -280,6 +280,19 @@
         return ohColumnCellValue(order, want);
     }
 
+    /** Shorten long cell text for the history grid; full value stays in title for hover. */
+    function ohTruncateCellText(value, maxLen = 40) {
+        const full = String(value ?? '');
+        if (full.length <= maxLen) {
+            return { display: full, full, truncated: false };
+        }
+        return {
+            display: `${full.slice(0, Math.max(1, maxLen - 1))}…`,
+            full,
+            truncated: true,
+        };
+    }
+
     /**
      * Keys for orders currently visible on the live list grid (not history clone).
      * Used to keep “still open” rows out of Ιστορικό.
@@ -2448,6 +2461,14 @@
             #tm-oh-native-root .rnr-orderlink.sort-asc::after { content: ' ↑'; }
             #tm-oh-native-root .rnr-orderlink.sort-desc::after { content: ' ↓'; }
             #tm-oh-native-root .tm-copy-phone-btn { margin-left: 4px; cursor: pointer; }
+            #tm-oh-native-root .tm-oh-cell-clip {
+                display: inline-block;
+                max-width: 14rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                vertical-align: bottom;
+            }
             #tm-oh-native-root a.tm-oh-preset.is-active,
             #tm-oh-native-root a.tm-oh-status.is-on { font-weight: 700; text-decoration: underline; }
         `;
@@ -2914,9 +2935,13 @@
                     if (isPhone) {
                         const disp = formatPhoneDisplay(raw || phone) || raw || '—';
                         const copyVal = raw || phone;
-                        inner = `<span>${escapeHtml(disp)}${copyVal ? ` <a href="#" class="tm-copy-phone-btn" data-phone="${escapeHtml(copyVal)}" title="Αντιγραφή">⧉</a>` : ''}</span>`;
+                        const clipped = ohTruncateCellText(disp);
+                        const titleAttr = clipped.truncated ? ` title="${escapeHtml(clipped.full)}"` : '';
+                        inner = `<span><span class="tm-oh-cell-clip"${titleAttr}>${escapeHtml(clipped.display)}</span>${copyVal ? ` <a href="#" class="tm-copy-phone-btn" data-phone="${escapeHtml(copyVal)}" title="Αντιγραφή">⧉</a>` : ''}</span>`;
                     } else {
-                        inner = `<span>${escapeHtml(raw || '')}</span>`;
+                        const clipped = ohTruncateCellText(raw || '');
+                        const titleAttr = clipped.truncated ? ` title="${escapeHtml(clipped.full)}"` : '';
+                        inner = `<span class="tm-oh-cell-clip"${titleAttr}>${escapeHtml(clipped.display)}</span>`;
                     }
                     return liveTd(inner, href, col.tdClass);
                 }).join('');
