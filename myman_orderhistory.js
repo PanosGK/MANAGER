@@ -207,6 +207,79 @@
         return cols;
     }
 
+    /**
+     * Live list column defs from the page grid (same labels/order/classes as Ζωντανές).
+     * Skips the history clone table.
+     */
+    function ohGetLiveListColumns() {
+        const liveGrid = document.querySelector('.rnr-center .rnr-cw-grid:not(#tm-oh-native-grid)');
+        const table = liveGrid?.querySelector('table.rnr-gridtable, table.rnr-b-grid, table');
+        if (!table) return null;
+        const cols = [];
+        const ths = table.querySelectorAll('thead tr.rnr-toprow th, thead th');
+        ths.forEach((th) => {
+            const isBc = th.classList.contains('rnr-bc')
+                || !!th.querySelector('input.chooseAll1, input[type="checkbox"]');
+            if (isBc) {
+                cols.push({
+                    kind: 'bc',
+                    label: '',
+                    thClass: th.className || 'rnr-bc',
+                    tdClass: 'rnr-bc',
+                });
+                return;
+            }
+            const link = th.querySelector('.rnr-orderlink, [data-order]');
+            const label = String(link?.textContent || th.textContent || '')
+                .replace(/\s+/g, ' ')
+                .trim();
+            const thClass = th.className || 'rnr-gridfieldlabel rnr-field-text';
+            const isCheck = /checkbox/i.test(thClass);
+            if (!label) {
+                cols.push({
+                    kind: 'empty',
+                    label: '',
+                    thClass,
+                    tdClass: isCheck ? ' rnr-field-checkbox' : 'rnr-field-text',
+                });
+                return;
+            }
+            cols.push({
+                kind: isCheck ? 'checkbox' : 'field',
+                label,
+                thClass,
+                tdClass: isCheck ? ' rnr-field-checkbox' : 'rnr-field-text',
+                dataOrder: link?.getAttribute?.('data-order') || '',
+            });
+        });
+        return cols.length ? cols : null;
+    }
+
+    /** Resolve a live header label against an order's allColumns (+ legacy fallbacks). */
+    function ohResolveColumnValue(order, label) {
+        const want = String(label || '').trim();
+        if (!want) return '';
+        const map = order?.allColumns;
+        if (map && typeof map === 'object') {
+            if (Object.prototype.hasOwnProperty.call(map, want)) {
+                return String(map[want] ?? '').trim();
+            }
+            const wantKey = want.toLowerCase().replace(/\s+/g, '');
+            for (const [k, v] of Object.entries(map)) {
+                if (String(k).toLowerCase().replace(/\s+/g, '') === wantKey) {
+                    return String(v ?? '').trim();
+                }
+            }
+            for (const [k, v] of Object.entries(map)) {
+                const kk = String(k).toLowerCase().replace(/\s+/g, '');
+                if (kk && (kk.includes(wantKey) || wantKey.includes(kk))) {
+                    return String(v ?? '').trim();
+                }
+            }
+        }
+        return ohColumnCellValue(order, want);
+    }
+
     function ohColumnCellValue(order, columnKey) {
         const cols = order?.allColumns;
         if (cols && Object.prototype.hasOwnProperty.call(cols, columnKey)) {
@@ -2547,6 +2620,11 @@
 
         let sortKey = 'timestamp';
         let sortDir = 'desc';
+        // Prefer first live data column once DOM is ready (matches Ζωντανές sort feel)
+        try {
+            const firstLive = (ohGetLiveListColumns() || []).find((c) => c.kind === 'field' || c.kind === 'checkbox');
+            if (firstLive?.label) sortKey = `col:${firstLive.label}`;
+        } catch (_) { /* ignore */ }
         let statusesChecked = false;
         const statusResultsMap = new Map();
         let activePreset = '';
@@ -2638,8 +2716,8 @@
                 }
                 if (sortKey.startsWith('col:')) {
                     const colKey = sortKey.slice(4);
-                    av = ohColumnCellValue(a, colKey);
-                    bv = ohColumnCellValue(b, colKey);
+                    av = ohResolveColumnValue(a, colKey);
+                    bv = ohResolveColumnValue(b, colKey);
                     return av.localeCompare(bv, 'el', { numeric: true }) * dir;
                 }
                 av = Number(a.timestamp) || 0;
@@ -2649,30 +2727,24 @@
             return list;
         };
 
-        const statusText = (order) => {
-            const key = String(order.id || ohExtractOrderId(order));
-            let label = order.status || '—';
-            if (orderHistoryStatusCheckEnabled) {
-                const st = statusResultsMap.get(key);
-                if (!st || st.checking) label = '…';
-                else if (st.error) label = '?';
-                else if (st.exists) label = 'Ενεργή';
-                else label = 'Διαγραμμένη';
-            }
-            return label;
-        };
-
-        const liveTd = (innerHtml, href) => {
+        const liveTd = (innerHtml, href, tdClass = 'rnr-field-text') => {
             const hrefBits = href
                 ? ` data-href="${escapeHtml(href)}" style="cursor:pointer"`
                 : '';
-            return `<td class="rnr-field-text"${hrefBits}>${innerHtml}</td>`;
+            return `<td class="${escapeHtml(String(tdClass || 'rnr-field-text').trim())}"${hrefBits}>${innerHtml}</td>`;
         };
 
-        const liveTh = (key, label) => {
+        const liveThFromCol = (col) => {
+            if (col.kind === 'bc') {
+                return `<th class="${escapeHtml(col.thClass || 'rnr-bc')}"></th>`;
+            }
+            if (col.kind === 'empty' || !col.label) {
+                return `<th class="${escapeHtml(col.thClass || 'rnr-gridfieldlabel rnr-field-text')}"></th>`;
+            }
+            const key = `col:${col.label}`;
             const sortCls = sortKey === key ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc') : '';
-            return `<th class="rnr-gridfieldlabel rnr-field-text">
-                <span class="rnr-orderlink ${sortCls}" data-sort="${escapeHtml(key)}">${escapeHtml(label)}</span>
+            return `<th class="${escapeHtml(col.thClass || 'rnr-gridfieldlabel rnr-field-text')}">
+                <span class="rnr-orderlink ${sortCls}" data-sort="${escapeHtml(key)}">${escapeHtml(col.label)}</span>
             </th>`;
         };
 
@@ -2682,6 +2754,22 @@
             const tbody = histTable.querySelector('tbody');
             if (thead) thead.innerHTML = theadHtml;
             if (tbody) tbody.innerHTML = tbodyHtml;
+        };
+
+        const historyColumns = () => {
+            const liveCols = ohGetLiveListColumns();
+            if (liveCols?.length) return liveCols;
+            // Fallback only if live DOM missing: data-driven labels, still no extra OH columns
+            const labels = ohCollectTableColumns(ohViewOrders);
+            return [
+                { kind: 'bc', label: '', thClass: 'rnr-bc', tdClass: 'rnr-bc' },
+                ...labels.map((label) => ({
+                    kind: 'field',
+                    label,
+                    thClass: 'rnr-gridfieldlabel rnr-field-text',
+                    tdClass: 'rnr-field-text',
+                })),
+            ];
         };
 
         const renderOrders = () => {
@@ -2699,25 +2787,32 @@
                 return;
             }
 
-            const tableCols = ohCollectTableColumns(filtered);
-            const headRow = `<tr class="rnr-toprow style1">
-                <th class="rnr-bc"></th>
-                ${liveTh('timestamp', 'Προστέθηκε')}
-                ${tableCols.map((col) => liveTh(`col:${col}`, col)).join('')}
-                ${liveTh('status', 'Κατάσταση')}
-            </tr>`;
+            const cols = historyColumns();
+            const headRow = `<tr class="rnr-toprow style1">${cols.map(liveThFromCol).join('')}</tr>`;
 
             const rows = filtered.map((order, idx) => {
                 const phone = String(order.phone || '');
-                const added = order.timestamp ? formatDateTime(order.timestamp) : '—';
                 const href = order.url || '';
                 const rid = idx + 1;
-                const bc = href
-                    ? `<td class="rnr-bc" data-record-id="${rid}" style="cursor:pointer" data-href="${escapeHtml(href)}"></td>`
-                    : `<td class="rnr-bc" data-record-id="${rid}"></td>`;
-                const dynCells = tableCols.map((col) => {
-                    const raw = ohColumnCellValue(order, col);
-                    const lower = col.toLowerCase();
+                const cells = cols.map((col) => {
+                    if (col.kind === 'bc') {
+                        return href
+                            ? `<td class="rnr-bc" data-record-id="${rid}" style="cursor:pointer" data-href="${escapeHtml(href)}"></td>`
+                            : `<td class="rnr-bc" data-record-id="${rid}"></td>`;
+                    }
+                    if (col.kind === 'empty') {
+                        return liveTd('<span></span>', href, col.tdClass);
+                    }
+                    const raw = ohResolveColumnValue(order, col.label);
+                    if (col.kind === 'checkbox') {
+                        const on = /check_yes/i.test(raw)
+                            || /^(1|true|yes|ναί|ναι|✓|✔|x)$/i.test(raw.trim());
+                        const inner = on
+                            ? '<span><img src="images/check_yes.gif" border="0" alt=" "></span>'
+                            : '<span></span>';
+                        return liveTd(inner, href, col.tdClass);
+                    }
+                    const lower = String(col.label || '').toLowerCase();
                     const isPhone = /τηλέφων|phone/.test(lower);
                     let inner;
                     if (isPhone) {
@@ -2725,16 +2820,11 @@
                         const copyVal = raw || phone;
                         inner = `<span>${escapeHtml(disp)}${copyVal ? ` <a href="#" class="tm-copy-phone-btn" data-phone="${escapeHtml(copyVal)}" title="Αντιγραφή">⧉</a>` : ''}</span>`;
                     } else {
-                        inner = `<span>${escapeHtml(raw || '—')}</span>`;
+                        inner = `<span>${escapeHtml(raw || '')}</span>`;
                     }
-                    return liveTd(inner, href);
+                    return liveTd(inner, href, col.tdClass);
                 }).join('');
-                return `<tr class="rnr-row style1" id="tmOhRow${rid}" ${href ? `data-href="${escapeHtml(href)}"` : ''}>
-                    ${bc}
-                    ${liveTd(`<span>${escapeHtml(added)}</span>`, href)}
-                    ${dynCells}
-                    ${liveTd(`<span>${escapeHtml(statusText(order))}</span>`, href)}
-                </tr>`;
+                return `<tr class="rnr-row style1" id="tmOhRow${rid}" ${href ? `data-href="${escapeHtml(href)}"` : ''}>${cells}</tr>`;
             }).join('');
 
             paintTable(headRow, rows);
@@ -2938,21 +3028,15 @@
         exportBtn?.addEventListener('click', (e) => {
             e.preventDefault();
             const rows = getFilteredOrders();
-            const tableCols = ohCollectTableColumns(rows);
-            const headers = ['added', ...tableCols, 'live_status', 'url'];
+            const cols = historyColumns().filter((c) => c.kind === 'field' || c.kind === 'checkbox');
+            const headers = [...cols.map((c) => c.label), 'url'];
             const lines = [headers.map((h) => `"${String(h).replace(/"/g, '""')}"`).join(',')];
             rows.forEach((o) => {
-                const liveKey = String(o.id || ohExtractOrderId(o));
-                const st = statusResultsMap.get(liveKey);
-                let live = '';
-                if (st && !st.checking && !st.error) live = st.exists ? 'active' : 'removed';
-                const cols = [
-                    o.timestamp ? new Date(o.timestamp).toISOString() : '',
-                    ...tableCols.map((c) => ohColumnCellValue(o, c)),
-                    live,
+                const vals = [
+                    ...cols.map((c) => ohResolveColumnValue(o, c.label)),
                     o.url || '',
                 ].map((v) => `"${String(v).replace(/"/g, '""')}"`);
-                lines.push(cols.join(','));
+                lines.push(vals.join(','));
             });
             const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
             const a = document.createElement('a');
