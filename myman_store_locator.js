@@ -49,18 +49,38 @@
 
     function looksLikeUnitCode(query) {
         const s = String(query || '').replace(/\s+/g, '');
-        return /^\d{8,}$/.test(s);
+        if (!s) return false;
+        // IMEI / numeric scanner codes
+        if (/^\d{8,}$/.test(s)) return true;
+        // MyManager product barcodes (phones + laptops): 55.xxxxx / 56.xxxxx
+        if (/^(55|56)\.\d{3,}$/i.test(s)) return true;
+        // Same codes if the scanner dropped the dot
+        if (/^(55|56)\d{3,}$/i.test(s)) return true;
+        return false;
     }
 
     function normalizeUnitCode(query) {
-        return String(query || '').replace(/\s+/g, '');
+        let s = String(query || '').replace(/\s+/g, '').trim();
+        // Restore dotted product barcode if digits-only 55/56… was scanned
+        if (/^(55|56)\d{3,}$/i.test(s) && !s.includes('.')) {
+            s = `${s.slice(0, 2)}.${s.slice(2)}`;
+        }
+        return s;
     }
 
     function phoneMatchesUnitCode(phone, code) {
         if (!phone || !code) return false;
-        if (String(phone.barcode || '') === code) return true;
+        const barcode = String(phone.barcode || '').replace(/\s+/g, '').trim();
+        if (barcode) {
+            if (barcode === code) return true;
+            if (barcode.toLowerCase() === String(code).toLowerCase()) return true;
+            const codeDigits = String(code).replace(/\D/g, '');
+            const barcodeDigits = barcode.replace(/\D/g, '');
+            if (codeDigits.length >= 5 && barcodeDigits === codeDigits) return true;
+        }
         const imei = String(phone.imei || '').replace(/\D/g, '');
-        return !!imei && (imei === code || imei.includes(code));
+        const codeDigits = String(code).replace(/\D/g, '');
+        return !!imei && !!codeDigits && (imei === codeDigits || imei.includes(codeDigits));
     }
 
     function cleanStoreName(name) {
@@ -1320,8 +1340,16 @@
                     modelQuery = searchInput.value.trim().toLowerCase();
                     clearTimeout(modelSearchTimer);
                     modelSearchTimer = setTimeout(() => {
+                        const raw = searchInput.value.trim();
+                        const code = normalizeUnitCode(raw);
+                        // Barcode/IMEI paste or finished scan → jump to stores.
+                        // Short debounce avoids mid-typing jumps on partial codes.
+                        if (looksLikeUnitCode(code) && code.replace(/\D/g, '').length >= 6) {
+                            jumpToUnitCode(raw).catch(() => {});
+                            return;
+                        }
                         renderModelsBody();
-                    }, 120);
+                    }, 280);
                 });
                 searchInput.addEventListener('keydown', async (e) => {
                     if (e.key !== 'Enter') return;

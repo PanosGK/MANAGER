@@ -65638,18 +65638,38 @@ try {
 
     function looksLikeUnitCode(query) {
         const s = String(query || '').replace(/\s+/g, '');
-        return /^\d{8,}$/.test(s);
+        if (!s) return false;
+        // IMEI / numeric scanner codes
+        if (/^\d{8,}$/.test(s)) return true;
+        // MyManager product barcodes (phones + laptops): 55.xxxxx / 56.xxxxx
+        if (/^(55|56)\.\d{3,}$/i.test(s)) return true;
+        // Same codes if the scanner dropped the dot
+        if (/^(55|56)\d{3,}$/i.test(s)) return true;
+        return false;
     }
 
     function normalizeUnitCode(query) {
-        return String(query || '').replace(/\s+/g, '');
+        let s = String(query || '').replace(/\s+/g, '').trim();
+        // Restore dotted product barcode if digits-only 55/56… was scanned
+        if (/^(55|56)\d{3,}$/i.test(s) && !s.includes('.')) {
+            s = `${s.slice(0, 2)}.${s.slice(2)}`;
+        }
+        return s;
     }
 
     function phoneMatchesUnitCode(phone, code) {
         if (!phone || !code) return false;
-        if (String(phone.barcode || '') === code) return true;
+        const barcode = String(phone.barcode || '').replace(/\s+/g, '').trim();
+        if (barcode) {
+            if (barcode === code) return true;
+            if (barcode.toLowerCase() === String(code).toLowerCase()) return true;
+            const codeDigits = String(code).replace(/\D/g, '');
+            const barcodeDigits = barcode.replace(/\D/g, '');
+            if (codeDigits.length >= 5 && barcodeDigits === codeDigits) return true;
+        }
         const imei = String(phone.imei || '').replace(/\D/g, '');
-        return !!imei && (imei === code || imei.includes(code));
+        const codeDigits = String(code).replace(/\D/g, '');
+        return !!imei && !!codeDigits && (imei === codeDigits || imei.includes(codeDigits));
     }
 
     function cleanStoreName(name) {
@@ -66909,8 +66929,16 @@ try {
                     modelQuery = searchInput.value.trim().toLowerCase();
                     clearTimeout(modelSearchTimer);
                     modelSearchTimer = setTimeout(() => {
+                        const raw = searchInput.value.trim();
+                        const code = normalizeUnitCode(raw);
+                        // Barcode/IMEI paste or finished scan → jump to stores.
+                        // Short debounce avoids mid-typing jumps on partial codes.
+                        if (looksLikeUnitCode(code) && code.replace(/\D/g, '').length >= 6) {
+                            jumpToUnitCode(raw).catch(() => {});
+                            return;
+                        }
                         renderModelsBody();
-                    }, 120);
+                    }, 280);
                 });
                 searchInput.addEventListener('keydown', async (e) => {
                     if (e.key !== 'Enter') return;
@@ -68991,6 +69019,72 @@ try {
             }
         }
         return ohColumnCellValue(order, want);
+    }
+
+    /**
+     * Keys for orders currently visible on the live list grid (not history clone).
+     * Used to keep “still open” rows out of Ιστορικό.
+     */
+    function ohCollectLivePageOrderKeys() {
+        const keys = new Set();
+        const liveGrid = document.querySelector('.rnr-center .rnr-cw-grid:not(#tm-oh-native-grid)');
+        if (!liveGrid) return keys;
+        liveGrid.querySelectorAll('tr.rnr-row').forEach((row) => {
+            const href = row.getAttribute('data-href')
+                || row.querySelector('td[data-href]')?.getAttribute('data-href')
+                || '';
+            if (href) {
+                try {
+                    const u = new URL(href, window.location.href);
+                    const id = u.searchParams.get('editid1')
+                        || u.searchParams.get('id')
+                        || u.searchParams.get('orderid')
+                        || '';
+                    if (id) keys.add(`id:${String(id).trim()}`);
+                } catch (_) { /* ignore */ }
+            }
+            const phoneCell = Array.from(row.querySelectorAll('td')).find((td) => {
+                const field = String(td.getAttribute('data-field') || '');
+                return /τηλέφων|phone/i.test(field);
+            });
+            const phoneText = String(
+                phoneCell?.textContent
+                || row.querySelector('[id*="strPhone"], [id*="Phone"]')?.textContent
+                || ''
+            ).replace(/\D/g, '');
+            if (phoneText.length >= 9) keys.add(`phone:${phoneText}`);
+        });
+        return keys;
+    }
+
+    function ohOrderMatchesLiveKeys(order, liveKeys) {
+        if (!liveKeys || !liveKeys.size) return false;
+        const id = String(ohExtractOrderId(order) || '').trim();
+        if (id && liveKeys.has(`id:${id}`)) return true;
+        const url = String(order?.url || '');
+        if (url) {
+            try {
+                const u = new URL(url, window.location.href);
+                const eid = u.searchParams.get('editid1')
+                    || u.searchParams.get('id')
+                    || u.searchParams.get('orderid')
+                    || '';
+                if (eid && liveKeys.has(`id:${String(eid).trim()}`)) return true;
+            } catch (_) { /* ignore */ }
+        }
+        const phone = String(order?.phone || '').replace(/\D/g, '');
+        if (phone.length >= 9 && liveKeys.has(`phone:${phone}`)) return true;
+        return false;
+    }
+
+    /** True when the order is still open/live (current list or status check). */
+    function ohOrderIsCurrentlyLive(order, liveKeys, statusMap, statusesChecked) {
+        if (ohOrderMatchesLiveKeys(order, liveKeys)) return true;
+        if (!statusesChecked || !statusMap) return false;
+        const key = String(order?.id || ohExtractOrderId(order));
+        const st = statusMap.get(key);
+        if (st && !st.checking && !st.error && st.exists) return true;
+        return false;
     }
 
     function ohColumnCellValue(order, columnKey) {
@@ -71199,7 +71293,6 @@ try {
                     <div class="style1 rnr-bl rnr-b-toplinks">
                         <span class="rnr-buttons-group">
                             <a href="#" class="rnr-button tm-oh-status is-on" data-status="all"><span>Όλες</span></a>
-                            <a href="#" class="rnr-button tm-oh-status" data-status="active"><span>Ενεργές</span></a>
                             <a href="#" class="rnr-button tm-oh-status" data-status="removed"><span>Διαγραμμένες</span></a>
                         </span>
                     </div>
@@ -71400,7 +71493,10 @@ try {
             if (fromVal) fromVal.setHours(0, 0, 0, 0);
             if (toVal) toVal.setHours(23, 59, 59, 999);
 
-            let list = ohFilterOrdersByPageKind(ohViewOrders.slice(), ohPageKind());
+            const liveKeys = ohCollectLivePageOrderKeys();
+            let list = ohFilterOrdersByPageKind(ohViewOrders.slice(), ohPageKind())
+                .filter((o) => !ohOrderIsCurrentlyLive(o, liveKeys, statusResultsMap, statusesChecked));
+
             if (q) {
                 list = list.filter((o) => {
                     const colBlob = o.allColumns
@@ -71421,13 +71517,11 @@ try {
                     return true;
                 });
             }
-            if (statusMode !== 'all' && statusesChecked) {
+            if (statusMode === 'removed' && statusesChecked) {
                 list = list.filter((o) => {
                     const st = statusResultsMap.get(String(o.id || ohExtractOrderId(o)));
-                    if (!st || st.checking || st.error) return statusMode === 'all';
-                    if (statusMode === 'active') return !!st.exists;
-                    if (statusMode === 'removed') return !st.exists;
-                    return true;
+                    if (!st || st.checking || st.error) return false;
+                    return !st.exists;
                 });
             }
 
@@ -71461,6 +71555,13 @@ try {
                 return (av - bv) * dir;
             });
             return list;
+        };
+
+        const historyEligibleTotal = () => {
+            const liveKeys = ohCollectLivePageOrderKeys();
+            return ohFilterOrdersByPageKind(ohViewOrders.slice(), ohPageKind())
+                .filter((o) => !ohOrderIsCurrentlyLive(o, liveKeys, statusResultsMap, statusesChecked))
+                .length;
         };
 
         const liveTd = (innerHtml, href, tdClass = 'rnr-field-text') => {
@@ -71510,7 +71611,7 @@ try {
 
         const renderOrders = () => {
             const filtered = getFilteredOrders();
-            setCountLabel(filtered.length, ohViewOrders.length);
+            setCountLabel(filtered.length, historyEligibleTotal());
 
             if (!ohViewOrders.length) {
                 paintTable('', `<tr class="rnr-row style1"><td class="rnr-field-text"><span>${useDatabase
