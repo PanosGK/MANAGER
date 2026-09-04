@@ -55,6 +55,36 @@
         };
     }
 
+    function getPrinterDisplayName() {
+        try {
+            if (typeof window.tmGetLoggedInDisplayName === 'function') {
+                const n = String(window.tmGetLoggedInDisplayName({ fallback: null }) || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+            if (typeof window.MMS_PROFILES?.getLoggedInDisplayName === 'function') {
+                const n = String(window.MMS_PROFILES.getLoggedInDisplayName({ fallback: null }) || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof window.MMS_PROFILES?.parseLoginBlockDisplayName === 'function') {
+                const n = String(window.MMS_PROFILES.parseLoginBlockDisplayName() || '').trim();
+                if (n) return n.slice(0, 64);
+            }
+        } catch (_) { /* ignore */ }
+        const el = document.querySelector('#login_block1 b, .rnr-b-loggedas b');
+        if (el) {
+            const n = String(el.textContent || '').replace(/^.*ως\s+/i, '').trim();
+            if (n) return n.slice(0, 64);
+        }
+        return String(
+            window.tmCurrentUser
+            || window.config?.currentUser
+            || window.config?.profileLabel
+            || ''
+        ).trim().slice(0, 64);
+    }
+
     /** Shared card markup — position is applied via CSS class, not separate designs. */
     function renderPrintCard(details, fields, nowText, positionClass, eyebrow) {
         const { barcode, fields: rows } = prepareFields(fields);
@@ -674,7 +704,9 @@
     ) {
         const fields = (details?.fields || []).filter(field => field.value && field.label !== 'Κατάστημα');
         const now = new Date();
-        const nowText = `${now.toLocaleDateString()} • ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        const printerName = getPrinterDisplayName();
+        const timePart = `${now.toLocaleDateString()} • ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        const nowText = printerName ? `${timePart} • ${printerName}` : timePart;
         const template = PRINT_TEMPLATES.find(t => t.id === templateId) || PRINT_TEMPLATES[0];
         const copy = getPrintModalCopy(opts.url);
         const positionClass = template.positionClass || 'pos-center';
