@@ -2847,11 +2847,19 @@ async function fetchStorehouseDetails(productCode, options = {}) {
     const code = String(productCode || '').trim();
     if (!code) return { stores: [], answered: true };
 
-    const cached = getCachedPhoneStoreDetails(code);
-    if (cached?.length) return { stores: cached, answered: true };
+    const skipCache = !!(options.force || options.skipCache);
+    if (!skipCache) {
+        const cached = getCachedPhoneStoreDetails(code);
+        if (cached?.length) return { stores: cached, answered: true };
+    }
 
     if (!isStorehousePageApiUsable()) {
-        return { stores: [], answered: true };
+        // Without a live API, keep any trusted cache rather than inventing "empty".
+        if (!skipCache) {
+            const cached = getCachedPhoneStoreDetails(code);
+            if (cached?.length) return { stores: cached, answered: true };
+        }
+        return { stores: [], answered: false };
     }
 
     const viaPage = await fetchStorehousesViaPageApi(code);
@@ -2863,10 +2871,10 @@ async function fetchStorehouseDetails(productCode, options = {}) {
     }
     if (viaPage.ok) {
         pageApiEmptyStreak += 1;
+        clearPhoneStoreDetailsCacheEntry(code);
         return { stores: [], answered: true };
     }
 
-    void options;
     return { stores: [], answered: false };
 }
 
@@ -2912,6 +2920,28 @@ function savePhoneStoreDetailsCache(barcode, stores) {
     phoneStoreDetailsSaveTimer = setTimeout(persistPhoneStoreDetailsCache, 250);
 }
 
+function clearPhoneStoreDetailsCacheEntry(barcode) {
+    const code = String(barcode || '').trim();
+    if (!code) return;
+    const cache = loadPhoneStoreDetailsCache();
+    if (!Object.prototype.hasOwnProperty.call(cache, code)) return;
+    delete cache[code];
+    phoneStoreDetailsCacheMemo = cache;
+    if (phoneStoreDetailsSaveTimer) clearTimeout(phoneStoreDetailsSaveTimer);
+    phoneStoreDetailsSaveTimer = setTimeout(persistPhoneStoreDetailsCache, 250);
+}
+
+function clearPhoneStoreDetailsCache() {
+    if (phoneStoreDetailsSaveTimer) {
+        clearTimeout(phoneStoreDetailsSaveTimer);
+        phoneStoreDetailsSaveTimer = null;
+    }
+    phoneStoreDetailsCacheMemo = {};
+    try {
+        GM_setValue(PHONE_STORE_DETAILS_CACHE_KEY, '{}');
+    } catch (_) { /* ignore */ }
+}
+
 function getCachedPhoneStoreDetails(barcode) {
     const entry = loadPhoneStoreDetailsCache()[barcode];
     if (!entry || !entry.stores?.length) return null;
@@ -2928,6 +2958,18 @@ function hydratePhonesFromStoreDetailsCache(phones) {
         if (!cached?.length) return;
         phone.stores = cached;
         phone.otherStores = cached;
+    });
+}
+
+/** Drop network units that live-check confirmed have no store stock (ghosts). */
+function pruneNetworkPhonesWithoutStores(phones) {
+    return (phones || []).filter((phone) => {
+        if (!phone) return false;
+        if (getEffectivePhoneStores(phone).length) return true;
+        const code = String(phone.barcode || '').trim();
+        if (code && storeResolveAnsweredEmpty.has(code)) return false;
+        // Still unresolved — keep until a live check answers.
+        return (parseInt(phone.otherStoreCount, 10) || 0) > 0;
     });
 }
 
@@ -2983,14 +3025,33 @@ function mergeOtherStoresFromAllPhones(allPhones, networkPhones) {
 async function resolvePhonesStoreDetails(phones, options = {}) {
     const { concurrency = 6, onProgress, filter } = options;
     const maxPasses = Math.max(1, Math.min(Number(options.maxPasses) || 3, 4));
-    if (options.force) storeResolveAnsweredEmpty.clear();
-    hydratePhonesFromStoreDetailsCache(phones);
+    const force = !!options.force;
+    if (force) {
+        storeResolveAnsweredEmpty.clear();
+        // Strip scraped/cached store hints so every network unit is live-checked.
+        (phones || []).forEach((phone) => {
+            if (!phone) return;
+            if (filter && !filter(phone)) return;
+            const count = parseInt(phone.otherStoreCount, 10) || 0;
+            const hadStores = getEffectivePhoneStores(phone).length > 0;
+            if (!hadStores && count <= 0) return;
+            phone.stores = [];
+            phone.otherStores = [];
+            if (count <= 0) phone.otherStoreCount = 1;
+        });
+    } else {
+        hydratePhonesFromStoreDetailsCache(phones);
+    }
     const list = (phones || []).filter((p) => (!filter || filter(p)) && phoneNeedsStoreResolve(p));
     const unique = [...new Map(list.map((p) => [p.barcode, p])).values()];
     if (!unique.length) {
         onProgress?.(1, 1);
         persistPhoneStoreDetailsCache();
-        if (options.persistOtherStoreCache) saveOtherStoreCache(phones);
+        if (options.persistOtherStoreCache) {
+            saveOtherStoreCache(
+                options.pruneMissing ? pruneNetworkPhonesWithoutStores(phones) : phones
+            );
+        }
         return phones;
     }
 
@@ -3001,17 +3062,24 @@ async function resolvePhonesStoreDetails(phones, options = {}) {
         for (let i = 0; i < remaining.length; i += concurrency) {
             const batch = remaining.slice(i, i + concurrency);
             await Promise.all(batch.map(async (phone) => {
-                if (getEffectivePhoneStores(phone).length) {
+                if (!force && getEffectivePhoneStores(phone).length) {
                     done += 1;
                     onProgress?.(done, unique.length, { pass, pending: retry.length });
                     return;
                 }
                 try {
-                    const result = await fetchStorehouseDetails(phone.barcode, { attempt: pass });
+                    const result = await fetchStorehouseDetails(phone.barcode, {
+                        attempt: pass,
+                        force,
+                    });
                     if (result.stores.length) {
                         phone.stores = result.stores;
                         phone.otherStores = result.stores;
                     } else if (result.answered) {
+                        phone.stores = [];
+                        phone.otherStores = [];
+                        phone.otherStoreCount = 0;
+                        clearPhoneStoreDetailsCacheEntry(phone.barcode);
                         storeResolveAnsweredEmpty.add(phone.barcode);
                     } else {
                         retry.push(phone);
@@ -3032,7 +3100,10 @@ async function resolvePhonesStoreDetails(phones, options = {}) {
     }
 
     persistPhoneStoreDetailsCache();
-    if (options.persistOtherStoreCache) saveOtherStoreCache(phones);
+    if (options.persistOtherStoreCache) {
+        const toSave = options.pruneMissing ? pruneNetworkPhonesWithoutStores(phones) : phones;
+        saveOtherStoreCache(toSave);
+    }
     return phones;
 }
 
@@ -5319,6 +5390,8 @@ window.isPlausibleStorehouseName = isPlausibleStorehouseName;
 window.phoneNeedsStoreResolve = phoneNeedsStoreResolve;
 window.resolvePhonesStoreDetails = resolvePhonesStoreDetails;
 window.hydratePhonesFromStoreDetailsCache = hydratePhonesFromStoreDetailsCache;
+window.clearPhoneStoreDetailsCache = clearPhoneStoreDetailsCache;
+window.pruneNetworkPhonesWithoutStores = pruneNetworkPhonesWithoutStores;
 window.mergeOtherStoresFromAllPhones = mergeOtherStoresFromAllPhones;
 window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
 window.phoneCatalogT = t;

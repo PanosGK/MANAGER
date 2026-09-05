@@ -1433,11 +1433,12 @@
             }
         }
 
-        async function resolveNetworkStoreDetails(modelFilter = null, onProgress = null) {
+        async function resolveNetworkStoreDetails(modelFilter = null, onProgress = null, opts = {}) {
             if (storesResolving || typeof window.resolvePhonesStoreDetails !== 'function') return;
             mergeNetworkStoreHints();
             const networkPool = getNetworkPool();
-            if (typeof window.hydratePhonesFromStoreDetailsCache === 'function') {
+            const force = !!opts.force;
+            if (!force && typeof window.hydratePhonesFromStoreDetailsCache === 'function') {
                 window.hydratePhonesFromStoreDetailsCache(networkPool);
             }
             const phones = modelFilter
@@ -1446,7 +1447,7 @@
             const stillPending = typeof window.phoneNeedsStoreResolve === 'function'
                 ? window.phoneNeedsStoreResolve
                 : (p) => !helpers.getEffectivePhoneStores(p).length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
-            const needsResolve = phones.some(stillPending);
+            const needsResolve = force || phones.some(stillPending);
             if (!needsResolve) {
                 onProgress?.(1, 1);
                 return;
@@ -1456,16 +1457,25 @@
             try {
                 await window.resolvePhonesStoreDetails(networkPool, {
                     concurrency: 8,
+                    force,
+                    pruneMissing: force,
                     filter: modelFilter || undefined,
                     persistOtherStoreCache: catalogCategory !== 'laptops',
                     onProgress: (done, total, meta) => {
                         const pending = Number(meta?.pending) || Math.max(0, total - done);
                         const pass = Number(meta?.pass) || 1;
                         const extra = pending && pass > 1 ? ` · επανάληψη ${pass}` : '';
-                        setStatus(`Φόρτωση καταστημάτων ${done}/${total}${extra}…`);
+                        setStatus(`Επαλήθευση καταστημάτων ${done}/${total}${extra}…`);
                         onProgress?.(done, total);
                     },
                 });
+                if (force && typeof window.pruneNetworkPhonesWithoutStores === 'function') {
+                    if (catalogCategory === 'laptops') {
+                        otherStoreLaptops = window.pruneNetworkPhonesWithoutStores(otherStoreLaptops);
+                    } else {
+                        otherStorePhones = window.pruneNetworkPhonesWithoutStores(otherStorePhones);
+                    }
+                }
             } finally {
                 storesResolving = false;
             }
@@ -1733,7 +1743,11 @@
             const progress = createLoadProgressController();
             UI.setRefreshing(overlay, true);
             const bodyEmpty = !bodyEl.querySelector('.tm-sl-model-grid, .tm-sl-mine-board, .tm-sl-network-board');
-            if (bodyEmpty && !quiet) {
+            // Always clear the board on a full scrape so stale/ghost units cannot flash
+            // while store availability is still being live-checked.
+            if (!quiet) {
+                bodyEl.innerHTML = UI.buildSkeletonGrid(8);
+            } else if (bodyEmpty) {
                 bodyEl.innerHTML = UI.buildSkeletonGrid(8);
             }
 
@@ -1821,6 +1835,9 @@
                         otherStoreLoaded = false;
                         GM_setValue('tm_phone_other_store_cache_v3', null);
                         GM_setValue('tm_phone_other_store_cache_timestamp', 0);
+                        if (typeof window.clearPhoneStoreDetailsCache === 'function') {
+                            window.clearPhoneStoreDetailsCache();
+                        }
                     }
 
                     progress.startIndeterminate(
@@ -1852,11 +1869,26 @@
                         }
                     }, { force: true });
                     progress.finishPhase('otherStoresMs', progress.getPhaseElapsed());
-                    if (catalogView === 'network') {
-                        mergeNetworkStoreHints();
-                        if (typeof window.hydratePhonesFromStoreDetailsCache === 'function') {
-                            window.hydratePhonesFromStoreDetailsCache(getNetworkPool());
-                        }
+
+                    if (catalogCategory !== 'laptops') {
+                        const pendingEstimate = Math.max(
+                            8,
+                            (getNetworkPool() || []).filter((p) => (parseInt(p.otherStoreCount, 10) || 0) > 0
+                                || (helpers.getEffectivePhoneStores?.(p)?.length || 0) > 0).length
+                        );
+                        progress.startIndeterminate(
+                            'Επαλήθευση διαθεσιμότητας καταστημάτων…',
+                            (progress.stats.storeResolvePerItemMs || 180) * pendingEstimate
+                        );
+                        progress.beginPhaseClock();
+                        await resolveNetworkStoreDetails(null, (done, total) => {
+                            progress.updateDeterminate(
+                                'Επαλήθευση διαθεσιμότητας καταστημάτων…',
+                                done,
+                                total || 1
+                            );
+                        }, { force: true });
+                        progress.finishPhase('storeResolve', progress.getPhaseElapsed());
                     }
                 } else if (!isNetworkPoolLoaded()) {
                     await ensureOtherStores();
